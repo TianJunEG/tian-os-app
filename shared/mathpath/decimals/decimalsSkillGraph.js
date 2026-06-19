@@ -31,7 +31,7 @@ const decimalSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['dec/place-confuse', 'dec/longer-is-bigger'],
-    questionFamilies: ['QF_D001_001', 'QF_D001_002', 'QF_D001_003'],
+    questionFamilies: ['QF_D001_001', 'QF_D001_002', 'QF_D001_003', 'QF_D001_004'],
   },
   {
     id: 'D002',
@@ -48,7 +48,7 @@ const decimalSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['D001'],
     misconceptions: ['dec/nl-interval'],
-    questionFamilies: ['QF_D002_001', 'QF_D002_002'],
+    questionFamilies: ['QF_D002_001', 'QF_D002_002', 'QF_D002_003'],
   },
 
   // ── Comparing & ordering ──
@@ -67,7 +67,7 @@ const decimalSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['D001'],
     misconceptions: ['dec/longer-decimal'],
-    questionFamilies: ['QF_D003_001', 'QF_D003_002'],
+    questionFamilies: ['QF_D003_001', 'QF_D003_002', 'QF_D003_003'],
   },
   {
     id: 'D004',
@@ -84,7 +84,7 @@ const decimalSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['D003'],
     misconceptions: ['dec/align-right'],
-    questionFamilies: ['QF_D004_001', 'QF_D004_002'],
+    questionFamilies: ['QF_D004_001', 'QF_D004_002', 'QF_D004_003'],
   },
 
   // ── Rounding ──
@@ -103,7 +103,7 @@ const decimalSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['D001'],
     misconceptions: ['dec/truncate'],
-    questionFamilies: ['QF_D005_001', 'QF_D005_002'],
+    questionFamilies: ['QF_D005_001', 'QF_D005_002', 'QF_D005_003'],
   },
 
   // ── Operations ──
@@ -122,7 +122,7 @@ const decimalSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['D001'],
     misconceptions: ['dec/add-misalign'],
-    questionFamilies: ['QF_D006_001', 'QF_D006_002'],
+    questionFamilies: ['QF_D006_001', 'QF_D006_002', 'QF_D006_003'],
   },
   {
     id: 'D007',
@@ -139,7 +139,7 @@ const decimalSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['D001'],
     misconceptions: ['dec/move-wrong-way'],
-    questionFamilies: ['QF_D007_001', 'QF_D007_002'],
+    questionFamilies: ['QF_D007_001', 'QF_D007_002', 'QF_D007_003'],
   },
   {
     id: 'D008',
@@ -156,7 +156,7 @@ const decimalSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['D006'],
     misconceptions: ['dec/lost-point'],
-    questionFamilies: ['QF_D008_001', 'QF_D008_002'],
+    questionFamilies: ['QF_D008_001', 'QF_D008_002', 'QF_D008_003'],
   },
   {
     id: 'D009',
@@ -173,7 +173,7 @@ const decimalSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['D008'],
     misconceptions: ['dec/wrong-place-count'],
-    questionFamilies: ['QF_D009_001', 'QF_D009_002'],
+    questionFamilies: ['QF_D009_001', 'QF_D009_002', 'QF_D009_003'],
   },
   {
     id: 'D010',
@@ -190,7 +190,7 @@ const decimalSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['D008'],
     misconceptions: ['dec/quotient-point'],
-    questionFamilies: ['QF_D010_001', 'QF_D010_002'],
+    questionFamilies: ['QF_D010_001', 'QF_D010_002', 'QF_D010_003'],
   },
   {
     id: 'D011',
@@ -207,7 +207,7 @@ const decimalSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['D010', 'D007'],
     misconceptions: ['dec/no-scale-divisor'],
-    questionFamilies: ['QF_D011_001', 'QF_D011_002'],
+    questionFamilies: ['QF_D011_001', 'QF_D011_002', 'QF_D011_003'],
   },
 
   // ── Decimal ⇄ fraction conversion (bridge to Fractions & Percentage) ──
@@ -226,7 +226,7 @@ const decimalSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['D001'],
     misconceptions: ['dec/wrong-denominator'],
-    questionFamilies: ['QF_D012_001', 'QF_D012_002'],
+    questionFamilies: ['QF_D012_001', 'QF_D012_002', 'QF_D012_003'],
   },
   {
     id: 'D013',
@@ -243,7 +243,7 @@ const decimalSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['D001'],
     misconceptions: ['dec/divide-reversed'],
-    questionFamilies: ['QF_D013_001', 'QF_D013_002'],
+    questionFamilies: ['QF_D013_001', 'QF_D013_002', 'QF_D013_003'],
   },
 
   // ── Measurement conversions (bridge to Measurement) ──
@@ -262,7 +262,7 @@ const decimalSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['D007'],
     misconceptions: ['dec/convert-direction'],
-    questionFamilies: ['QF_D014_001', 'QF_D014_002'],
+    questionFamilies: ['QF_D014_001', 'QF_D014_002', 'QF_D014_003'],
   },
 ];
 

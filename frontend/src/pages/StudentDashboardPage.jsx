@@ -33,14 +33,14 @@ export default function StudentDashboardPage() {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-gold-600">Progress intelligence</div>
+            <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-gold-deep">Progress intelligence</div>
             <h1 className="text-3xl font-serif font-medium text-emerald-deep leading-tight">My Learning</h1>
             <p className="text-gray-500 text-sm">Your progress across every app, {user?.name?.split(' ')[0]}.</p>
           </div>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-8 pb-24 md:pb-8">
         {loading && <div className="text-center text-gray-500 py-16">Loading your profile…</div>}
         {!loading && error && <div className="bg-red-50 text-red-700 rounded-xl p-4 text-sm">{error}</div>}
 

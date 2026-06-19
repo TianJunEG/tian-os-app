@@ -44,7 +44,7 @@ export default function StepFeedbackCard({ correct, partial, feedback, misconcep
           </div>
           {misconception.tip && (
             <div className="flex items-start gap-2">
-              <Lightbulb className="h-3.5 w-3.5 mt-0.5 shrink-0 text-gold-500" />
+              <Lightbulb className="h-3.5 w-3.5 mt-0.5 shrink-0 text-gold" />
               <p className="text-xs font-medium text-ink-600 leading-relaxed">{misconception.tip}</p>
             </div>
           )}
@@ -75,7 +75,7 @@ export default function StepFeedbackCard({ correct, partial, feedback, misconcep
         <button
           type="button"
           onClick={onContinue}
-          className="w-full rounded-xl bg-gold-400 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-gold-500"
+          className="w-full btn-gold rounded-xl px-4 py-2.5 text-sm font-semibold"
         >
           Continue
         </button>

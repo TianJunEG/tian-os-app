@@ -6,6 +6,7 @@ import {
   selectNextDecimalPracticeTarget,
 } from '../../shared/mathpath/decimals/decimalsPracticeEngine.js';
 import { getSkill } from '../../shared/mathpath/decimals/decimalsSkillGraph.js';
+import { copyWorkingEvidenceFields } from './workingEvidenceFields.js';
 
 // Pure server-side Decimals practice service. No DB / Express here — the route
 // layer persists what these functions return. Keeping the build + grade logic
@@ -39,7 +40,7 @@ export function buildDecimalsPracticeSession({
     throw err;
   }
 
-  const raw = generateDecimalQuestionSet({ skillId, count: questionCount, mode });
+  const raw = generateDecimalQuestionSet({ skillId, count: questionCount, mode, sessionSalt: Date.now().toString() });
   const questions = raw.map((q, index) => ({
     questionId: `${q.questionFamilyId}_${index}`,
     skillId: q.skillId,
@@ -90,6 +91,7 @@ export function scoreDecimalsSubmission({ questions = [], responses = [] } = {})
         misconceptionTag: verdict.correct ? '' : (question.misconceptionTag || ''),
         confidence: r.confidence || '',
         timeTaken: Number(r.timeTaken || 0),
+        ...copyWorkingEvidenceFields(r),
       };
     });
 

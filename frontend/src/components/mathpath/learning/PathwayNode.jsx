@@ -23,7 +23,7 @@ export default function PathwayNode({
   const isCompleted = statusKey === 'completed';
 
   return (
-    <Card className={`${compact ? 'p-3.5' : 'p-4'} ${isCurrent ? 'ring-2 ring-gold-300/70' : ''} ${isLocked ? 'opacity-75' : ''}`}>
+    <Card className={`${compact ? 'p-3.5' : 'p-4'} ${isCurrent ? 'ring-2 ring-gold-border/70' : ''} ${isLocked ? 'opacity-75' : ''}`}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className={`${compact ? 'text-sm' : 'text-base'} font-semibold text-ink-800`}>{node?.title}</p>

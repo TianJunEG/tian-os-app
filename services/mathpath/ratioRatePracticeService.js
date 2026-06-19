@@ -3,6 +3,7 @@ import {
   checkRatioRateAnswer,
 } from '../../shared/mathpath/ratioRate/ratioRateQuestionGenerator.js';
 import { ratioRateSkillGraph, getSkill } from '../../shared/mathpath/ratioRate/ratioRateSkillGraph.js';
+import { copyWorkingEvidenceFields } from './workingEvidenceFields.js';
 
 // Pure server-side Ratio & Rate practice service. No DB / Express here — the
 // route layer persists what these functions return. Mirrors percentagePracticeService.js
@@ -50,7 +51,7 @@ export function buildRatioRatePracticeSession({
     throw err;
   }
 
-  const raw = generateRatioRateQuestionSet({ skillId, count: questionCount, mode });
+  const raw = generateRatioRateQuestionSet({ skillId, count: questionCount, mode, sessionSalt: Date.now().toString() });
   const questions = raw.map((q, index) => ({
     questionId: `${q.questionFamilyId}_${index}`,
     skillId: q.skillId,
@@ -99,6 +100,7 @@ export function scoreRatioRateSubmission({ questions = [], responses = [] } = {}
         misconceptionTag: verdict.correct ? '' : (question.misconceptionTag || ''),
         confidence: r.confidence || '',
         timeTaken: Number(r.timeTaken || 0),
+        ...copyWorkingEvidenceFields(r),
       };
     });
 

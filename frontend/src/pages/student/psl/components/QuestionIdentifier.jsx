@@ -19,8 +19,8 @@ export default function QuestionIdentifier({ choices = DEFAULT_CHOICES, selected
             onClick={() => onSelect(i)}
             className={`min-h-[44px] rounded-xl border px-3 py-3 text-center text-sm transition-colors ${
               selectedIndex === i
-                ? 'border-gold-400 bg-gold-50 font-semibold text-gold-700'
-                : 'border-ink-200 bg-white text-ink-600 hover:border-gold-300 hover:bg-gold-50/30'
+                ? 'border-gold bg-gold-tint2 font-semibold text-gold-deep'
+                : 'border-ink-200 bg-white text-ink-600 hover:border-gold-border hover:bg-gold-tint2/30'
             }`}
           >
             {choice}

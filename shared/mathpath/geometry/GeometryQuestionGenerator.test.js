@@ -79,6 +79,51 @@ describe('GeometryQuestionGenerator', () => {
     }
   });
 
+  it('word-problem families (_003) cycle in at every 3rd position', () => {
+    // GE001W: shaped like a polygon — same "How many sides" phrase, no diagram
+    const ge1 = generateGeometryQuestionSet({ skillId: 'GE001', count: 9 });
+    for (const i of [2, 5, 8]) {
+      expect(ge1[i].diagram).toBeUndefined();
+      expect(ge1[i].prompt).toMatch(/shaped like/);
+      expect(Number(dig(ge1[i].answer.display))).toBeGreaterThan(0);
+    }
+    // GE006W: angles on line/point still carry required phrases
+    const ge6 = generateGeometryQuestionSet({ skillId: 'GE006', count: 9 });
+    for (const i of [2, 5, 8]) {
+      expect(ge6[i].prompt).toMatch(/add up to (180|360)°/);
+      expect(Number(dig(ge6[i].answer.display))).toBeGreaterThan(0);
+    }
+    // GE008W: third angle of a triangle
+    const ge8 = generateGeometryQuestionSet({ skillId: 'GE008', count: 9 });
+    for (const i of [2, 5, 8]) {
+      expect(ge8[i].prompt).toMatch(/angles of a triangle are/);
+      const c = Number(dig(ge8[i].answer.display));
+      expect(c).toBeGreaterThan(0);
+      expect(c).toBeLessThan(180);
+    }
+    // GE017W: perimeter with real object
+    const ge17 = generateGeometryQuestionSet({ skillId: 'GE017', count: 9 });
+    for (const i of [2, 5, 8]) {
+      expect(ge17[i].prompt).toMatch(/sides of \d+ cm/);
+      expect(Number(dig(ge17[i].answer.display))).toBeGreaterThan(0);
+    }
+    // GE020W: circumference of a circle with radius
+    const ge20 = generateGeometryQuestionSet({ skillId: 'GE020', count: 9 });
+    for (const i of [2, 5, 8]) {
+      expect(ge20[i].prompt).toMatch(/circumference of a circle with radius/);
+      expect(Number(dig(ge20[i].answer.display))).toBeGreaterThan(0);
+    }
+    // All 22 _003 positions produce non-empty, non-stub answers
+    for (const skillId of SKILL_IDS) {
+      const qs = generateGeometryQuestionSet({ skillId, count: 9 });
+      for (const i of [2, 5, 8]) {
+        expect(qs[i].prompt).not.toMatch(/Compute:/);
+        expect(qs[i].solutionSteps.length).toBeGreaterThanOrEqual(1);
+        expect(String(qs[i].answer.display).length).toBeGreaterThan(0);
+      }
+    }
+  });
+
   it('checker handles words and units, and rejects wrong answers', () => {
     const mk = (display) => ({ answer: { display } });
     expect(checkGeometryAnswer({ question: mk('acute'), studentResponse: 'acute angle' }).correct).toBe(true);

@@ -161,12 +161,26 @@ export default function P5LearningPathPage() {
 
   useEffect(() => { fetchSkillStates(); }, [fetchSkillStates]);
 
+  const DOMAIN_PRACTICE_ROUTES = {
+    wholenumbers: '/student/mathpath/operations/practice',
+    fractions:    '/student/mathpath/practice/recommended-pathway',
+    decimals:     '/student/mathpath/decimals/practice',
+    percentage:   '/student/mathpath/percentages/practice',
+    ratio:        '/student/mathpath/ratio-rate/practice',
+    geometry:     '/student/mathpath/geometry/practice',
+    areavol:      '/student/mathpath/area-perimeter/practice',
+    statistics:   '/student/mathpath/statistics/practice',
+    wordprob:     '/student/psl',
+  };
+
   const handleStartPractice = (skillId) => {
-    navigate(`/student/mathpath/practice?level=P5&skillId=${skillId}`);
+    const group = DOMAIN_GROUPS.find((g) => g.skills.some((s) => s.id === skillId));
+    const route = (group && DOMAIN_PRACTICE_ROUTES[group.key]) || '/student/mathpath';
+    navigate(route);
   };
 
   const handleDiagnostic = () => {
-    navigate('/student/mathpath/practice?level=P5&mode=diagnostic');
+    navigate('/student/mathpath');
   };
 
   const totalSkills = DOMAIN_GROUPS.reduce((sum, g) => sum + g.skills.length, 0);

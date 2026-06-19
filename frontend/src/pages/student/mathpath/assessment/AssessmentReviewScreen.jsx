@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRight, AlertTriangle } from 'lucide-react';
 import { Card, Button, PageHeader, ErrorState } from '../../../../components/ui';
+import { assessmentSpecificationAPI } from '../../../../services/api';
 import { checkFractionAnswer } from '../../../../mathpath/fractions/fractionQuestionGenerator';
 import { repairFractionQuestions } from '../../../../mathpath/fractions/fractionQuestionRepair';
 import {
@@ -70,7 +71,7 @@ export default function AssessmentReviewScreen() {
     [questions]
   );
 
-  const submit = () => {
+  const submit = async () => {
     if (unanswered > 0 || missingConfidence > 0 || incompleteEvidence > 0) {
       setError('Complete every answer, confidence choice, and working evidence declaration before submitting.');
       return;
@@ -121,6 +122,21 @@ export default function AssessmentReviewScreen() {
           correctAnswer: q.answer?.display || '',
         };
       });
+      // Persist the submission to the backend for spec-generated papers so the
+      // server marks it, updates mastery, and emits error-diagnosis mistakes.
+      // Best-effort: client-side scoring below still drives the results screen.
+      if (location.state?.specificationId && session.assessmentSessionId) {
+        try {
+          await assessmentSpecificationAPI.submitSession(session.assessmentSessionId, {
+            responses: responses.map((r) => ({
+              questionId: r.questionId,
+              answer: r.studentAnswer,
+              timeTaken: r.timeTaken,
+            })),
+          });
+        } catch { /* persistence is best-effort; don't block the student's results */ }
+      }
+
       const scored = scoreFractionAssessmentSubmission({
         assessmentSessionId: session.assessmentSessionId,
         responses,
@@ -221,7 +237,7 @@ export default function AssessmentReviewScreen() {
           <div className="rounded-lg bg-surface-raised px-3 py-2"><p className="text-xs text-ink-500">Time Used</p><p className="font-mono text-lg">{Math.floor(totalTimeSeconds / 60)}:{String(totalTimeSeconds % 60).padStart(2, '0')}</p></div>
         </div>
         {(unanswered > 0 || missingConfidence > 0 || incompleteEvidence > 0) && (
-          <div className="mt-4 flex items-start gap-2 rounded-lg border border-gold-300 bg-gold-100 p-3 text-sm text-gold-900">
+          <div className="mt-4 flex items-start gap-2 rounded-lg border border-gold-border bg-gold-tint p-3 text-sm text-gold-deep">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <p>Complete every answer, confidence choice, and working evidence declaration before submitting.</p>
           </div>
@@ -231,7 +247,7 @@ export default function AssessmentReviewScreen() {
             <div key={q.questionId} className="flex items-center justify-between gap-2 text-sm">
               <p className="truncate text-ink-700">Q{i + 1} · {getSkill(q.skillId)?.name || 'Skill'}</p>
               <div className="flex items-center gap-2">
-                {flagged[q.questionId] && <span className="rounded-full bg-gold-100 px-2 py-0.5 text-xs text-gold-900">Flagged</span>}
+                {flagged[q.questionId] && <span className="rounded-full bg-gold-tint px-2 py-0.5 text-xs text-gold-deep">Flagged</span>}
                 <span className={`rounded-full px-2 py-0.5 text-xs ${answers[q.questionId] ? 'bg-success-100 text-success-700' : 'bg-error-100 text-error-700'}`}>
                   {answers[q.questionId] ? 'Answered' : 'Unanswered'}
                 </span>

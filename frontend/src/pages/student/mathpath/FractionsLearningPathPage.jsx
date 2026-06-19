@@ -132,7 +132,7 @@ function SkillNodeCard({
   const levelTag = skill.levelBand?.length ? skill.levelBand.join('/') : (skill.moeLevel || '');
   const prerequisiteName = missingPrerequisiteNames[0] || '';
   return (
-    <Card className={`p-4 ${isCurrent ? 'ring-2 ring-gold-400/60' : ''} ${isLocked ? 'bg-surface-white/80 opacity-75' : ''}`}>
+    <Card className={`p-4 ${isCurrent ? 'ring-2 ring-gold/60' : ''} ${isLocked ? 'bg-surface-white/80 opacity-75' : ''}`}>
       <div className="flex min-h-[3.25rem] items-start justify-between gap-3">
         <p className="text-base font-semibold leading-snug text-ink-800">{skill.displayName || skill.name}</p>
         <span className="shrink-0">
@@ -189,11 +189,11 @@ function NextActionPanel({ nextAction, onPrimary, assessmentReady }) {
     <Card className="p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gold-100 text-gold-700">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gold-tint text-gold-deep">
             <Target className="h-5 w-5" />
           </span>
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Next Action</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-deep">Next Action</p>
             <p className="truncate text-sm font-semibold text-ink-700">{cta.disabled ? ASSESSMENT_LOCK_MESSAGE : nextAction?.explanation || 'Continue your recommended Fractions step.'}</p>
           </div>
         </div>
@@ -397,7 +397,7 @@ export default function FractionsLearningPathPage() {
       {studentProgress.retentionProgress?.skillsDueForReview?.length ? (
         <Card className="p-3">
           <div className="flex items-center gap-2">
-            <RotateCcw className="h-4 w-4 text-gold-700" />
+            <RotateCcw className="h-4 w-4 text-gold-deep" />
             <p className="text-sm text-ink-700">
               {studentProgress.retentionProgress.skillsDueForReview.length} review
               {studentProgress.retentionProgress.skillsDueForReview.length === 1 ? '' : 's'} due.

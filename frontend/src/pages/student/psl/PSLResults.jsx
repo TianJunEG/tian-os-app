@@ -167,6 +167,7 @@ export default function PSLResults() {
   const visualStyles = getVisualModeStyles(resolveStudentVisualMode(user || {}));
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [restarting, setRestarting] = useState(false);
 
   const celebratedRef = React.useRef(false);
   useEffect(() => {
@@ -315,11 +316,19 @@ export default function PSLResults() {
             Back to Skills
           </button>
           <button
-            onClick={() => navigate(`/student/psl/skill/${data.skillId}`)}
-            className="btn-gold w-full sm:w-auto"
+            disabled={restarting}
+            onClick={async () => {
+              if (restarting) return;
+              setRestarting(true);
+              try {
+                const res = await pslAPI.startSession({ skillId: data.skillId, problemCount: 5 });
+                navigate(`/student/psl/session/${res.data.sessionId}`);
+              } catch { setRestarting(false); }
+            }}
+            className="btn-gold w-full sm:w-auto disabled:opacity-60"
           >
             <RotateCcw className="h-4 w-4" />
-            Practice Again
+            {restarting ? 'Starting…' : 'Practice Again'}
           </button>
         </div>
 

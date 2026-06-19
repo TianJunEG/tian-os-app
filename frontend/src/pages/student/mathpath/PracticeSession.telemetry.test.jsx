@@ -4,10 +4,25 @@ import {
   buildGeneratedFractionMistakePayloads,
   buildPracticeTelemetryEvents,
   filterDisplayablePracticeQuestions,
+  resolveWorkingSessionStudentId,
   validatePracticeQuestionForDisplay,
 } from './PracticeSession';
 
 describe('PracticeSession telemetry', () => {
+  it('uses the canonical session student id for working sessions', () => {
+    expect(resolveWorkingSessionStudentId({
+      flowSession: { studentId: 'student-doc-1' },
+      fallbackStudentId: 'user-doc-1',
+    })).toBe('student-doc-1');
+  });
+
+  it('falls back to authenticated id only when the session has no student id', () => {
+    expect(resolveWorkingSessionStudentId({
+      flowSession: {},
+      fallbackStudentId: 'user-doc-1',
+    })).toBe('user-doc-1');
+  });
+
   it('builds answered and confidence-selected events from practice results', () => {
     const events = buildPracticeTelemetryEvents({
       studentId: 'student-1',

@@ -49,9 +49,9 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2.5">
-              <span className="w-8 h-8 rounded-lg bg-emerald-deep grid place-items-center text-gold-400 font-extrabold">E</span>
+              <span className="w-8 h-8 rounded-lg bg-emerald-deep grid place-items-center text-gold font-extrabold">E</span>
               <div>
-                <h1 className="text-xl font-extrabold text-emerald-deep tracking-tight leading-none">Tian<span className="text-gold-500">OS</span></h1>
+                <h1 className="text-xl font-extrabold text-emerald-deep tracking-tight leading-none">Tian<span className="text-gold">OS</span></h1>
                 <p className="text-gray-500 text-sm">Welcome, {user?.name}</p>
               </div>
             </div>
@@ -134,7 +134,7 @@ export default function DashboardPage() {
             onClick={() => navigate('/worksheets')}
             className="p-6 bg-white rounded-2xl border border-emerald-tint shadow-sm hover:shadow-md transition text-left"
           >
-            <FileText className="w-8 h-8 text-gold-500 mb-2" />
+            <FileText className="w-8 h-8 text-gold mb-2" />
             <h3 className="font-semibold text-gray-900">Worksheet Generator</h3>
             <p className="text-sm text-gray-600">Targeted mastery from marked mistakes</p>
           </button>
@@ -163,7 +163,7 @@ export default function DashboardPage() {
             rel="noopener"
             className="block p-6 bg-white rounded-2xl border border-emerald-tint shadow-sm hover:shadow-md transition text-left"
           >
-            <FlaskConical className="w-8 h-8 text-gold-500 mb-2" />
+            <FlaskConical className="w-8 h-8 text-gold mb-2" />
             <h3 className="font-semibold text-gray-900">Science Lab</h3>
             <p className="text-sm text-gray-600">Interactive revision & concept maps</p>
           </a>

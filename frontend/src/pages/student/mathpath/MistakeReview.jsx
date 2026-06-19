@@ -31,14 +31,21 @@ function hasCompleteReviewData(mistake = {}) {
 
 function WorkingReviewCard({ mistake }) {
   const insight = mistake.workingInsight || mistake.workingAnalysisResult || null;
-  const hasWorking = Boolean(mistake.workingId || mistake.workingPreviewImage || mistake.extractedWorkingText);
+  const previewImage = mistake.workingPreviewImage || mistake.workingImage || '';
+  const hasWorking = Boolean(
+    mistake.workingSubmitted
+    || mistake.fullscreenWorkingSubmitted
+    || mistake.workingId
+    || previewImage
+    || mistake.extractedWorkingText
+  );
   if (!insight && !hasWorking) return null;
   const steps = Array.isArray(insight?.detectedSteps) ? insight.detectedSteps.filter((step) => step?.text).slice(0, 3) : [];
   return (
     <section className="rounded-3xl bg-sky-50 p-4">
       <p className="text-xs font-semibold uppercase tracking-[0.08em] text-emerald">Working Review</p>
-      {mistake.workingPreviewImage && (
-        <img src={mistake.workingPreviewImage} alt="Submitted working" className="mt-3 max-h-44 w-full rounded-2xl object-contain bg-white" />
+      {previewImage && (
+        <img src={previewImage} alt="Submitted working" className="mt-3 max-h-44 w-full rounded-2xl object-contain bg-white" />
       )}
       {!insight && hasWorking && (
         <p className="mt-3 rounded-2xl bg-white p-3 text-sm text-ink-700">Working saved. Analysis is still being prepared.</p>
@@ -127,7 +134,7 @@ export default function MistakeReview() {
 
   return (
     <>
-      <PageHeader title="Mistake to mastery" subtitle="Review recent slips, then practise to fix them." />
+      <PageHeader title="Mistake to mastery" subtitle="Review recent slips, then practise to fix them." action={<Button variant="secondary" size="s" onClick={() => navigate('/student/mathpath/mistakes')}>← Back</Button>} />
       {mistakes.length === 0 ? (
         <EmptyState
           icon={PartyPopper}
@@ -174,7 +181,7 @@ export default function MistakeReview() {
                     <span className="text-base font-semibold text-emerald-deep">{m.skillName || m.skillCode || 'MathPath'}</span>
                     <Badge tone="gold">Preparing review</Badge>
                   </div>
-                  <p className="rounded-2xl bg-gold-100 p-3 text-sm text-gold-800">
+                  <p className="rounded-2xl bg-gold-tint p-3 text-sm text-gold-deep">
                     This review item is still being prepared. Complete question details are not available yet.
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -224,7 +231,7 @@ export default function MistakeReview() {
                 <Button variant="secondary" size="s" icon={ArrowRight} onClick={() => setOpenHelp(openHelp === m.id ? null : m.id)}>
                   {openHelp === m.id ? 'Hide Try Together' : 'Try Together'}
                 </Button>
-                <Button variant="secondary" size="s" onClick={() => practiseSimilar(m.skillId)} disabled={starting}>Try Again</Button>
+                <Button variant="secondary" size="s" onClick={() => practiseSimilar(m.skillCode || m.skillId)} disabled={starting}>Try Again</Button>
                 {(() => {
                   const modelTrainer = getModelDrawingTrainerForMistake({
                     mistakeCode: m.misconceptionTag,
@@ -245,13 +252,13 @@ export default function MistakeReview() {
               </div>
               {openHelp === m.id && (
                 <RemediationPanel
-                  skillId={m.skillId}
+                  skillId={m.skillCode || m.skillId}
                   recentAttempts={[{
                     correct: false,
                     misconceptionTag: m.misconceptionTag,
                     workingAnalysisResult: m.workingInsight || m.workingAnalysisResult || null,
                   }]}
-                  onPractise={() => practiseSimilar(m.skillId)}
+                  onPractise={() => practiseSimilar(m.skillCode || m.skillId)}
                 />
               )}
               </>

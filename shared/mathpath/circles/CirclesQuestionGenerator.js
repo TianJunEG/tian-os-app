@@ -139,6 +139,62 @@ const BUILDERS = {
       steps: [`Area of the whole circle = π × r × r = ${round2(pi * r * r)} cm².`, `Take ${quarter ? '¼' : '½'} of it = ${ans} cm².`],
       distractors: [round2(pi * r * r), quarter ? round2(pi * r * r / 2) : round2(pi * r * r / 4), round2(2 * pi * r)], diagram: { kind: 'circle-part', part: fraction, radius: r } };
   },
+  // ── Word-problem families (_003): real-world context, no diagram ──────────────
+  'CI001W': (rng) => {
+    const r = pick(rng, [3, 4, 5, 6, 7, 8, 10, 12]);
+    const toDiameter = rng() < 0.5;
+    const obj = pick(rng, ['coin', 'mirror', 'wheel', 'pizza base']);
+    if (toDiameter) {
+      return { prompt: `A circular ${obj} has a radius of ${r} cm. What is its diameter?`, value: 2 * r, unit: 'cm', tag: 'cir/radius-diameter',
+        steps: ['Diameter = 2 × radius.', `2 × ${r} = ${2 * r} cm.`], distractors: [r, 4 * r, r / 2] };
+    }
+    return { prompt: `A circular ${obj} has a diameter of ${2 * r} cm. What is its radius?`, value: r, unit: 'cm', tag: 'cir/radius-diameter',
+      steps: ['Radius = diameter ÷ 2.', `${2 * r} ÷ 2 = ${r} cm.`], distractors: [2 * r, 4 * r, r + 1] };
+  },
+  'CI002W': (rng) => {
+    const { r, pi, piStr } = radiusAndPi(rng);
+    const ans = round2(2 * pi * r);
+    const note = piStr === '3.14';
+    const obj = pick(rng, ['bicycle wheel', 'circular pool rim', 'wheel', 'garden ring']);
+    return { prompt: `A ${obj} has radius ${r} cm. Find the circumference of a circle with this radius. (Use π = ${piStr}.)${round(note)}`,
+      value: ans, unit: 'cm', tag: 'cir/radius-diameter',
+      steps: [`Circumference = 2 × π × r.`, `= 2 × ${piStr} × ${r} = ${ans} cm.`],
+      distractors: [round2(pi * r * r), round2(pi * r), round2(2 * pi * (2 * r))] };
+  },
+  'CI003W': (rng) => {
+    const { r, pi, piStr } = radiusAndPi(rng);
+    const ans = round2(pi * r * r);
+    const note = piStr === '3.14';
+    const obj = pick(rng, ['circular flowerbed', 'round pond', 'circular rug', 'round stage']);
+    return { prompt: `A ${obj} has radius ${r} cm. Find the area of a circle with this radius. (Use π = ${piStr}.)${round(note)}`,
+      value: ans, unit: 'cm²', tag: 'cir/area-uses-diameter',
+      steps: [`Area = π × r × r.`, `= ${piStr} × ${r} × ${r} = ${ans} cm².`],
+      distractors: [round2(2 * pi * r), round2(pi * (2 * r) * (2 * r)), r * r] };
+  },
+  'CI004W': (rng) => {
+    const { r, pi, piStr } = radiusAndPi(rng);
+    const quarter = rng() < 0.5;
+    const wantPerimeter = rng() < 0.5;
+    const note = piStr === '3.14';
+    const fraction = quarter ? 'quarter-circle' : 'semicircle';
+    const obj = quarter
+      ? pick(rng, ['fan', 'pie slice', 'quarter-circle garden bed'])
+      : pick(rng, ['semicircular window', 'half-moon rug', 'dome base']);
+    if (wantPerimeter) {
+      const arc = quarter ? round2(2 * pi * r / 4) : round2(2 * pi * r / 2);
+      const straight = 2 * r;
+      const ans = round2(arc + straight);
+      return { prompt: `A ${obj} is a ${fraction} with radius ${r} cm. Find the perimeter of a ${fraction} with this radius. Include the straight edge${quarter ? 's' : ''}. (Use π = ${piStr}.)${round(note)}`,
+        value: ans, unit: 'cm', tag: 'cir/perimeter-arc-only',
+        steps: [`Curved part = ${quarter ? '¼' : '½'} of the circumference = ${arc} cm.`, `Straight edge${quarter ? 's = 2 × radius' : ' = diameter'} = ${straight} cm.`, `Perimeter = ${arc} + ${straight} = ${ans} cm.`],
+        distractors: [arc, round2(2 * pi * r), round2((quarter ? pi * r * r / 4 : pi * r * r / 2))] };
+    }
+    const ans = quarter ? round2(pi * r * r / 4) : round2(pi * r * r / 2);
+    return { prompt: `A ${obj} is a ${fraction} with radius ${r} cm. Find the area of a ${fraction} with this radius. (Use π = ${piStr}.)${round(note)}`,
+      value: ans, unit: 'cm²', tag: 'cir/half-wrong',
+      steps: [`Area of the whole circle = π × r × r = ${round2(pi * r * r)} cm².`, `Take ${quarter ? '¼' : '½'} of it = ${ans} cm².`],
+      distractors: [round2(pi * r * r), quarter ? round2(pi * r * r / 2) : round2(pi * r * r / 4), round2(2 * pi * r)] };
+  },
 };
 
 function runBuilder(skillId, rng, variant) {
@@ -172,18 +228,33 @@ const GENERATORS = {
   cirCircumference: makePractice(CI(2)), cirCircumferenceWord: makeMCQ(CI(2)),
   cirArea: makePractice(CI(3)), cirAreaWord: makeMCQ(CI(3)),
   cirSemiQuarter: makePractice(CI(4)), cirSemiQuarterWord: makeMCQ(CI(4)),
+  cirPartsWord: makePractice('CI001W'),
+  cirCircumferenceContext: makePractice('CI002W'),
+  cirAreaContext: makePractice('CI003W'),
+  cirSemiQuarterContext: makePractice('CI004W'),
 };
 
-export function generateCirclesQuestionSet({ skillId, count = 6, mode = 'practice' }) {
+export function generateCirclesQuestionSet({ skillId, count = 6, mode = 'practice', sessionSalt = '' }) {
   const families = getQuestionFamiliesBySkill(skillId);
   if (!families.length) return [];
   const questions = [];
+  const seenPrompts = new Set();
   let variant = 0;
-  for (let i = 0; i < count; i++) {
-    const family = families[i % families.length];
-    const rng = makeRng(`${skillId}-${family.id}-${variant}`);
+  let fi = 0;
+  const maxAttempts = count * 5;
+  while (questions.length < count && variant < maxAttempts) {
+    const family = families[fi % families.length];
+    const rng = makeRng(`${skillId}-${family.id}-${variant}-${sessionSalt}`);
     const gen = GENERATORS[family.generatorKind];
-    if (gen) questions.push(gen(family, rng, variant));
+    if (gen) {
+      const q = gen(family, rng, variant);
+      const dedupKey = q.prompt + '|||' + (q.answer?.display ?? q.answer);
+      if (!seenPrompts.has(dedupKey) || variant >= count * 3) {
+        seenPrompts.add(dedupKey);
+        questions.push(q);
+        fi++;
+      }
+    }
     variant++;
   }
   return questions;

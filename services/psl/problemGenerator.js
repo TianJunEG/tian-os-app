@@ -451,6 +451,21 @@ export async function generateProblem(skillId, options = {}) {
     }
   }
 
+  // Derive {part} and {total} for fraction templates (e.g. P5 bar-model fraction questions)
+  if (vars.fracNum !== undefined && vars.fracDen !== undefined
+      && vars.groups !== undefined && vars.perGroup !== undefined) {
+    const fracNum = Number(vars.fracNum);
+    const fracDen = Number(vars.fracDen);
+    vars.groups = fracDen;
+    vars.total = fracDen * vars.perGroup;
+    vars.part = fracNum * vars.perGroup;
+    if (template.unknownPosition === 'whole') {
+      vars.answer = vars.total;
+    } else if (template.unknownPosition === 'part') {
+      vars.answer = vars.part;
+    }
+  }
+
   const storyText = substituteTokens(template.storyTemplate, vars);
   const solutionText = substituteTokens(template.solutionTemplate || '', vars);
   const correctAnswer = computeAnswer(template.scaffold, vars);

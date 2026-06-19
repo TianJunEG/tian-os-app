@@ -32,6 +32,7 @@ export default function MathPathHome() {
   const visualStyles = getVisualModeStyles(visualMode);
   const studentId = user?._id || user?.id || user?.email || '';
   const [mastery, setMastery] = useState(null);
+  const [skillGraph, setSkillGraph] = useState(null);
   const [topics, setTopics] = useState([]);
   const [domainProgress, setDomainProgress] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -61,11 +62,12 @@ export default function MathPathHome() {
   useEffect(() => {
     (async () => {
       try {
-        const [masteryRes, mapRes, latestRes, mistakesRes] = await Promise.allSettled([
+        const [masteryRes, mapRes, latestRes, mistakesRes, graphRes] = await Promise.allSettled([
           mathpathAPI.mastery(),
           mathpathAPI.map(),
           mathpathAPI.getLatestDiagnostic(),
           mathpathAPI.mistakes({ status: 'all' }),
+          mathpathAPI.graph(),
         ]);
 
         if (masteryRes.status !== 'fulfilled' || mapRes.status !== 'fulfilled' || latestRes.status !== 'fulfilled') {
@@ -88,6 +90,7 @@ export default function MathPathHome() {
         });
 
         setMastery(masteryData);
+        if (graphRes.status === 'fulfilled') setSkillGraph(graphRes.value?.data || null);
         setTopics(mapData.topics || []);
         setLatestPlacement(latestData || null);
         setDomainProgress(derivedState);
@@ -232,7 +235,8 @@ export default function MathPathHome() {
   const mastered = records.filter((r) => r.status === 'mastered');
   const learning = records.filter((r) => r.status === 'learning');
   const totalFractionsSkills = fractionSkillGraph.skillIds?.length || 26;
-  const courseMasteredCount = Math.min(mastered.length, totalFractionsSkills);
+  const graphMastered = skillGraph?.summary?.mastered ?? null;
+  const courseMasteredCount = Math.min(graphMastered !== null ? Math.max(mastered.length, graphMastered) : mastered.length, totalFractionsSkills);
   const courseProgressPct = totalFractionsSkills
     ? Math.round((courseMasteredCount / totalFractionsSkills) * 100)
     : 0;
@@ -354,7 +358,7 @@ export default function MathPathHome() {
 
   return (
     <>
-      <div className={`${visualStyles.page} space-y-4 sm:space-y-6`}>
+      <div className={`${visualStyles.page} space-y-4 overflow-x-hidden sm:space-y-6`}>
       <div>
         <p className={`text-sm font-semibold ${visualStyles.accent}`}>{welcomeTitle}</p>
         <h1 className="font-display text-2xl sm:text-3xl font-semibold text-ink-900">MathPath</h1>
@@ -418,9 +422,9 @@ export default function MathPathHome() {
           </div>
         )}
         {hasPlacement && domainProgress?.needsRecheck && (
-          <div className="mt-4 rounded-xl border border-gold-300 bg-gold-100 p-4">
-            <p className="text-sm font-semibold text-gold-900">Re-check suggested</p>
-            <p className="mt-1 text-sm text-gold-900">You've had a long break or repeated struggles. A short check-in can refresh your placement.</p>
+          <div className="mt-4 rounded-xl border border-gold-border bg-gold-tint p-4">
+            <p className="text-sm font-semibold text-gold-deep">Re-check suggested</p>
+            <p className="mt-1 text-sm text-gold-deep">You've had a long break or repeated struggles. A short check-in can refresh your placement.</p>
             <Button className="mt-3" variant="secondary" onClick={() => startDiagnostic('recheck')}>
               Run Check-In Again
             </Button>
@@ -450,7 +454,7 @@ export default function MathPathHome() {
       {/* Quick actions — focused set */}
       <section>
         <h2 className="mb-3 font-display text-xl font-semibold text-ink-900 sm:mb-4 sm:text-2xl">Quick Actions</h2>
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
           <Card className="flex h-full flex-col border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-sky-50 p-4">
             <span className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-100 text-emerald-700"><Layers className="h-6 w-6" /></span>
             <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">{effectiveStudentLevel} Mathematics</h3>
@@ -525,8 +529,8 @@ export default function MathPathHome() {
       {/* Admin preview — hidden from students */}
       {isPreviewMode && (
         <>
-          <Card className="border-l-4 border-l-gold-500 p-4">
-            <p className="text-sm font-semibold text-gold-800">Curriculum Preview — not visible to beta users</p>
+          <Card className="border-l-4 border-l-gold p-4">
+            <p className="text-sm font-semibold text-gold-deep">Curriculum Preview — not visible to beta users</p>
           </Card>
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Levels and skills</h3>
@@ -540,9 +544,9 @@ export default function MathPathHome() {
             </button>
           </div>
           {selectedSkill && (
-            <Card className="mb-4 border-l-4 border-l-gold-500 p-4">
+            <Card className="mb-4 border-l-4 border-l-gold p-4">
               <div className="mb-2 flex items-center justify-between gap-2">
-                <p className="text-sm font-semibold text-gold-800">Skill detail</p>
+                <p className="text-sm font-semibold text-gold-deep">Skill detail</p>
                 <button type="button" onClick={() => { setSelectedSkill(null); setSkillPreview(null); setSkillPreviewError(''); }} className="text-xs text-ink-500 underline">Close</button>
               </div>
               {skillPreviewLoading ? (

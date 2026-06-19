@@ -37,7 +37,7 @@ function VisualModelCard({ visual }) {
       {visual?.renderable ? (
         <div className="mt-3 grid gap-2">
           <div className="h-8 overflow-hidden rounded-full border border-emerald-border bg-emerald-tint">
-            <div className="h-full w-2/3 bg-gold-300" />
+            <div className="h-full w-2/3 bg-gold-border" />
           </div>
           <div className="flex justify-between text-xs font-semibold text-ink-500">
             <span>same whole</span>
@@ -46,7 +46,7 @@ function VisualModelCard({ visual }) {
           </div>
         </div>
       ) : (
-        <p className="mt-2 rounded-xl bg-gold-100 px-3 py-2 text-sm text-gold-800">{visual?.fallbackText}</p>
+        <p className="mt-2 rounded-xl bg-gold-tint px-3 py-2 text-sm text-gold-deep">{visual?.fallbackText}</p>
       )}
       <p className="mt-3 text-sm text-ink-700">{visual?.explanation}</p>
     </div>
@@ -78,7 +78,7 @@ function QuestionCard({ question, stageId, onSubmit, disabled = false }) {
           onChange={(event) => setAnswer(event.target.value)}
           disabled={disabled}
           placeholder="Type your answer or first step"
-          className="min-h-[48px] flex-1 rounded-xl border border-line-soft bg-surface-white px-3 text-base text-ink-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40"
+          className="min-h-[48px] flex-1 rounded-xl border border-line-soft bg-surface-white px-3 text-base text-ink-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/40"
         />
         <Button onClick={submit} disabled={disabled || !answer.trim()}>Check</Button>
       </div>
@@ -186,8 +186,8 @@ export default function RecoveryPackTeachingFlow() {
 
       {pack.warnings?.length ? (
         <Card className="mb-4 p-4" tone="yellow">
-          <p className="text-sm font-semibold text-gold-800">Some practice questions are using safe fallbacks.</p>
-          <p className="mt-1 text-sm text-gold-800">The lesson still works, and Tian OS recorded which question records need review.</p>
+          <p className="text-sm font-semibold text-gold-deep">Some practice questions are using safe fallbacks.</p>
+          <p className="mt-1 text-sm text-gold-deep">The lesson still works, and Tian OS recorded which question records need review.</p>
         </Card>
       ) : null}
 
@@ -216,7 +216,7 @@ export default function RecoveryPackTeachingFlow() {
           <h2 className="mt-2 font-display text-xl font-semibold text-emerald-deep">{pack.workedExample?.title || 'Worked Example'}</h2>
           <div className="mt-4 grid gap-3">
             <p className="rounded-xl bg-tianRose px-3 py-2 text-sm text-ink-700"><span className="font-semibold">Common wrong method:</span> {pack.workedExample?.content?.incorrectMethod || 'A common shortcut gives the wrong relationship.'}</p>
-            <p className="rounded-xl bg-gold-100 px-3 py-2 text-sm text-gold-800"><span className="font-semibold">Why it does not work:</span> {pack.workedExample?.content?.whyIncorrect || 'The method does not match the fraction meaning.'}</p>
+            <p className="rounded-xl bg-gold-tint px-3 py-2 text-sm text-gold-deep"><span className="font-semibold">Why it does not work:</span> {pack.workedExample?.content?.whyIncorrect || 'The method does not match the fraction meaning.'}</p>
             <p className="rounded-xl bg-success-100 px-3 py-2 text-sm text-success-700"><span className="font-semibold">Correct method:</span> {pack.workedExample?.content?.correctMethod || 'Work step by step and keep the parts labelled.'}</p>
             <p className="rounded-xl bg-surface-white px-3 py-2 text-sm text-ink-700"><span className="font-semibold">Key takeaway:</span> {pack.workedExample?.content?.keyTakeaway || 'Use the model first, then calculate.'}</p>
           </div>

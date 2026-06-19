@@ -117,6 +117,30 @@ const BUILDERS = {
   [GE(21)]: (rng) => { const r = pick(rng, [2, 4, 6, 8, 10]); const semiP = round2(PI * r + 2 * r); return { prompt: `Find the perimeter of a semicircle with radius ${r} cm. Remember to include the straight edge. (Use π = 3.14.)`, answer: semiP, unit: 'cm', tag: 'geo/forgot-straight-edges', steps: ['Perimeter of a semicircle = half the circumference + the diameter.', `= π × r + 2 × r = 3.14 × ${r} + ${2 * r} = ${semiP} cm.`], distractors: [round2(PI * r), round2(PI * r * r / 2), round2(2 * PI * r)].filter((d) => d !== semiP), diagram: { kind: 'circle-part', part: 'semicircle', radius: r } }; },
   // GE022 — Composite figures: area
   [GE(22)]: (rng) => { const L = rint(rng, 8, 16), W = rint(rng, 6, 12); const a = rint(rng, 2, L - 4), b = rint(rng, 2, W - 3); const area = L * W - a * b; return { prompt: `An L-shaped figure is a ${L} cm by ${W} cm rectangle with a ${a} cm by ${b} cm rectangle cut out of one corner. What is its area?`, answer: area, unit: 'cm²', tag: 'geo/missing-region', steps: [`Whole rectangle = ${L} × ${W} = ${L * W} cm².`, `Cut-out = ${a} × ${b} = ${a * b} cm².`, `Area = ${L * W} − ${a * b} = ${area} cm².`], distractors: [L * W, L * W + a * b, a * b].filter((d) => d !== area), diagram: { kind: 'composite', outer: [L, W], cut: [a, b] } }; },
+
+  // ── Word-problem families (_003): real-world context, no diagram ──────────────
+  'GE001W': (rng) => { const p = pick(rng, POLY); const obj = pick(rng, ['road sign', 'tile', 'badge', 'window pane']); return { prompt: `A ${obj} is shaped like a ${p.name}. How many sides does a ${p.name} have?`, answer: p.sides, tag: 'geo/orientation-changes-shape', steps: [`A ${p.name} has ${p.sides} straight sides.`], distractors: [p.sides + 1, p.sides - 1, p.sides + 2] }; },
+  'GE002W': (rng) => { const p = pick(rng, POLY); const ask = pick(rng, ['sides', 'vertices']); const obj = pick(rng, ['honeycomb cell', 'floor tile', 'garden bed', 'clock face']); return { prompt: `A ${obj} is shaped like a ${p.name}. How many ${ask} does it have?`, answer: p.sides, tag: 'geo/side-vertex-count', steps: [`A ${p.name} has ${p.sides} ${ask}.`], distractors: [p.sides + 1, p.sides - 1, p.sides * 2] }; },
+  'GE003W': (rng) => { const parallel = rng() < 0.5; return { prompt: parallel ? 'Railway tracks stretch side by side and never meet. They are an example of ___ lines.' : 'The edge of a door meets the floor at a right angle. They are an example of ___ lines.', answer: parallel ? 'parallel' : 'perpendicular', tag: 'geo/parallel-perp-confuse', steps: [parallel ? 'Lines that never meet are parallel.' : 'Lines that meet at 90° are perpendicular.'], choices: ['parallel', 'perpendicular'] }; },
+  'GE004W': (rng) => { const x = pick(rng, [25, 40, 55, 70, 90, 110, 135, 160]); const t = angleType(x); const obj = pick(rng, ['book cover', 'door', 'fan', 'pair of scissors']); return { prompt: `A ${obj} is opened to form an angle of ${x}°. What type of angle is it?`, answer: t, tag: 'geo/angle-by-arm-length', steps: [`${x}° is ${t === 'right' ? 'exactly 90°' : t === 'acute' ? 'less than 90°' : 'between 90° and 180°'}, so it is ${t}.`], choices: ['acute', 'right', 'obtuse'] }; },
+  'GE005W': (rng) => { const x = pick(rng, [30, 45, 60, 75]); const comp = 90 - x; return { prompt: `A ramp makes an angle of ${x}° with the ground. What angle does the ramp make with the vertical wall above it?`, answer: comp, unit: '°', tag: 'geo/protractor-scale', steps: [`The ramp meets the wall at a corner, so ramp + wall angle = 90°.`, `90 − ${x} = ${comp}°.`], distractors: [x, 180 - x, comp + 10].filter((d) => d > 0 && d !== comp) }; },
+  'GE006W': (rng) => { const atPoint = rng() < 0.5; const total = atPoint ? 360 : 180; const known = atPoint ? rint(rng, 80, 250) : rint(rng, 20, 160); const a = total - known; return { prompt: atPoint ? `Angles at a point add up to 360°. One angle is ${known}°. Find the other angle.` : `Angles on a straight line add up to 180°. One angle is ${known}°. Find the other angle.`, answer: a, unit: '°', tag: 'geo/angle-relationship', steps: [`${total} − ${known} = ${a}°.`], distractors: [(atPoint ? 180 : 360) - known, known, a + 10].filter((d) => d > 0 && d !== a) }; },
+  'GE007W': (rng) => { const type = pick(rng, ['equilateral', 'isosceles', 'scalene']); const sides = type === 'equilateral' ? [6, 6, 6] : type === 'isosceles' ? [5, 5, 8] : [4, 6, 7]; const obj = pick(rng, ['signboard', 'sandwich slice', 'fabric piece', 'roof panel']); return { prompt: `A triangular ${obj} has sides ${sides.join(' cm, ')} cm. What type of triangle is it?`, answer: type, tag: 'geo/triangle-by-look', steps: [type === 'equilateral' ? 'All three sides are equal → equilateral.' : type === 'isosceles' ? 'Two sides are equal → isosceles.' : 'All sides are different → scalene.'], choices: ['equilateral', 'isosceles', 'scalene'] }; },
+  'GE008W': (rng) => { const a = rint(rng, 30, 80), b = rint(rng, 30, 80); const c = 180 - a - b; const obj = pick(rng, ['sign', 'sail', 'roof panel', 'garden frame']); return { prompt: `A triangular ${obj} is cut so that two angles of a triangle are ${a}° and ${b}°. Find the third angle.`, answer: c, unit: '°', tag: 'geo/angle-sum-wrong', steps: ['The angles of a triangle add up to 180°.', `180 − ${a} − ${b} = ${c}°.`], distractors: [360 - a - b, a + b, 180 - a].filter((d) => d > 0 && d !== c) }; },
+  'GE009W': (rng) => { const q = pick(rng, [{ n: 'square', d: '4 equal sides and 4 right angles' }, { n: 'rectangle', d: '4 right angles and opposite sides equal' }, { n: 'rhombus', d: '4 equal sides but no right angles' }, { n: 'parallelogram', d: 'two pairs of parallel sides' }]); const obj = pick(rng, ['floor tile', 'picture frame', 'table top', 'field']); return { prompt: `A ${obj} has ${q.d}. What quadrilateral shape is it?`, answer: q.n, tag: 'geo/square-not-rectangle', steps: [`A ${q.n} has ${q.d}.`], choices: ['square', 'rectangle', 'rhombus', 'parallelogram'] }; },
+  'GE010W': (rng) => { const a = rint(rng, 50, 130); const adj = 180 - a; const obj = pick(rng, ['picture frame', 'tabletop', 'tile', 'sign']); return { prompt: `A ${obj} is shaped like a parallelogram. One angle is ${a}°. Find the angle next to it (co-interior).`, answer: adj, unit: '°', tag: 'geo/quad-angle-relationship', steps: ['Adjacent angles in a parallelogram add up to 180°.', `180 − ${a} = ${adj}°.`], distractors: [a, 360 - a, adj + 10].filter((d) => d > 0 && d !== adj) }; },
+  'GE011W': (rng) => { const s = pick(rng, SYMMETRY); const obj = pick(rng, ['tile', 'badge', 'window', 'flag panel']); return { prompt: `A ${obj} is shaped like a ${s.name}. How many lines of symmetry does it have?`, answer: s.lines, tag: 'geo/diagonal-symmetry-miss', steps: [`A ${s.name} has ${s.lines} lines of symmetry.`], distractors: [s.lines + 1, s.lines - 1, s.lines + 2].filter((d) => d >= 0) }; },
+  'GE012W': (rng) => { const k = rint(rng, 1, 6); const obj = pick(rng, ['butterfly', 'leaf', 'snowflake design', 'kite shape']); return { prompt: `A ${obj} has a vertical line of symmetry. One side shows a dot ${k} square(s) to the left of the line. How many squares to the right is its reflection?`, answer: k, unit: 'squares', tag: 'geo/reflect-not-translate', steps: ['A reflection is the same distance on the other side.', `${k} left → ${k} right.`], distractors: [k + 1, k * 2, k + 2] }; },
+  'GE013W': (rng) => { const s = pick(rng, SOLIDS); const ask = pick(rng, ['faces', 'edges', 'vertices']); const obj = pick(rng, ['box', 'container', 'gift', 'package']); return { prompt: `A ${obj} is shaped like a ${s.name}. How many ${ask} does it have?`, answer: s[ask], tag: 'geo/faces-edges-confuse', steps: [`A ${s.name} has ${s.faces} faces, ${s.edges} edges and ${s.vertices} vertices.`, `So it has ${s[ask]} ${ask}.`], distractors: [s.faces, s.edges, s.vertices].filter((d) => d !== s[ask]) }; },
+  'GE014W': (rng) => { const s = pick(rng, [{ n: 'cube', faces: 6 }, { n: 'square pyramid', faces: 5 }, { n: 'triangular prism', faces: 5 }, { n: 'cuboid', faces: 6 }]); const obj = pick(rng, ['cereal box', 'gift box', 'tent', 'cardboard model']); return { prompt: `A ${obj} is made by folding a net into a ${s.n}. How many faces does the ${s.n} have?`, answer: s.faces, tag: 'geo/net-folding', steps: [`A ${s.n} has ${s.faces} faces, so its net has ${s.faces} parts.`], distractors: [s.faces + 1, s.faces - 1, s.faces + 2] }; },
+  'GE015W': (rng) => { const start = rint(rng, 0, 3); const turns = pick(rng, [1, 2, 3]); const end = (start + turns) % 4; const obj = pick(rng, ['hiker', 'robot', 'drone', 'delivery van']); return { prompt: `A ${obj} is facing ${COMPASS[start]}. It turns ${turns * 90}° clockwise. Which direction does it now face?`, answer: COMPASS[end], tag: 'geo/compass-confuse', steps: [`Clockwise order: ${COMPASS.join(' → ')} → ${COMPASS[0]}.`, `From ${COMPASS[start]}, ${turns} turn(s): ${COMPASS[end]}.`], choices: [...COMPASS] }; },
+  'GE016W': (rng) => { const q = pick(rng, [{ p: 'To draw a square accurately, each of its angles must measure ___°.', a: 90 }, { p: 'When constructing a triangle, its angles must add up to ___°.', a: 180 }, { p: 'A straight edge drawn with a ruler forms a straight angle of ___°.', a: 180 }, { p: 'A set square is used to draw right angles. A right angle measures ___°.', a: 90 }]); return { prompt: q.p, answer: q.a, unit: '°', tag: 'geo/construction-precision', steps: [`Key construction fact: ${q.a}°.`], distractors: [q.a + 90, q.a - 90, q.a + 10].filter((d) => d > 0 && d !== q.a) }; },
+  'GE017W': (rng) => { const s = rint(rng, 3, 20); const obj = pick(rng, ['square garden', 'square tile', 'square sandbox', 'square table top']); return { prompt: `A ${obj} has sides of ${s} cm. What is its perimeter?`, answer: 4 * s, unit: 'cm', tag: 'geo/perimeter-vs-area', steps: ['Perimeter of a square = 4 × side.', `4 × ${s} = ${4 * s} cm.`], distractors: [s * s, 2 * s, 4 * s + s].filter((d) => d !== 4 * s) }; },
+  'GE018W': (rng) => { const l = rint(rng, 3, 18), w = rint(rng, 2, 12); const obj = pick(rng, ['carpet', 'field', 'wall panel', 'swimming pool']); return { prompt: `A ${obj} is ${l} cm long and ${w} cm wide. What is its area?`, answer: l * w, unit: 'cm²', tag: 'geo/area-add-sides', steps: ['Area = length × width.', `${l} × ${w} = ${l * w} cm².`], distractors: [2 * (l + w), l + w, l * w + l].filter((d) => d !== l * w) }; },
+  'GE019W': (rng) => { const b = pick(rng, [4, 6, 8, 10, 12]), h = pick(rng, [3, 5, 6, 7, 9]); const area = round2(b * h / 2); const obj = pick(rng, ['sail', 'signboard', 'roof panel', 'slide panel']); return { prompt: `A triangular ${obj} has base ${b} cm and height ${h} cm. What is its area?`, answer: area, unit: 'cm²', tag: 'geo/triangle-no-half', steps: ['Area of a triangle = ½ × base × height.', `½ × ${b} × ${h} = ${area} cm².`], distractors: [b * h, round2(b * h / 2) + b, b + h].filter((d) => d !== area) }; },
+  'GE020W': (rng) => { const r = pick(rng, [2, 3, 4, 5, 6, 10]); const circ = round2(2 * PI * r); const obj = pick(rng, ['wheel', 'roundabout', 'circular fountain', 'circular pond']); return { prompt: `A ${obj} has radius ${r} cm. Find the circumference of a circle with radius ${r} cm. (Use π = 3.14.)`, answer: circ, unit: 'cm', tag: 'geo/circumference-area-formula', steps: [`Circumference = 2 × π × r = 2 × 3.14 × ${r}.`, `= ${circ} cm.`], distractors: [round2(PI * r * r), round2(PI * r), round2(2 * PI * (2 * r))] }; },
+  'GE021W': (rng) => { const r = pick(rng, [2, 4, 6, 8, 10]); const semiP = round2(PI * r + 2 * r); const obj = pick(rng, ['semicircular window', 'arch', 'half-moon rug', 'dome base']); return { prompt: `A ${obj} has radius ${r} cm. Find the perimeter of a semicircle with radius ${r} cm. Include the straight edge. (Use π = 3.14.)`, answer: semiP, unit: 'cm', tag: 'geo/forgot-straight-edges', steps: ['Perimeter of a semicircle = half the circumference + the diameter.', `= π × r + 2 × r = 3.14 × ${r} + ${2 * r} = ${semiP} cm.`], distractors: [round2(PI * r), round2(PI * r * r / 2), round2(2 * PI * r)].filter((d) => d !== semiP) }; },
+  'GE022W': (rng) => { const L = rint(rng, 8, 16), W = rint(rng, 6, 12); const a = rint(rng, 2, L - 4), b = rint(rng, 2, W - 3); const area = L * W - a * b; const obj = pick(rng, ['room', 'patio', 'garden bed', 'notice board']); return { prompt: `A ${obj} is shaped like an L. It is a ${L} cm by ${W} cm rectangle with a ${a} cm by ${b} cm corner cut out. What is its area?`, answer: area, unit: 'cm²', tag: 'geo/missing-region', steps: [`Whole rectangle = ${L} × ${W} = ${L * W} cm².`, `Cut-out = ${a} × ${b} = ${a * b} cm².`, `Area = ${L * W} − ${a * b} = ${area} cm².`], distractors: [L * W, L * W + a * b, a * b].filter((d) => d !== area) }; },
 };
 
 function runBuilder(skillId, rng, variant) {
@@ -180,16 +204,39 @@ for (const [kind, skillId] of Object.entries(KIND_TO_SKILL)) {
   GENERATORS[`${kind}MCQ`] = makeMCQ(skillId);
 }
 
-export function generateGeometryQuestionSet({ skillId, count = 6, mode = 'practice' }) {
+const GE_WORD_KINDS = {
+  geoGeo2dShapesWord: 'GE001W', geoGeo2dPropertiesWord: 'GE002W', geoGeoLinesWord: 'GE003W',
+  geoGeoAngleIntroWord: 'GE004W', geoGeoAngleMeasureWord: 'GE005W', geoGeoAngleLinePointWord: 'GE006W',
+  geoGeoTriangleTypesWord: 'GE007W', geoGeoTriangleAnglesWord: 'GE008W', geoGeoQuadTypesWord: 'GE009W',
+  geoGeoAngleQuadWord: 'GE010W', geoGeoSymmetryWord: 'GE011W', geoGeoSymmetryCompleteWord: 'GE012W',
+  geoGeo3dShapesWord: 'GE013W', geoGeoNetsViewsWord: 'GE014W', geoGeoPositionWord: 'GE015W',
+  geoGeoConstructWord: 'GE016W', geoGeoPerimeterWord: 'GE017W', geoGeoAreaRectWord: 'GE018W',
+  geoGeoAreaTriangleWord: 'GE019W', geoGeoCircleWord: 'GE020W', geoGeoCirclePartsWord: 'GE021W',
+  geoGeoCompositeWord: 'GE022W',
+};
+for (const [kind, skillId] of Object.entries(GE_WORD_KINDS)) GENERATORS[kind] = makePractice(skillId);
+
+export function generateGeometryQuestionSet({ skillId, count = 6, mode = 'practice', sessionSalt = '' }) {
   const families = getQuestionFamiliesBySkill(skillId);
   if (!families.length) return [];
   const questions = [];
+  const seenPrompts = new Set();
   let variant = 0;
-  for (let i = 0; i < count; i++) {
-    const family = families[i % families.length];
-    const rng = makeRng(`${skillId}-${family.id}-${variant}`);
+  let fi = 0;
+  const maxAttempts = count * 5;
+  while (questions.length < count && variant < maxAttempts) {
+    const family = families[fi % families.length];
+    const rng = makeRng(`${skillId}-${family.id}-${variant}-${sessionSalt}`);
     const gen = GENERATORS[family.generatorKind];
-    if (gen) questions.push(gen(family, rng, variant));
+    if (gen) {
+      const q = gen(family, rng, variant);
+      const dedupKey = q.prompt + '|||' + (q.answer?.display ?? q.answer);
+      if (!seenPrompts.has(dedupKey) || variant >= count * 3) {
+        seenPrompts.add(dedupKey);
+        questions.push(q);
+        fi++;
+      }
+    }
     variant++;
   }
   return questions;

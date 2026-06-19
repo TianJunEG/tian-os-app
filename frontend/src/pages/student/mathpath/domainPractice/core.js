@@ -28,11 +28,20 @@ export function buildSubmitPayload(answers = []) {
   return {
     responses: answers
       .filter((a) => a && a.questionId != null && String(a.studentAnswer ?? '').trim() !== '')
-      .map((a) => ({
-        questionId: a.questionId,
-        studentAnswer: String(a.studentAnswer),
-        timeTaken: Number(a.timeTaken || 0),
-      })),
+      .map((a) => {
+        const response = {
+          questionId: a.questionId,
+          studentAnswer: String(a.studentAnswer),
+          timeTaken: Number(a.timeTaken || 0),
+        };
+        if (a.workingSubmitted) response.workingSubmitted = true;
+        if (a.workingImage) response.workingImage = a.workingImage;
+        if (Array.isArray(a.workingStrokes)) response.workingStrokes = a.workingStrokes;
+        if (Array.isArray(a.workingMathObjects)) response.workingMathObjects = a.workingMathObjects;
+        if (a.workingSessionId) response.workingSessionId = String(a.workingSessionId);
+        if (a.fullscreenWorkingSubmitted) response.fullscreenWorkingSubmitted = true;
+        return response;
+      }),
   };
 }
 
@@ -76,14 +85,20 @@ export const DOMAIN_PRACTICE_CONFIG = {
   percentages: {
     label: 'Percentage', start: mathpathAPI.startPercentagesPractice, submit: mathpathAPI.submitPercentagesPractice, buildView: buildPercentagesLearningPathView,
     skillStates: mathpathAPI.percentagesSkillStates, pattern: /^P0\d\d$/, subtitle: 'Per hundred, conversions, discount, GST and interest (P5–P6).',
+    startFluency: mathpathAPI.startPercentagesFluency, submitFluency: mathpathAPI.submitPercentagesFluency,
+    startRetention: mathpathAPI.startPercentagesRetention, submitRetention: mathpathAPI.submitPercentagesRetention,
   },
   'ratio-rate': {
     label: 'Ratio & Rate', start: mathpathAPI.startRatioRatePractice, submit: mathpathAPI.submitRatioRatePractice, buildView: buildRatioRateLearningPathView,
     skillStates: mathpathAPI.ratioRateSkillStates, pattern: /^R0\d\d$/, subtitle: 'Equivalent ratios, dividing in a ratio, speed and direct proportion (P5–P6).',
+    startFluency: mathpathAPI.startRatioRateFluency, submitFluency: mathpathAPI.submitRatioRateFluency,
+    startRetention: mathpathAPI.startRatioRateRetention, submitRetention: mathpathAPI.submitRatioRateRetention,
   },
   algebra: {
     label: 'Algebra', start: mathpathAPI.startAlgebraPractice, submit: mathpathAPI.submitAlgebraPractice, buildView: buildAlgebraLearningPathView,
     skillStates: mathpathAPI.algebraSkillStates, pattern: /AL0\d\d/, subtitle: 'Patterns, unknowns, linear equations and algebraic manipulation (P4–P6).',
+    startFluency: mathpathAPI.startAlgebraFluency, submitFluency: mathpathAPI.submitAlgebraFluency,
+    startRetention: mathpathAPI.startAlgebraRetention, submitRetention: mathpathAPI.submitAlgebraRetention,
   },
   'area-perimeter': {
     label: 'Area & Perimeter', start: mathpathAPI.startAreaPerimeterPractice, submit: mathpathAPI.submitAreaPerimeterPractice, buildView: buildAreaPerimeterLearningPathView,
@@ -96,6 +111,8 @@ export const DOMAIN_PRACTICE_CONFIG = {
   geometry: {
     label: 'Geometry', start: mathpathAPI.startGeometryPractice, submit: mathpathAPI.submitGeometryPractice, buildView: buildGeometryLearningPathView,
     skillStates: mathpathAPI.geometrySkillStates, pattern: /GE0\d\d/, subtitle: 'Angles, triangles, quadrilaterals, symmetry and nets (P3–P6).',
+    startFluency: mathpathAPI.startGeometryFluency, submitFluency: mathpathAPI.submitGeometryFluency,
+    startRetention: mathpathAPI.startGeometryRetention, submitRetention: mathpathAPI.submitGeometryRetention,
   },
   measurement: {
     label: 'Measurement', start: mathpathAPI.startMeasurementPractice, submit: mathpathAPI.submitMeasurementPractice, buildView: buildMeasurementLearningPathView,
@@ -124,6 +141,8 @@ export const DOMAIN_PRACTICE_CONFIG = {
   volume: {
     label: 'Volume', start: mathpathAPI.startVolumePractice, submit: mathpathAPI.submitVolumePractice, buildView: buildVolumeLearningPathView,
     skillStates: mathpathAPI.volumeSkillStates, pattern: /VL0\d\d/, subtitle: 'Cubes, cuboids, liquid volume and displacement (P4–P6).',
+    startFluency: mathpathAPI.startVolumeFluency, submitFluency: mathpathAPI.submitVolumeFluency,
+    startRetention: mathpathAPI.startVolumeRetention, submitRetention: mathpathAPI.submitVolumeRetention,
   },
 };
 
@@ -142,7 +161,7 @@ export const DOMAIN_ANSWER_SYMBOLS = {
   'area-perimeter': ['square', 'root', 'times', 'fraction'],
   volume: ['cube', 'square', 'times', 'fraction'],
   measurement: ['times', 'divide', 'fraction'],
-  'ratio-rate': ['fraction', 'divide', 'times'],
+  'ratio-rate': ['colon', 'fraction', 'divide', 'times'],
   percentages: ['fraction', 'divide', 'times'],
 };
 

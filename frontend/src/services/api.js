@@ -193,18 +193,33 @@ export const mathpathAPI = {
   decimalsAssessmentReadiness: () => api.get('/mathpath/decimals/assessment/readiness'),
   startDecimalsAssessment: (data = {}) => api.post('/mathpath/decimals/assessment/start', data),
   submitDecimalsAssessment: (practiceSessionId, data = {}) => api.post(`/mathpath/decimals/assessment/${practiceSessionId}/submit`, data),
-  // Percentages domain — skill states + practice loop.
+  // Percentages domain — skill states + practice loop + fluency + retention.
   percentagesSkillStates: () => api.get('/mathpath/percentages/skill-states'),
   startPercentagesPractice: (data = {}) => api.post('/mathpath/percentages/practice/start', data),
   submitPercentagesPractice: (practiceSessionId, data = {}) => api.post(`/mathpath/percentages/practice/${practiceSessionId}/submit`, data),
-  // Ratio & Rate domain — skill states + practice loop.
+  startPercentagesFluency: (data = {}) => api.post('/mathpath/percentages/fluency/start', data),
+  submitPercentagesFluency: (practiceSessionId, data = {}) => api.post(`/mathpath/percentages/fluency/${practiceSessionId}/submit`, data),
+  percentagesRetention: () => api.get('/mathpath/percentages/retention'),
+  startPercentagesRetention: (data = {}) => api.post('/mathpath/percentages/retention/start', data),
+  submitPercentagesRetention: (practiceSessionId, data = {}) => api.post(`/mathpath/percentages/retention/${practiceSessionId}/submit`, data),
+  // Ratio & Rate domain — skill states + practice loop + fluency + retention.
   ratioRateSkillStates: () => api.get('/mathpath/ratio-rate/skill-states'),
   startRatioRatePractice: (data = {}) => api.post('/mathpath/ratio-rate/practice/start', data),
   submitRatioRatePractice: (practiceSessionId, data = {}) => api.post(`/mathpath/ratio-rate/practice/${practiceSessionId}/submit`, data),
-  // Algebra domain
+  startRatioRateFluency: (data = {}) => api.post('/mathpath/ratio-rate/fluency/start', data),
+  submitRatioRateFluency: (practiceSessionId, data = {}) => api.post(`/mathpath/ratio-rate/fluency/${practiceSessionId}/submit`, data),
+  ratioRateRetention: () => api.get('/mathpath/ratio-rate/retention'),
+  startRatioRateRetention: (data = {}) => api.post('/mathpath/ratio-rate/retention/start', data),
+  submitRatioRateRetention: (practiceSessionId, data = {}) => api.post(`/mathpath/ratio-rate/retention/${practiceSessionId}/submit`, data),
+  // Algebra domain — skill states + practice loop + fluency + retention.
   algebraSkillStates: () => api.get('/mathpath/algebra/skill-states'),
   startAlgebraPractice: (data = {}) => api.post('/mathpath/algebra/practice/start', data),
   submitAlgebraPractice: (practiceSessionId, data = {}) => api.post(`/mathpath/algebra/practice/${practiceSessionId}/submit`, data),
+  startAlgebraFluency: (data = {}) => api.post('/mathpath/algebra/fluency/start', data),
+  submitAlgebraFluency: (practiceSessionId, data = {}) => api.post(`/mathpath/algebra/fluency/${practiceSessionId}/submit`, data),
+  algebraRetention: () => api.get('/mathpath/algebra/retention'),
+  startAlgebraRetention: (data = {}) => api.post('/mathpath/algebra/retention/start', data),
+  submitAlgebraRetention: (practiceSessionId, data = {}) => api.post(`/mathpath/algebra/retention/${practiceSessionId}/submit`, data),
   // Area & Perimeter domain
   areaPerimeterSkillStates: () => api.get('/mathpath/area-perimeter/skill-states'),
   startAreaPerimeterPractice: (data = {}) => api.post('/mathpath/area-perimeter/practice/start', data),
@@ -213,10 +228,15 @@ export const mathpathAPI = {
   circlesSkillStates: () => api.get('/mathpath/circles/skill-states'),
   startCirclesPractice: (data = {}) => api.post('/mathpath/circles/practice/start', data),
   submitCirclesPractice: (practiceSessionId, data = {}) => api.post(`/mathpath/circles/practice/${practiceSessionId}/submit`, data),
-  // Geometry domain
+  // Geometry domain — skill states + practice loop + fluency + retention.
   geometrySkillStates: () => api.get('/mathpath/geometry/skill-states'),
   startGeometryPractice: (data = {}) => api.post('/mathpath/geometry/practice/start', data),
   submitGeometryPractice: (practiceSessionId, data = {}) => api.post(`/mathpath/geometry/practice/${practiceSessionId}/submit`, data),
+  startGeometryFluency: (data = {}) => api.post('/mathpath/geometry/fluency/start', data),
+  submitGeometryFluency: (practiceSessionId, data = {}) => api.post(`/mathpath/geometry/fluency/${practiceSessionId}/submit`, data),
+  geometryRetention: () => api.get('/mathpath/geometry/retention'),
+  startGeometryRetention: (data = {}) => api.post('/mathpath/geometry/retention/start', data),
+  submitGeometryRetention: (practiceSessionId, data = {}) => api.post(`/mathpath/geometry/retention/${practiceSessionId}/submit`, data),
   // Measurement domain
   measurementSkillStates: () => api.get('/mathpath/measurement/skill-states'),
   startMeasurementPractice: (data = {}) => api.post('/mathpath/measurement/practice/start', data),
@@ -241,10 +261,15 @@ export const mathpathAPI = {
   timeSkillStates: () => api.get('/mathpath/time/skill-states'),
   startTimePractice: (data = {}) => api.post('/mathpath/time/practice/start', data),
   submitTimePractice: (practiceSessionId, data = {}) => api.post(`/mathpath/time/practice/${practiceSessionId}/submit`, data),
-  // Volume domain
+  // Volume domain — skill states + practice loop + fluency + retention.
   volumeSkillStates: () => api.get('/mathpath/volume/skill-states'),
   startVolumePractice: (data = {}) => api.post('/mathpath/volume/practice/start', data),
   submitVolumePractice: (practiceSessionId, data = {}) => api.post(`/mathpath/volume/practice/${practiceSessionId}/submit`, data),
+  startVolumeFluency: (data = {}) => api.post('/mathpath/volume/fluency/start', data),
+  submitVolumeFluency: (practiceSessionId, data = {}) => api.post(`/mathpath/volume/fluency/${practiceSessionId}/submit`, data),
+  volumeRetention: () => api.get('/mathpath/volume/retention'),
+  startVolumeRetention: (data = {}) => api.post('/mathpath/volume/retention/start', data),
+  submitVolumeRetention: (practiceSessionId, data = {}) => api.post(`/mathpath/volume/retention/${practiceSessionId}/submit`, data),
   startFractionPractice: (data = {}) => api.post('/mastery/fractions/practice/start', data, { skipErrorToast: true }),
   getFractionPractice: (practiceSessionId) => api.get(`/mastery/fractions/practice/${practiceSessionId}`),
   submitFractionPractice: (practiceSessionId, data = {}) => api.post(`/mastery/fractions/practice/${practiceSessionId}/submit`, data),
@@ -361,6 +386,7 @@ export const mathpathAPI = {
 // (skillsAPI / assignmentsAPI / worksheetGenAPI live in the learning-core block below.)
 export const familyAPI = {
   children: () => api.get('/family/children'),
+  createChild: (data) => api.post('/students', data),
   recommendations: (studentId) => api.get(`/family/children/${studentId}/recommendations`)
 };
 
@@ -566,6 +592,7 @@ export const assessmentSpecificationAPI = {
   create: (data) => api.post('/assessment-specifications', data),
   update: (id, data) => api.put(`/assessment-specifications/${id}`, data),
   generateTest: (id, data = {}) => api.post(`/assessment-specifications/${id}/generate`, data),
+  submitSession: (assessmentSessionId, data = {}) => api.post(`/assessment-specifications/sessions/${assessmentSessionId}/submit`, data),
   classResults: (id) => api.get(`/assessment-specifications/${id}/class-results`),
   generatedPaperBlueprint: (id, params = {}) => api.get(`/assessment-specifications/${id}/generated-paper-blueprint`, { params }),
 };
@@ -628,6 +655,12 @@ export const parentsAPI = {
     api.get(`/parents/${studentId}/mathpath/dashboard`, { params: { subjectId, domainId } }),
   mathPathDomains: ({ studentId, subjectId = 'math' }) =>
     api.get(`/parents/${studentId}/mathpath/domains`, { params: { subjectId } }),
+};
+
+// BrightDesk integration API
+export const integrationsAPI = {
+  generateBrightdeskToken: (studentId) =>
+    api.post('/integrations/brightdesk/generate-token', { studentId }),
 };
 
 // Partners API
@@ -858,7 +891,10 @@ export const billingAPI = {
   pendingUpgrades: () => api.get('/billing/premium-home/pending'),
   activateUpgrade: (id) => api.post(`/billing/premium-home/requests/${id}/activate`),
   rejectUpgrade: (id, note = '') => api.post(`/billing/premium-home/requests/${id}/reject`, { note }),
-  // Legacy Stripe path (kept available, no longer the default).
+  // Stripe PayNow: create a dynamic QR code for instant self-serve payment.
+  paynowCreate: () => api.post('/billing/paynow/create'),
+  paynowStatus: (piId) => api.get(`/billing/paynow/status/${piId}`),
+  // Legacy Stripe card path.
   checkoutPremiumHome: (billing = 'monthly') => api.post('/billing/checkout/premium-home', { billing }),
   confirmCheckout: (sessionId) => api.post('/billing/checkout/confirm', { sessionId }),
   devActivatePremiumHome: () => api.post('/billing/dev/activate-premium-home'),

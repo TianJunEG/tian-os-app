@@ -5,6 +5,7 @@ import {
 import { selectNextOperationsPracticeTarget } from '../../shared/mathpath/operations/OperationsPracticeEngine.js';
 import { getSkill } from '../../shared/mathpath/operations/OperationsSkillGraph.js';
 import { assertDomainServable } from './stubDomainGate.js';
+import { copyWorkingEvidenceFields } from './workingEvidenceFields.js';
 
 export const DOMAIN_ID = 'four_operations';
 
@@ -27,7 +28,7 @@ export function buildOperationsPracticeSession({
     err.status = 400;
     throw err;
   }
-  const raw = generateOperationsQuestionSet({ skillId, count: questionCount, mode });
+  const raw = generateOperationsQuestionSet({ skillId, count: questionCount, mode, sessionSalt: Date.now().toString() });
   const questions = raw.map((q, index) => ({
     questionId: `${q.questionFamilyId}_${index}`,
     skillId: q.skillId,
@@ -69,6 +70,7 @@ export function scoreOperationsSubmission({ questions = [], responses = [] } = {
       correct: verdict.correct,
       misconceptionTag: verdict.correct ? '' : (question.misconceptionTag || ''),
       confidence: r.confidence || '', timeTaken: Number(r.timeTaken || 0),
+      ...copyWorkingEvidenceFields(r),
     };
   });
   const graded = results.filter((r) => !r.error);

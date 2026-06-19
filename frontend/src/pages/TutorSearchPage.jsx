@@ -155,7 +155,7 @@ export default function TutorSearchPage() {
       {/* Header */}
       <header className="bg-white shadow sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-gold-600">Marketplace</div>
+          <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-gold-deep">Marketplace</div>
           <h1 className="text-3xl font-serif font-medium text-emerald-deep leading-tight">Find Your Tutor</h1>
         </div>
       </header>

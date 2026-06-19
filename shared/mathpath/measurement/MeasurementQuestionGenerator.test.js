@@ -73,6 +73,37 @@ describe('MeasurementQuestionGenerator', () => {
     for (const q of generateMeasurementQuestionSet({ skillId: 'ME012', count: 2 })) expect(q.diagram?.kind).toBe('net');
   });
 
+  it('word-problem families (_003) cycle in at every 3rd position', () => {
+    // ME005W and ME006W return 4-digit 24-hr time strings
+    const me5 = generateMeasurementQuestionSet({ skillId: 'ME005', count: 9 });
+    for (const i of [2, 5, 8]) expect(me5[i].answer.display).toMatch(/^\d{4}$/);
+    const me6 = generateMeasurementQuestionSet({ skillId: 'ME006', count: 9 });
+    for (const i of [2, 5, 8]) {
+      expect(me6[i].answer.display).toMatch(/^\d{4}$/);
+      expect(me6[i].prompt).toMatch(/lasts/i);
+    }
+    // ME013W asks "how many minutes" (inverse rate)
+    const me13 = generateMeasurementQuestionSet({ skillId: 'ME013', count: 9 });
+    for (const i of [2, 5, 8]) {
+      expect(me13[i].prompt).toMatch(/how many minutes/i);
+      expect(me13[i].solutionSteps.length).toBeGreaterThanOrEqual(2);
+    }
+    // ME014W purchases a book and pen → answer starts with $
+    const me14 = generateMeasurementQuestionSet({ skillId: 'ME014', count: 9 });
+    for (const i of [2, 5, 8]) {
+      expect(me14[i].answer.display).toMatch(/^\$/);
+      expect(me14[i].prompt).toMatch(/book/i);
+    }
+    // Remaining _003 families produce positive numeric answers with units
+    for (const skillId of ['ME001', 'ME002', 'ME003', 'ME004', 'ME007', 'ME008', 'ME009', 'ME010', 'ME011', 'ME012']) {
+      const qs = generateMeasurementQuestionSet({ skillId, count: 9 });
+      for (const i of [2, 5, 8]) {
+        expect(Number(String(qs[i].answer.display).replace(/[^0-9.]/g, ''))).toBeGreaterThan(0);
+        expect(qs[i].solutionSteps.length).toBeGreaterThanOrEqual(2);
+      }
+    }
+  });
+
   it('is unit-tolerant: bare number, with-unit and with-$ all accepted', () => {
     const mk = (display) => ({ answer: { display } });
     expect(checkMeasurementAnswer({ question: mk('400 cm'), studentResponse: '400' }).correct).toBe(true);

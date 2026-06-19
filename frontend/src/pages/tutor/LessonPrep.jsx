@@ -89,8 +89,8 @@ export default function LessonPrep() {
         </div>
       </Card>
 
-      <Card className="mb-4 border-l-4 border-l-gold-400 p-4 sm:mb-5 sm:p-5">
-        <div className="mb-1 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-gold-700">
+      <Card className="mb-4 border-l-4 border-l-gold p-4 sm:mb-5 sm:p-5">
+        <div className="mb-1 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-gold-deep">
           <Lightbulb className="h-3.5 w-3.5" /> Suggested focus
         </div>
         <h2 className="font-display text-xl font-semibold text-emerald-deep">{prep.recommendedLessonFocus?.[0]?.title || prep.focus?.skillName || 'Pick a skill'}</h2>

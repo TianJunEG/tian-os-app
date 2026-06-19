@@ -7,6 +7,7 @@ import Skill from '../models/Skill.js';
 import Assignment from '../models/Assignment.js';
 import FluencyRecord from '../models/FluencyRecord.js';
 import RetentionReview from '../models/RetentionReview.js';
+import MathPathStudentSkillState from '../models/mathpath/MathPathStudentSkillState.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import { selectSimilarQuestions } from '../utils/worksheetGen.js';
 import { isCorrectWithContext } from '../utils/answerCheck.js';
@@ -258,6 +259,21 @@ router.post('/session/complete', protect, asyncHandler(async (req, res) => {
           metrics,
         }
       );
+      // Mirror retention outcome onto skill state for fractions skills (F-code).
+      const graphSkillId = skillCodeFor(skill);
+      if (/^F\d{3}$/i.test(graphSkillId)) {
+        await MathPathStudentSkillState.findOneAndUpdate(
+          { studentId: String(student._id), domainId: 'fractions', skillId: graphSkillId },
+          {
+            $set: {
+              retentionStatus: retained ? 'retained' : 'needsReview',
+              lastReviewedAt: completedAt,
+              ...(retained ? { retainedAt: completedAt, status: 'retained' } : {}),
+            },
+          },
+          { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
+      }
     }
 
     if (!wasCompleted) {

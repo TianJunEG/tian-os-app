@@ -169,8 +169,8 @@ export default function DiagnosticIntroScreen() {
         </Card>
 
         {enrichment && (
-          <Card className="border-l-4 border-l-gold-500 p-4">
-            <div className="flex items-start gap-2 text-sm text-gold-900">
+          <Card className="border-l-4 border-l-gold p-4">
+            <div className="flex items-start gap-2 text-sm text-gold-deep">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
               <p>Fractions are usually introduced later. This may be used for enrichment or early exposure.</p>
             </div>

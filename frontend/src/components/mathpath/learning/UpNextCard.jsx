@@ -11,7 +11,7 @@ export default function UpNextCard({
 }) {
   return (
     <Card className="p-4 sm:p-5">
-      <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">{title}</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-deep">{title}</p>
       <p className="mt-2 text-base font-semibold text-ink-800">{skillName || 'Start your diagnostic'}</p>
       {reason ? <p className="mt-1 text-sm text-ink-600">{reason}</p> : null}
       <div className="mt-3 flex items-center gap-2">

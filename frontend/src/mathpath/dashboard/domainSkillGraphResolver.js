@@ -3,15 +3,11 @@
 // domain-parity work: the engine no longer hardcodes the fractions graph — it
 // resolves the right graph per domain through here.
 //
-// Notes / known gaps (to be closed in later phases):
-//  - The canonical registry domains are P6-level; this maps to the P6 frontend
-//    graphs where they exist. Lower-primary-only domains (money, time,
-//    operations/four_operations, number_sense, measurement) have no P6 graph yet
-//    and fall back to an empty graph + identity lookup, so the dashboard degrades
-//    gracefully (0 total skills, raw skill IDs) rather than mis-attributing
-//    fractions skills. Per-level resolution is a Phase 2/3 concern.
+// Notes:
 //  - `area_perimeter` maps to the P6 area & volume graph as the closest
 //    available figure-geometry graph until a dedicated one exists.
+//  - Lower-primary domains (money, time, measurement, four_operations,
+//    number_sense) aggregate skills across all relevant P-levels.
 
 import { fractionSkillGraph, getSkill as getFractionSkill } from '../fractions/fractionSkillGraph.js';
 import { p6PercentageSkillGraph, getSkill as getPercentageSkill } from '../primary/p6PercentageSkillGraph.js';
@@ -22,6 +18,11 @@ import { p6AlgebraSkillGraph, getSkill as getAlgebraSkill } from '../primary/p6A
 import { p6AreaVolSkillGraph, getSkill as getAreaVolSkill } from '../primary/p6AreaVolSkillGraph.js';
 import { p6DataAnalysisSkillGraph, getSkill as getDataAnalysisSkill } from '../primary/p6DataAnalysisSkillGraph.js';
 import { p6SpeedSkillGraph, getSkill as getSpeedSkill } from '../primary/p6SpeedSkillGraph.js';
+import { moneySkillGraph, getSkill as getMoneySkill } from './moneySkillGraph.js';
+import { timeSkillGraph, getSkill as getTimeSkill } from './timeSkillGraph.js';
+import { measurementSkillGraph, getSkill as getMeasurementSkill } from './measurementSkillGraph.js';
+import { fourOperationsSkillGraph, getSkill as getFourOperationsSkill } from './fourOperationsSkillGraph.js';
+import { numberSenseSkillGraph, getSkill as getNumberSenseSkill } from './numberSenseSkillGraph.js';
 
 // Empty graph + identity lookup for domains without a frontend graph yet.
 const EMPTY_GRAPH = { domainId: 'unknown', skillIds: [] };
@@ -40,11 +41,14 @@ const REGISTRY = {
   area_perimeter: { skillGraph: p6AreaVolSkillGraph, getSkill: getAreaVolSkill },
   statistics: { skillGraph: p6DataAnalysisSkillGraph, getSkill: getDataAnalysisSkill },
   speed: { skillGraph: p6SpeedSkillGraph, getSkill: getSpeedSkill },
+  money: { skillGraph: moneySkillGraph, getSkill: getMoneySkill },
+  time: { skillGraph: timeSkillGraph, getSkill: getTimeSkill },
+  measurement: { skillGraph: measurementSkillGraph, getSkill: getMeasurementSkill },
+  four_operations: { skillGraph: fourOperationsSkillGraph, getSkill: getFourOperationsSkill },
+  number_sense: { skillGraph: numberSenseSkillGraph, getSkill: getNumberSenseSkill },
 };
 
-// Domains that are intentionally not yet mapped (lower-primary-only). Listed so
-// callers/tests can distinguish "deliberately unmapped" from "typo".
-export const UNMAPPED_DOMAINS = ['four_operations', 'number_sense', 'money', 'time', 'measurement'];
+export const UNMAPPED_DOMAINS = [];
 
 export function hasDomainSkillGraph(domainId) {
   return Object.prototype.hasOwnProperty.call(REGISTRY, String(domainId || ''));

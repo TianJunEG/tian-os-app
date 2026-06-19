@@ -87,6 +87,48 @@ function fractionCircle(spec) {
   return svgShell(spec, body, 'fraction circle');
 }
 
+function fractionTriangle(spec) {
+  const { parts, shaded } = spec.data;
+  const w = spec.width || 640;
+  const h = spec.height || 200;
+  const cx = w / 2;
+  const apexY = 20;
+  const baseY = h - 28;
+  const triH = baseY - apexY;
+  const baseHalfW = Math.min(cx - 50, triH * 0.65);
+  // Equal-area horizontal bands: dividing lines at triH * sqrt(k/parts) from apex
+  const yLines = [apexY, ...Array.from({ length: parts - 1 }, (_, k) => apexY + triH * Math.sqrt((k + 1) / parts)), baseY];
+  const widthAt = (y) => baseHalfW * 2 * (y - apexY) / triH;
+  let body = '';
+  const sectionsWithAnim = [];
+  for (let i = 0; i < parts; i++) {
+    const y1 = yLines[i]; const y2 = yLines[i + 1];
+    const w1 = widthAt(y1); const w2 = widthAt(y2);
+    const isShaded = i >= (parts - shaded);
+    const fill = isShaded ? SHADED_FILL : UNSHADED_FILL;
+    const pts = i === 0
+      ? `${cx},${y1.toFixed(1)} ${(cx - w2 / 2).toFixed(1)},${y2.toFixed(1)} ${(cx + w2 / 2).toFixed(1)},${y2.toFixed(1)}`
+      : `${(cx - w1 / 2).toFixed(1)},${y1.toFixed(1)} ${(cx + w1 / 2).toFixed(1)},${y1.toFixed(1)} ${(cx + w2 / 2).toFixed(1)},${y2.toFixed(1)} ${(cx - w2 / 2).toFixed(1)},${y2.toFixed(1)}`;
+    if (REDUCE_MOTION) {
+      body += `<polygon points="${pts}" fill="${fill}" stroke="${PARTITION_STROKE}"/>`;
+    } else {
+      if (isShaded) {
+        sectionsWithAnim.push({ pts, delay: ((parts - 1 - i) * 0.12).toFixed(2) });
+        body += `<polygon points="${pts}" fill="${UNSHADED_FILL}" stroke="${PARTITION_STROKE}"><animate attributeName="fill" from="${UNSHADED_FILL}" to="${SHADED_FILL}" dur="0.3s" begin="${((parts - 1 - i) * 0.12).toFixed(2)}s" fill="freeze"/></polygon>`;
+      } else {
+        body += `<polygon points="${pts}" fill="${UNSHADED_FILL}" stroke="${PARTITION_STROKE}"/>`;
+      }
+    }
+  }
+  const labelDelay = REDUCE_MOTION ? 0 : (shaded * 0.12 + 0.15).toFixed(2);
+  if (REDUCE_MOTION) {
+    body += `<text x="${cx}" y="${baseY + 22}" font-size="18" text-anchor="middle" fill="#111">${shaded}/${parts}</text>`;
+  } else {
+    body += `<text x="${cx}" y="${baseY + 22}" font-size="18" text-anchor="middle" fill="#111" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.3s" begin="${labelDelay}s" fill="freeze"/>${shaded}/${parts}</text>`;
+  }
+  return svgShell({ ...spec, width: w, height: h }, body, 'fraction triangle');
+}
+
 function numberLine(spec) {
   const { points = [], minStepCount = 10, min = 0, max = 1, endpointLabels = [] } = spec.data;
   const w = spec.width; const h = spec.height; const x0 = 50; const x1 = w - 50; const y = h / 2;
@@ -203,6 +245,44 @@ function comparisonBar(spec) {
     body += `<text x="${(dx1 + dx2) / 2}" y="${dy + 18}" font-size="14" font-weight="700" text-anchor="middle" fill="#1d4ed8" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.2s" begin="1.1s" fill="freeze"/>${esc(diffLabel)}</text>`;
   }
   return svgShell(spec, body, 'comparison bar');
+}
+
+function fractionBarPair(spec) {
+  const { bars = [] } = spec.data;
+  const w = spec.width || 640;
+  const h = spec.height || 260;
+  const x = 40; const bw = w - 80; const bh = 44; const rowH = 110;
+  let body = '';
+  if (REDUCE_MOTION) {
+    bars.forEach((bar, i) => {
+      const { parts, shaded, label } = bar;
+      const y = 30 + i * rowH;
+      const seg = bw / parts;
+      for (let j = 0; j < parts; j++) body += `<rect x="${x + j * seg}" y="${y}" width="${seg}" height="${bh}" fill="${j < shaded ? SHADED_FILL : UNSHADED_FILL}" stroke="${PARTITION_STROKE}"/>`;
+      if (label) body += `<text x="${w / 2}" y="${y + bh + 22}" font-size="18" text-anchor="middle" fill="#111">${esc(label)}</text>`;
+    });
+  } else {
+    bars.forEach((bar, i) => {
+      const { parts, shaded, label } = bar;
+      const y = 30 + i * rowH;
+      const seg = bw / parts;
+      const perSeg = Math.min(0.18, 1.2 / (shaded || 1));
+      const barDelay = i * 0.65;
+      for (let j = 0; j < parts; j++) {
+        if (j < shaded) {
+          const delay = (barDelay + j * perSeg).toFixed(2);
+          body += `<rect x="${x + j * seg}" y="${y}" width="${seg}" height="${bh}" fill="${UNSHADED_FILL}" stroke="${PARTITION_STROKE}"><animate attributeName="fill" from="${UNSHADED_FILL}" to="${SHADED_FILL}" dur="0.3s" begin="${delay}s" fill="freeze"/></rect>`;
+        } else {
+          body += `<rect x="${x + j * seg}" y="${y}" width="${seg}" height="${bh}" fill="${UNSHADED_FILL}" stroke="${PARTITION_STROKE}"/>`;
+        }
+      }
+      if (label) {
+        const labelDelay = (barDelay + shaded * perSeg + 0.15).toFixed(2);
+        body += `<text x="${w / 2}" y="${y + bh + 22}" font-size="18" text-anchor="middle" fill="#111" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.3s" begin="${labelDelay}s" fill="freeze"/>${esc(label)}</text>`;
+      }
+    });
+  }
+  return svgShell({ ...spec, width: w, height: h }, body, 'fraction bar pair');
 }
 
 function beforeAfterBar(spec) {
@@ -490,7 +570,9 @@ export const renderers = {
   semicircle,
   quarter_circle: quarterCircle,
   fraction_bar: fractionBar,
+  fraction_bar_pair: fractionBarPair,
   fraction_circle: fractionCircle,
+  fraction_triangle: fractionTriangle,
   number_line: numberLine,
   part_whole_bar: partWholeBar,
   comparison_bar: comparisonBar,

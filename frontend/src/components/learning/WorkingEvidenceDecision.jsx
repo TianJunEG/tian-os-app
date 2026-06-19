@@ -77,7 +77,7 @@ export default function WorkingEvidenceDecision({
         </div>
 
         {!submitted && (
-          <label className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${onPaper ? 'border-gold-500 bg-gold-50 text-gold-900' : 'border-line-soft text-ink-700 hover:bg-surface-raised'}`}>
+          <label className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${onPaper ? 'border-gold bg-gold-tint2 text-gold-deep' : 'border-line-soft text-ink-700 hover:bg-surface-raised'}`}>
             <input
               type="checkbox"
               className="mt-1 h-4 w-4 rounded border-line-soft text-emerald-deep"
@@ -103,7 +103,7 @@ export default function WorkingEvidenceDecision({
         )}
 
         {!submitted && notNeeded && workingRecommended && (
-          <p className="rounded-lg bg-gold-50 px-3 py-2 text-xs text-gold-800">
+          <p className="rounded-lg bg-gold-tint2 px-3 py-2 text-xs text-gold-deep">
             Sure? For this question, showing your steps really helps us see your thinking. You can still tap “Show your working” above.
           </p>
         )}

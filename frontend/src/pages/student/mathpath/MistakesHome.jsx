@@ -117,7 +117,7 @@ export default function MistakesHome() {
     : `No mistakes to review, ${firstName} — you're on fire!`;
 
   return (
-    <div className={`${visualStyles.page} space-y-6`}>
+    <div className={`${visualStyles.page} space-y-6 overflow-x-hidden`}>
       <PageHeader title="Mistake-to-Mastery" subtitle="MathPath · turn recent slips into mastery" />
 
       {mascot && (
@@ -128,7 +128,7 @@ export default function MistakesHome() {
         <div className={`mb-1 flex items-center gap-2 ${visualStyles.accent}`}><Wrench className="h-4 w-4" /><span className="text-[11px] font-semibold uppercase tracking-[0.1em]">Turn slips into mastery</span></div>
         <div className="font-display text-2xl font-semibold text-ink-900">{data ? data.mistakes.length : 0} to review</div>
         {recommended && <p className="mb-4 mt-1 text-sm text-ink-600">Recommended: practise <b className={`font-semibold ${visualStyles.accent}`}>{recommended.skillName}</b></p>}
-        {fallbackMessage && <p className="mb-3 rounded-xl bg-gold-100 px-3 py-2 text-sm font-semibold text-gold-700">{fallbackMessage}</p>}
+        {fallbackMessage && <p className="mb-3 rounded-xl bg-gold-tint px-3 py-2 text-sm font-semibold text-gold-deep">{fallbackMessage}</p>}
         <div className="flex flex-wrap gap-2">
           {hasMistakes ? (
             <Button className={visualStyles.primaryCta} to="/student/mathpath/mistakes/review">Review mistakes</Button>
@@ -152,7 +152,7 @@ export default function MistakesHome() {
       <div className="space-y-2">
         {weak.length === 0 && hasMistakes && <Card className={`p-4 text-sm text-ink-500 ${visualStyles.accentCard}`}>No weak-skill clusters yet.</Card>}
         {weak.map((w) => (
-          <Card key={w.skillId} interactive className={`flex items-center justify-between p-4 ${visualStyles.accentCard}`} role="button" onClick={() => practise(w.skillId)}>
+          <Card key={w.skillId} interactive className={`flex items-center justify-between p-4 ${visualStyles.accentCard}`} role="button" onClick={() => navigate('/student/mathpath/mistakes/review')}>
             <div>
               <div className="font-semibold text-ink-700">{w.skillName}</div>
               <div className="mt-1 flex flex-wrap gap-2 text-xs text-ink-500">

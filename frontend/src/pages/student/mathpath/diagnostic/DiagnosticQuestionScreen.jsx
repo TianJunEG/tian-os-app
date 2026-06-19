@@ -253,7 +253,7 @@ export default function DiagnosticQuestionScreen() {
 
       <Card className={`overflow-hidden p-3 sm:p-4 xl:h-[calc(100vh-18rem)] xl:min-h-[30rem] ${visualStyles.accentCard}`}>
         {!currentQuestionValidation.ok ? (
-          <div className="rounded-2xl border border-gold-200 bg-gold-50 p-5 text-sm text-ink-700">
+          <div className="rounded-2xl border border-gold-tint bg-gold-tint2 p-5 text-sm text-ink-700">
             <p className="font-semibold text-emerald-deep">{DIAGRAM_LOAD_ERROR_MESSAGE}</p>
             <p className="mt-1 text-ink-500">This visual diagnostic question needs a diagram before it can be answered.</p>
             <Button className="mt-4" onClick={() => nextQuestion(true)} disabled={busy}>

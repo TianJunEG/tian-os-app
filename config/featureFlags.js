@@ -10,7 +10,7 @@ export const FLAGS = {
   operations: process.env.FEAT_OPERATIONS !== '0',
   numberSense: process.env.FEAT_NUMBER_SENSE !== '0',
   money: process.env.FEAT_MONEY !== '0',
-  timeDomain: process.env.FEAT_TIME_DOMAIN !== '0',
+  time: process.env.FEAT_TIME_DOMAIN !== '0',
   measurement: process.env.FEAT_MEASUREMENT !== '0',
   geometry: process.env.FEAT_GEOMETRY !== '0',
   areaPerimeter: process.env.FEAT_AREA_PERIMETER !== '0',
@@ -31,8 +31,12 @@ export const FLAGS = {
   science: process.env.FEAT_SCIENCE === '1',
   mechanisms: process.env.FEAT_MECHANISMS === '1',
   spelling: process.env.FEAT_SPELLING !== '0',
+  comics: process.env.FEAT_COMICS !== '0',
   psl: process.env.FEAT_PSL !== '0',
   admin: true,
+  // Self-serve registration is closed until the company is registered and
+  // pricing is set. Set FEAT_OPEN_REGISTRATION=1 in env to re-enable.
+  openRegistration: process.env.FEAT_OPEN_REGISTRATION === '1',
 };
 
 export default { TIANOS_VERSION, FLAGS };

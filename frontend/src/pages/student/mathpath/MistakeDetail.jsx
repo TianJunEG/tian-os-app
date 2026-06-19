@@ -124,7 +124,7 @@ export default function MistakeDetail() {
   const practise = async () => {
     if (starting) return; setStarting(true);
     try {
-      const skillId = m.skillId;
+      const skillId = m.skillCode || m.skillId;
       const isFrameworkSkillId = /^F\d{3}$/i.test(String(skillId || ''));
       if (isFrameworkSkillId) {
         navigate('/student/mathpath/practice/recommended-pathway', {
@@ -168,7 +168,7 @@ export default function MistakeDetail() {
         <PageHeader title="Mistake detail" subtitle={m.skillName || m.skillCode || 'MathPath'} />
         <Card className="p-5 sm:p-6">
           <Badge tone="gold">Preparing review</Badge>
-          <p className="mt-3 rounded-2xl bg-gold-100 p-3 text-sm text-gold-800">
+          <p className="mt-3 rounded-2xl bg-gold-tint p-3 text-sm text-gold-deep">
             This review item is still being prepared. Complete question details are not available yet.
           </p>
           <div className="mt-4">
@@ -188,10 +188,10 @@ export default function MistakeDetail() {
 
   return (
     <>
-      <PageHeader title="Mistake detail" subtitle={`${m.topicName ? m.topicName + ' · ' : ''}${m.skillName}`} />
+      <PageHeader title="Mistake detail" subtitle={`${m.topicName ? m.topicName + ' · ' : ''}${m.skillName}`} action={<Button variant="secondary" size="s" onClick={() => navigate(-1)}>← Back</Button>} />
       <Card className="p-5 sm:p-6">
-        <div className="mb-2 flex items-center justify-between">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
             <Badge tone="neutral">{m.mistakeTypeLabel || TYPE_LABEL[m.mistakeType] || m.mistakeType}</Badge>
             <Badge tone="navy">{SOURCE_LABEL[m.source] || 'Source: ' + (m.source || 'other')}</Badge>
           </div>
@@ -270,7 +270,7 @@ export default function MistakeDetail() {
             <div className="rounded-2xl bg-white p-3">
               <p className="text-sm font-semibold text-ink-800">{correctionFlow.correctionPrompt || 'Write the corrected answer.'}</p>
               <input
-                className="mt-2 min-h-[48px] w-full rounded-xl border border-line-soft bg-surface-white px-3 text-base text-ink-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40"
+                className="mt-2 min-h-[48px] w-full rounded-xl border border-line-soft bg-surface-white px-3 text-base text-ink-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/40"
                 value={correctionAttempt || m.correctionAttempt || ''}
                 onChange={(event) => setCorrectionAttempt(event.target.value)}
                 placeholder="Corrected answer"
@@ -363,7 +363,7 @@ export default function MistakeDetail() {
       {showHelp && (
         <CollapsibleSection title="Remediation help" summary="Hints and model drawing pathways for this mistake." defaultOpen surface={false}>
           <RemediationPanel
-            skillId={m.skillId}
+            skillId={m.skillCode || m.skillId}
             recentAttempts={[{
               correct: false,
               misconceptionTag: m.misconceptionTag,

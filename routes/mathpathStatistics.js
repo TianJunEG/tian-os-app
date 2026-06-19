@@ -7,6 +7,17 @@ import { persistDomainPracticeMistakes } from '../services/mathpath/domainMistak
 import {
   DOMAIN_ID, buildStatisticsPracticeSession, toClientQuestions, scoreStatisticsSubmission,
 } from '../services/mathpath/statisticsPracticeService.js';
+import {
+  buildStatisticsFluencyDrill,
+  toClientFluencyQuestions,
+  scoreStatisticsFluencyDrill,
+} from '../services/mathpath/statisticsFluencyService.js';
+import { buildRetentionScheduleFromFluency, summariseRetention } from '../shared/mathpath/statistics/statisticsRetentionEngine.js';
+import {
+  buildStatisticsRetentionReview,
+  toClientRetentionQuestions,
+  scoreStatisticsRetentionReview,
+} from '../services/mathpath/statisticsRetentionService.js';
 import { statisticsSkillGraph } from '../shared/mathpath/statistics/StatisticsSkillGraph.js';
 import { skillHasPSLContent, getHeuristicForSkill } from '../services/mathpath/heuristicBridge.js';
 
@@ -15,6 +26,7 @@ const CODE_TO_SLUG = Object.fromEntries(
 );
 
 const router = express.Router();
+const FLUENT_BANDS = new Set(['gold', 'platinum']);
 
 function newSessionId() {
   return `statisticspractice_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -110,6 +122,195 @@ router.get('/skill-states', protect, async (req, res) => {
     res.json({ domainId: DOMAIN_ID, records });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load statistics skill states.' });
+  }
+});
+
+// @route POST /api/mathpath/statistics/fluency/start
+// @desc  Build + persist a timed fluency drill; returns answer-stripped questions.
+router.post('/fluency/start', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const studentId = String(student._id);
+    const { skillId, count = 8 } = req.body || {};
+    if (!skillId) return res.status(400).json({ error: 'skillId is required.' });
+
+    const drill = buildStatisticsFluencyDrill({ skillId, count });
+    const practiceSessionId = `statisticsfluency_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+    await MathPathPracticeSession.create({
+      practiceSessionId,
+      studentId,
+      domainId: DOMAIN_ID,
+      targetSkillId: skillId,
+      targetQuestionFamilyIds: [...new Set(drill.questions.map((q) => q.questionFamilyId))],
+      sessionGoal: 'Statistics fluency',
+      estimatedQuestionCount: drill.questions.length,
+      questions: drill.questions,
+      responses: [],
+      status: 'inProgress',
+      startedAt: new Date(),
+    });
+
+    res.json({
+      practiceSessionId,
+      domainId: DOMAIN_ID,
+      skillId,
+      benchmarks: drill.benchmarks,
+      targetSeconds: drill.targetSeconds,
+      questions: toClientFluencyQuestions(drill.questions),
+    });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to start statistics fluency drill.' });
+  }
+});
+
+// @route POST /api/mathpath/statistics/fluency/:practiceSessionId/submit
+// @desc  Score the drill into a fluency band; persist fluencyLevel + retention schedule.
+router.post('/fluency/:practiceSessionId/submit', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const studentId = String(student._id);
+    const existing = await MathPathPracticeSession.findOne({ practiceSessionId: req.params.practiceSessionId, studentId });
+    if (!existing) return res.status(404).json({ error: 'Statistics fluency drill not found.' });
+    if (existing.domainId !== DOMAIN_ID) return res.status(400).json({ error: 'Session is not a statistics session.' });
+    if (existing.status === 'completed') return res.json({ ...(existing.summary || {}), alreadyCompleted: true });
+
+    const responses = Array.isArray(req.body?.responses) ? req.body.responses : [];
+    const scored = scoreStatisticsFluencyDrill({ skillId: existing.targetSkillId, questions: existing.questions || [], responses });
+
+    const set = {
+      fluencyLevel: scored.band,
+      lastPractisedAt: new Date(),
+    };
+    if (FLUENT_BANDS.has(scored.band)) {
+      set.status = 'fluent';
+      set.fluentAt = new Date();
+    }
+    await MathPathStudentSkillState.findOneAndUpdate(
+      { studentId, domainId: DOMAIN_ID, skillId: existing.targetSkillId },
+      { $inc: { attemptCount: scored.total, correctCount: scored.correct }, $set: set },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    );
+
+    if (FLUENT_BANDS.has(scored.band)) {
+      const retentionSchedule = buildRetentionScheduleFromFluency({
+        skillId: existing.targetSkillId,
+        fluencyLevel: scored.band,
+        fluentAt: new Date(),
+      });
+      if (retentionSchedule.shouldSchedule) {
+        await MathPathStudentSkillState.findOneAndUpdate(
+          { studentId, domainId: DOMAIN_ID, skillId: existing.targetSkillId },
+          { $set: { nextReviewDate: retentionSchedule.nextReviewDate, retentionStatus: 'reviewScheduled' } },
+          { upsert: false },
+        );
+      }
+    }
+
+    const summary = { practiceSessionId: req.params.practiceSessionId, domainId: DOMAIN_ID, mode: 'fluency', ...scored, persisted: true };
+    existing.status = 'completed';
+    existing.completedAt = new Date();
+    existing.responses = responses;
+    existing.summary = summary;
+    await existing.save();
+
+    res.json(summary);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to submit statistics fluency drill.' });
+  }
+});
+
+// @route GET /api/mathpath/statistics/retention
+// @desc  Return upcoming/overdue/history retention summary for this student.
+router.get('/retention', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const { states } = await loadProgress(String(student._id));
+    const summary = summariseRetention({ states });
+    res.json({ domainId: DOMAIN_ID, ...summary });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to load statistics retention.' });
+  }
+});
+
+// @route POST /api/mathpath/statistics/retention/start
+// @desc  Build + persist a retention review for one skill.
+router.post('/retention/start', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const studentId = String(student._id);
+    const { skillId, count = null, previousQuestionFamilyIds = [] } = req.body || {};
+    if (!skillId) return res.status(400).json({ error: 'skillId is required.' });
+
+    const review = buildStatisticsRetentionReview({ skillId, previousQuestionFamilyIds, count });
+    const practiceSessionId = `statisticsretention_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+    await MathPathPracticeSession.create({
+      practiceSessionId,
+      studentId,
+      domainId: DOMAIN_ID,
+      targetSkillId: skillId,
+      targetQuestionFamilyIds: review.questionFamilyIds,
+      sessionGoal: 'Statistics retention review',
+      estimatedQuestionCount: review.questions.length,
+      questions: review.questions,
+      responses: [],
+      status: 'inProgress',
+      startedAt: new Date(),
+    });
+
+    res.json({
+      practiceSessionId,
+      domainId: DOMAIN_ID,
+      skillId,
+      mode: 'retention',
+      questionFamilyIds: review.questionFamilyIds,
+      questions: toClientRetentionQuestions(review.questions),
+    });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to start statistics retention review.' });
+  }
+});
+
+// @route POST /api/mathpath/statistics/retention/:practiceSessionId/submit
+// @desc  Grade the retention review and update the student's retention schedule.
+router.post('/retention/:practiceSessionId/submit', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const studentId = String(student._id);
+    const existing = await MathPathPracticeSession.findOne({ practiceSessionId: req.params.practiceSessionId, studentId });
+    if (!existing) return res.status(404).json({ error: 'Statistics retention review not found.' });
+    if (existing.domainId !== DOMAIN_ID) return res.status(400).json({ error: 'Session is not a statistics session.' });
+    if (existing.status === 'completed') return res.json({ ...(existing.summary || {}), alreadyCompleted: true });
+
+    const responses = Array.isArray(req.body?.responses) ? req.body.responses : [];
+    const { completedIntervalDays = [], lastIntervalDays = null } = req.body || {};
+
+    const scored = scoreStatisticsRetentionReview({
+      skillId: existing.targetSkillId,
+      questions: existing.questions || [],
+      responses,
+      completedIntervalDays,
+      lastIntervalDays,
+      completedAt: new Date(),
+    });
+
+    await MathPathStudentSkillState.findOneAndUpdate(
+      { studentId, domainId: DOMAIN_ID, skillId: existing.targetSkillId },
+      { $set: scored.set },
+      { upsert: false },
+    );
+
+    const summary = { practiceSessionId: req.params.practiceSessionId, domainId: DOMAIN_ID, mode: 'retention', ...scored, persisted: true };
+    existing.status = 'completed';
+    existing.completedAt = new Date();
+    existing.responses = responses;
+    existing.summary = summary;
+    await existing.save();
+
+    res.json(summary);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to submit statistics retention review.' });
   }
 });
 

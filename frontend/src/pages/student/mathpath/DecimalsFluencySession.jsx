@@ -122,7 +122,7 @@ export default function DecimalsFluencySession() {
       <div className="mx-auto max-w-2xl space-y-5 px-4 py-8">
         <PageHeader title="Drill complete" subtitle={`${result.correct}/${result.total} correct${result.averageTime != null ? ` · avg ${result.averageTime}s` : ''}.`} />
         <Card className="p-6 text-center">
-          <Zap className="mx-auto h-8 w-8 text-gold-600" />
+          <Zap className="mx-auto h-8 w-8 text-gold-deep" />
           <p className="mt-2 text-2xl font-display font-semibold text-ink-900">{result.bandLabel}</p>
           <div className="mt-2 flex justify-center gap-2">
             <Badge tone={bandTone(result.band)}>{result.accuracy}% accurate</Badge>

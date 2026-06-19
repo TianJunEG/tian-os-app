@@ -10,7 +10,7 @@ function BarModelVisual({ spec }) {
     return (
       <div className="space-y-1.5">
         <div className="flex items-center gap-2">
-          <div className="flex items-center justify-center rounded-lg bg-gold-100 px-3 py-2 text-sm font-bold text-gold-700"
+          <div className="flex items-center justify-center rounded-lg bg-gold-tint px-3 py-2 text-sm font-bold text-gold-deep"
             style={{ width: '100%', minHeight: 32 }}>
             {spec.unknownPosition === 'larger' ? '?' : larger}
           </div>
@@ -37,7 +37,7 @@ function BarModelVisual({ spec }) {
 
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center justify-center rounded-lg bg-gold-100 px-3 py-2 text-sm font-bold text-gold-700" style={{ minHeight: 32 }}>
+      <div className="flex items-center justify-center rounded-lg bg-gold-tint px-3 py-2 text-sm font-bold text-gold-deep" style={{ minHeight: 32 }}>
         {spec.unknownPosition === 'whole' ? '?' : whole}
       </div>
       <div className="flex gap-1">
@@ -94,7 +94,7 @@ function RatioBarVisual({ spec, step }) {
             <div
               key={i}
               className={`flex-1 py-2 text-center text-[10px] font-bold ${
-                isA ? 'bg-gold-100 text-gold-700' : 'bg-sky-100 text-sky-700'
+                isA ? 'bg-gold-tint text-gold-deep' : 'bg-sky-100 text-sky-700'
               }`}
               style={{ minHeight: 28 }}
             >
@@ -104,7 +104,7 @@ function RatioBarVisual({ spec, step }) {
         })}
       </div>
       <div className="flex justify-between text-[10px]">
-        <span className="font-semibold text-gold-600">
+        <span className="font-semibold text-gold-deep">
           {spec.labelA}: {spec.ratioA} parts{showTotals ? ` = ${spec.valueA}` : ''}
         </span>
         <span className="font-semibold text-sky-600">
@@ -221,8 +221,8 @@ function AssumptionVisual({ spec, step }) {
       </div>
       <div className="flex items-center gap-2">
         <div className="w-20 text-right text-[10px] text-ink-500">Actual</div>
-        <div className="flex-1 rounded-lg bg-gold-100 px-3 py-1.5 text-center">
-          <span className="text-xs font-semibold text-gold-700">{spec.totalValue}</span>
+        <div className="flex-1 rounded-lg bg-gold-tint px-3 py-1.5 text-center">
+          <span className="text-xs font-semibold text-gold-deep">{spec.totalValue}</span>
         </div>
       </div>
       {showDiff && (

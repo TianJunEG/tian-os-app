@@ -79,7 +79,7 @@ export function SimCanvas({ width, height, children, svgRef, ariaLabel, large = 
 
 // ─── Readout strip — monospace technical KPIs under the canvas ──────────
 export function Readout({ label, value, unit, tone = 'navy' }) {
-  const valueTone = tone === 'gold' ? 'text-gold-700' : tone === 'success' ? 'text-success-700' : 'text-emerald-deep';
+  const valueTone = tone === 'gold' ? 'text-gold-deep' : tone === 'success' ? 'text-success-700' : 'text-emerald-deep';
   return (
     <div className="min-w-0">
       <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-ink-500">{label}</div>
@@ -112,7 +112,7 @@ export function Slider({ label, value, onChange, min, max, step = 1, unit, hint,
         min={min} max={max} step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="h-2 w-full cursor-pointer appearance-none rounded-full bg-bone accent-navy-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40"
+        className="h-2 w-full cursor-pointer appearance-none rounded-full bg-bone accent-navy-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/40"
       />
     </div>
   );
@@ -146,7 +146,7 @@ export function RunControls({ running, ran, onToggle, onReset, onTryAnother }) {
 // ─── Learning cards ─────────────────────────────────────────────────────
 // Section heading shared by the learning cards.
 function CardEyebrow({ icon: Icon, children, tone = 'navy' }) {
-  const toneCls = tone === 'gold' ? 'text-gold-700' : tone === 'error' ? 'text-error-700' : 'text-emerald-deep';
+  const toneCls = tone === 'gold' ? 'text-gold-deep' : tone === 'error' ? 'text-error-700' : 'text-emerald-deep';
   return (
     <div className={`mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.08em] ${toneCls}`}>
       {Icon && <Icon className="h-3.5 w-3.5" />}{children}
@@ -185,9 +185,9 @@ export function PredictionCard({ question, options, correctIndex, explainRight, 
               type="button"
               onClick={() => !submitted && setPick(i)}
               aria-pressed={isPick}
-              className={`flex items-center gap-2.5 rounded-xl border px-3.5 py-2.5 text-left text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 ${cls}`}
+              className={`flex items-center gap-2.5 rounded-xl border px-3.5 py-2.5 text-left text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/40 ${cls}`}
             >
-              <span className="font-mono font-bold text-gold-600">{String.fromCharCode(65 + i)}.</span>
+              <span className="font-mono font-bold text-gold-deep">{String.fromCharCode(65 + i)}.</span>
               <span className="flex-1">{opt}</span>
               {show && isCorrect && <Check className="h-4 w-4 shrink-0" aria-hidden />}
               {show && isPick && !isCorrect && <X className="h-4 w-4 shrink-0" aria-hidden />}
@@ -227,7 +227,7 @@ export function ObservationCard({ prompt }) {
         rows={3}
         placeholder="Type what you noticed when the mechanism ran…"
         aria-label="Your observation"
-        className="w-full resize-y rounded-xl border border-line-soft bg-surface-white px-3.5 py-2.5 text-sm text-ink-700 placeholder:text-ink-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40"
+        className="w-full resize-y rounded-xl border border-line-soft bg-surface-white px-3.5 py-2.5 text-sm text-ink-700 placeholder:text-ink-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/40"
       />
       <div className="mt-2.5 flex items-center gap-3">
         <Button size="s" variant="secondary" onClick={() => setSaved(true)} disabled={!text.trim()}>Save note</Button>
@@ -255,7 +255,7 @@ export function ExplanationCard({ ran, reveal, children, placeholder }) {
 // MisconceptionCard — the common wrong ideas, flagged in amber.
 export function MisconceptionCard({ items }) {
   return (
-    <Card className="border-l-4 border-l-gold-400 p-5">
+    <Card className="border-l-4 border-l-gold p-5">
       <CardEyebrow icon={AlertTriangle} tone="gold">Common misconception</CardEyebrow>
       <ul className="space-y-2">
         {items.map((m, i) => (
@@ -338,7 +338,7 @@ export function ConceptCheck({ questions, mechanismKey }) {
           return (
             <button key={i} type="button" disabled={answered}
               onClick={() => setPicks({ ...picks, [idx]: i })}
-              className={`flex items-center gap-2.5 rounded-xl border px-3.5 py-2.5 text-left text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 ${cls}`}>
+              className={`flex items-center gap-2.5 rounded-xl border px-3.5 py-2.5 text-left text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/40 ${cls}`}>
               <span className="font-mono font-bold text-emerald-deep">{String.fromCharCode(65 + i)}.</span>
               <span className="flex-1">{opt}</span>
               {answered && i === q.correct && <Check className="h-4 w-4 shrink-0" aria-hidden />}

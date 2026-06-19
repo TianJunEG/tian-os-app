@@ -704,6 +704,8 @@ router.post('/fractions/practice/:practiceSessionId/submit', protect, asyncHandl
     }
     logPracticeLifecycle(lifecycleLog);
 
+    // Telemetry is non-critical — a write failure must not block the student from
+    // seeing their results. Errors are logged for monitoring but not re-thrown.
     await recordLearningEvents([
       ...attemptDocs.map((attempt) => ({
         studentId,
@@ -736,10 +738,13 @@ router.post('/fractions/practice/:practiceSessionId/submit', protect, asyncHandl
         sessionId: req.params.practiceSessionId,
         metadata: { source: 'mathpath_practice', total: results.length, correct: results.filter((r) => r.correct).length },
       },
-    ]);
+    ]).catch((err) => {
+      console.error('[mastery] fractions practice submit — recordLearningEvents failed (non-fatal):', err.message);
+    });
 
     res.json({ ...summary, assignmentProgress });
   } catch (err) {
+    console.error('[mastery] fractions practice submit error:', err);
     res.status(err.status || 500).json({ error: err.message || 'Failed to submit practice.' });
   }
 }));
@@ -2506,7 +2511,21 @@ router.get('/diagnostic/:sessionId', protect, asyncHandler(async (req, res) => {
 router.post('/remediation', protect, asyncHandler(async (req, res) => {
   try {
     const { skillSlug, skillId, recentAttempts = [] } = req.body || {};
-    const skill = skillSlug ? await Skill.findOne({ slug: skillSlug }) : (skillId ? await Skill.findById(skillId) : null);
+    let skill = null;
+    if (skillSlug) {
+      skill = await Skill.findOne({ slug: skillSlug });
+    } else if (skillId) {
+      const isObjectId = /^[a-f\d]{24}$/i.test(String(skillId));
+      skill = isObjectId
+        ? await Skill.findById(skillId)
+        : await Skill.findOne({
+            $or: [
+              { 'metadata.mathPathSkillId': skillId },
+              { 'metadata.frameworkCode': skillId },
+              { slug: skillId },
+            ],
+          });
+    }
     if (!skill) return res.status(404).json({ error: 'Skill not found.' });
     const prereqSkills = await Skill.find({ _id: { $in: skill.prerequisiteSkillIds || [] } });
     const plan = buildRemediationPlan({ skill, recentAttempts, prereqSkills });

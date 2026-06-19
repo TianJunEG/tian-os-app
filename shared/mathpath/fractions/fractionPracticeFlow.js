@@ -150,9 +150,17 @@ export function startFractionPracticeFlow(options = {}) {
     questionFamilyIds: [id],
   }));
 
+  // Diagnostic sessions escalate difficulty so the student isn't stuck on easy
+  // questions after demonstrating competence. Practice and remediation stay at
+  // difficulty 2 (familiar, confidence-building).
+  const sessionDifficulty = resolvedSessionType === 'diagnostic'
+    ? Array.from({ length: effectiveSessionLength }, (_, i) => Math.min(2 + Math.floor(i / 3), 4))
+    : 2;
+
   const questions = generatePracticeQuestionSet({
     practiceQueue,
     count: effectiveSessionLength,
+    difficulty: sessionDifficulty,
   });
 
   const workingRequiredMap = {};

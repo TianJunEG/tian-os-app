@@ -29,7 +29,7 @@ export const WORKING_TOOLS = [
 
 function compactButtonClass(active = false, disabled = false, dense = false) {
   return [
-    `inline-flex ${dense ? 'h-7 px-1.5' : 'h-8 px-2'} items-center justify-center gap-1 rounded-lg border text-xs font-semibold transition`,
+    `inline-flex ${dense ? 'h-10 min-w-[2.5rem] px-2' : 'h-10 px-2.5'} items-center justify-center gap-1 rounded-lg border text-xs font-semibold transition`,
     active ? 'border-emerald-deep bg-emerald-deep text-white' : 'border-line-soft bg-white text-emerald-deep hover:bg-emerald-tint',
     disabled ? 'cursor-not-allowed opacity-45 hover:bg-white' : '',
   ].join(' ');
@@ -77,7 +77,7 @@ export default function WorkingToolbar({
               type="button"
               aria-label={item.label}
               onClick={() => onColourChange?.(item.value)}
-              className={`h-7 w-7 rounded-md border text-[10px] font-semibold ${colour === item.value ? 'border-emerald ring-2 ring-emerald/20' : 'border-line-soft'}`}
+              className={`h-8 w-8 rounded-md border text-[10px] font-semibold ${colour === item.value ? 'border-emerald ring-2 ring-emerald/20' : 'border-line-soft'}`}
               style={{ backgroundColor: item.value, color: item.value === '#ca8a04' ? '#111827' : '#ffffff' }}
             >
               {item.label[0]}
@@ -139,7 +139,7 @@ export default function WorkingToolbar({
                 type="button"
                 aria-label={item.label}
                 onClick={() => onColourChange?.(item.value)}
-                className={`h-7 w-7 rounded-md border text-[10px] font-semibold ${colour === item.value ? 'border-emerald ring-2 ring-emerald/20' : 'border-line-soft'}`}
+                className={`h-8 w-8 rounded-md border text-[10px] font-semibold ${colour === item.value ? 'border-emerald ring-2 ring-emerald/20' : 'border-line-soft'}`}
                 style={{ backgroundColor: item.value, color: item.value === '#ca8a04' ? '#111827' : '#ffffff' }}
               >
                 {item.label[0]}

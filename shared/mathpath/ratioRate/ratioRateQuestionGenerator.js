@@ -52,7 +52,7 @@ function reduceFraction(num, den) {
 }
 
 // ── Question assembly helpers ─────────────────────────────────────────────────
-function shortAnswer({ family, prompt, answer, display, solutionSteps, misconceptionTag, difficulty, mode }) {
+function shortAnswer({ family, prompt, answer, display, solutionSteps, misconceptionTag, difficulty, mode, placeholder }) {
   return {
     id: `${family.id}#${mode}`,
     skillId: family.skillId,
@@ -68,6 +68,7 @@ function shortAnswer({ family, prompt, answer, display, solutionSteps, misconcep
     mode,
     workingRequired: family.workingRequired,
     generatorKind: family.generatorKind,
+    ...(placeholder ? { placeholder } : {}),
   };
 }
 
@@ -191,9 +192,13 @@ const GENERATORS = {
   },
 
   rrThreeTerm(rng, family, difficulty, mode) {
-    const factors = [2, 3, 4, 5];
-    // Coprime triples
-    const tripleOptions = [[1,2,3],[2,3,4],[1,3,5],[2,3,5],[1,2,5],[3,4,5],[1,4,5],[2,5,7],[1,3,4],[3,5,7]];
+    const factors = [2, 3, 4, 5, 6];
+    // Coprime triples (gcd of all three = 1) — 20 options keeps the pool large
+    // enough that duplicate questions within a 6-question session are negligible.
+    const tripleOptions = [
+      [1,2,3],[2,3,4],[1,3,5],[2,3,5],[1,2,5],[3,4,5],[1,4,5],[2,5,7],[1,3,4],[3,5,7],
+      [2,3,7],[1,4,7],[3,4,7],[4,5,6],[3,5,8],[2,5,9],[1,5,9],[4,5,7],[3,7,8],[5,7,9],
+    ];
     const [p, q, r] = pick(rng, tripleOptions);
     const f = pick(rng, factors);
     const a = p * f;
@@ -297,6 +302,7 @@ const GENERATORS = {
       prompt,
       answer,
       display,
+      placeholder: askBoth ? `e.g. $${shareA} and $${shareB}` : undefined,
       solutionSteps: [
         `Total units = ${a} + ${b} = ${a + b}.`,
         `1 unit = $${total} ÷ ${a + b} = $${unitVal}.`,
@@ -329,6 +335,7 @@ const GENERATORS = {
       prompt,
       answer: display,
       display,
+      placeholder: askAll ? `e.g. $${shares[0]}, $${shares[1]}, $${shares[2]}` : undefined,
       solutionSteps: [
         `Total units = ${a} + ${b} + ${c} = ${sumABC}.`,
         `1 unit = $${total} ÷ ${sumABC} = $${unitVal}.`,
@@ -626,7 +633,7 @@ const GENERATORS = {
 };
 
 // ── Public API ────────────────────────────────────────────────────────────────
-export function generateRatioRateQuestion({ skillId, questionFamilyId, difficulty, mode = 'practice', variant = 0 } = {}) {
+export function generateRatioRateQuestion({ skillId, questionFamilyId, difficulty, mode = 'practice', variant = 0, sessionSalt = '' } = {}) {
   let family = questionFamilyId ? getQuestionFamily(questionFamilyId) : null;
   if (!family) {
     if (!skillId) throw new Error('generateRatioRateQuestion requires skillId or questionFamilyId');
@@ -641,11 +648,11 @@ export function generateRatioRateQuestion({ skillId, questionFamilyId, difficult
   if (!generator) throw new Error(`No generator for kind ${family.generatorKind}`);
 
   const resolvedDifficulty = difficulty ?? family.difficulty;
-  const rng = makeRng(`${family.skillId}:${family.id}:${mode}:${variant}`);
+  const rng = makeRng(`${family.skillId}:${family.id}:${mode}:${variant}:${sessionSalt}`);
   return generator(rng, family, resolvedDifficulty, mode);
 }
 
-export function generateRatioRateQuestionSet({ skillId, questionFamilyIds, count = 5, mode = 'practice', difficulty } = {}) {
+export function generateRatioRateQuestionSet({ skillId, questionFamilyIds, count = 5, mode = 'practice', difficulty, sessionSalt = '' } = {}) {
   if (!skillId && !(questionFamilyIds && questionFamilyIds.length)) {
     throw new Error('generateRatioRateQuestionSet requires skillId or questionFamilyIds');
   }
@@ -654,11 +661,20 @@ export function generateRatioRateQuestionSet({ skillId, questionFamilyIds, count
     : getQuestionFamiliesBySkill(skillId).map((f) => f.id);
   if (!familyIds.length) throw new Error(`No question families for skill ${skillId}`);
 
+  const seenPrompts = new Set();
   const out = [];
-  for (let i = 0; i < count; i++) {
-    const familyId = familyIds[i % familyIds.length];
-    const variant = Math.floor(i / familyIds.length);
-    out.push(generateRatioRateQuestion({ questionFamilyId: familyId, mode, difficulty, variant }));
+  let attempt = 0;
+  const maxAttempts = count * 5;
+  while (out.length < count && attempt < maxAttempts) {
+    const familyId = familyIds[attempt % familyIds.length];
+    const variant = Math.floor(attempt / familyIds.length);
+    const q = generateRatioRateQuestion({ questionFamilyId: familyId, mode, difficulty, variant, sessionSalt });
+    const dedupKey = q.prompt + '|||' + (q.answer?.display ?? q.answer);
+    if (!seenPrompts.has(dedupKey) || attempt >= maxAttempts - 1) {
+      seenPrompts.add(dedupKey);
+      out.push(q);
+    }
+    attempt++;
   }
   return out;
 }
@@ -669,7 +685,13 @@ function normalizeRatioAnswer(raw) {
     .toLowerCase()
     .replace(/\s+/g, '')
     .replace(/[−–]/g, '-')
-    .replace(/^\$/, '');
+    .replace(/\$/g, '');
+}
+
+// Extract all numbers from a string (handles "$78 and $130", "78, 130", "78 130")
+function extractNumbers(s) {
+  const nums = String(s ?? '').replace(/\$/g, '').match(/-?\d+(?:\.\d+)?/g) || [];
+  return nums.map(Number).sort((a, b) => a - b);
 }
 
 // Normalise a ratio string "a : b" → "a:b"
@@ -721,7 +743,16 @@ export function checkRatioRateAnswer({ question, studentResponse } = {}) {
     if (Number.isFinite(n)) numericMatch = Math.abs(n - target) < 0.01;
   }
 
-  const correct = ratioMatch || fractionMatch || stringMatch || numericMatch;
+  // Multi-value match: "$78 and $130" == "78, 130" == "78 130" == "$78, $130"
+  // Extracts all numbers from both sides, sorts, compares element-by-element.
+  const multiValueMatch = accepted.some((a) => {
+    const accNums = extractNumbers(a);
+    const subNums = extractNumbers(submitted);
+    if (accNums.length < 2 || accNums.length !== subNums.length) return false;
+    return accNums.every((n, i) => Math.abs(n - subNums[i]) < 0.01);
+  });
+
+  const correct = ratioMatch || fractionMatch || stringMatch || numericMatch || multiValueMatch;
   return {
     correct,
     score: correct ? 1 : 0,

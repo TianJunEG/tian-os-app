@@ -17,7 +17,7 @@ const volumeSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['vol/hidden-cubes'],
-    questionFamilies: ['QF_VL001_001', 'QF_VL001_002'],
+    questionFamilies: ['QF_VL001_001', 'QF_VL001_002', 'QF_VL001_003'],
   },
   {
     id: 'VL002',
@@ -34,7 +34,7 @@ const volumeSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['VL001'],
     misconceptions: ['mea/volume-add-edges'],
-    questionFamilies: ['QF_VL002_001', 'QF_VL002_002'],
+    questionFamilies: ['QF_VL002_001', 'QF_VL002_002', 'QF_VL002_003'],
   },
   {
     id: 'VL003',
@@ -51,7 +51,7 @@ const volumeSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['VL002'],
     misconceptions: ['mea/net-dimensions'],
-    questionFamilies: ['QF_VL003_001', 'QF_VL003_002'],
+    questionFamilies: ['QF_VL003_001', 'QF_VL003_002', 'QF_VL003_003'],
   },
   {
     id: 'VL004',
@@ -69,7 +69,27 @@ const volumeSkills = [
     remediationIfWeak: ['VL002'],
     misconceptions: ['mea/rate-volume-confuse'],
     heuristic: 'ratio',
-    questionFamilies: ['QF_VL004_001', 'QF_VL004_002'],
+    questionFamilies: ['QF_VL004_001', 'QF_VL004_002', 'QF_VL004_003'],
+  },
+
+  // ── Secondary 1 (G1) — Mensuration: prisms & surface area ───────────────────
+  {
+    id: 'VL005', slug: 'vol.prism', name: 'Volume of a prism',
+    description: 'Find the volume of a triangular prism (cross-section × length).',
+    strand: 'Solids', prerequisites: ['VL002'], crossDomainPrerequisites: ['ap.area-triangle'], difficulty: 4,
+    singaporeLevel: ['Secondary 1'], mastery: { minimumAccuracy: 82, minimumQuestions: 12 },
+    fluency: { targetAccuracy: 85, targetAverageSeconds: 22 }, retention: { reviewDays: RETENTION_REVIEW_DAYS },
+    remediationIfWeak: ['VL002'], misconceptions: ['mea/prism-cross-section'],
+    questionFamilies: ['QF_VL005_001', 'QF_VL005_002'],
+  },
+  {
+    id: 'VL006', slug: 'vol.surface-area', name: 'Surface area of a cuboid',
+    description: 'Find the total surface area of a cuboid.',
+    strand: 'Solids', prerequisites: ['VL002'], crossDomainPrerequisites: [], difficulty: 4,
+    singaporeLevel: ['Secondary 1'], mastery: { minimumAccuracy: 82, minimumQuestions: 12 },
+    fluency: { targetAccuracy: 85, targetAverageSeconds: 24 }, retention: { reviewDays: RETENTION_REVIEW_DAYS },
+    remediationIfWeak: ['VL002'], misconceptions: ['mea/surface-area-as-volume'],
+    questionFamilies: ['QF_VL006_001', 'QF_VL006_002'],
   },
 ];
 
@@ -147,7 +167,7 @@ function detectCycles(graphSkills) {
 }
 
 export function validateVolumeSkillGraph() {
-  const expectedIds = ['VL001', 'VL002', 'VL003', 'VL004'];
+  const expectedIds = ['VL001', 'VL002', 'VL003', 'VL004', 'VL005', 'VL006'];
   const actualIds = skills.map((s) => s.id);
   const missingSkills = expectedIds.filter((id) => !skillById.has(id));
   const duplicateIds = actualIds.filter((id, index) => actualIds.indexOf(id) !== index);

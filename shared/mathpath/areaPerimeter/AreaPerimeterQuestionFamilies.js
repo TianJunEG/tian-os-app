@@ -195,6 +195,12 @@ const families = [
     mentalMathEligible: false,
     workingRequired: true,
   },
+
+  // ── Secondary 1 (G1) — Mensuration ──────────────────────────────────────────
+  { id: 'QF_AP007_001', skillId: 'AP007', name: 'Area of a parallelogram — Practice', description: 'base × perpendicular height.', difficulty: 3, generatorKind: 'apAreaParallelogram', recommendedQuestionCount: 20, fluencyTargetSeconds: 15, masteryTargetAccuracy: 85, masteryQuestionCount: 12, misconceptionTags: ['mea/use-slant-side'], assessmentRelevant: true, mentalMathEligible: false, workingRequired: true },
+  { id: 'QF_AP007_002', skillId: 'AP007', name: 'Area of a parallelogram — MCQ', description: 'base × perpendicular height.', difficulty: 3, generatorKind: 'apAreaParallelogramMCQ', recommendedQuestionCount: 20, fluencyTargetSeconds: 15, masteryTargetAccuracy: 85, masteryQuestionCount: 12, misconceptionTags: ['mea/use-slant-side'], assessmentRelevant: true, mentalMathEligible: false, workingRequired: true },
+  { id: 'QF_AP008_001', skillId: 'AP008', name: 'Area of a trapezium — Practice', description: 'half the sum of parallel sides × height.', difficulty: 4, generatorKind: 'apAreaTrapezium', recommendedQuestionCount: 20, fluencyTargetSeconds: 20, masteryTargetAccuracy: 82, masteryQuestionCount: 12, misconceptionTags: ['mea/trapezium-no-half'], assessmentRelevant: true, mentalMathEligible: false, workingRequired: true },
+  { id: 'QF_AP008_002', skillId: 'AP008', name: 'Area of a trapezium — MCQ', description: 'half the sum of parallel sides × height.', difficulty: 4, generatorKind: 'apAreaTrapeziumMCQ', recommendedQuestionCount: 20, fluencyTargetSeconds: 20, masteryTargetAccuracy: 82, masteryQuestionCount: 12, misconceptionTags: ['mea/trapezium-no-half'], assessmentRelevant: true, mentalMathEligible: false, workingRequired: true },
 ];
 
 const familyById = new Map(families.map((family) => [family.id, family]));

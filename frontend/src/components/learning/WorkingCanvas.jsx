@@ -108,7 +108,7 @@ const modeTabStyle = (active) => ({
   display: 'inline-flex',
   alignItems: 'center',
   gap: 6,
-  height: 34,
+  height: 44,
   padding: '0 14px',
   borderRadius: 9,
   fontSize: 13,

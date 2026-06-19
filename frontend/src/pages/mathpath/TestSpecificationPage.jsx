@@ -7,6 +7,23 @@ import { assessmentSpecificationAPI, familyAPI, teacherAPI, tutorAPI } from '../
 
 const OWNER_BY_ROLE = { parent: 'parent', tutor: 'tutor', teacher: 'teacher' };
 
+// UI mirror of services/mathpath/testModePresets.js. `dataDriven` modes build the
+// paper from the student's weak skills, so the manual topic matrix is hidden.
+// `forcesTimed` modes lock the timed flag on. defaultMix seeds the per-topic mix.
+const TEST_MODE_OPTIONS = [
+  { value: 'topic_test', label: 'Topic Test', desc: 'Straightforward test on the topics you choose.', defaultMix: { easy: 40, medium: 40, hard: 20 } },
+  { value: 'skill_test', label: 'Skill Test', desc: 'Focused check on a few specific skills.', defaultMix: { easy: 30, medium: 50, hard: 20 } },
+  { value: 'mixed_review', label: 'Mixed Topical Review', desc: 'Spread evenly across several topics.', defaultMix: { easy: 35, medium: 40, hard: 25 } },
+  { value: 'weakness_drill', label: 'Weakness Drill', desc: "Auto-built from the student's weak skills — no topic setup needed.", dataDriven: true, defaultMix: { easy: 55, medium: 35, hard: 10 } },
+  { value: 'timed_paper', label: 'Timed Paper', desc: 'Exam-style practice under time pressure.', forcesTimed: true, defaultMix: { easy: 30, medium: 45, hard: 25 } },
+  { value: 'weighted_exam', label: 'Weighted Exam-Prep', desc: 'Marks weighted by topic for exam-style balance.', defaultMix: { easy: 30, medium: 40, hard: 30 } },
+  { value: 'error_diagnosis', label: 'Error Diagnosis', desc: 'MCQ-led; surfaces the misconception behind wrong answers.', defaultMix: { easy: 25, medium: 45, hard: 30 } },
+  { value: 'psle_mock', label: 'PSLE-style Mixed Paper', desc: 'Full mixed paper, timed, multi-topic.', forcesTimed: true, defaultMix: { easy: 25, medium: 45, hard: 30 } },
+];
+
+const DEFAULT_TEST_MODE = 'topic_test';
+const findMode = (value) => TEST_MODE_OPTIONS.find((m) => m.value === value) || TEST_MODE_OPTIONS[0];
+
 function defaultTopic() {
   return {
     topicName: 'Fractions',
@@ -14,6 +31,7 @@ function defaultTopic() {
     marks: 20,
     questionCount: 0,
     difficulty: 'mixed',
+    difficultyMix: null,
     includeWordProblems: true,
     notes: '',
   };
@@ -33,6 +51,7 @@ export default function TestSpecificationPage() {
   const [targets, setTargets] = useState({ students: [], classes: [] });
   const [form, setForm] = useState({
     title: 'School-Aligned Revision Test',
+    testMode: DEFAULT_TEST_MODE,
     targetType: 'student',
     targetStudentId: studentId || routeId || '',
     targetClassId: classId || '',
@@ -52,6 +71,14 @@ export default function TestSpecificationPage() {
     () => specs.find((s) => String(s._id) === String(selectedSpecId)) || null,
     [specs, selectedSpecId]
   );
+  const currentMode = useMemo(() => findMode(form.testMode), [form.testMode]);
+
+  // Modes that run under the clock lock the timed flag on.
+  useEffect(() => {
+    if (currentMode.forcesTimed && !form.timed) {
+      setForm((prev) => ({ ...prev, timed: true }));
+    }
+  }, [currentMode.forcesTimed]);
   const uploadRoute = useMemo(() => {
     if (ownerType === 'parent') {
       const id = form.targetStudentId || studentId || routeId;
@@ -144,6 +171,8 @@ export default function TestSpecificationPage() {
       const payload = {
         ...form,
         ownerType,
+        // Data-driven modes synthesize their own topics server-side from weak skills.
+        topics: currentMode.dataDriven ? [] : form.topics,
       };
       const res = await assessmentSpecificationAPI.create(payload);
       const created = res.data?.specification;
@@ -195,6 +224,7 @@ export default function TestSpecificationPage() {
           timed: generated.timed,
         },
         questions: generated.questions,
+        sections: generated.sections || [],
         assessmentType: 'curriculum',
         level: generated.level,
         specificationId: selectedSpecId,
@@ -271,12 +301,45 @@ export default function TestSpecificationPage() {
             Calculator allowed
           </label>
           <label className="inline-flex items-center gap-2 text-sm text-ink-600">
-            <input type="checkbox" checked={form.timed} onChange={(e) => setForm((p) => ({ ...p, timed: e.target.checked }))} />
-            Timed test
+            <input type="checkbox" checked={form.timed} disabled={currentMode.forcesTimed} onChange={(e) => setForm((p) => ({ ...p, timed: e.target.checked }))} />
+            Timed test{currentMode.forcesTimed && <span className="text-xs text-ink-500">(locked on for {currentMode.label})</span>}
           </label>
         </div>
       </Card>
 
+      <Card className="p-5">
+        <h3 className="mb-1 text-sm font-semibold text-ink-700">Test Mode</h3>
+        <p className="mb-3 text-xs text-ink-500">Pick how this paper is assembled. {currentMode.desc}</p>
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          {TEST_MODE_OPTIONS.map((mode) => {
+            const active = mode.value === form.testMode;
+            return (
+              <button
+                key={mode.value}
+                type="button"
+                onClick={() => setForm((p) => ({ ...p, testMode: mode.value }))}
+                className={`rounded-lg border p-3 text-left transition ${active ? 'border-navy-500 bg-navy-50 ring-1 ring-navy-300' : 'border-line-soft hover:border-navy-300'}`}
+              >
+                <p className={`text-sm font-semibold ${active ? 'text-navy-700' : 'text-ink-700'}`}>{mode.label}</p>
+                <p className="mt-1 text-xs text-ink-500">{mode.desc}</p>
+              </button>
+            );
+          })}
+        </div>
+      </Card>
+
+      {currentMode.dataDriven ? (
+        <Card className="p-5">
+          <h3 className="text-sm font-semibold text-ink-700">Weak skills (auto-sourced)</h3>
+          <p className="mt-2 text-sm text-ink-600">
+            {currentMode.label} builds the paper from this student's weakest skills — pulled from their mistakes,
+            skill states, and mastery records. No topic setup needed. Total marks and duration above still apply.
+          </p>
+          {!form.targetStudentId && (
+            <p className="mt-2 text-xs text-amber-600">Select a target student above so weak skills can be sourced.</p>
+          )}
+        </Card>
+      ) : (
       <Card className="p-5">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-sm font-semibold text-ink-700">Topic Weightage</h3>
@@ -296,6 +359,28 @@ export default function TestSpecificationPage() {
                   <option value="mixed">mixed</option>
                 </select>
               </div>
+              {row.difficulty === 'mixed' && (
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-ink-500">Difficulty mix %:</span>
+                  {['easy', 'medium', 'hard'].map((band) => (
+                    <label key={band} className="inline-flex items-center gap-1 text-xs text-ink-600">
+                      {band}
+                      <input
+                        type="number"
+                        min="0"
+                        className="w-16 rounded-lg border border-line-soft px-2 py-1 text-sm"
+                        value={row.difficultyMix?.[band] ?? ''}
+                        placeholder={String(currentMode.defaultMix[band])}
+                        onChange={(e) => setTopic(idx, 'difficultyMix', {
+                          ...(row.difficultyMix || { easy: 0, medium: 0, hard: 0 }),
+                          [band]: Number(e.target.value || 0),
+                        })}
+                      />
+                    </label>
+                  ))}
+                  <span className="text-xs text-ink-400">blank = mode default ({currentMode.defaultMix.easy}/{currentMode.defaultMix.medium}/{currentMode.defaultMix.hard})</span>
+                </div>
+              )}
               <div className="mt-2 flex items-center justify-between">
                 <label className="inline-flex items-center gap-2 text-sm text-ink-600">
                   <input type="checkbox" checked={row.includeWordProblems} onChange={(e) => setTopic(idx, 'includeWordProblems', e.target.checked)} />
@@ -308,6 +393,7 @@ export default function TestSpecificationPage() {
         </div>
         <p className="mt-3 text-sm text-ink-600">Total topic marks: {totalTopicMarks}</p>
       </Card>
+      )}
 
       <Card className="p-5">
         <div className="grid gap-2 sm:grid-cols-3">
@@ -330,9 +416,26 @@ export default function TestSpecificationPage() {
         <Card className="p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-sm font-semibold text-ink-700">Generated Test Blueprint</h3>
-            <Badge tone="navy">{generated.totalMarks} marks · {generated.durationMinutes} min</Badge>
+            <div className="flex flex-wrap items-center gap-2">
+              {generated.testMode && <Badge tone="ink">{findMode(generated.testMode).label}</Badge>}
+              <Badge tone="navy">{generated.totalMarks} marks · {generated.durationMinutes} min</Badge>
+            </div>
           </div>
           <p className="mt-2 text-sm text-ink-600">{generated.questions?.length || 0} questions · {generated.calculatorAllowed ? 'Calculator allowed' : 'Calculator not allowed'} · {generated.timed ? 'Timed' : 'Untimed'}</p>
+          {generated.synthesizedFromWeakness && (
+            <p className="mt-1 text-xs text-ink-500">
+              Auto-built from {generated.weakSkillIds?.length || 0} weak skill{(generated.weakSkillIds?.length || 0) === 1 ? '' : 's'}: {(generated.weakSkillIds || []).join(', ')}
+            </p>
+          )}
+          {(generated.sections || []).length > 1 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {generated.sections.map((sec) => (
+                <span key={sec.id} className="rounded-full border border-line-soft bg-paper px-3 py-1 text-xs text-ink-600">
+                  {sec.shortName || sec.name} · {sec.questionCount}Q · {sec.marks}m · {sec.calculatorAllowed ? 'calc' : 'no calc'}
+                </span>
+              ))}
+            </div>
+          )}
           <div className="mt-3 space-y-2 text-sm text-ink-600">
             {(generated.topicBlueprint || []).map((row, idx) => (
               <div key={`${row.topicName}-${idx}`} className="rounded-lg border border-line-soft p-3">

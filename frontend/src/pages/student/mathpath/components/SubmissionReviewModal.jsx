@@ -36,7 +36,7 @@ export default function SubmissionReviewModal({
         {!reflection && (
           <div>
             <h3 className="mb-1 text-base font-semibold text-ink-800">How sure are you?</h3>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <div className="grid grid-cols-2 gap-2">
               {reflectionOptions.map((option) => (
                 <button
                   key={option.value}
@@ -78,7 +78,7 @@ export default function SubmissionReviewModal({
 
         <div className="space-y-2 pt-1">
           {!confirmEnabled && !hasWorking ? (
-            <p className="text-xs text-gold-700">Please make a working choice to submit.</p>
+            <p className="text-xs text-gold-deep">Please make a working choice to submit.</p>
           ) : null}
           <div className="flex justify-end gap-2">
             <Button variant="secondary" disabled={busy} onClick={onClose}>Go back</Button>

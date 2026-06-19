@@ -141,6 +141,29 @@ const BUILDERS = {
     return { prompt: `A rectangular room is ${l} m long and ${w} m wide. How many square metres of carpet are needed to cover the floor?`, value: ans, unit: 'm²', tag: 'mea/area-units',
       steps: ['Area = length × width.', `${l} × ${w} = ${ans} m².`], distractors: [2 * (l + w), l + w, l * w + l], diagram: { kind: 'rectangle', l, w } };
   },
+
+  // ── Secondary 1 (G1) — Mensuration ──────────────────────────────────────────
+  // AP007 — Area of a parallelogram = base × perpendicular height
+  [AP(7)]: (rng) => {
+    const b = rint(rng, 4, 18), h = rint(rng, 3, 12), slant = h + rint(rng, 1, 4);
+    const ans = b * h;
+    return { prompt: `A parallelogram has a base of ${b} cm and a perpendicular height of ${h} cm (its slanting side is ${slant} cm). What is its area?`,
+      value: ans, unit: 'cm²', tag: 'mea/use-slant-side',
+      steps: ['Area of a parallelogram = base × perpendicular height (not the slant side).', `${b} × ${h} = ${ans} cm².`],
+      distractors: [b * slant, 2 * (b + h), b + h], diagram: { kind: 'parallelogram', base: b, height: h, slant } };
+  },
+  // AP008 — Area of a trapezium = ½(a + b) × height
+  [AP(8)]: (rng) => {
+    // Make ½(a+b) an integer so the area is whole.
+    let a = rint(rng, 4, 14), b = rint(rng, 4, 14);
+    if ((a + b) % 2 !== 0) b += 1;
+    const h = rint(rng, 3, 12);
+    const ans = ((a + b) / 2) * h;
+    return { prompt: `A trapezium has parallel sides of ${a} cm and ${b} cm, and a height of ${h} cm. What is its area?`,
+      value: ans, unit: 'cm²', tag: 'mea/trapezium-no-half',
+      steps: ['Area of a trapezium = ½ × (sum of the parallel sides) × height.', `½ × (${a} + ${b}) × ${h} = ${(a + b) / 2} × ${h} = ${ans} cm².`],
+      distractors: [(a + b) * h, a * b, ((a + b) / 2) + h], diagram: { kind: 'trapezium', a, b, height: h } };
+  },
 };
 
 function runBuilder(skillId, rng, variant) {
@@ -176,18 +199,32 @@ const GENERATORS = {
   apAreaTriangle: makePractice(AP(4)), apAreaTriangleWord: makeMCQ(AP(4)),
   apAreaComposite: makePractice(AP(5)), apAreaCompositeWord: makeMCQ(AP(5)),
   apApply: makePractice(AP(6)), apApplyWord: makeMCQ(AP(6)),
+  // Secondary 1 (G1)
+  apAreaParallelogram: makePractice(AP(7)), apAreaParallelogramMCQ: makeMCQ(AP(7)),
+  apAreaTrapezium: makePractice(AP(8)), apAreaTrapeziumMCQ: makeMCQ(AP(8)),
 };
 
-export function generateAreaPerimeterQuestionSet({ skillId, count = 6, mode = 'practice' }) {
+export function generateAreaPerimeterQuestionSet({ skillId, count = 6, mode = 'practice', sessionSalt = '' }) {
   const families = getQuestionFamiliesBySkill(skillId);
   if (!families.length) return [];
   const questions = [];
+  const seenPrompts = new Set();
   let variant = 0;
-  for (let i = 0; i < count; i++) {
-    const family = families[i % families.length];
-    const rng = makeRng(`${skillId}-${family.id}-${variant}`);
+  let fi = 0;
+  const maxAttempts = count * 5;
+  while (questions.length < count && variant < maxAttempts) {
+    const family = families[fi % families.length];
+    const rng = makeRng(`${skillId}-${family.id}-${variant}-${sessionSalt}`);
     const gen = GENERATORS[family.generatorKind];
-    if (gen) questions.push(gen(family, rng, variant));
+    if (gen) {
+      const q = gen(family, rng, variant);
+      const dedupKey = q.prompt + '|||' + (q.answer?.display ?? q.answer);
+      if (!seenPrompts.has(dedupKey) || variant >= count * 3) {
+        seenPrompts.add(dedupKey);
+        questions.push(q);
+        fi++;
+      }
+    }
     variant++;
   }
   return questions;

@@ -1,6 +1,7 @@
 import express from 'express';
 import { protect } from '../middleware/auth.js';
 import { writeCurriculumAttempts } from '../services/mathpath/curriculumAttemptWriter.js';
+import { recordLearningEvents, normalizeConfidence } from '../services/telemetry/learningTelemetryService.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import MathPathPracticeSession from '../models/mathpath/MathPathPracticeSession.js';
 import MathPathStudentSkillState from '../models/mathpath/MathPathStudentSkillState.js';
@@ -136,6 +137,31 @@ router.post('/practice/:practiceSessionId/submit', protect, async (req, res) => 
     existing.responses = responses;
     existing.summary = summary;
     await existing.save();
+
+    await recordLearningEvents([
+      ...scored.results
+        .filter((r) => !r.error)
+        .map((r) => ({
+          studentId,
+          eventType: 'question_answered',
+          domain: DOMAIN_ID,
+          skillCode: r.skillId,
+          questionId: r.questionId,
+          sessionId: req.params.practiceSessionId,
+          metadata: {
+            answerCorrect: r.correct,
+            confidence: normalizeConfidence(r.confidence),
+            timeTakenSeconds: r.timeTaken,
+          },
+        })),
+      {
+        studentId,
+        eventType: 'session_completed',
+        domain: DOMAIN_ID,
+        sessionId: req.params.practiceSessionId,
+        metadata: { total: scored.accuracySummary.total, correct: scored.accuracySummary.correct },
+      },
+    ]);
 
     res.json(summary);
   } catch (err) {

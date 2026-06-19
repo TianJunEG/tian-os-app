@@ -382,7 +382,7 @@ const GENERATORS = {
 };
 
 // ── Public API ────────────────────────────────────────────────────────────────
-export function generatePercentageQuestion({ skillId, questionFamilyId, difficulty, mode = 'practice', variant = 0 } = {}) {
+export function generatePercentageQuestion({ skillId, questionFamilyId, difficulty, mode = 'practice', variant = 0, sessionSalt = '' } = {}) {
   let family = questionFamilyId ? getQuestionFamily(questionFamilyId) : null;
   if (!family) {
     if (!skillId) throw new Error('generatePercentageQuestion requires skillId or questionFamilyId');
@@ -397,11 +397,11 @@ export function generatePercentageQuestion({ skillId, questionFamilyId, difficul
   if (!generator) throw new Error(`No generator for kind ${family.generatorKind}`);
 
   const resolvedDifficulty = difficulty ?? family.difficulty;
-  const rng = makeRng(`${family.skillId}:${family.id}:${mode}:${variant}`);
+  const rng = makeRng(`${family.skillId}:${family.id}:${mode}:${variant}:${sessionSalt}`);
   return generator(rng, family, resolvedDifficulty, mode);
 }
 
-export function generatePercentageQuestionSet({ skillId, questionFamilyIds, count = 5, mode = 'practice', difficulty } = {}) {
+export function generatePercentageQuestionSet({ skillId, questionFamilyIds, count = 5, mode = 'practice', difficulty, sessionSalt = '' } = {}) {
   if (!skillId && !(questionFamilyIds && questionFamilyIds.length)) {
     throw new Error('generatePercentageQuestionSet requires skillId or questionFamilyIds');
   }
@@ -410,11 +410,20 @@ export function generatePercentageQuestionSet({ skillId, questionFamilyIds, coun
     : getQuestionFamiliesBySkill(skillId).map((f) => f.id);
   if (!familyIds.length) throw new Error(`No question families for skill ${skillId}`);
 
+  const seenPrompts = new Set();
   const out = [];
-  for (let i = 0; i < count; i++) {
-    const familyId = familyIds[i % familyIds.length];
-    const variant = Math.floor(i / familyIds.length);
-    out.push(generatePercentageQuestion({ questionFamilyId: familyId, mode, difficulty, variant }));
+  let attempt = 0;
+  const maxAttempts = count * 5;
+  while (out.length < count && attempt < maxAttempts) {
+    const familyId = familyIds[attempt % familyIds.length];
+    const variant = Math.floor(attempt / familyIds.length);
+    const q = generatePercentageQuestion({ questionFamilyId: familyId, mode, difficulty, variant, sessionSalt });
+    const dedupKey = q.prompt + '|||' + (q.answer?.display ?? q.answer);
+    if (!seenPrompts.has(dedupKey) || attempt >= count * 3) {
+      seenPrompts.add(dedupKey);
+      out.push(q);
+    }
+    attempt++;
   }
   return out;
 }

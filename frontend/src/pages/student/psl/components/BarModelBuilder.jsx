@@ -15,7 +15,7 @@ export default function BarModelBuilder({ modelType = 'partWhole', unknownPositi
         <p className="text-xs font-medium text-ink-500">Comparison bar model</p>
         <div className="space-y-2">
           <div className="flex items-stretch gap-2">
-            <div className="flex-1 rounded-xl border-2 border-gold-300 bg-gold-50/50 p-3">
+            <div className="flex-1 rounded-xl border-2 border-gold-border bg-gold-tint2/50 p-3">
               <input
                 type="text"
                 placeholder="Larger"
@@ -64,7 +64,7 @@ export default function BarModelBuilder({ modelType = 'partWhole', unknownPositi
     <div className="space-y-3">
       <p className="text-xs font-medium text-ink-500">Part-whole bar model</p>
       <div className="space-y-2">
-        <div className="rounded-xl border-2 border-gold-300 bg-gold-50/50 p-3 text-center">
+        <div className="rounded-xl border-2 border-gold-border bg-gold-tint2/50 p-3 text-center">
           <span className="text-xs text-ink-400">Whole</span>
           <div className="font-mono text-base sm:text-lg font-bold text-ink-800">
             {unknownPosition === 'whole' ? '?' : (parts.reduce((s, p) => s + (Number(p.value) || 0), 0) || '?')}

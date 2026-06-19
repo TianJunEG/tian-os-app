@@ -71,10 +71,10 @@ export default function WorksheetPreview() {
 
         {c.reviewSection?.length > 0 && (
           <div className="mb-5">
-            <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-gold-700">Review your recent mistakes</div>
+            <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-gold-deep">Review your recent mistakes</div>
             <div className="space-y-2">
               {c.reviewSection.map((r, i) => (
-                <div key={i} className="rounded-xl bg-gold-100 p-3 text-sm">
+                <div key={i} className="rounded-xl bg-gold-tint p-3 text-sm">
                   <div className="text-emerald-deep"><MathText text={r.stem} /></div>
                   <div className="mt-1 text-ink-600">
                     You wrote <span className="font-semibold text-error-700"><MathText text={r.yourAnswer || '—'} /></span>

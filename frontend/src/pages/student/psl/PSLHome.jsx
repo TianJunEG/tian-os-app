@@ -163,7 +163,10 @@ export default function PSLHome() {
       <div className="mx-auto max-w-2xl px-3 pt-0 pb-6 sm:px-6 lg:max-w-4xl">
 
         {/* ── Hero banner ──────────────────────────────────── */}
-        <div className="results-dark mx-[-12px] px-5 py-6 sm:mx-0 sm:mt-4 sm:px-8 sm:py-8">
+        <div
+          className="mx-[-12px] overflow-hidden px-5 py-6 sm:mx-0 sm:mt-4 sm:rounded-2xl sm:px-8 sm:py-8"
+          style={{ background: 'linear-gradient(150deg, #163d2b 0%, #0e2419 100%)', boxShadow: '0 4px 24px rgba(10,35,22,0.35)' }}
+        >
           <div className="flex items-center gap-4 sm:gap-5">
             {hasSessions ? (
               <ProgressRing percent={completionPct} />
@@ -171,15 +174,15 @@ export default function PSLHome() {
               <MascotAvatar name="lejo" size="xl" showRing={false} />
             )}
             <div className="flex-1 min-w-0">
-              <h1 className="text-xl font-bold sm:text-2xl" style={{ color: '#f4f0e8' }}>
+              <h1 className="text-xl font-bold text-white sm:text-2xl">
                 Problem Solving Lab
               </h1>
               {hasSessions ? (
-                <p className="mt-1 text-xs sm:text-sm" style={{ color: '#8b9ab3' }}>
+                <p className="mt-1 text-xs sm:text-sm" style={{ color: 'rgba(167,235,200,0.80)' }}>
                   {masteredCount} mastered · {attemptedCount} attempted · {skills.length} skills
                 </p>
               ) : (
-                <p className="mt-1 text-xs sm:text-sm" style={{ color: '#8b9ab3' }}>
+                <p className="mt-1 text-xs sm:text-sm" style={{ color: 'rgba(167,235,200,0.80)' }}>
                   Learn to solve word problems step by step
                 </p>
               )}
@@ -281,7 +284,7 @@ export default function PSLHome() {
                   </span>
                 </button>
                 {isOpen && (
-                  <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                     {group.skills.map((skill) => {
                       const blocked = readiness[skill.skillId] && !readiness[skill.skillId].allReady;
                       const isMastered = skill.mastery?.status === 'mastered';

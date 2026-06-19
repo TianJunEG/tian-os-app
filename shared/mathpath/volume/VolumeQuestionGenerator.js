@@ -135,6 +135,92 @@ const BUILDERS = {
       diagram: { kind: 'tank', baseArea: base, volume: vol, height },
     };
   },
+
+  // ── Secondary 1 (G1) — Mensuration ──────────────────────────────────────────
+  // VL005 — Volume of a triangular prism = (½ × base × height) × length
+  [VL(5)]: (rng) => {
+    let b = rint(rng, 3, 12), triH = rint(rng, 2, 10);
+    if ((b * triH) % 2 !== 0) b += 1;                  // keep the triangle area whole
+    const len = rint(rng, 3, 12);
+    const crossArea = (b * triH) / 2;
+    const ans = crossArea * len;
+    return {
+      prompt: `A triangular prism has a triangular cross-section with base ${b} cm and height ${triH} cm, and a length of ${len} cm. What is its volume?`,
+      value: ans, unit: 'cm³', tag: 'mea/prism-cross-section',
+      steps: [`Cross-section area = ½ × ${b} × ${triH} = ${crossArea} cm².`, `Volume = cross-section area × length = ${crossArea} × ${len} = ${ans} cm³.`],
+      distractors: [b * triH * len, crossArea + len, b * triH],
+      diagram: { kind: 'triangular-prism', base: b, height: triH, length: len },
+    };
+  },
+  // VL006 — Surface area of a cuboid = 2(lw + wh + lh)
+  [VL(6)]: (rng) => {
+    const l = rint(rng, 3, 12), w = rint(rng, 2, 10), h = rint(rng, 2, 8);
+    const ans = 2 * (l * w + w * h + l * h);
+    return {
+      prompt: `A cuboid measures ${l} cm by ${w} cm by ${h} cm. What is its total surface area?`,
+      value: ans, unit: 'cm²', tag: 'mea/surface-area-as-volume',
+      steps: ['Surface area = 2 × (lw + wh + lh).', `2 × (${l * w} + ${w * h} + ${l * h}) = 2 × ${l * w + w * h + l * h} = ${ans} cm².`],
+      distractors: [l * w * h, l * w + w * h + l * h, 2 * (l + w + h)],
+      diagram: { kind: 'cuboid', l, w, h },
+    };
+  },
+  // ── Word-problem families (_003): real-world context ─────────────────────────
+  'VL001W': (rng) => {
+    const { l, w, h } = dims(rng, 5, 4, 4);
+    const ans = l * w * h;
+    const name = pick(rng, ['Ali', 'Sam', 'Kai', 'Mia']);
+    return {
+      prompt: `${name} builds a model using unit cubes, arranged ${l} long, ${w} wide and ${h} high. How many unit cubes does ${name} use?`,
+      value: ans, unit: 'cubes', tag: 'vol/hidden-cubes',
+      steps: [`Each layer: ${l} × ${w} = ${l * w} cubes.`, `${h} layers: ${l * w} × ${h} = ${ans} cubes.`],
+      distractors: [l * w, l + w + h, l * w + h],
+    };
+  },
+  'VL002W': (rng) => {
+    const { l, w, h } = dims(rng);
+    const ans = l * w * h;
+    const obj = pick(rng, ['fish tank', 'storage box', 'aquarium', 'wooden crate']);
+    return {
+      prompt: `A ${obj} measures ${l} cm by ${w} cm by ${h} cm. What is its volume?`,
+      value: ans, unit: 'cm³', tag: 'mea/volume-add-edges',
+      steps: ['Volume = length × width × height.', `${l} × ${w} × ${h} = ${ans} cm³.`],
+      distractors: [l + w + h, l * w, 2 * (l * w + w * h + l * h)],
+    };
+  },
+  'VL003W': (rng) => {
+    const { l, w, h } = dims(rng, 10, 8, 6);
+    const ans = l * w * h;
+    const obj = pick(rng, ['gift box', 'cardboard box', 'chocolate box', 'pencil case']);
+    return {
+      prompt: `A ${obj} is a cuboid. Its net has edges ${l} cm, ${w} cm and ${h} cm. What is the volume of the box?`,
+      value: ans, unit: 'cm³', tag: 'mea/net-dimensions',
+      steps: ['Identify the three edge lengths from the net, then multiply.', `${l} × ${w} × ${h} = ${ans} cm³.`],
+      distractors: [2 * (l * w + w * h + l * h), l + w + h, l * w],
+    };
+  },
+  'VL004W': (rng, variant) => {
+    if (variant % 2 === 0) {
+      const rate = rint(rng, 2, 9), t = rint(rng, 2, 8);
+      const ans = rate * t;
+      const src = pick(rng, ['pump', 'tap', 'hose', 'pipe']);
+      return {
+        prompt: `A ${src} fills a tank at ${rate} litres per minute. How much water is in the tank after ${t} minutes?`,
+        value: ans, unit: 'L', tag: 'mea/rate-volume-confuse',
+        steps: ['Volume = flow rate × time.', `${rate} × ${t} = ${ans} L.`],
+        distractors: [rate + t, ans + rate, Math.abs(rate - t) || rate],
+      };
+    }
+    const base = pick(rng, [10, 12, 15, 20, 25]);
+    const height = rint(rng, 2, 9);
+    const vol = base * height;
+    const obj = pick(rng, ['fish tank', 'bucket', 'container', 'basin']);
+    return {
+      prompt: `A ${obj} has a base area of ${base} cm². ${vol} cm³ of water is poured in. What is the height of the water?`,
+      value: height, unit: 'cm', tag: 'mea/rate-volume-confuse',
+      steps: ['Height = volume ÷ base area.', `${vol} ÷ ${base} = ${height} cm.`],
+      distractors: [vol - base, base, vol],
+    };
+  },
 };
 
 function runBuilder(skillId, rng, variant) {
@@ -164,6 +250,8 @@ function makeMCQ(skillId) {
 
 const KIND_TO_SKILL = {
   volUnitCubes: VL(1), volCuboid: VL(2), volNets: VL(3), volWaterRate: VL(4),
+  // Secondary 1 (G1)
+  volPrism: VL(5), volSurfaceArea: VL(6),
 };
 // Family kinds: VL001 has volUnitCubes/volUnitCubesMCQ; the others use
 // <kind> and <kind>Word for practice/MCQ. Map every declared kind explicitly.
@@ -180,17 +268,34 @@ GENERATORS.volUnitCubesMCQ = makeMCQ(VL(1));
 GENERATORS.volCuboidWord = makeMCQ(VL(2));
 GENERATORS.volNetsWord = makeMCQ(VL(3));
 GENERATORS.volWaterRateWord = makeMCQ(VL(4));
+GENERATORS.volPrismMCQ = makeMCQ(VL(5));
+GENERATORS.volSurfaceAreaMCQ = makeMCQ(VL(6));
+GENERATORS.volUnitCubesWord = makePractice('VL001W');
+GENERATORS.volCuboidContext = makePractice('VL002W');
+GENERATORS.volNetsContext = makePractice('VL003W');
+GENERATORS.volWaterRateContext = makePractice('VL004W');
 
-export function generateVolumeQuestionSet({ skillId, count = 6, mode = 'practice' }) {
+export function generateVolumeQuestionSet({ skillId, count = 6, mode = 'practice', sessionSalt = '' }) {
   const families = getQuestionFamiliesBySkill(skillId);
   if (!families.length) return [];
   const questions = [];
+  const seenPrompts = new Set();
   let variant = 0;
-  for (let i = 0; i < count; i++) {
-    const family = families[i % families.length];
-    const rng = makeRng(`${skillId}-${family.id}-${variant}`);
+  let fi = 0;
+  const maxAttempts = count * 5;
+  while (questions.length < count && variant < maxAttempts) {
+    const family = families[fi % families.length];
+    const rng = makeRng(`${skillId}-${family.id}-${variant}-${sessionSalt}`);
     const gen = GENERATORS[family.generatorKind];
-    if (gen) questions.push(gen(family, rng, variant));
+    if (gen) {
+      const q = gen(family, rng, variant);
+      const dedupKey = q.prompt + '|||' + (q.answer?.display ?? q.answer);
+      if (!seenPrompts.has(dedupKey) || variant >= count * 3) {
+        seenPrompts.add(dedupKey);
+        questions.push(q);
+        fi++;
+      }
+    }
     variant++;
   }
   return questions;

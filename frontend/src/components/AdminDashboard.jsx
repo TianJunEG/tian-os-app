@@ -134,7 +134,7 @@ const AdminDashboard = () => {
 
   const ROLE_TONE = { parent: 'sky', tutor: 'lavender', admin: 'peach' };
   const navCls = (id) => `px-4 py-2.5 rounded-btn text-sm font-semibold transition ${activeTab === id ? 'bg-emerald-deep text-white' : 'border border-line-soft bg-surface-white text-ink-500 hover:border-navy-300 hover:text-emerald-deep'}`;
-  const filterCls = 'h-10 rounded-xl border border-line-soft bg-surface-white px-3 text-sm text-ink-700 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 focus-visible:border-navy-400';
+  const filterCls = 'h-10 rounded-xl border border-line-soft bg-surface-white px-3 text-sm text-ink-700 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/40 focus-visible:border-navy-400';
   const btnSmall = 'px-3 py-1.5 text-xs font-semibold rounded-lg border border-line-soft bg-surface-white text-ink-700 transition hover:bg-emerald-tint';
   const btnSuccess = 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-success-500 text-white transition hover:bg-success-700';
   const btnDanger = 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-error-500 text-white transition hover:bg-error-700';
@@ -546,7 +546,7 @@ const AdminDashboard = () => {
                     </Badge>
                   </td>
                   <td>
-                    <span className={booking.sessionNotes === 'Submitted' ? 'text-success-500 font-semibold' : 'text-gold-700 font-semibold'}>
+                    <span className={booking.sessionNotes === 'Submitted' ? 'text-success-500 font-semibold' : 'text-gold-deep font-semibold'}>
                       {booking.sessionNotes}
                     </span>
                   </td>

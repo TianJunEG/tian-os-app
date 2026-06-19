@@ -59,7 +59,7 @@ export default function MechanismsHome() {
       {/* Teacher Mode entry point */}
       <Card className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gold-100 text-gold-700"><Presentation className="h-5 w-5" /></span>
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gold-tint text-gold-deep"><Presentation className="h-5 w-5" /></span>
           <div>
             <h3 className="font-semibold text-ink-700">Teacher Mode</h3>
             <p className="text-sm text-ink-500">Open any mechanism, switch to Teacher Mode for answers and discussion prompts, or present full-screen to the class.</p>

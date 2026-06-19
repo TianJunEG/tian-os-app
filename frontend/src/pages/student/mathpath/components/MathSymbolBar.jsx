@@ -22,6 +22,7 @@ export const SYMBOL_DEFS = {
   theta: { token: 'θ', label: 'θ', title: 'Theta' },
   times: { token: '×', label: '×', title: 'Multiply' },
   divide: { token: '÷', label: '÷', title: 'Divide' },
+  colon: { token: ':', label: ':', title: 'Colon (ratio)' },
   fraction: { token: '/', label: '/', title: 'Fraction bar' },
   lparen: { token: '(', label: '(', title: 'Open bracket' },
   rparen: { token: ')', label: ')', title: 'Close bracket' },
@@ -51,7 +52,7 @@ export default function MathSymbolBar({
           key={def.token + def.label}
           type="button"
           disabled={disabled}
-          onClick={() => append(def.token)}
+          onMouseDown={(e) => { e.preventDefault(); append(def.token); }}
           title={def.title}
           aria-label={def.title}
           className="grid h-11 min-w-11 place-items-center rounded-xl border border-line-soft bg-white px-3 font-serif text-lg font-semibold text-emerald-deep shadow-sm transition hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-45"
@@ -62,7 +63,7 @@ export default function MathSymbolBar({
       <button
         type="button"
         disabled={disabled || !String(value ?? '').length}
-        onClick={backspace}
+        onMouseDown={(e) => { e.preventDefault(); backspace(); }}
         title="Delete last character"
         aria-label="Delete last character"
         className="grid h-11 min-w-11 place-items-center rounded-xl border border-line-soft bg-white px-3 text-lg text-ink-600 shadow-sm transition hover:border-orange-300 hover:bg-orange-50 disabled:cursor-not-allowed disabled:opacity-45"

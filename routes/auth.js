@@ -4,9 +4,11 @@ import mongoose from 'mongoose';
 import { body, validationResult } from 'express-validator';
 import User from '../models/User.js';
 import Student from '../models/Student.js';
+import Workspace from '../models/Workspace.js';
+import WorkspaceMember from '../models/WorkspaceMember.js';
 import { protect, getSignedToken } from '../middleware/auth.js';
 import { authRateLimit } from '../middleware/rateLimiter.js';
-import { sendPasswordResetEmail } from '../utils/emailService.js';
+import { sendPasswordResetEmail, sendWelcomeEmail, appBaseUrl } from '../utils/emailService.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
@@ -44,31 +46,67 @@ router.post(
       .isIn(['parent', 'tutor'])
   ],
   async (req, res) => {
+    // Self-serve registration is closed until the company is registered and
+    // pricing is confirmed. Set FEAT_OPEN_REGISTRATION=1 to re-enable.
+    if (process.env.FEAT_OPEN_REGISTRATION !== '1') {
+      return res.status(403).json({
+        error: 'registration_closed',
+        message: 'Tian OS is currently in early access. Contact us to get an account.',
+      });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
     try {
-      const { name, email, password, role } = req.body;
+      const { name, password, role } = req.body;
+      // The User schema lowercases email on write, but Mongoose does NOT apply
+      // that to queries — so normalise here or the duplicate check below silently
+      // misses case variants (e.g. John@X.com vs the stored john@x.com).
+      const email = String(req.body.email).toLowerCase().trim();
 
-      // Check if user already exists
       let user = await User.findOne({ email });
       if (user) {
         return res.status(400).json({ error: 'User already exists with that email' });
       }
 
-      // Create user
-      user = new User({
-        name,
-        email,
-        password,
-        role
-      });
+      user = new User({ name, email, password, role, roles: [role] });
+      try {
+        await user.save();
+      } catch (saveError) {
+        // Race between the check above and save, or a case variant that slipped
+        // through: surface the unique-index violation as a clean 400 rather than
+        // a 500 carrying the raw Mongo E11000 message.
+        if (saveError?.code === 11000) {
+          return res.status(400).json({ error: 'User already exists with that email' });
+        }
+        throw saveError;
+      }
 
+      // Create default workspace and membership
+      const workspace = await Workspace.create({
+        type: role,
+        role,
+        name: `${name}'s ${role.charAt(0).toUpperCase() + role.slice(1)} Workspace`,
+        ownerUserId: user._id,
+      });
+      await WorkspaceMember.create({
+        workspaceId: workspace._id,
+        userId: user._id,
+        role,
+        status: 'active',
+      });
+      user.defaultWorkspace = workspace._id;
       await user.save();
 
-      // Generate token
+      // Fire welcome email — non-blocking, failure must not break registration
+      const loginUrl = `${appBaseUrl()}/${role}`;
+      sendWelcomeEmail({ user, role, loginUrl }).catch((err) =>
+        console.error('Welcome email failed (non-fatal):', err.message)
+      );
+
       const token = getSignedToken(user._id, user.role);
 
       res.status(201).json({
@@ -78,12 +116,12 @@ router.post(
           id: user._id,
           name: user.name,
           email: user.email,
-          role: user.role
-        }
+          role: user.role,
+        },
       });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: 'Registration failed. Please try again.' });
     }
   }
 );
@@ -147,7 +185,7 @@ router.post(
       });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: 'Login failed. Please try again.' });
     }
   }
 );

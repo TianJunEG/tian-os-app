@@ -239,9 +239,9 @@ const TutorOnboarding = () => {
     }
   };
 
-  const inputCls = 'w-full rounded-xl bg-surface-white text-base sm:text-sm text-ink-700 placeholder:text-ink-300 border border-line-soft h-11 px-3.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 focus-visible:border-navy-400';
+  const inputCls = 'w-full rounded-xl bg-surface-white text-base sm:text-sm text-ink-700 placeholder:text-ink-300 border border-line-soft h-11 px-3.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/40 focus-visible:border-navy-400';
   const selectCls = `${inputCls} appearance-none pr-10`;
-  const textareaCls = 'w-full rounded-xl bg-surface-white text-base sm:text-sm text-ink-700 placeholder:text-ink-300 border border-line-soft px-3.5 py-2.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 focus-visible:border-navy-400 resize-y';
+  const textareaCls = 'w-full rounded-xl bg-surface-white text-base sm:text-sm text-ink-700 placeholder:text-ink-300 border border-line-soft px-3.5 py-2.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/40 focus-visible:border-navy-400 resize-y';
 
   // Step 1: Basic Info
   const renderStep1 = () => (
