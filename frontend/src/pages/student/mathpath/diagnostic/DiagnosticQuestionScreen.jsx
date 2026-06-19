@@ -7,7 +7,7 @@ import { checkFractionAnswer } from '../../../../mathpath/fractions/fractionQues
 import { repairFractionQuestions } from '../../../../mathpath/fractions/fractionQuestionRepair';
 import { mathpathAPI } from '../../../../services/api';
 import { useAuth } from '../../../../context/AuthContext';
-import { getVisualModeStyles, resolveStudentVisualMode } from '../../../../design-os/studentVisualMode';
+import { getVisualModeStyles, resolveStudentVisualMode, isLowerPrimary as checkIsLowerPrimary } from '../../../../design-os/studentVisualMode';
 import { shouldUseFractionAnswerInput } from '../components/FractionAnswerInput';
 import QuestionDiagram, { DIAGRAM_LOAD_ERROR_MESSAGE, validateQuestionDiagram } from '../components/QuestionDiagram';
 import FractionExpressionQuestion, { extractFractionExpression } from '../components/FractionExpressionQuestion';
@@ -23,10 +23,10 @@ import {
 import SubmissionReviewModal from '../components/SubmissionReviewModal';
 
 const REFLECTION_OPTIONS = [
-  { value: 'i_know_this', label: 'I know this 100%' },
-  { value: 'not_sure', label: "I'm not sure" },
-  { value: 'dont_know', label: "I don't know" },
-  { value: 'i_need_help', label: 'I need help' },
+  { value: 'i_know_this', label: 'I know this!', emoji: '😊' },
+  { value: 'not_sure', label: 'Not sure', emoji: '🤔' },
+  { value: 'dont_know', label: 'Hard', emoji: '😕' },
+  { value: 'i_need_help', label: 'Need help', emoji: '🙋' },
 ];
 const EMPTY_STROKES = [];
 
@@ -49,7 +49,9 @@ export default function DiagnosticQuestionScreen() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const visualStyles = getVisualModeStyles(resolveStudentVisualMode(user || {}));
+  const visualMode = resolveStudentVisualMode(user || {});
+  const visualStyles = getVisualModeStyles(visualMode);
+  const isLowerPrimary = checkIsLowerPrimary(visualMode);
   const [idx, setIdx] = useState(0);
   const [answer, setAnswer] = useState('');
   const [reflection, setReflection] = useState('');
@@ -127,7 +129,8 @@ export default function DiagnosticQuestionScreen() {
     return correct ? 'low_confidence_correct' : 'needs_review';
   };
 
-  const saveCurrentAnd = (skipped) => {
+  const saveCurrentAnd = (skipped, reflectionOverride) => {
+    const effectiveReflection = reflectionOverride ?? reflection;
     const timeTaken = Math.max(1, Math.floor((Date.now() - startedAt) / 1000));
     const correctness = skipped
       ? { correct: false }
@@ -148,12 +151,12 @@ export default function DiagnosticQuestionScreen() {
       questionStartedAt: new Date(startedAt).toISOString(),
       questionEndedAt: new Date().toISOString(),
       timedOut: false,
-      confidence: reflection,
-      confidenceLevel: reflection,
-      reflection,
+      confidence: effectiveReflection,
+      confidenceLevel: effectiveReflection,
+      reflection: effectiveReflection,
       helpRequested,
-      confidenceCalibration: confidenceCalibration(correctness.correct, reflection),
-      possibleMisconception: !correctness.correct && reflection === 'i_know_this',
+      confidenceCalibration: confidenceCalibration(correctness.correct, effectiveReflection),
+      possibleMisconception: !correctness.correct && effectiveReflection === 'i_know_this',
       workingImage: currentWorking.workingImage || '',
       workingStrokes: currentWorking.workingStrokes || [],
       workingMathObjects: currentWorking.workingMathObjects || [],
@@ -175,10 +178,12 @@ export default function DiagnosticQuestionScreen() {
     return [...responses, next];
   };
 
-  const nextQuestion = async (skipped = false) => {
+  const nextQuestion = async (skipped = false, reflectionOverride) => {
+    const effectiveReflection = reflectionOverride ?? reflection;
+    const workingReadyForSubmit = isLowerPrimary ? true : workingReady;
     if (busy) return;
-    if (!skipped && (!answer || !reflection || !workingReady)) return;
-    const nextResponses = saveCurrentAnd(skipped);
+    if (!skipped && (!answer || !effectiveReflection || !workingReadyForSubmit)) return;
+    const nextResponses = saveCurrentAnd(skipped, reflectionOverride);
     setResponses(nextResponses);
     setBusy(true);
     setError('');
@@ -188,7 +193,7 @@ export default function DiagnosticQuestionScreen() {
         questionId: q.questionId,
         questionFamilyId: q.questionFamilyId,
         answer: skipped ? '' : answer,
-        confidence: skipped ? (reflection || 'dont_know') : reflection,
+        confidence: skipped ? (effectiveReflection || 'dont_know') : effectiveReflection,
         timeTakenMs,
         skipped,
         blankAnswer: skipped || !String(answer || '').trim(),
@@ -237,10 +242,12 @@ export default function DiagnosticQuestionScreen() {
     setReviewModalOpen(true);
   };
 
-  const confirmSubmissionReview = () => {
-    if (!answer.trim() || !reflection || !workingReady || busy) return;
+  const confirmSubmissionReview = (reflectionOverride) => {
+    const workingReadyForSubmit = isLowerPrimary ? true : workingReady;
+    const effectiveReflection = reflectionOverride ?? reflection;
+    if (!answer.trim() || !effectiveReflection || !workingReadyForSubmit || busy) return;
     setReviewModalOpen(false);
-    nextQuestion(false);
+    nextQuestion(false, reflectionOverride);
   };
 
   return (
@@ -290,9 +297,13 @@ export default function DiagnosticQuestionScreen() {
             <div className="rounded-xl bg-white p-2 sm:p-3">
               <label className="mb-2 block text-sm font-semibold text-ink-700">Your answer</label>
               {q.type === 'mcq' ? (
-                <div className="grid gap-2">
+                <div className={`grid gap-2 ${isLowerPrimary ? 'grid-cols-2' : ''}`}>
                   {choices.map((c, i) => (
-                    <button key={`${i}-${c}`} onClick={() => setAnswer(c)} className={`rounded-xl border px-3 py-2 text-left ${answer === c ? 'border-emerald bg-emerald-tint' : 'border-line-soft hover:bg-emerald-tint'}`}>
+                    <button
+                      key={`${i}-${c}`}
+                      onClick={() => { setAnswer(c); if (isLowerPrimary) setReviewModalOpen(true); }}
+                      className={`rounded-xl border text-left ${isLowerPrimary ? 'px-4 py-5 text-2xl font-bold text-center' : 'px-3 py-2'} ${answer === c ? 'border-emerald bg-emerald-tint' : 'border-line-soft hover:bg-emerald-tint'}`}
+                    >
                       <MathText text={c} />
                     </button>
                   ))}
@@ -314,27 +325,38 @@ export default function DiagnosticQuestionScreen() {
               )}
             </div>
 
-            <div className="mt-2 rounded-xl border border-line-soft bg-white p-2">
-              <WorkingPreviewCard
-                workingImage={currentWorking.workingImage || ''}
-                workingSubmitted={Boolean(currentWorking.workingSubmitted)}
-                onOpen={() => setFullscreenQuestionId(q.questionId)}
-                onRemove={currentWorking.workingSubmitted ? () => setWorkingByQuestion((prev) => {
-                  const next = { ...prev };
-                  delete next[q.questionId];
-                  return next;
-                }) : null}
-              />
-            </div>
+            {!isLowerPrimary && (
+              <div className="mt-2 rounded-xl border border-line-soft bg-white p-2">
+                <WorkingPreviewCard
+                  workingImage={currentWorking.workingImage || ''}
+                  workingSubmitted={Boolean(currentWorking.workingSubmitted)}
+                  onOpen={() => setFullscreenQuestionId(q.questionId)}
+                  onRemove={currentWorking.workingSubmitted ? () => setWorkingByQuestion((prev) => {
+                    const next = { ...prev };
+                    delete next[q.questionId];
+                    return next;
+                  }) : null}
+                />
+              </div>
+            )}
 
             {error && <p className="mt-2 text-sm text-error-700">{error}</p>}
 
-            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-              <Button variant="secondary" onClick={() => nextQuestion(true)}>Skip</Button>
-              <Button icon={ArrowRight} disabled={busy || !answer.trim()} onClick={openSubmissionReview}>
-                {busy ? 'Checking…' : 'Next Question'}
-              </Button>
-            </div>
+            {!isLowerPrimary && (
+              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <Button variant="secondary" onClick={() => nextQuestion(true)}>Skip</Button>
+                <Button icon={ArrowRight} disabled={busy || !answer.trim()} onClick={openSubmissionReview}>
+                  {busy ? 'Checking…' : 'Next Question'}
+                </Button>
+              </div>
+            )}
+            {isLowerPrimary && q.type !== 'mcq' && (
+              <div className="mt-3">
+                <Button icon={ArrowRight} className="w-full py-4 text-lg font-bold" disabled={busy || !answer.trim()} onClick={openSubmissionReview}>
+                  {busy ? 'Checking…' : 'Next ➜'}
+                </Button>
+              </div>
+            )}
           </aside>
         </div>
         )}
@@ -381,10 +403,12 @@ export default function DiagnosticQuestionScreen() {
       />
       <SubmissionReviewModal
         open={reviewModalOpen}
-        title="Review your response"
+        title={isLowerPrimary ? 'How did that feel?' : 'Review your response'}
+        isLowerPrimary={isLowerPrimary}
         reflection={reflection}
         reflectionOptions={REFLECTION_OPTIONS}
         onReflectionChange={setReflection}
+        onSelectAndConfirm={(value) => { setReflection(value); confirmSubmissionReview(value); }}
         working={currentWorking}
         workingRequirementLevel={workingRequirementLevel}
         onDeclareNotNeeded={(checked) => setWorkingByQuestion((prev) => ({

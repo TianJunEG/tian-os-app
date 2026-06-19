@@ -5,9 +5,11 @@ import WorkingEvidenceDecision from '../../../../components/learning/WorkingEvid
 export default function SubmissionReviewModal({
   open,
   title = 'Before you submit',
+  isLowerPrimary = false,
   reflection,
   reflectionOptions = [],
   onReflectionChange,
+  onSelectAndConfirm,
   working,
   workingRequirementLevel = 'MEDIUM',
   onDeclareOnPaper,
@@ -30,6 +32,34 @@ export default function SubmissionReviewModal({
     && !working?.workingNotNeeded
     && (requirement === 'MEDIUM' || requirement === 'HIGH');
 
+  if (isLowerPrimary) {
+    return (
+      <Modal open={open} onClose={onClose} title={title}>
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            {reflectionOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                disabled={busy}
+                onClick={() => onSelectAndConfirm?.(option.value)}
+                className="flex flex-col items-center gap-2 rounded-2xl border-2 border-line-soft bg-surface-raised px-4 py-5 text-center transition hover:border-emerald hover:bg-emerald-tint active:scale-95"
+              >
+                <span className="text-5xl leading-none">{option.emoji}</span>
+                <span className="text-base font-bold text-ink-800">{option.label}</span>
+              </button>
+            ))}
+          </div>
+          <div className="pt-1 text-center">
+            <button type="button" onClick={onClose} className="text-sm text-ink-400 underline">
+              ← Change my answer
+            </button>
+          </div>
+        </div>
+      </Modal>
+    );
+  }
+
   return (
     <Modal open={open} onClose={onClose} title={title}>
       <div className="space-y-4">
@@ -45,7 +75,7 @@ export default function SubmissionReviewModal({
                   onClick={() => onReflectionChange?.(option.value)}
                   className={`rounded-lg border px-3 py-2 text-left text-sm ${reflection === option.value ? 'border-emerald bg-emerald-tint text-emerald-deep' : 'border-line-soft text-ink-600 hover:bg-surface-raised'}`}
                 >
-                  {option.label}
+                  {option.emoji && <span className="mr-1">{option.emoji}</span>}{option.label}
                 </button>
               ))}
             </div>
