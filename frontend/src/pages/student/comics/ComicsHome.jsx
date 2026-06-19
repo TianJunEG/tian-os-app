@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, CheckCircle, Lock, ArrowRight } from 'lucide-react';
 import { episodes, MASCOT_COLORS, getResumeEpisode, getEpisodeById } from '../../../data/comics/episodes';
+import { comicMomentum } from '../../../data/comics/comicMomentum';
 import { comicsAPI } from '../../../services/api';
 
 function EpisodeCard({ episode, isLatest, isCompleted }) {
@@ -103,6 +104,7 @@ function EpisodeCard({ episode, isLatest, isCompleted }) {
 export default function ComicsHome() {
   const navigate = useNavigate();
   const [completed, setCompleted] = useState(() => new Set());
+  const [momentum, setMomentum] = useState({ thisWeek: 0, streak: 0 });
   // Adaptive pick: the episode that practises the student's weakest skill.
   const [recommended, setRecommended] = useState(null); // { episode, skillName } | null
 
@@ -110,7 +112,10 @@ export default function ComicsHome() {
     let on = true;
     comicsAPI.progress()
       .then((res) => {
-        if (on) setCompleted(new Set((res.data?.completed ?? []).map((c) => c.episodeId)));
+        if (!on) return;
+        const items = res.data?.completed ?? [];
+        setCompleted(new Set(items.map((c) => c.episodeId)));
+        setMomentum(comicMomentum(items.map((c) => c.completedAt)));
       })
       .catch(() => { /* progress is non-critical; show archive without badges */ });
     comicsAPI.recommended()
@@ -147,6 +152,13 @@ export default function ComicsHome() {
         {doneCount > 0 && (
           <p style={{ fontSize: 12, color: '#16a34a', fontWeight: 700, marginTop: 6 }}>
             {doneCount} of {episodes.length} episodes completed
+          </p>
+        )}
+        {(momentum.streak >= 2 || momentum.thisWeek > 0) && (
+          <p style={{ fontSize: 12, color: '#b45309', fontWeight: 700, marginTop: 4 }}>
+            {momentum.streak >= 2
+              ? `🔥 ${momentum.streak}-day streak — keep it going!`
+              : `✨ ${momentum.thisWeek} this week — nice work!`}
           </p>
         )}
 
