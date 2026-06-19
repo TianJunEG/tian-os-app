@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Lightbulb, CheckCircle, XCircle, BookOpen, Volume2, VolumeX } from 'lucide-react';
-import { getEpisode, MASCOT_COLORS } from '../../../data/comics/episodes';
+import { getEpisode, getEpisodeById, MASCOT_COLORS } from '../../../data/comics/episodes';
 import { resolveTier, generateEpisodeProblems } from '../../../data/comics/comicDifficulty';
 import { comicsAPI } from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
@@ -404,7 +404,7 @@ function ProblemBox({ problem, onSolve, solved, episode, panelIndex }) {
 
 // ─── End card ─────────────────────────────────────────────────────────────────
 
-function EndCard({ nextEpisode }) {
+function EndCard({ nextEpisode, nextRec, onPlayNext }) {
   return (
     <div
       style={{
@@ -418,6 +418,40 @@ function EndCard({ nextEpisode }) {
     >
       <div style={{ fontSize: 28, marginBottom: 8 }}>🎉</div>
       <p style={{ fontSize: 15, fontWeight: 700, marginBottom: 6 }}>Episode complete!</p>
+
+      {/* Adaptive "play next" — chains the reader into the episode that
+          practises the student's weakest skill, keeping the session going. */}
+      {nextRec?.episode && (
+        <div style={{ marginTop: 12, marginBottom: nextEpisode ? 18 : 0 }}>
+          {nextRec.skillName && (
+            <p style={{ fontSize: 12, opacity: 0.85, marginBottom: 8 }}>
+              ✨ Next, let&apos;s practise {nextRec.skillName}
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={onPlayNext}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              background: '#fbbf24',
+              color: '#1c1917',
+              border: '2.5px solid #1c1917',
+              borderRadius: 12,
+              padding: '10px 18px',
+              fontSize: 14,
+              fontWeight: 800,
+              cursor: 'pointer',
+              boxShadow: '3px 3px 0 rgba(0,0,0,0.35)',
+            }}
+          >
+            Play next · Ep {nextRec.episode.episode}: {nextRec.episode.title}
+            <ArrowRight size={16} />
+          </button>
+        </div>
+      )}
+
       {nextEpisode && (
         <>
           <p style={{ fontSize: 12, opacity: 0.8, marginBottom: 12, lineHeight: 1.5 }}>
@@ -451,6 +485,7 @@ export default function ComicReader() {
   const [currentPanel, setCurrentPanel] = useState(0);
   const [solvedProblems, setSolvedProblems] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [nextRec, setNextRec] = useState(null); // adaptive "play next" pick
 
   const { user } = useAuth();
   // One seed per reading: numbers stay stable while you read, fresh on replay.
@@ -479,6 +514,32 @@ export default function ComicReader() {
     if (narration.autoNarrate && current) narration.playPanel(current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPanel, narration.autoNarrate, episode]);
+
+  // The route stays mounted when the slug changes (e.g. tapping "Play next"), so
+  // reset to the first panel for the new episode.
+  useEffect(() => {
+    setCurrentPanel(0);
+    setSolvedProblems({});
+    setSubmitted(false);
+    setNextRec(null);
+  }, [slug]);
+
+  // On the end card, fetch the adaptive next pick. The finished episode was just
+  // written to progress, so /recommended already excludes it; we also guard
+  // against recommending the same episode.
+  useEffect(() => {
+    const atEnd = episode && currentPanel >= episode.panels.length;
+    if (!atEnd) return undefined;
+    let on = true;
+    comicsAPI.recommended()
+      .then((res) => {
+        const rec = res.data?.recommended;
+        const ep = rec && getEpisodeById(rec.episodeId);
+        if (on && ep && ep.id !== episode.id) setNextRec({ episode: ep, skillName: rec.skillName });
+      })
+      .catch(() => { /* non-critical — the static teaser still shows */ });
+    return () => { on = false; };
+  }, [currentPanel, episode]);
 
   if (!episode) {
     return (
@@ -591,7 +652,15 @@ export default function ComicReader() {
       </div>
 
       {showEndCard ? (
-        <EndCard nextEpisode={episode.nextEpisode} />
+        <EndCard
+          nextEpisode={episode.nextEpisode}
+          nextRec={nextRec}
+          onPlayNext={() => {
+            if (!nextRec?.episode) return;
+            narration.stop();
+            navigate(`/student/comics/${nextRec.episode.slug}`);
+          }}
+        />
       ) : (
         <>
           {/* Scene */}

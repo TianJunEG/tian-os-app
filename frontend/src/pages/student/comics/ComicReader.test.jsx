@@ -10,7 +10,10 @@ import ComicReader from './ComicReader';
 // ErrorBoundary on EVERY episode's final "Finish" click in production.
 
 const completeMock = vi.fn().mockResolvedValue({});
-vi.mock('../../../services/api', () => ({ comicsAPI: { complete: (...a) => completeMock(...a) } }));
+const recommendedMock = vi.fn().mockResolvedValue({ data: { recommended: null } });
+vi.mock('../../../services/api', () => ({
+  comicsAPI: { complete: (...a) => completeMock(...a), recommended: (...a) => recommendedMock(...a) },
+}));
 vi.mock('../../../context/AuthContext', () => ({ useAuth: () => ({ user: { studentLevel: 'P4' } }) }));
 // Deterministic problems so this reader-flow test is stable; the engine's own
 // level-scaling of numbers is covered by comicDifficulty.test.js.
@@ -42,7 +45,20 @@ function solveCurrentPanel(container, answer) {
 }
 
 describe('ComicReader', () => {
-  beforeEach(() => completeMock.mockClear());
+  beforeEach(() => {
+    completeMock.mockClear();
+    recommendedMock.mockReset();
+    recommendedMock.mockResolvedValue({ data: { recommended: null } });
+  });
+
+  function finishEpisode(container) {
+    solveCurrentPanel(container, ANSWERS[0]);
+    fireEvent.click(screen.getByRole('button', { name: /Next panel/ }));
+    solveCurrentPanel(container, ANSWERS[1]);
+    fireEvent.click(screen.getByRole('button', { name: /Next panel/ }));
+    solveCurrentPanel(container, ANSWERS[2]);
+    fireEvent.click(screen.getByRole('button', { name: /Finish/ }));
+  }
 
   it('walks to the end card without crashing after the final answer', async () => {
     const { container } = renderReader();
@@ -70,5 +86,34 @@ describe('ComicReader', () => {
   it('shows a friendly message for an unknown episode slug', () => {
     renderReader('does-not-exist');
     expect(screen.getByText('Episode not found.')).toBeInTheDocument();
+  });
+
+  it('offers an adaptive "Play next" on the end card and navigates to it', async () => {
+    // recommend a different episode (ep-005) targeting a weak skill
+    recommendedMock.mockResolvedValue({
+      data: { recommended: { episodeId: 'ep-005', skillName: 'Length', skillSlug: 'mea.length' } },
+    });
+    const { container } = renderReader();
+    finishEpisode(container);
+
+    await screen.findByText('Episode complete!');
+    // It asked for a recommendation and surfaced the reason + the chained CTA.
+    await waitFor(() => expect(recommendedMock).toHaveBeenCalled());
+    expect(await screen.findByText((t) => /Next, let.?s practise Length/.test(t))).toBeInTheDocument();
+    const playNext = screen.getByRole('button', { name: /Play next · Ep 5/ });
+
+    fireEvent.click(playNext);
+    // The reader chains into Ep 5 and resets to its first panel.
+    expect(await screen.findByText('Ep 5: Measure Up')).toBeInTheDocument();
+  });
+
+  it('does not show Play next when there is no recommendation', async () => {
+    recommendedMock.mockResolvedValue({ data: { recommended: null } });
+    const { container } = renderReader();
+    finishEpisode(container);
+
+    await screen.findByText('Episode complete!');
+    await waitFor(() => expect(recommendedMock).toHaveBeenCalled());
+    expect(screen.queryByRole('button', { name: /Play next/ })).not.toBeInTheDocument();
   });
 });
