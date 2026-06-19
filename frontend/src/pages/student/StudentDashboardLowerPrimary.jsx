@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ArrowRight,
   Award,
@@ -190,8 +190,10 @@ function LowerPrimaryBanner() {
   );
 }
 
-function DiagnosticPrompts({ domains, containerClassName = '', containerStyle }) {
-  const list = (domains && domains.length) ? domains : [{ domainId: 'fractions', displayName: 'Fractions' }];
+function DiagnosticPrompts({ domains, level, containerClassName = '', containerStyle }) {
+  const year = Number(String(level || '').match(/\d/)?.[0] || 0);
+  const fallback = year <= 2 ? { domainId: 'whole-numbers', displayName: 'Whole Numbers' } : { domainId: 'fractions', displayName: 'Fractions' };
+  const list = (domains && domains.length) ? domains : [fallback];
   return (
     <div className={containerClassName} style={containerStyle}>
       <p className="mb-3 text-sm text-ink-500">Choose a topic to find your starting point:</p>
@@ -211,6 +213,33 @@ function DiagnosticPrompts({ domains, containerClassName = '', containerStyle })
   );
 }
 
+function levelToYear(level = '') {
+  const s = String(level).toLowerCase().trim();
+  if (/k2|kindy|preschool|kindergarten/.test(s)) return 0;
+  const m = s.match(/\d+/);
+  return m ? Math.min(6, Math.max(0, parseInt(m[0], 10))) : 1;
+}
+
+const LEVEL_LABELS = ['K2', 'P1', 'P2', 'P3', 'P4', 'P5', 'P6'];
+
+const DOMAIN_LIST = [
+  { flag: 'operations',    minYear: 0, maxYear: 6, label: 'Operations',        desc: 'Add, subtract, multiply & divide',        to: '/student/mathpath/operations',     bg: 'bg-orange-100',    iconColor: 'text-orange-600',   Icon: Calculator },
+  { flag: 'numberSense',   minYear: 0, maxYear: 4, label: 'Number Sense',      desc: 'Place value, counting & patterns',         to: '/student/mathpath/number-sense',   bg: 'bg-indigo-100',    iconColor: 'text-indigo-600',   Icon: Hash },
+  { flag: 'mathpath',      minYear: 2, maxYear: 6, label: 'Fractions',         desc: 'Equivalent fractions, +−×÷ (P2–P6)',      to: '/student/mathpath/fractions',      bg: 'bg-emerald-tint',  iconColor: 'text-emerald',      Icon: BookOpen },
+  { flag: 'money',         minYear: 1, maxYear: 4, label: 'Money',             desc: 'Dollars, cents & everyday calculations',   to: '/student/mathpath/money',          bg: 'bg-green-100',     iconColor: 'text-green-600',    Icon: DollarSign },
+  { flag: 'time',          minYear: 1, maxYear: 5, label: 'Time',              desc: 'Clock, calendar & duration',               to: '/student/mathpath/time',           bg: 'bg-sky-100',       iconColor: 'text-sky-600',      Icon: Clock },
+  { flag: 'measurement',   minYear: 2, maxYear: 6, label: 'Measurement',       desc: 'Length, mass and capacity',                to: '/student/mathpath/measurement',    bg: 'bg-amber-100',     iconColor: 'text-amber-600',    Icon: Ruler },
+  { flag: 'geometry',      minYear: 1, maxYear: 6, label: 'Geometry',          desc: 'Angles, shapes & properties',              to: '/student/mathpath/geometry',       bg: 'bg-violet-100',    iconColor: 'text-violet-600',   Icon: Triangle },
+  { flag: 'statistics',    minYear: 2, maxYear: 6, label: 'Statistics',        desc: 'Charts, tables and averages',              to: '/student/mathpath/statistics',     bg: 'bg-blue-100',      iconColor: 'text-blue-600',     Icon: BarChart2 },
+  { flag: 'areaPerimeter', minYear: 3, maxYear: 6, label: 'Area & Perimeter',  desc: 'Rectilinear & composite figures',          to: '/student/mathpath/area-perimeter', bg: 'bg-rose-100',      iconColor: 'text-rose-600',     Icon: Square },
+  { flag: 'decimals',      minYear: 4, maxYear: 6, label: 'Decimals',          desc: 'Place value, operations & measurement',    to: '/student/mathpath/decimals',       bg: 'bg-emerald-tint',  iconColor: 'text-emerald',      Icon: Calculator },
+  { flag: 'volume',        minYear: 4, maxYear: 6, label: 'Volume & Capacity', desc: 'Cuboids and liquid volume',                to: '/student/mathpath/volume',         bg: 'bg-lime-100',      iconColor: 'text-lime-600',     Icon: Box },
+  { flag: 'percentages',   minYear: 5, maxYear: 6, label: 'Percentage',        desc: 'Per hundred, conversions, discount, GST',  to: '/student/mathpath/percentages',    bg: 'bg-purple-tint',   iconColor: 'text-purple',       Icon: Percent },
+  { flag: 'ratioRate',     minYear: 5, maxYear: 6, label: 'Ratio & Rate',      desc: 'Equivalent ratios, speed & proportion',    to: '/student/mathpath/ratio-rate',     bg: 'bg-teal-100',      iconColor: 'text-teal-600',     Icon: Scale },
+  { flag: 'algebra',       minYear: 5, maxYear: 6, label: 'Algebra',           desc: 'Equations, unknowns & patterns',           to: '/student/mathpath/algebra',        bg: 'bg-fuchsia-100',   iconColor: 'text-fuchsia-600',  Icon: Sigma },
+  { flag: 'circles',       minYear: 6, maxYear: 6, label: 'Circles',           desc: 'Circumference, area & composite shapes',   to: '/student/mathpath/circles',        bg: 'bg-cyan-100',      iconColor: 'text-cyan-600',     Icon: Circle },
+];
+
 export default function StudentDashboardLowerPrimary({
   TodaysMissionCard,
   firstName,
@@ -224,11 +253,16 @@ export default function StudentDashboardLowerPrimary({
   displayXp,
   showDiagnosticPrompt,
   diagnosticDomains,
+  studentLevel,
   canResetStudentState,
   resetStudentState,
   resetting,
 }) {
   const bp = brainPower(displayXp);
+  const [selectedLevel, setSelectedLevel] = useState(() => levelToYear(studentLevel));
+  const visibleDomains = DOMAIN_LIST.filter(
+    (d) => FEATURE_FLAGS[d.flag] !== false && selectedLevel >= d.minYear && selectedLevel <= d.maxYear,
+  );
   return (
     <main className={`${visual.styles.page} space-y-5`}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -283,179 +317,41 @@ export default function StudentDashboardLowerPrimary({
 
       <LowerPrimaryBanner />
 
-      {FEATURE_FLAGS.decimals && (
-        <Card className="flex items-center gap-4 p-4" interactive>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-tint">
-            <Calculator className="h-5 w-5 text-emerald" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Decimals</p>
-            <p className="text-xs text-ink-500">Place value, operations and measurement (P4–P6)</p>
-          </div>
-          <Button to="/student/mathpath/decimals" size="s" icon={ArrowRight}>Explore</Button>
-        </Card>
-      )}
-
-      {FEATURE_FLAGS.percentages && (
-        <Card className="flex items-center gap-4 p-4" interactive>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-tint">
-            <Percent className="h-5 w-5 text-purple" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Percentage</p>
-            <p className="text-xs text-ink-500">Per hundred, conversions, discount, GST and interest (P5–P6)</p>
-          </div>
-          <Button to="/student/mathpath/percentages" size="s" icon={ArrowRight}>Explore</Button>
-        </Card>
-      )}
-
-      {FEATURE_FLAGS.ratioRate && (
-        <Card className="flex items-center gap-4 p-4" interactive>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-100">
-            <Scale className="h-5 w-5 text-teal-600" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Ratio &amp; Rate</p>
-            <p className="text-xs text-ink-500">Equivalent ratios, dividing in a ratio, speed and direct proportion (P5–P6)</p>
-          </div>
-          <Button to="/student/mathpath/ratio-rate" size="s" icon={ArrowRight}>Explore</Button>
-        </Card>
-      )}
-      {FEATURE_FLAGS.operations && (
-        <Card className="flex items-center gap-4 p-4" interactive>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-100">
-            <Calculator className="h-5 w-5 text-orange-600" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Operations</p>
-            <p className="text-xs text-ink-500">Add, subtract, multiply &amp; divide (P1–P4)</p>
-          </div>
-          <Button to="/student/mathpath/operations" size="s" icon={ArrowRight}>Explore</Button>
-        </Card>
-      )}
-      {FEATURE_FLAGS.numberSense && (
-        <Card className="flex items-center gap-4 p-4" interactive>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-100">
-            <Hash className="h-5 w-5 text-indigo-600" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Number Sense</p>
-            <p className="text-xs text-ink-500">Place value, rounding &amp; patterns (P1–P4)</p>
-          </div>
-          <Button to="/student/mathpath/number-sense" size="s" icon={ArrowRight}>Explore</Button>
-        </Card>
-      )}
-      {FEATURE_FLAGS.money && (
-        <Card className="flex items-center gap-4 p-4" interactive>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-100">
-            <DollarSign className="h-5 w-5 text-green-600" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Money</p>
-            <p className="text-xs text-ink-500">Dollars, cents &amp; everyday calculations (P1–P4)</p>
-          </div>
-          <Button to="/student/mathpath/money" size="s" icon={ArrowRight}>Explore</Button>
-        </Card>
-      )}
-      {FEATURE_FLAGS.timeDomain && (
-        <Card className="flex items-center gap-4 p-4" interactive>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-100">
-            <Clock className="h-5 w-5 text-sky-600" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Time</p>
-            <p className="text-xs text-ink-500">Clock, calendar &amp; duration (P1–P4)</p>
-          </div>
-          <Button to="/student/mathpath/time" size="s" icon={ArrowRight}>Explore</Button>
-        </Card>
-      )}
-      {FEATURE_FLAGS.measurement && (
-        <Card className="flex items-center gap-4 p-4" interactive>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100">
-            <Ruler className="h-5 w-5 text-amber-600" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Measurement</p>
-            <p className="text-xs text-ink-500">Length, mass and capacity (P2–P5)</p>
-          </div>
-          <Button to="/student/mathpath/measurement" size="s" icon={ArrowRight}>Explore</Button>
-        </Card>
-      )}
-      {FEATURE_FLAGS.geometry && (
-        <Card className="flex items-center gap-4 p-4" interactive>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100">
-            <Triangle className="h-5 w-5 text-violet-600" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Geometry</p>
-            <p className="text-xs text-ink-500">Angles, shapes &amp; properties (P3–P6)</p>
-          </div>
-          <Button to="/student/mathpath/geometry" size="s" icon={ArrowRight}>Explore</Button>
-        </Card>
-      )}
-      {FEATURE_FLAGS.areaPerimeter && (
-        <Card className="flex items-center gap-4 p-4" interactive>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-100">
-            <Square className="h-5 w-5 text-rose-600" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Area &amp; Perimeter</p>
-            <p className="text-xs text-ink-500">Rectilinear and composite figures (P3–P6)</p>
-          </div>
-          <Button to="/student/mathpath/area-perimeter" size="s" icon={ArrowRight}>Explore</Button>
-        </Card>
-      )}
-      {FEATURE_FLAGS.circles && (
-        <Card className="flex items-center gap-4 p-4" interactive>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-100">
-            <Circle className="h-5 w-5 text-cyan-600" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Circles</p>
-            <p className="text-xs text-ink-500">Circumference, area and composite shapes (P5–P6)</p>
-          </div>
-          <Button to="/student/mathpath/circles" size="s" icon={ArrowRight}>Explore</Button>
-        </Card>
-      )}
-      {FEATURE_FLAGS.volume && (
-        <Card className="flex items-center gap-4 p-4" interactive>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lime-100">
-            <Box className="h-5 w-5 text-lime-600" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Volume &amp; Capacity</p>
-            <p className="text-xs text-ink-500">Cuboids and liquid volume (P4–P6)</p>
-          </div>
-          <Button to="/student/mathpath/volume" size="s" icon={ArrowRight}>Explore</Button>
-        </Card>
-      )}
-      {FEATURE_FLAGS.statistics && (
-        <Card className="flex items-center gap-4 p-4" interactive>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100">
-            <BarChart2 className="h-5 w-5 text-blue-600" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Statistics</p>
-            <p className="text-xs text-ink-500">Charts, tables and averages (P3–P6)</p>
-          </div>
-          <Button to="/student/mathpath/statistics" size="s" icon={ArrowRight}>Explore</Button>
-        </Card>
-      )}
-      {FEATURE_FLAGS.algebra && (
-        <Card className="flex items-center gap-4 p-4" interactive>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-fuchsia-100">
-            <Sigma className="h-5 w-5 text-fuchsia-600" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Algebra</p>
-            <p className="text-xs text-ink-500">Equations, unknowns &amp; patterns (P5–P6)</p>
-          </div>
-          <Button to="/student/mathpath/algebra" size="s" icon={ArrowRight}>Explore</Button>
-        </Card>
-      )}
+      <section>
+        <div className="mb-3 flex flex-wrap items-center gap-1.5">
+          <span className="mr-1 text-sm font-semibold text-ink-600">Topics for:</span>
+          {LEVEL_LABELS.map((label, yr) => (
+            <button
+              key={yr}
+              type="button"
+              onClick={() => setSelectedLevel(yr)}
+              className={`rounded-full px-3 py-1 text-sm font-semibold transition ${selectedLevel === yr ? 'bg-emerald text-white shadow-sm' : 'bg-surface-raised text-ink-600 hover:bg-emerald-tint'}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {visibleDomains.length === 0 && (
+          <p className="text-sm text-ink-400">No topics for this level yet.</p>
+        )}
+        <div className="space-y-2">
+          {visibleDomains.map(({ label, desc, to, Icon, bg, iconColor }) => (
+            <Card key={to} className="flex items-center gap-4 p-4" interactive>
+              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${bg}`}>
+                <Icon className={`h-5 w-5 ${iconColor}`} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-ink-700">{label}</p>
+                <p className="text-xs text-ink-500">{desc}</p>
+              </div>
+              <Button to={to} size="s" icon={ArrowRight}>Explore</Button>
+            </Card>
+          ))}
+        </div>
+      </section>
 
       {showDiagnosticPrompt && (
-        <DiagnosticPrompts domains={diagnosticDomains} />
+        <DiagnosticPrompts domains={diagnosticDomains} level={studentLevel} />
       )}
     </main>
   );

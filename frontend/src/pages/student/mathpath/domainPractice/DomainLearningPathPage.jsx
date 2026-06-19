@@ -48,13 +48,11 @@ export default function DomainLearningPathPage({ domain }) {
   // learning-path page, now surfaced through the shared footer slot.
   const footerSlot = (
     <div className="flex flex-wrap items-center gap-3">
-      <button
-        type="button"
+      <Button
         onClick={() => navigate(`/student/mathpath/${domain}/diagnostic`)}
-        className="text-sm font-semibold text-emerald-deep hover:underline"
       >
-        Not sure where to start? Take a quick check-in →
-      </button>
+        Start Check-in
+      </Button>
       {config?.startFluency && FEATURE_FLAGS.fluency && view.recommendedNext?.skillId && (
         <Button size="s" variant="secondary" icon={Zap} onClick={() => navigate(`/student/mathpath/${domain}/fluency?skill=${view.recommendedNext.skillId}`)}>
           Speed Drill

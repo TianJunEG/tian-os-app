@@ -222,7 +222,7 @@ function TodaysMissionCard({ currentSkill, nextAction, hasPlacement, visual, ass
         homeBase: '/student',
       }
     : undefined;
-  const skillName = currentSkill?.skillName || 'Fractions Diagnostic';
+  const skillName = currentSkill?.skillName || (isLowerPrimary(visual.mode) ? 'Maths Check-In' : 'Fractions Diagnostic');
   const ctaLabel = hasPlacement
     ? (isLowerPrimary(visual.mode) ? visual.styles.practiceCta : action.label)
     : (isLowerPrimary(visual.mode) ? '🚀 Start Check-In' : 'Start Diagnostic');
@@ -445,8 +445,14 @@ function RecommendedNextSection({ currentSkill, nextAction, hasPlacement, visual
 
 // One diagnostic CTA per registered diagnostic domain (from the registry, not
 // hardcoded). Each links to the diagnostic intro carrying its domainId.
-function DiagnosticPrompts({ domains, containerClassName = '', containerStyle }) {
-  const list = (domains && domains.length) ? domains : [{ domainId: 'fractions', displayName: 'Fractions' }];
+function defaultDomainForLevel(level = '') {
+  const year = Number(String(level).match(/\d/)?.[0] || 0);
+  if (year <= 2) return { domainId: 'whole-numbers', displayName: 'Whole Numbers' };
+  return { domainId: 'fractions', displayName: 'Fractions' };
+}
+
+function DiagnosticPrompts({ domains, level, containerClassName = '', containerStyle }) {
+  const list = (domains && domains.length) ? domains : [defaultDomainForLevel(level)];
   return (
     <div className={containerClassName} style={containerStyle}>
       <p className="mb-3 text-sm text-ink-500">Choose a topic to find your starting point:</p>
@@ -482,7 +488,7 @@ export default function StudentDashboard() {
   // Diagnostic CTAs are driven by the diagnostic domain registry (one per
   // domain), not hardcoded to Fractions. Seeded with Fractions so the card never
   // regresses if the registry call fails.
-  const [diagnosticDomains, setDiagnosticDomains] = useState([{ domainId: 'fractions', displayName: 'Fractions' }]);
+  const [diagnosticDomains, setDiagnosticDomains] = useState(() => [defaultDomainForLevel(user?.studentLevel || '')]);
 
   // Dev-only mock mode: explicit opt-in. Internal alpha/default users should
   // see real pipeline output, not synthetic dashboard data.
@@ -692,6 +698,7 @@ export default function StudentDashboard() {
         displayXp={displayXp}
         showDiagnosticPrompt={showDiagnosticPrompt}
         diagnosticDomains={diagnosticDomains}
+        studentLevel={user?.studentLevel}
         canResetStudentState={canResetStudentState}
         resetStudentState={resetStudentState}
         resetting={resetting}
@@ -991,7 +998,7 @@ export default function StudentDashboard() {
       )}
 
       {showDiagnosticPrompt && (
-        <DiagnosticPrompts domains={diagnosticDomains} containerClassName="mt-4" />
+        <DiagnosticPrompts domains={diagnosticDomains} level={user?.studentLevel} containerClassName="mt-4" />
       )}
       {hasOtherWarnings && !showDiagnosticPrompt && (
         <Card className="mt-4 p-4">
