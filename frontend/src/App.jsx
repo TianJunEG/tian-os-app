@@ -16,6 +16,8 @@ const TutoringLandingPage = lazy(() => import('./pages/TutoringLandingPage'));
 const EduAppsLandingPage = lazy(() => import('./pages/EduAppsLandingPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
 const StudentDashboardPage = lazy(() => import('./pages/StudentDashboardPage'));
 const ParentDashboardPage = lazy(() => import('./pages/ParentDashboardPage'));
 const ChildProfilePage = lazy(() => import('./pages/ChildProfilePage'));
@@ -44,6 +46,7 @@ import { ToastProvider, useToast } from './components/ui';
 import { registerApiErrorHandler } from './services/api';
 import { ROLE_HOME } from './config/nav';
 import FeatureGuard from './components/FeatureGuard';
+const BrightdeskAuthPage = lazy(() => import('./pages/BrightdeskAuthPage'));
 const StudentDashboard = lazy(() => import('./pages/student/StudentDashboard'));
 const StudentProfile = lazy(() => import('./pages/student/StudentProfile'));
 const MorePage = lazy(() => import('./pages/MorePage'));
@@ -458,6 +461,7 @@ function App() {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
+          <Route path="/brightdesk-auth" element={<BrightdeskAuthPage />} />
           <Route path="/demo/stroke-replay" element={<StrokeReplayDemo />} />
           <Route path="/demo/diagrams" element={<DiagramDemo />} />
           <Route path="/founder" element={<FounderStoryPage />} />
@@ -487,6 +491,8 @@ function App() {
               </PublicRoute>
             }
           />
+          <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
+          <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
           <Route path="/connect/tutor/:token" element={<TutorInviteConnectPage />} />
           <Route path="/connect/parent/:token" element={<ParentInviteConnectPage />} />
           <Route path="/join" element={<ProtectedRoute><JoinClassPage /></ProtectedRoute>} />

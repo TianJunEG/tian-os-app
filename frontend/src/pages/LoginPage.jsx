@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ArrowLeft, User, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { ArrowLeft, User, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 import { Wordmark } from '../components/tianos';
 import { Card, Button, Field, Input, Alert } from '../components/ui';
 import { ROLE_HOME } from '../config/nav';
@@ -60,6 +60,9 @@ export default function LoginPage() {
         <h1 className="text-center font-display text-3xl font-semibold tracking-[-0.02em] text-emerald-deep">Welcome back</h1>
         <p className="mb-8 mt-1 text-center text-sm text-ink-500">Sign in to your Tian OS account</p>
 
+        {new URLSearchParams(location.search).get('reset') === '1' && (
+          <Alert tone="success" icon={CheckCircle} className="mb-4">Password updated — sign in with your new password.</Alert>
+        )}
         {error && <Alert tone="error" icon={AlertCircle} className="mb-4">{error}</Alert>}
 
         <form onSubmit={handleSubmit}>
@@ -85,6 +88,10 @@ export default function LoginPage() {
             {loading ? 'Signing in…' : 'Sign in'}
           </Button>
         </form>
+
+        <div className="mt-4 text-center">
+          <Link to="/forgot-password" className="text-sm text-ink-400 hover:text-ink-600">Forgot password?</Link>
+        </div>
 
         <div className="mt-6 border-t border-line-soft pt-6">
           <p className="text-center text-sm text-ink-500">

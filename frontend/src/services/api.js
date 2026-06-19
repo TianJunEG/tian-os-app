@@ -631,7 +631,9 @@ export const authAPI = {
   register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
   getCurrentUser: () => api.get('/auth/me'),
-  updateProfile: (data) => api.put('/auth/update-profile', data)
+  updateProfile: (data) => api.put('/auth/update-profile', data),
+  forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
+  resetPassword: (token, password) => api.post(`/auth/reset-password/${token}`, { password }),
 };
 
 // Tutors API
@@ -661,6 +663,8 @@ export const parentsAPI = {
 export const integrationsAPI = {
   generateBrightdeskToken: (studentId) =>
     api.post('/integrations/brightdesk/generate-token', { studentId }),
+  authorizeBrightdesk: (data) =>
+    api.post('/integrations/brightdesk/authorize', data),
 };
 
 // Partners API
