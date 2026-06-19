@@ -106,7 +106,7 @@ export default function DomainFluencySession({ domain }) {
   }
 
   if (result) {
-    const summary = summariseFluencyResult(result);
+    const summary = result;
     return (
       <div className="mx-auto max-w-2xl space-y-5 px-4 py-8">
         <PageHeader title="Drill complete" subtitle={`${summary.correct}/${summary.total} correct${summary.averageTime != null ? ` · avg ${summary.averageTime}s` : ''}.`} />

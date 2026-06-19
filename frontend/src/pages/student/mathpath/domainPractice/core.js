@@ -34,6 +34,7 @@ export function buildSubmitPayload(answers = []) {
           studentAnswer: String(a.studentAnswer),
           timeTaken: Number(a.timeTaken || 0),
         };
+        if (a.reflection) response.confidence = a.reflection;
         if (a.workingSubmitted) response.workingSubmitted = true;
         if (a.workingImage) response.workingImage = a.workingImage;
         if (Array.isArray(a.workingStrokes)) response.workingStrokes = a.workingStrokes;

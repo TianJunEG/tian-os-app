@@ -57,6 +57,7 @@ router.post('/practice/start', protect, async (req, res) => {
     const { masteredSkillIds, weakSkillIds } = await loadProgress(studentId);
 
     const built = buildPercentagePracticeSession({ targetSkillId, masteredSkillIds, weakSkillIds, questionCount });
+    if (!built.questions.length) return res.status(400).json({ error: 'No questions available for this skill. Try a different topic.' });
     const practiceSessionId = newSessionId();
 
     await MathPathPracticeSession.create({

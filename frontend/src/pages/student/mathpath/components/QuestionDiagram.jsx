@@ -80,17 +80,84 @@ function inferShadedFractionDiagramFromAnswer(question = {}) {
   };
 }
 
+// Kinds that have no renderer — questions with these will show without a diagram
+// rather than being silently skipped.
+const UNMAPPABLE_DIAGRAM_KINDS = new Set([
+  'polygon', 'symmetry', 'reflection', 'solid', 'net', 'parallelogram',
+  'trapezium', 'l-shape', 'pictograph', 'value-list', 'pie', 'scale', 'coins',
+]);
+
+// Convert generators' legacy `diagram: { kind, ...data }` shape into the
+// `diagramSpec: { type, data, width, height }` shape the renderers expect.
+function normalizeDiagramKind(diagram) {
+  if (!diagram?.kind) return null;
+  const { kind } = diagram;
+  if (UNMAPPABLE_DIAGRAM_KINDS.has(kind)) return null;
+  switch (kind) {
+    case 'circle':
+      return {
+        type: 'circle', width: 320, height: 260,
+        data: { radius: diagram.radius, show: diagram.label === 'diameter' ? 'diameter' : 'radius' },
+      };
+    case 'circle-part':
+      if (diagram.part === 'quarter')
+        return { type: 'quarter_circle', width: 320, height: 280, data: { radius: diagram.radius, label: `${diagram.radius} cm` } };
+      if (diagram.part === 'half')
+        return { type: 'semicircle', width: 360, height: 220, data: { diameter: (diagram.radius || 0) * 2, label: `${(diagram.radius || 0) * 2} cm` } };
+      return null;
+    case 'rectangle':
+      return { type: 'rectangle_area', width: 400, height: 280, data: { widthUnits: diagram.l, heightUnits: diagram.w } };
+    case 'square':
+      return { type: 'rectangle_area', width: 320, height: 280, data: { widthUnits: diagram.side, heightUnits: diagram.side } };
+    case 'triangle':
+      if (diagram.base && diagram.height)
+        return { type: 'triangle_area', width: 400, height: 280, data: { base: `${diagram.base} cm`, height: `${diagram.height} cm` } };
+      return null;
+    case 'angle':
+      return { type: 'angle_on_line', width: 400, height: 240, data: { angleDegrees: diagram.degrees } };
+    case 'bar':
+      return {
+        type: 'bar_chart', width: 480, height: 320,
+        data: { bars: (diagram.rows || []).map(([label, value]) => ({ label: String(label), value: Number(value) })) },
+      };
+    case 'line':
+      return {
+        type: 'line_graph', width: 480, height: 320,
+        data: { points: (diagram.points || []).map(([label, value]) => ({ label: String(label), value: Number(value) })) },
+      };
+    case 'table':
+      return { type: 'table', width: 440, height: 240, data: { headers: diagram.columns || [], rows: diagram.rows || [] } };
+    case 'bar-model':
+      if (diagram.bars && diagram.bars.length === 2)
+        return {
+          type: 'comparison_bar', width: 480, height: 200,
+          data: { leftValue: diagram.bars[0].value, rightValue: diagram.bars[1].value, leftLabel: diagram.bars[0].label, rightLabel: diagram.bars[1].label },
+        };
+      if (diagram.bars)
+        return { type: 'part_whole_bar', width: 480, height: 200, data: { parts: diagram.bars.map((b) => ({ label: b.label, value: b.value })) } };
+      return null;
+    default:
+      return null;
+  }
+}
+
 export function questionRequiresDiagram(question = {}) {
-  if (question?.diagramSpec || question?.diagram || question?.visual?.payload?.type) return true;
+  if (question?.diagramSpec) return true;
+  // A kind-based diagram that has no renderer should not block the question.
+  if (question?.diagram?.kind) return Boolean(normalizeDiagramKind(question.diagram));
+  if (question?.diagram || question?.visual?.payload?.type) return true;
   if (question?.requiresDiagram || question?.requiresVisual || question?.visualRequired) return true;
   const text = `${question?.prompt || ''} ${question?.stem || ''}`.toLowerCase();
   return /\b(number line|shaded|shape|fraction strip|bar model|area model|diagram|graph)\b/.test(text);
 }
 
 function explicitDiagramCandidates(question = {}) {
+  const normalizedDiagram = question?.diagram?.kind
+    ? normalizeDiagramKind(question.diagram)
+    : question?.diagram;
   return [
     question?.diagramSpec,
-    question?.diagram,
+    normalizedDiagram,
     question?.visual?.type === 'svg' && question.visual?.payload?.type ? question.visual.payload : null,
   ].filter(Boolean);
 }
