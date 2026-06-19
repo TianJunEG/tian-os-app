@@ -115,7 +115,9 @@ export function createDiagnosticDomain(config = {}) {
   function normalizeDiagnosticModeForLevel(level = '', requested = '') {
     const explicit = String(requested || '').toLowerCase();
     if (['basic', 'core', 'full'].includes(explicit)) return explicit;
-    const l = String(level || '').toUpperCase();
+    const l = String(level || '').toUpperCase().trim();
+    // Pre-primary / kindergarten → treat as P1 (basic)
+    if (l === 'K1' || l === 'K2' || l.includes('KINDER') || l.includes('PRESCHOOL') || l.includes('NURSERY')) return 'basic';
     if (l === 'P1' || l === 'P2' || l === 'P3') return 'basic';
     if (l === 'P4') return 'core';
     return 'full';
