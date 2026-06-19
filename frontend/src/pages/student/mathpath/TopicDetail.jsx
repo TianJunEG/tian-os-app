@@ -58,6 +58,26 @@ function findCheatSheet(topicName, moeLevel) {
 }
 import { Card, Button, StatusBadge, ProgressBar, PageHeader, Spinner, EmptyState } from '../../../components/ui';
 
+// Derive a level label from the skills in a topic.
+// Single level → "Primary 4". Contiguous range of same type → "Primary 1–3".
+// Falls back to the topic-level moeLevel for topics with no skill-level data.
+function levelLabel(skills = [], fallback = '') {
+  const raw = [...new Set(skills.map((s) => s.moeLevel).filter(Boolean))];
+  if (!raw.length) return fallback;
+  if (raw.length === 1) return raw[0];
+  const parsed = raw.map((l) => {
+    const m = l.match(/^(Primary|Secondary)\s+(\d+)$/i);
+    return m ? { type: m[1], num: parseInt(m[2], 10) } : null;
+  }).filter(Boolean).sort((a, b) => a.num - b.num);
+  if (!parsed.length) return raw.join(', ');
+  const types = [...new Set(parsed.map((p) => p.type))];
+  if (types.length === 1) {
+    const min = parsed[0].num, max = parsed[parsed.length - 1].num;
+    return `${types[0]} ${min === max ? min : `${min}–${max}`}`;
+  }
+  return parsed.map((p) => `${p.type} ${p.num}`).join(', ');
+}
+
 // One topic: its skills with mastery, and practice entry points.
 export default function TopicDetail() {
   const { topicId } = useParams();
@@ -110,7 +130,7 @@ export default function TopicDetail() {
       </button>
       <PageHeader
         title={topic.name}
-        subtitle={`${topic.moeLevel} · ${topic.masteredCount}/${topic.total} skills mastered`}
+        subtitle={`${levelLabel(topic.skills, topic.moeLevel)} · ${topic.masteredCount}/${topic.total} skills mastered`}
         action={
           <div className="flex items-center gap-2">
             {findCheatSheet(topic.name, topic.moeLevel) && (
