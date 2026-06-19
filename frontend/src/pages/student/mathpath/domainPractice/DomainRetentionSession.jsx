@@ -122,7 +122,7 @@ export default function DomainRetentionSession({ domain }) {
           <p className="mt-3 text-sm text-ink-500">{meta.detail(result.nextIntervalDays)}</p>
         </Card>
         <div className="flex gap-3">
-          <Button onClick={() => navigate('/student/mathpath/fluency')}>Back to Fluency</Button>
+          <Button onClick={() => navigate(backRoute)}>Back to {label}</Button>
           {status !== 'retained' && (
             <Button variant="secondary" onClick={() => navigate(`${backRoute}/practice?skill=${skillId}`)}>Practice this skill</Button>
           )}

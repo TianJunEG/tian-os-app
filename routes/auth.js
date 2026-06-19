@@ -246,9 +246,9 @@ router.post('/forgot-password', authRateLimit, asyncHandler(async (req, res) => 
     user.resetPasswordExpire = new Date(Date.now() + 60 * 60 * 1000);
     await user.save({ validateBeforeSave: false });
 
-    const baseUrl = process.env.FRONTEND_URL || process.env.RAILWAY_PUBLIC_DOMAIN
+    const baseUrl = process.env.FRONTEND_URL || (process.env.RAILWAY_PUBLIC_DOMAIN
       ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
-      : 'http://localhost:5173';
+      : 'http://localhost:5173');
     const resetUrl = `${baseUrl}/reset-password/${token}`;
 
     await sendPasswordResetEmail({ to: user.email, name: user.name, resetUrl });
