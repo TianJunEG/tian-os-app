@@ -4,6 +4,7 @@ import { ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
 import { diagnosticsAPI } from '../../../services/api';
 import { Alert, Badge, Button, Card, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
 import { MascotBubble } from '../../../components/MascotAvatar';
+import { useAuth } from '../../../context/AuthContext';
 
 // Generic adaptive diagnostic ("check-in") that serves every MathPath domain.
 // Mirrors DecimalsDiagnosticSession but reads the domain from the :domainId
@@ -74,6 +75,7 @@ export default function DomainDiagnosticSession() {
   const navigate = useNavigate();
   const { domainId: domainParam } = useParams();
   const domain = resolveDomain(domainParam);
+  const { user } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -90,7 +92,7 @@ export default function DomainDiagnosticSession() {
     let active = true;
     (async () => {
       try {
-        const res = await diagnosticsAPI.startDiagnostic({ subjectId: 'math', domainId: domain.domainId, mode: 'core', purpose: 'baseline' });
+        const res = await diagnosticsAPI.startDiagnostic({ subjectId: 'math', domainId: domain.domainId, mode: 'core', purpose: 'baseline', studentLevel: user?.studentLevel || '' });
         const data = res?.data || {};
         if (!data.currentQuestion) throw new Error('No diagnostic question returned.');
         if (active) {

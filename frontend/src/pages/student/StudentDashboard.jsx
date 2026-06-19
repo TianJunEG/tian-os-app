@@ -673,6 +673,7 @@ export default function StudentDashboard() {
         safeMasteredCount={safeMasteredCount}
         showDiagnosticPrompt={showDiagnosticPrompt}
         diagnosticDomains={diagnosticDomains}
+        studentLevel={user?.studentLevel}
         canResetStudentState={canResetStudentState}
         resetStudentState={resetStudentState}
         resetting={resetting}
