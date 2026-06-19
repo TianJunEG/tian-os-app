@@ -9,7 +9,10 @@ import { episodes, getFirstEpisode } from '../../../data/comics/episodes';
 // and the Start button must resume at the first unfinished episode.
 
 const progressMock = vi.fn();
-vi.mock('../../../services/api', () => ({ comicsAPI: { progress: () => progressMock() } }));
+const recommendedMock = vi.fn();
+vi.mock('../../../services/api', () => ({
+  comicsAPI: { progress: () => progressMock(), recommended: () => recommendedMock() },
+}));
 
 function renderHome() {
   return render(
@@ -23,7 +26,12 @@ function renderHome() {
 }
 
 describe('ComicsHome', () => {
-  beforeEach(() => progressMock.mockReset());
+  beforeEach(() => {
+    progressMock.mockReset();
+    recommendedMock.mockReset();
+    // default: no adaptive recommendation → chronological fallback
+    recommendedMock.mockResolvedValue({ data: { recommended: null } });
+  });
 
   it('leads with Ep 1 and the Start button resumes at Ep 1 for a new reader', async () => {
     progressMock.mockResolvedValue({ data: { completed: [] } });
@@ -46,5 +54,20 @@ describe('ComicsHome', () => {
     await waitFor(() =>
       expect(screen.getByRole('button', { name: new RegExp(`Continue · Ep ${episodes[1].episode}`) })).toBeInTheDocument()
     );
+  });
+
+  it('prefers the adaptive recommendation (weakest skill) over chronological resume', async () => {
+    progressMock.mockResolvedValue({ data: { completed: [] } });
+    const target = episodes[4]; // ep-005, not the chronological "first unfinished" (Ep 1)
+    recommendedMock.mockResolvedValue({
+      data: { recommended: { episodeId: target.id, skillName: 'Length', skillSlug: 'mea.length' } },
+    });
+    renderHome();
+
+    // CTA points at the recommended episode, labelled "Practise next", with the reason.
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: new RegExp(`Practise next · Ep ${target.episode}`) })).toBeInTheDocument()
+    );
+    expect(screen.getByText(/Picked to help with: Length/)).toBeInTheDocument();
   });
 });

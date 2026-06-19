@@ -11,6 +11,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 const MOCK_STUDENT = { _id: 'student_1', workspaceId: 'ws_1' };
 const resolveStudentMock = vi.fn(async () => MOCK_STUDENT);
 const recordAttempt = vi.fn(async () => ({}));
+const weakSkillsMock = vi.fn(async () => []);
 
 const comicProgressFindOneAndUpdate = vi.fn(async () => ({}));
 const comicProgressFind = vi.fn(() => ({
@@ -31,6 +32,7 @@ vi.mock('../utils/studentContext.js', () => ({
 }));
 vi.mock('../utils/masteryEngine.js', () => ({
   recordAttempt: (...args) => recordAttempt(...args),
+  weakSkills: (...args) => weakSkillsMock(...args),
 }));
 vi.mock('../models/ComicProgress.js', () => ({
   default: { findOneAndUpdate: (...a) => comicProgressFindOneAndUpdate(...a), find: (...a) => comicProgressFind(...a) },
@@ -59,6 +61,7 @@ describe('comics routes', () => {
   afterEach(() => {
     vi.clearAllMocks();
     resolveStudentMock.mockImplementation(async () => MOCK_STUDENT);
+    weakSkillsMock.mockImplementation(async () => []);
     comicProgressFind.mockImplementation(() => ({ lean: async () => [{ episodeId: 'ep-001', completedAt: new Date('2026-01-01') }] }));
     skillFind.mockImplementation(() => ({ lean: async () => [
       { _id: 'skill_mon_add', slug: 'mon.add' }, { _id: 'skill_mon_change', slug: 'mon.change' },
@@ -144,5 +147,37 @@ describe('comics routes', () => {
 
     expect(res.status).toBe(403);
     expect(res.data).toEqual({ error: 'View-only access does not permit this action.' });
+  });
+
+  it('recommends the episode for the weakest skill the student has not finished', async () => {
+    // weakest skill = length → ep-005 (e5 problems map to mea.length); ep-001 is
+    // already completed (default comicProgressFind), so ep-005 is the fresh pick.
+    weakSkillsMock.mockResolvedValueOnce([
+      { skillId: { slug: 'mea.length', name: 'Length' } },
+      { skillId: { slug: 'op.mult.facts', name: 'Multiplication' } },
+    ]);
+    const res = await request('/recommended');
+
+    expect(res.status).toBe(200);
+    expect(res.data.recommended).toEqual({ episodeId: 'ep-005', skillSlug: 'mea.length', skillName: 'Length' });
+  });
+
+  it('falls back to a completed episode (re-practice) when every covering episode is done', async () => {
+    weakSkillsMock.mockResolvedValueOnce([{ skillId: { slug: 'mon.change', name: 'Giving change' } }]);
+    // mon.change is covered by ep-001 (p3-q1) and ep-003 (e3-p3-q1); mark both done
+    comicProgressFind.mockImplementationOnce(() => ({ lean: async () => [{ episodeId: 'ep-001' }, { episodeId: 'ep-003' }] }));
+    const res = await request('/recommended');
+
+    expect(res.status).toBe(200);
+    expect(res.data.recommended.skillSlug).toBe('mon.change');
+    expect(['ep-001', 'ep-003']).toContain(res.data.recommended.episodeId);
+  });
+
+  it('returns recommended:null when no weak skill maps to a comic', async () => {
+    weakSkillsMock.mockResolvedValueOnce([{ skillId: { slug: 'algebra.something-not-in-comics', name: 'Algebra' } }]);
+    const res = await request('/recommended');
+
+    expect(res.status).toBe(200);
+    expect(res.data).toEqual({ recommended: null });
   });
 });

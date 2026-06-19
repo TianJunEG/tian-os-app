@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, CheckCircle, Lock, ArrowRight } from 'lucide-react';
-import { episodes, MASCOT_COLORS, getResumeEpisode } from '../../../data/comics/episodes';
+import { episodes, MASCOT_COLORS, getResumeEpisode, getEpisodeById } from '../../../data/comics/episodes';
 import { comicsAPI } from '../../../services/api';
 
 function EpisodeCard({ episode, isLatest, isCompleted }) {
@@ -103,6 +103,8 @@ function EpisodeCard({ episode, isLatest, isCompleted }) {
 export default function ComicsHome() {
   const navigate = useNavigate();
   const [completed, setCompleted] = useState(() => new Set());
+  // Adaptive pick: the episode that practises the student's weakest skill.
+  const [recommended, setRecommended] = useState(null); // { episode, skillName } | null
 
   useEffect(() => {
     let on = true;
@@ -111,6 +113,13 @@ export default function ComicsHome() {
         if (on) setCompleted(new Set((res.data?.completed ?? []).map((c) => c.episodeId)));
       })
       .catch(() => { /* progress is non-critical; show archive without badges */ });
+    comicsAPI.recommended()
+      .then((res) => {
+        const rec = res.data?.recommended;
+        const episode = rec && getEpisodeById(rec.episodeId);
+        if (on && episode) setRecommended({ episode, skillName: rec.skillName });
+      })
+      .catch(() => { /* non-critical; fall back to chronological resume */ });
     return () => { on = false; };
   }, []);
 
@@ -120,7 +129,9 @@ export default function ComicsHome() {
   const latestId = episodes[episodes.length - 1]?.id;
   const doneCount = episodes.filter((e) => completed.has(e.id)).length;
   const allDone = doneCount === episodes.length;
-  const resume = getResumeEpisode(completed);
+  // Prefer the adaptive recommendation; fall back to chronological resume.
+  const resume = recommended?.episode || getResumeEpisode(completed);
+  const isAdaptive = Boolean(recommended?.episode);
 
   return (
     <div style={{ maxWidth: 600, margin: '0 auto', padding: '24px 16px 48px' }}>
@@ -140,27 +151,33 @@ export default function ComicsHome() {
         )}
 
         {resume && (
-          <button
-            onClick={() => navigate(`/student/comics/${resume.slug}`)}
-            style={{
-              marginTop: 14,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              background: '#f59e0b',
-              color: '#fff',
-              border: '2.5px solid #1c1917',
-              borderRadius: 12,
-              padding: '10px 18px',
-              fontSize: 14,
-              fontWeight: 800,
-              cursor: 'pointer',
-              boxShadow: '3px 3px 0 #1c1917',
-            }}
-          >
-            {allDone ? 'Re-read' : doneCount > 0 ? 'Continue' : 'Start reading'} · Ep {resume.episode}: {resume.title}
-            <ArrowRight size={16} />
-          </button>
+          <div style={{ marginTop: 14 }}>
+            <button
+              onClick={() => navigate(`/student/comics/${resume.slug}`)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: '#f59e0b',
+                color: '#fff',
+                border: '2.5px solid #1c1917',
+                borderRadius: 12,
+                padding: '10px 18px',
+                fontSize: 14,
+                fontWeight: 800,
+                cursor: 'pointer',
+                boxShadow: '3px 3px 0 #1c1917',
+              }}
+            >
+              {isAdaptive ? 'Practise next' : allDone ? 'Re-read' : doneCount > 0 ? 'Continue' : 'Start reading'} · Ep {resume.episode}: {resume.title}
+              <ArrowRight size={16} />
+            </button>
+            {isAdaptive && recommended.skillName && (
+              <p style={{ fontSize: 12, color: '#b45309', fontWeight: 600, marginTop: 6 }}>
+                ✨ Picked to help with: {recommended.skillName}
+              </p>
+            )}
+          </div>
         )}
       </div>
 

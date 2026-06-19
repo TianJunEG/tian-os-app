@@ -2053,6 +2053,10 @@ export function getEpisode(slug) {
   return episodes.find((e) => e.slug === slug) ?? null;
 }
 
+export function getEpisodeById(id) {
+  return episodes.find((e) => e.id === id) ?? null;
+}
+
 export function getLatestEpisode() {
   return episodes[episodes.length - 1];
 }

@@ -929,6 +929,7 @@ export const learningAPI = {
 export const comicsAPI = {
   complete: (episodeId, problems) => api.post(`/comics/${episodeId}/complete`, { problems }),
   progress: () => api.get('/comics/progress'),
+  recommended: () => api.get('/comics/recommended'),
 };
 
 // Science API — P6 science revision bank (open-ended Q&A).
