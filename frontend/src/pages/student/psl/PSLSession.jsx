@@ -112,7 +112,7 @@ export default function PSLSession() {
       case 'plan': {
         const planStep = currentProblem?.scaffoldSteps?.find((s) => s.stepId === 'plan');
         const planType = planStep?.type || 'model';
-        if (planType === 'model') return { modelType: resp?.modelType, unknownPosition: resp?.unknownPosition, reasoning: resp?.reasoning || '' };
+        if (planType === 'model') return { modelType: resp?.modelType, unknownPosition: resp?.unknownPosition, parts: resp?.parts, reasoning: resp?.reasoning || '' };
         return { ...(resp || {}), reasoning: resp?.reasoning || '' };
       }
       case 'solve': {

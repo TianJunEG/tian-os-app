@@ -1,5 +1,6 @@
 import React from 'react';
 import ModelSelector from './ModelSelector';
+import BarModelBuilder from './BarModelBuilder';
 import PlanReverseSteps from './PlanReverseSteps';
 import PlanTableSetup from './PlanTableSetup';
 import PlanGuessSetup from './PlanGuessSetup';
@@ -23,12 +24,26 @@ export default function PlanDispatcher({ type, response, onChange, scaffoldStep 
 
   if (planType === 'model') {
     return (
-      <ModelSelector
-        modelType={response?.modelType}
-        unknownPosition={response?.unknownPosition}
-        onSelectModel={(mt) => onChange({ modelType: mt, unknownPosition: undefined })}
-        onSelectPosition={(pos) => onChange({ unknownPosition: pos })}
-      />
+      <div className="space-y-4">
+        <ModelSelector
+          modelType={response?.modelType}
+          unknownPosition={response?.unknownPosition}
+          onSelectModel={(mt) => onChange({ modelType: mt, unknownPosition: undefined })}
+          onSelectPosition={(pos) => onChange({ unknownPosition: pos })}
+        />
+        {response?.modelType && response?.unknownPosition && (
+          <div className="rounded-xl border border-line-soft bg-white p-3 sm:p-4">
+            <p className="mb-2 text-sm font-medium text-ink-600">Draw your bar model — label the parts and fill in the values:</p>
+            <BarModelBuilder
+              key={`${response.modelType}:${response.unknownPosition}`}
+              modelType={response.modelType}
+              unknownPosition={response.unknownPosition}
+              values={response}
+              onChange={onChange}
+            />
+          </div>
+        )}
+      </div>
     );
   }
 
