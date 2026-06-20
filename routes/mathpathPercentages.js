@@ -1,10 +1,11 @@
 import express from 'express';
 import { protect } from '../middleware/auth.js';
 import { writeCurriculumAttempts } from '../services/mathpath/curriculumAttemptWriter.js';
+import { persistDomainPracticeMistakes } from '../services/mathpath/domainMistakePersistence.js';
+import { recordLearningEvents, normalizeConfidence } from '../services/telemetry/learningTelemetryService.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import MathPathPracticeSession from '../models/mathpath/MathPathPracticeSession.js';
 import MathPathStudentSkillState from '../models/mathpath/MathPathStudentSkillState.js';
-import MathPathMistakeRecord from '../models/mathpath/MathPathMistakeRecord.js';
 import {
   DOMAIN_ID,
   buildPercentagePracticeSession,
@@ -112,29 +113,15 @@ router.post('/practice/:practiceSessionId/submit', protect, async (req, res) => 
       );
     }));
 
-    // Persist mistakes (one record per misconception/skill, frequency incremented).
-    for (const mistake of scored.mistakes) {
-      const tag = mistake.misconceptionTag || 'percentage_error';
-      await MathPathMistakeRecord.findOneAndUpdate(
-        { studentId, domainId: DOMAIN_ID, mistakeCode: tag, skillId: mistake.skillId || '', questionFamilyId: mistake.questionFamilyId || '' },
-        {
-          $inc: { frequency: 1 },
-          $set: { mistakeName: tag, severity: mistake.confidence === 'i_know_this' ? 'high' : 'medium', lastSeenAt: new Date() },
-          $push: { evidence: {
-            source: 'percentage-practice-incorrect',
-            questionId: mistake.questionId,
-            sessionId: req.params.practiceSessionId,
-            studentAnswer: mistake.studentAnswer,
-            correctAnswer: mistake.correctAnswer,
-            answerCorrect: false,
-            confidence: mistake.confidence,
-            timeTaken: mistake.timeTaken,
-            seenAt: new Date(),
-          } },
-        },
-        { upsert: true, new: true, setDefaultsOnInsert: true },
-      );
-    }
+    // Persist mistakes — writes to BOTH MathPathMistakeRecord (aggregate analytics)
+    // AND Mistake (per-question records that feed the Mistake-to-Mastery review tab).
+    await persistDomainPracticeMistakes({
+      student,
+      domainId: DOMAIN_ID,
+      sessionId: req.params.practiceSessionId,
+      scored,
+      questions: existing.questions || [],
+    });
 
     // Find the weakest skill and check if PSL has content for it.
     const weakestSkill = Object.entries(scored.perSkill)
@@ -162,6 +149,33 @@ router.post('/practice/:practiceSessionId/submit', protect, async (req, res) => 
     existing.responses = responses;
     existing.summary = summary;
     await existing.save();
+
+    // Emit telemetry so student analytics and weekly stats reflect this session.
+    await recordLearningEvents([
+      ...scored.results
+        .filter((r) => !r.error)
+        .map((r) => ({
+          studentId,
+          eventType: 'question_answered',
+          domain: DOMAIN_ID,
+          skillCode: r.skillId,
+          questionId: r.questionId,
+          sessionId: req.params.practiceSessionId,
+          metadata: {
+            answerCorrect: r.correct,
+            confidence: normalizeConfidence(r.confidence),
+            timeTakenSeconds: r.timeTaken,
+            workingSubmitted: Boolean(r.workingSubmitted),
+          },
+        })),
+      {
+        studentId,
+        eventType: 'session_completed',
+        domain: DOMAIN_ID,
+        sessionId: req.params.practiceSessionId,
+        metadata: { total: scored.accuracySummary.total, correct: scored.accuracySummary.correct },
+      },
+    ]);
 
     res.json(summary);
   } catch (err) {

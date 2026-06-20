@@ -495,8 +495,10 @@ export default function ComicReader() {
   const tier = useMemo(() => resolveTier(user || {}, episode?.grade || ''), [user, episode]);
   // Concrete, level-scaled problems for every panel, generated once per reading
   // with a shared ctx so story-linked numbers stay consistent across panels.
-  const problems = useMemo(
-    () => (episode ? generateEpisodeProblems(episode, tier, seed) : []),
+  // generateEpisodeProblems returns { problems, ctx } — ctx carries intermediate
+  // values (totals, counts) that speech bubble functions reference.
+  const { problems, ctx: episodeCtx } = useMemo(
+    () => (episode ? generateEpisodeProblems(episode, tier, seed) : { problems: [], ctx: {} }),
     [episode, tier, seed],
   );
 
@@ -511,7 +513,17 @@ export default function ComicReader() {
   useEffect(() => {
     narration.stop();
     const current = episode?.panels?.[currentPanel];
-    if (narration.autoNarrate && current) narration.playPanel(current);
+    if (narration.autoNarrate && current) {
+      // Resolve any function-based speech text before handing to narration.
+      const resolved = {
+        ...current,
+        speech: (current.speech || []).map((s) => ({
+          ...s,
+          text: typeof s.text === 'function' ? s.text(episodeCtx, problems[currentPanel]) : s.text,
+        })),
+      };
+      narration.playPanel(resolved);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPanel, narration.autoNarrate, episode]);
 
@@ -689,11 +701,15 @@ export default function ComicReader() {
         />
       ) : (
         <>
-          {/* Scene */}
+          {/* Scene — speech entries may be plain strings or functions (ctx, problem) => string
+              so story numbers always match the generated math challenge numbers. */}
           <ScenePanel
             scene={panel.scene}
             characters={panel.characters}
-            speech={panel.speech}
+            speech={(panel.speech || []).map((s) => ({
+              ...s,
+              text: typeof s.text === 'function' ? s.text(episodeCtx, problems[currentPanel]) : s.text,
+            }))}
             onPlayLine={narration.supported ? (line) => narration.playLine(line, panel.characters) : undefined}
             speakingIndex={narration.speakingIndex}
           />

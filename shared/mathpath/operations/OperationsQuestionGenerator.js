@@ -29,6 +29,12 @@ function rint(rng, min, max) { return min + Math.floor(rng() * (max - min + 1));
 function pick(rng, arr) { return arr[rint(rng, 0, arr.length - 1)]; }
 function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a || 1; }
 function lcm(a, b) { return Math.abs(a * b) / gcd(a, b); }
+function questionKey(prompt, answerDisplay) {
+  return hashSeed(`${prompt}|${answerDisplay}`).toString(36);
+}
+function generatedQuestionId(family, mode, prompt, answerDisplay) {
+  return `${family.id}#${mode}#${questionKey(prompt, answerDisplay)}`;
+}
 
 // Column-wise add with NO carrying — the realistic add/forgot-carry error.
 function noCarryAdd(a, b) {
@@ -52,7 +58,7 @@ function smallerFromLarger(a, b) {
 // ── Question envelope builders ───────────────────────────────────────────────
 function shortAnswer({ family, prompt, answerDisplay, solutionSteps, misconceptionTag, difficulty, mode, diagram }) {
   return {
-    id: `${family.id}#${mode}`,
+    id: generatedQuestionId(family, mode, prompt, answerDisplay),
     skillId: family.skillId,
     questionFamilyId: family.id,
     type: 'short_answer',
@@ -94,7 +100,7 @@ function mcq({ family, prompt, answerDisplay, distractors, solutionSteps, miscon
     [choices[i], choices[j]] = [choices[j], choices[i]];
   }
   return {
-    id: `${family.id}#${mode}`,
+    id: generatedQuestionId(family, mode, prompt, answerDisplay),
     skillId: family.skillId,
     questionFamilyId: family.id,
     type: 'mcq',

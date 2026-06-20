@@ -189,7 +189,7 @@ export const episodes = [
           {
             character: 'kaesy',
             side: 'left',
-            text: 'Game over! I have 24 reward stickers to share equally among 3 friends.',
+            text: (ctx) => `Game over! I have ${ctx.ep2p1total} reward stickers to share equally among ${ctx.ep2p1friends} friends.`,
           },
           {
             character: 'kylo',
@@ -204,10 +204,12 @@ export const episodes = [
         ],
         problem: {
           id: 'e2-p1-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const friends = tierInt(rng, tier, [[2, 3], [2, 4], [3, 6], [4, 8]]);
             const each = tierInt(rng, tier, [[3, 6], [4, 9], [6, 12], [8, 15]]);
             const total = friends * each;
+            ctx.ep2p1friends = friends;
+            ctx.ep2p1total = total;
             return {
               question: `Kaesy shares ${total} stickers equally among ${friends} friends. How many stickers does each friend get?`,
               hint: `Split ${total} into ${friends} equal groups: ${total} ÷ ${friends}.`,
@@ -230,7 +232,7 @@ export const episodes = [
           {
             character: 'kaesy',
             side: 'left',
-            text: 'Next round! 36 stickers, but now there are 4 of us sharing.',
+            text: (ctx) => `Next round! ${ctx.ep2p2total} stickers, but now there are ${ctx.ep2p2friends} of us sharing.`,
           },
           {
             character: 'kylo',
@@ -240,10 +242,12 @@ export const episodes = [
         ],
         problem: {
           id: 'e2-p2-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const friends = tierInt(rng, tier, [[3, 4], [3, 5], [4, 7], [5, 9]]);
             const each = tierInt(rng, tier, [[3, 7], [5, 9], [7, 12], [9, 15]]);
             const total = friends * each;
+            ctx.ep2p2friends = friends;
+            ctx.ep2p2total = total;
             return {
               question: `Kaesy shares ${total} stickers equally among ${friends} friends. How many stickers does each friend get?`,
               hint: `Split ${total} into ${friends} equal groups: ${total} ÷ ${friends}.`,
@@ -266,12 +270,12 @@ export const episodes = [
           {
             character: 'kaesy',
             side: 'left',
-            text: 'Last batch — 30 stickers among 4 of us. Uh oh.',
+            text: (ctx) => `Last batch — ${ctx.ep2p3total} stickers among ${ctx.ep2p3friends} of us. Uh oh.`,
           },
           {
             character: 'kylo',
             side: 'right',
-            text: '30 does not split evenly into 4... some will be left over!',
+            text: (ctx) => `${ctx.ep2p3total} does not split evenly into ${ctx.ep2p3friends}... some will be left over!`,
           },
           {
             character: 'kaesy',
@@ -281,11 +285,13 @@ export const episodes = [
         ],
         problem: {
           id: 'e2-p3-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const friends = tierInt(rng, tier, [[3, 4], [3, 5], [4, 6], [5, 8]]);
             const each = tierInt(rng, tier, [[4, 7], [5, 9], [7, 12], [9, 15]]);
             const rem = rint(rng, 1, friends - 1);
             const total = friends * each + rem;
+            ctx.ep2p3friends = friends;
+            ctx.ep2p3total = total;
             return {
               question: `Kaesy shares ${total} stickers equally among ${friends} friends. How many stickers are left over?`,
               hint: `Each friend gets ${each} (because ${friends} × ${each} = ${friends * each}). Then ${total} − ${friends * each} tells you how many are left over.`,

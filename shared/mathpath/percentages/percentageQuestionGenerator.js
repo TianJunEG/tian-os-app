@@ -171,10 +171,19 @@ const GENERATORS = {
     const step = 100 / g; // smallest q that makes integer
     const q = step * rint(rng, 2, 20);
     const answer = (p * q) / 100;
-    const items = ['students in a class', 'apples in a basket', 'books on a shelf', 'marbles in a bag', 'stickers in a pack'];
-    const item = family.name.toLowerCase().includes('word') ? pick(rng, items) : null;
-    const prompt = item
-      ? `There are ${q} ${item}. ${p}% of them are red. How many are red?`
+    // Object-only items with matched adjectives so the question stays sensible.
+    // "students in a class" was removed because people can't be "red".
+    const objectItems = [
+      { subject: 'apples in a basket', adjective: 'red' },
+      { subject: 'books on a shelf', adjective: 'blue' },
+      { subject: 'marbles in a bag', adjective: 'green' },
+      { subject: 'stickers in a pack', adjective: 'red' },
+      { subject: 'beads in a jar', adjective: 'yellow' },
+      { subject: 'buttons in a box', adjective: 'blue' },
+    ];
+    const chosen = family.name.toLowerCase().includes('word') ? pick(rng, objectItems) : null;
+    const prompt = chosen
+      ? `There are ${q} ${chosen.subject}. ${p}% of them are ${chosen.adjective}. How many are ${chosen.adjective}?`
       : `Find ${p}% of ${q}.`;
     return shortAnswer({
       family,

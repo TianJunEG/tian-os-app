@@ -1,6 +1,6 @@
 # MathPath Pilot Account Setup
 
-This document explains how to create the controlled 5-student MathPath pilot accounts.
+This document explains how to create or verify the controlled 5-student MathPath pilot accounts.
 
 ## Accounts created
 
@@ -28,7 +28,7 @@ This document explains how to create the controlled 5-student MathPath pilot acc
 
 **File:** `scripts/createMathPathPilotAccounts.js`
 
-The script is idempotent — running it again updates/relinks existing accounts without creating duplicates.
+The script is idempotent. Running it again updates/relinks existing pilot records without creating duplicate users, students, guardian links, or tutor links. It does not seed fake mastery, attempts, mistakes, or progress.
 
 ## Required environment variables
 
@@ -40,9 +40,24 @@ The script is idempotent — running it again updates/relinks existing accounts 
 | `CONFIRM_PILOT_SETUP=true` | Explicit confirmation gate (must be set) |
 | `MONGODB_URI` | Target database (from `.env`) |
 
-The script fails with a clear error if any password variable is missing.
+The script fails with a clear error if any password variable is missing during a real provisioning run. Dry-run and verify-only modes do not require password variables.
 
-## How to run
+## Dry-run first
+
+Dry-run connects to the target database and prints the planned create/reuse actions without writing records:
+
+```bash
+node scripts/createMathPathPilotAccounts.js --dry-run
+```
+
+If your shell has multiple Mongo variables, set the target explicitly:
+
+```bash
+MONGODB_URI="mongodb://127.0.0.1:27017/tutor-match" \
+node scripts/createMathPathPilotAccounts.js --dry-run
+```
+
+## Create or update accounts
 
 ```bash
 PILOT_PARENT_PASSWORD="..." \
@@ -52,16 +67,29 @@ CONFIRM_PILOT_SETUP=true \
 node scripts/createMathPathPilotAccounts.js
 ```
 
-The script connects to `MONGODB_URI` from your `.env` file, so ensure that points to the correct database before running.
+The script connects to `MONGODB_URI` from your environment or `.env` file. Confirm the target database before running against production or Railway.
+
+By default, existing pilot accounts are reused and their passwords are preserved. To intentionally reset existing pilot-account passwords to the supplied environment values, add:
+
+```bash
+PILOT_RESET_EXISTING_PASSWORDS=1
+```
 
 ## How to verify links after running
 
-The script runs its own verification step and exits non-zero if it fails. You can also check manually:
+The script runs its own verification step after provisioning and exits non-zero if it fails. You can also run verification only:
+
+```bash
+node scripts/createMathPathPilotAccounts.js --verify-only
+```
+
+Manual database checks:
 
 ```js
 // In mongo shell or Compass:
-db.studentguardians.find({ guardianUserId: <parent _id> }).count()  // should be 5
-db.tutorstudentlinks.find({ tutorUserId: <tutor _id> }).count()      // should be 5
+db.studentguardians.find({ guardianUserId: <parent _id> }).count()       // includes at least the 5 pilot students
+db.tutorstudentlinks.find({ tutorUserId: <tutor _id>, status: 'active' }).count()
+db.student_account_links.find({ tutorUserId: <tutor _id>, status: 'active' }).count()
 ```
 
 ## Relationship model
@@ -69,6 +97,7 @@ db.tutorstudentlinks.find({ tutorUserId: <tutor _id> }).count()      // should b
 - Each student has a **User** record (role: `student`) and a **Student** record in the parent's workspace.
 - **StudentGuardian** records link the parent to each student (5 records).
 - **TutorStudentLink** records link the tutor to each student via the tutor's workspace (5 records).
+- **StudentAccountLink** records capture active parent-consented tutor access (5 records).
 - No mastery data is seeded — students start with a clean state.
 
 ## Password safety
@@ -85,3 +114,4 @@ The script is idempotent. Re-running it:
 - Updates existing accounts (name, role, workspace linkage)
 - Does **not** duplicate Student records or relationship links
 - Does **not** touch existing MathPath session data
+- Preserves existing pilot passwords unless `PILOT_RESET_EXISTING_PASSWORDS=1` is set

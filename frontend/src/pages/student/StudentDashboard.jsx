@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { TianIntro, shouldShowTianIntro } from '../../components/TianIntro';
 import {
   ArrowRight,
   BarChart2,
@@ -484,6 +485,9 @@ export default function StudentDashboard() {
   const [profileSummary, setProfileSummary] = useState(null);
   const [learningTimeline, setLearningTimeline] = useState([]);
   const [resetting, setResetting] = useState(false);
+  const studentId = user?.id || user?._id || user?.email || '';
+  const [showIntro, setShowIntro] = useState(() => shouldShowTianIntro(studentId));
+  const handleIntroDone = useCallback(() => setShowIntro(false), []);
   const [expandedCards, setExpandedCards] = useState({ a: false, q: false, w: false, c: false, li: false });
   // Diagnostic CTAs are driven by the diagnostic domain registry (one per
   // domain), not hardcoded to Fractions. Seeded with Fractions so the card never
@@ -708,6 +712,8 @@ export default function StudentDashboard() {
   }
 
   return (
+    <>
+      {showIntro && <TianIntro userId={studentId} onDone={handleIntroDone} />}
     <main className={visual.styles.page}>
       <div className="mb-5 flex items-center justify-between gap-3">
         <div className="min-w-0">
@@ -1009,5 +1015,6 @@ export default function StudentDashboard() {
         </Card>
       )}
     </main>
+    </>
   );
 }
