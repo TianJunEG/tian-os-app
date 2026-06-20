@@ -1,9 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { BookOpenCheck, Timer } from 'lucide-react';
+import { BookOpenCheck, Timer, Volume2, VolumeX } from 'lucide-react';
 import { Alert, Badge, Button, Card, PageHeader, ProgressBar, Spinner } from '../../../../components/ui';
+import { getMascotForModule, getMascotVoice } from '../../../../config/mascots';
+import { speak, isVoiceEnabled, setVoiceEnabled } from '../../../../utils/sound';
 import { buildFluencySubmitPayload } from '../DecimalsFluencySession';
-import { getDomainConfig } from './core';
+import { getDomainConfig, toSpeakable } from './core';
+
+const MASCOT_KEY = getMascotForModule('mathpath')?.key || 'kylo';
 
 // Spaced-repetition retention review for MathPath domains that have a
 // /retention backend (percentages, ratio-rate, algebra, geometry, volume).
@@ -36,6 +40,7 @@ export default function DomainRetentionSession({ domain }) {
   const [answers, setAnswers] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
+  const [voiceOn, setVoiceOn] = useState(() => isVoiceEnabled());
   const startedAt = useRef(Date.now());
 
   useEffect(() => {
@@ -68,6 +73,18 @@ export default function DomainRetentionSession({ domain }) {
   const questions = session?.questions || [];
   const current = questions[index] || null;
   const isLast = index >= questions.length - 1;
+
+  // Read the current question aloud. Enables voice on first tap so the button
+  // always produces audio (speak() is gated by the voice flag), then voices the
+  // prompt with math symbols/LaTeX/emoji stripped to plain speech.
+  function readPromptAloud() {
+    if (!voiceOn) {
+      setVoiceEnabled(true);
+      setVoiceOn(true);
+    }
+    const spoken = toSpeakable(current?.prompt || '');
+    if (spoken) speak(spoken, getMascotVoice(MASCOT_KEY));
+  }
 
   async function finish(allAnswers) {
     setSubmitting(true);
@@ -140,7 +157,18 @@ export default function DomainRetentionSession({ domain }) {
       </div>
 
       <Card className="p-6">
-        <p className="text-lg font-semibold text-ink-900">{current?.prompt}</p>
+        <div className="flex items-start justify-between gap-3">
+          <p className="text-lg font-semibold text-ink-900">{current?.prompt}</p>
+          <button
+            type="button"
+            onClick={readPromptAloud}
+            aria-label={voiceOn ? 'Read question aloud' : 'Turn on voice and read question aloud'}
+            title="Read aloud"
+            className="mt-0.5 shrink-0 rounded-full border border-ink-200 p-2 text-ink-500 transition hover:border-navy-300 hover:text-navy-600"
+          >
+            {voiceOn ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+          </button>
+        </div>
         {current?.type === 'mcq' ? (
           <div className="mt-5 grid gap-2">
             {(current.choices || []).map((choice) => (

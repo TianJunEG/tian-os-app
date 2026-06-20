@@ -192,6 +192,32 @@ router.get('/:sessionId/resume', protect, asyncHandler(async (req, res) => {
   }
 }));
 
+// Abandons an in-progress diagnostic so the next entry starts a fresh session
+// from question 1. Product decision: an interrupted/exited check-in must RESET —
+// progress is discarded, not resumed. Mirrors the PSL abandon pattern
+// (PATCH /psl/sessions/:id/abandon).
+router.patch('/:sessionId/abandon', protect, asyncHandler(async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const session = await MathPathDiagnosticSession.findOne({
+      diagnosticSessionId: req.params.sessionId,
+    });
+    if (!session) {
+      return res.status(404).json({ code: 'SESSION_NOT_FOUND', error: 'Diagnostic session not found.' });
+    }
+    if (String(session.studentId) !== String(student._id)) {
+      return res.status(403).json({ code: 'FORBIDDEN', error: 'This diagnostic session belongs to a different student.' });
+    }
+    if (session.status !== 'completed') {
+      session.status = 'abandoned';
+      await session.save();
+    }
+    return res.json({ ok: true, sessionId: session.diagnosticSessionId, status: session.status });
+  } catch (err) {
+    return sendDiagnosticError(res, err, 'Failed to abandon diagnostic session.');
+  }
+}));
+
 router.post('/start', protect, asyncHandler(async (req, res) => {
   try {
     const {

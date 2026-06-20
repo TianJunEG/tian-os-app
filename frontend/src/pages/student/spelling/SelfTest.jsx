@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Check, X, ArrowRight, EyeOff } from 'lucide-react';
+import { Check, X, ArrowRight, ArrowLeft, EyeOff, Volume2 } from 'lucide-react';
 import { spellingPracticeAPI } from '../../../services/api';
 import { Card, Button, ProgressBar, Spinner } from '../../../components/ui';
+import { speak, isVoiceEnabled, setVoiceEnabled } from '../../../utils/sound';
+import { getMascotVoice } from '../../../config/mascots';
 
 // Self-test: each word is shown briefly to memorise, then hidden so the student
 // types it from the sentence clue. (No audio yet — the brief reveal stands in
@@ -46,9 +48,23 @@ export default function SelfTest() {
     try { await spellingPracticeAPI.complete(sessionId); } catch (_) { /* still navigate */ }
     navigate(`/student/spelling/results/${sessionId}`, { replace: true });
   };
+  // Read the sentence clue aloud (dictation aid). Force-enable voice so speak()
+  // isn't gated off, then narrate with Lysa's voice (the Spelling mascot).
+  const readAloud = () => {
+    if (!isVoiceEnabled()) setVoiceEnabled(true);
+    const toRead = w.sentence || w.word || '';
+    if (toRead) speak(toRead, getMascotVoice('lysa'));
+  };
 
   return (
     <div className="mx-auto max-w-xl">
+      <button
+        onClick={() => navigate('/student/spelling')}
+        aria-label="Exit self-test and return to Spelling"
+        className="mb-3 inline-flex items-center gap-1 text-sm font-semibold text-ink-500 hover:text-emerald-deep"
+      >
+        <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Spelling
+      </button>
       <div className="mb-2 flex items-center justify-between gap-3 text-sm text-ink-500">
         <span className="font-mono tabular-nums">Word {idx + 1} of {items.length}</span>
         {listTitle && <span className="min-w-0 truncate">{listTitle}</span>}
@@ -68,12 +84,24 @@ export default function SelfTest() {
           </div>
         ) : (
           <>
-            {w.sentence
-              ? <p className="mb-4 text-ink-700">{w.sentence}</p>
-              : <p className="mb-4 text-sm text-ink-400">Type the word you just saw.</p>}
+            <div className="mb-4 flex items-start justify-between gap-3">
+              {w.sentence
+                ? <p className="text-ink-700">{w.sentence}</p>
+                : <p className="text-sm text-ink-400">Type the word you just saw.</p>}
+              <button
+                type="button"
+                onClick={readAloud}
+                aria-label="Read the clue aloud"
+                title="Read aloud"
+                className="flex h-8 w-8 flex-none items-center justify-center rounded-full text-ink-500 transition-colors hover:bg-emerald-tint hover:text-emerald-deep"
+              >
+                <Volume2 className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
             <input
               value={answer} onChange={(e) => setAnswer(e.target.value)} disabled={!!result} autoFocus
               placeholder="Type the word" onKeyDown={(e) => { if (e.key === 'Enter' && !result) check(); }}
+              aria-label="Type the spelling you just saw"
               className="w-full rounded-xl border border-line-soft px-4 py-3 text-lg text-ink-900 focus:border-emerald focus:outline-none focus:ring-2 focus:ring-emerald/20"
             />
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Lightbulb, X } from 'lucide-react';
 
 const RUNG_META = [
@@ -30,6 +30,48 @@ const modalStyle = {
 
 export default function HintLadder({ hints = [], onClose, onTryAgain }) {
   const [rung, setRung] = useState(0);
+  const dialogRef = useRef(null);
+
+  // Focus the dialog on open, restore focus to the trigger on close,
+  // trap Tab within the dialog, and close on Escape.
+  useEffect(() => {
+    if (!hints.length) return undefined;
+    const dialog = dialogRef.current;
+    const previouslyFocused = document.activeElement;
+    dialog?.focus();
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        onClose?.();
+        return;
+      }
+      if (e.key !== 'Tab' || !dialog) return;
+      const focusable = dialog.querySelectorAll(
+        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+      );
+      if (!focusable.length) {
+        e.preventDefault();
+        dialog.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    dialog?.addEventListener('keydown', handleKeyDown);
+    return () => {
+      dialog?.removeEventListener('keydown', handleKeyDown);
+      if (previouslyFocused instanceof HTMLElement) previouslyFocused.focus();
+    };
+  }, [hints.length, onClose]);
 
   if (!hints.length) return null;
 
@@ -39,7 +81,15 @@ export default function HintLadder({ hints = [], onClose, onTryAgain }) {
 
   return (
     <div style={backdropStyle} onClick={onClose}>
-      <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="psl-hint-dialog-title"
+        tabIndex={-1}
+        style={{ ...modalStyle, outline: 'none' }}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div style={{ height: 6, background: meta.topColor }} />
         <div style={{ padding: '20px 22px 22px' }}>
           {/* Header */}
@@ -62,9 +112,10 @@ export default function HintLadder({ hints = [], onClose, onTryAgain }) {
             <button
               type="button"
               onClick={onClose}
+              aria-label="Close hint"
               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}
             >
-              <X style={{ width: 20, height: 20, color: '#c2c7d1' }} />
+              <X style={{ width: 20, height: 20, color: '#c2c7d1' }} aria-hidden="true" />
             </button>
           </div>
 
@@ -82,7 +133,7 @@ export default function HintLadder({ hints = [], onClose, onTryAgain }) {
           </div>
 
           {/* Hint title */}
-          <div style={{ fontSize: 18, fontWeight: 700, color: '#232c39', marginBottom: 9 }}>
+          <div id="psl-hint-dialog-title" style={{ fontSize: 18, fontWeight: 700, color: '#232c39', marginBottom: 9 }}>
             {currentHint.title || (rung === 0 ? 'A question first…' : rung === 1 ? 'Here\'s the method' : 'Let\'s walk it through')}
           </div>
 

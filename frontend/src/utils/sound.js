@@ -77,6 +77,24 @@ try {
 
 export const isVoiceEnabled = () => voiceEnabled;
 
+// Lightweight pub/sub so UI controls (e.g. the global VoiceToggle in the app
+// shell) can reflect the shared voice gate reactively and stay in sync when
+// toggled from anywhere. Backward compatible — callers that only use the
+// getter/setter are unaffected.
+const voiceListeners = new Set();
+const notifyVoiceListeners = () => {
+  for (const fn of voiceListeners) {
+    try { fn(voiceEnabled); } catch { /* ignore listener errors */ }
+  }
+};
+
+// subscribe(fn) -> unsubscribe(). fn is called with the new boolean on change.
+export const subscribeVoiceEnabled = (fn) => {
+  if (typeof fn !== 'function') return () => {};
+  voiceListeners.add(fn);
+  return () => voiceListeners.delete(fn);
+};
+
 // Strip emoji / pictographs / dingbats so TTS engines don't read them aloud
 // ("🎉" → "party popper"). Collapses the whitespace the removal leaves behind.
 // Exported so utils/tts (comic bubbles) shares the exact same behaviour.
@@ -91,6 +109,7 @@ export const setVoiceEnabled = (value) => {
   try {
     localStorage.setItem('pslVoice', JSON.stringify(voiceEnabled));
   } catch { /* ignore */ }
+  notifyVoiceListeners();
 };
 
 // Best-effort gender hints found in common system voice names (macOS, Windows,
@@ -156,4 +175,13 @@ export const speak = (text, opts = {}) => {
     warmKokoro(); // load in the background; speak now via Web Speech
   }
   webSpeechSpeak(clean, opts);
+};
+
+// Immediately silence any in-progress narration on either engine. Used by the
+// global voice/mute toggle so muting takes effect mid-utterance, not just for
+// the next line. Safe to call when nothing is speaking.
+export const stopSpeaking = () => {
+  if (typeof window === 'undefined') return;
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  stopKokoro();
 };

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { BookOpen, ChevronDown, ChevronUp, Compass, Flame, HelpCircle, Pencil, Volume2, VolumeX, X } from 'lucide-react';
+import { BookOpen, ChevronDown, ChevronUp, Compass, Flame, HelpCircle, Pencil, Volume2, X } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import StepProgressBar from './components/StepProgressBar';
 import StoryPanel from './components/StoryPanel';
@@ -525,32 +525,25 @@ export default function PSLSession() {
                 onClick={handleReadAloud}
                 className="flex h-8 items-center justify-center gap-1 rounded-full px-2.5 transition-colors"
                 style={{ color: voice ? '#d9892e' : '#94A3B8', border: '1px solid', borderColor: voice ? '#fbf1e1' : '#e7eaef' }}
-                aria-label={voice ? 'Read aloud' : 'Turn on voice and read aloud'}
+                aria-label="Read this step aloud"
                 title="Read aloud"
               >
-                {voice ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                <Volume2 className="h-4 w-4" aria-hidden="true" />
                 <span className="hidden text-xs font-semibold sm:inline">Read aloud</span>
               </button>
               <button
                 type="button"
-                onClick={() => { const next = !voice; setVoice(next); setVoiceEnabled(next); }}
-                className="flex h-8 w-8 items-center justify-center rounded-full transition-colors"
-                style={{ color: voice ? '#d9892e' : '#94A3B8' }}
-                aria-label={voice ? 'Mute Lejo' : 'Let Lejo speak'}
-              >
-                {voice ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-              </button>
-              <button
-                type="button"
                 onClick={async () => {
+                  if (!window.confirm('Exit this session? Your progress on this problem will be lost.')) return;
                   try { await pslAPI.abandonSession(sessionId); } catch {}
                   navigate('/student/psl');
                 }}
                 className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium transition-colors"
                 style={{ color: '#8a93a3' }}
-                aria-label="Exit session"
+                aria-label="Exit session — your progress on this problem will be lost"
+                title="Exit session"
               >
-                <X className="h-3.5 w-3.5" />
+                <X className="h-3.5 w-3.5" aria-hidden="true" />
                 <span className="hidden sm:inline">Exit</span>
               </button>
             </div>

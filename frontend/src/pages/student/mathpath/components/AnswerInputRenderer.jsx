@@ -151,6 +151,7 @@ function OrderingAnswerInput({ question, value, onChange, disabled, onEnter }) {
               value={parts[index] || ''}
               onChange={(event) => setPart(index, event.target.value)}
               disabled={disabled}
+              aria-label={`Your answer for position ${index + 1}`}
               placeholder={items[index] ? 'Type here' : 'Fraction'}
               className="h-12 w-full rounded-xl border border-line-soft px-3 text-center font-mono text-base text-ink-900 focus:border-emerald focus:outline-none focus:ring-2 focus:ring-emerald/20"
               onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
@@ -213,6 +214,7 @@ export default function AnswerInputRenderer({
         onChange={(event) => onChange?.(event.target.value)}
         disabled={disabled}
         inputMode={inputMode}
+        aria-label={`Your answer${label === 'Answer' ? '' : ` (${label})`}`}
         placeholder={question?.placeholder || (type === 'decimal' ? 'e.g. 0.25' : type === 'whole_number' ? 'e.g. 12' : 'Type your answer')}
         className="w-full rounded-xl border border-line-soft px-4 py-3 font-mono text-lg text-ink-900 focus:border-emerald focus:outline-none focus:ring-2 focus:ring-emerald/20"
         onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}

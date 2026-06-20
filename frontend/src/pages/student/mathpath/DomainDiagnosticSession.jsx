@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, Sparkles, Volume2 } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Sparkles, Volume2, X } from 'lucide-react';
 import { diagnosticsAPI } from '../../../services/api';
 import { Alert, Badge, Button, Card, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
 import { MascotBubble } from '../../../components/MascotAvatar';
 import { useAuth } from '../../../context/AuthContext';
 import ManipulativeDotArray, { parseDotStem, numericLine } from '../../../components/learning/ManipulativeDotArray';
-import { speak } from '../../../utils/sound';
+import { speak, setVoiceEnabled } from '../../../utils/sound';
+import { getMascotVoice } from '../../../config/mascots';
 
 // Generic adaptive diagnostic ("check-in") that serves every MathPath domain.
 // Mirrors DecimalsDiagnosticSession but reads the domain from the :domainId
@@ -109,11 +110,15 @@ export default function DomainDiagnosticSession() {
   const [result, setResult] = useState(null);
   const startedAt = useRef(Date.now());
 
+  // Read the current question aloud. Enables voice first so the Read button and
+  // auto-narration are never silent (speak() is gated by the 'pslVoice' flag),
+  // and is ungated so upper-primary students also get read-aloud support.
   const speakQuestion = useCallback((q) => {
-    if (!isLowerPrimary || !q) return;
+    if (!q) return;
+    setVoiceEnabled(true);
     const readable = toSpeakable(q.prompt || q.stem || '');
-    if (readable) speak(readable, { rate: 0.8, gender: 'female' });
-  }, [isLowerPrimary]);
+    if (readable) speak(readable, getMascotVoice('kylo'));
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -129,28 +134,9 @@ export default function DomainDiagnosticSession() {
           startedAt.current = Date.now();
         }
       } catch (e) {
-        const code = e?.response?.data?.code;
-        const inProgressSessionId = e?.response?.data?.inProgressSessionId;
-        // Resume an in-progress session (tab closed mid-diagnostic) instead of
-        // surfacing the replay-blocked error to the student.
-        if (code === 'DIAGNOSTIC_REPLAY_BLOCKED' && inProgressSessionId && active) {
-          try {
-            const resumeRes = await diagnosticsAPI.resumeDiagnostic(inProgressSessionId);
-            const rd = resumeRes?.data || {};
-            if (rd.currentQuestion) {
-              setSessionId(rd.sessionId);
-              setQuestion(rd.currentQuestion);
-              setProgress({
-                answeredCount: rd.answeredCount || 0,
-                estimatedQuestionCount: rd.estimatedQuestionCount || 8,
-              });
-              startedAt.current = Date.now();
-              return;
-            }
-          } catch (_) {
-            // Fall through to the error state if resume also fails.
-          }
-        }
+        // Product decision: interrupted/exited check-ins RESET — they are never
+        // resumed. The backend abandons any in-progress session on start, so a
+        // fresh session is created here; we no longer resume on REPLAY_BLOCKED.
         if (active) setError(e?.response?.data?.error || e.message || 'Could not start the check-in.');
       } finally {
         if (active) setLoading(false);
@@ -160,9 +146,10 @@ export default function DomainDiagnosticSession() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [domain.domainId]);
 
-  // Auto-read question aloud for lower primary students.
+  // Auto-read question aloud for lower primary students. The Read button (below)
+  // is available to every student and explicitly enables voice on tap.
   useEffect(() => {
-    if (question) speakQuestion(question);
+    if (question && isLowerPrimary) speakQuestion(question);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [question?.questionId]);
 
@@ -193,6 +180,21 @@ export default function DomainDiagnosticSession() {
 
   const estimated = progress.estimatedQuestionCount || 8;
   const backToMap = () => navigate(`/student/mathpath/${domain.segment}`);
+
+  // Persistent in-page exit. Phones hide the activity-shell nav, so without this
+  // a student can be trapped mid check-in. On exit we ABANDON the session
+  // (progress is discarded), so the next entry starts a fresh session.
+  const exitCheckIn = async () => {
+    if (typeof window !== 'undefined' && !window.confirm("Exit the check-in? Your progress won't be saved.")) return;
+    if (sessionId) {
+      try {
+        await diagnosticsAPI.abandonDiagnostic(sessionId);
+      } catch (_) {
+        // Best-effort — still navigate away even if the abandon call fails.
+      }
+    }
+    navigate('/student/mathpath');
+  };
 
   if (loading) return <div className="grid place-items-center py-20"><Spinner label="Setting up your check-in…" /></div>;
 
@@ -254,9 +256,25 @@ export default function DomainDiagnosticSession() {
       {progress.answeredCount === 0 && (
         <MascotBubble name="kylo" message="Just do your best — this helps me find the right starting point for you!" size="sm" className="mb-2" />
       )}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <span className="text-sm font-semibold text-ink-500">Question {Math.min(progress.answeredCount + 1, estimated)} of ~{estimated}</span>
-        <ProgressBar className="ml-4 flex-1" value={progress.answeredCount} max={estimated} />
+        <ProgressBar className="ml-2 flex-1" value={progress.answeredCount} max={estimated} />
+        <button
+          type="button"
+          aria-label="Read question aloud"
+          onClick={() => question && speakQuestion(question)}
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-sky-100 text-sky-700 transition hover:bg-sky-200 active:scale-95"
+        >
+          <Volume2 className="h-5 w-5" aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          aria-label="Exit the check-in"
+          onClick={exitCheckIn}
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-surface-raised text-ink-500 transition hover:bg-error-100 hover:text-error-700 active:scale-95"
+        >
+          <X className="h-5 w-5" aria-hidden="true" />
+        </button>
       </div>
 
       {encouragement && (
@@ -280,11 +298,11 @@ export default function DomainDiagnosticSession() {
                   <p className="text-xl font-bold text-ink-900">{numericLine(prompt)}</p>
                   <button
                     type="button"
-                    aria-label="Read question"
-                    onClick={() => speak(toSpeakable(prompt), { rate: 0.8, gender: 'female' })}
+                    aria-label="Read question aloud"
+                    onClick={() => question && speakQuestion(question)}
                     className="rounded-full p-1 text-ink-400 hover:text-emerald active:scale-90"
                   >
-                    <Volume2 className="h-5 w-5" />
+                    <Volume2 className="h-5 w-5" aria-hidden="true" />
                   </button>
                 </div>
               </>
@@ -329,6 +347,7 @@ export default function DomainDiagnosticSession() {
           <input
             type="text"
             inputMode="text"
+            aria-label="Your answer"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter' && draft.trim()) submitAnswer(); }}

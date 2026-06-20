@@ -289,7 +289,16 @@ export default function DomainPracticeSession({ domain }) {
             ))}
           </div>
         ) : (
-          <div className="mt-5">
+          <div
+            className="mt-5"
+            onFocus={(e) => {
+              // On touch devices the soft keyboard slides up over the input; nudge
+              // it into view (focus bubbles, so this fires for the inner <input>).
+              if (e.target?.tagName === 'INPUT') {
+                setTimeout(() => e.target.scrollIntoView({ block: 'center', behavior: 'smooth' }), 250);
+              }
+            }}
+          >
             <AnswerInputRenderer
               question={current}
               value={draft}
@@ -318,29 +327,35 @@ export default function DomainPracticeSession({ domain }) {
         </div>
       </Card>
 
-      {showReflection ? (
-        <div className="rounded-2xl border border-ink-100 bg-white p-5 shadow-sm">
-          <p className="mb-3 text-sm font-semibold text-ink-600">How did that feel?</p>
-          <div className="grid grid-cols-2 gap-2">
-            {REFLECTION_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => confirmReflection(opt.value)}
-                className={`rounded-xl border px-4 py-3 text-sm font-semibold transition ${opt.color}`}
-              >
-                {opt.label}
-              </button>
-            ))}
+      {/* Sticky action bar — on iPad/phone the soft keyboard covers the bottom of
+          the viewport, so the Submit/Next button and the "How did that feel?"
+          confidence buttons are pinned above it (with safe-area padding) so they
+          stay reachable. On desktop it sits inline at the page bottom. */}
+      <div className="sticky bottom-0 z-10 -mx-4 mt-2 border-t border-ink-100 bg-white/95 px-4 pt-3 backdrop-blur supports-[backdrop-filter]:bg-white/80 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+        {showReflection ? (
+          <div className="rounded-2xl border border-ink-100 bg-white p-5 shadow-sm">
+            <p className="mb-3 text-sm font-semibold text-ink-600">How did that feel?</p>
+            <div className="grid grid-cols-2 gap-2">
+              {REFLECTION_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => confirmReflection(opt.value)}
+                  className={`rounded-xl border px-4 py-3 text-sm font-semibold transition ${opt.color}`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      ) : (
-        <div className="flex justify-end">
-          <Button icon={isLast ? CheckCircle2 : ArrowRight} disabled={!draft.trim() || submitting} onClick={submitAnswer}>
-            {submitting ? 'Submitting…' : isLast ? 'Finish' : 'Next'}
-          </Button>
-        </div>
-      )}
+        ) : (
+          <div className="flex justify-end">
+            <Button icon={isLast ? CheckCircle2 : ArrowRight} disabled={!draft.trim() || submitting} onClick={submitAnswer}>
+              {submitting ? 'Submitting…' : isLast ? 'Finish' : 'Next'}
+            </Button>
+          </div>
+        )}
+      </div>
 
       <FullScreenWorkingMode
         open={Boolean(workingQuestionId)}

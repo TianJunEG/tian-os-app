@@ -60,14 +60,23 @@ export default function MascotAvatar({ name, size = 'md', className = '', showRi
     );
   }
 
+  // Wrapper carries the size, clipped circle, ring/border, and a solid white
+  // background fill so the two opaque-white-background mascots (tiano, chelya)
+  // blend seamlessly into the disc and transparent mascots get a consistent
+  // clean disc behind the character. overflow-hidden prevents the image from
+  // spilling past the circle. Mirrors the AvatarPicker pattern below.
   return (
-    <img
-      src={imgSrc}
-      alt={mascot.name}
-      className={`${sizeClass} rounded-full object-cover ${ringClass} ${className}`}
-      style={showRing ? { '--tw-ring-color': mascot.color } : undefined}
-      onError={() => setImgFailed(true)}
-    />
+    <div
+      className={`${sizeClass} overflow-hidden rounded-full bg-white ${ringClass} ${className}`}
+      style={showRing ? { '--tw-ring-color': mascot.color, '--tw-ring-offset-color': '#ffffff' } : undefined}
+    >
+      <img
+        src={imgSrc}
+        alt={mascot.name}
+        className="h-full w-full object-cover"
+        onError={() => setImgFailed(true)}
+      />
+    </div>
   );
 }
 

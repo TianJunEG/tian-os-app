@@ -34,7 +34,7 @@ export default {
                    400: '#d8694f', 500: '#d8694f', 600: '#c8472f', 700: '#c8472f', 800: '#a3391e' },
         ink:     { DEFAULT: '#232c39', dash: '#1c2433' },
         body:    { DEFAULT: '#46505f', soft: '#5a6675', muted: '#6b7585',
-                   faint: '#8a93a3', faint2: '#9aa1b0' },
+                   faint: '#687282', faint2: '#6d7585' },
         surface: { app: '#e7eaef', dash: '#eef1f5', raised: '#f5f6f8',
                    white: '#ffffff', keypad: '#f3f4f7' },
         line:    { DEFAULT: '#e7eaef', soft: '#eaedf2', strong: '#dde1e8',
@@ -101,7 +101,7 @@ export default {
         ink: {
           DEFAULT: '#232c39', dash: '#1c2433',
           900: '#232c39', 800: '#232c39', 700: '#46505f', 600: '#5a6675',
-          500: '#6b7585', 400: '#8a93a3', 300: '#9aa1b0', 200: '#eaedf2', 100: '#f5f6f8',
+          500: '#6b7585', 400: '#687282', 300: '#6d7585', 200: '#eaedf2', 100: '#f5f6f8',
         },
         // ds-* aliases
         'ds-green': { 50: '#f3faf6', 100: '#eaf6ef', 200: '#e7f3ec', 300: '#d8ece1',

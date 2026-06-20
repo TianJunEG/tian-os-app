@@ -71,10 +71,15 @@ export function buildNav({ version = VERSION, featureFlags = FEATURE_FLAGS, role
   // Sidebar: include main items and group by logical sections for roles
   const sidebar = items.map((it) => ({ to: it.path, label: it.label, icon: it.icon }));
 
-  // Bottom nav: pick up to 5 priority items for mobile
-  const bottom = items.slice(0, 5).map((it) => ({ to: it.path, label: it.label, icon: it.icon }));
+  // Bottom nav (mobile): the floating bar fits 4 primary items + a "More"
+  // overflow button (AppShell renders the 5th slot). Reserve 4 here so the
+  // remaining items (e.g. Progress, Worksheets) stay reachable via `more`
+  // rather than silently dropping off the phone nav.
+  const navItem = (it) => ({ to: it.path, label: it.label, icon: it.icon });
+  const bottom = items.slice(0, 4).map(navItem);
+  const more = items.slice(4).map(navItem);
 
-  return { sidebar, bottom, all: items };
+  return { sidebar, bottom, more, all: items };
 }
 
 export default { NAV_ITEMS, buildNav };

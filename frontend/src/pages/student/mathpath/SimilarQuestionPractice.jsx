@@ -156,6 +156,15 @@ export default function SimilarQuestionPractice() {
     setReviewModalOpen(true);
   };
 
+  // In-page exit — the activity shell hides the global nav during the question
+  // loop. Confirm first when there is unsaved work (answered questions not yet
+  // submitted, or an answer in the current question).
+  const exitSession = () => {
+    const hasWork = responses.length > 0 || answer.trim() !== '';
+    if (hasWork && !window.confirm('Leave this practice? Your progress will not be saved.')) return;
+    navigate('/student/mathpath');
+  };
+
   const confirmReview = () => {
     if (!answer.trim() || !reflection || !workingReady) return;
     setReviewModalOpen(false);
@@ -197,6 +206,17 @@ export default function SimilarQuestionPractice() {
 
   return (
     <div className="mx-auto max-w-2xl">
+      <div className="mb-3 flex items-center justify-between">
+        <button
+          type="button"
+          onClick={exitSession}
+          aria-label="Exit practice"
+          className="flex min-h-[44px] items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-medium text-ink-500 transition-colors hover:text-ink-800"
+        >
+          <X className="h-4 w-4" />
+          Exit
+        </button>
+      </div>
       <PageHeader title={practiceSet?.title || 'Similar Question Practice'} subtitle={[practiceSet?.topic || 'Fractions', skillLabel(practiceSet?.skillId)].filter(Boolean).join(' · ')} />
       <div className="mb-4 flex items-center justify-between text-sm text-ink-500">
         <span>Question {idx + 1} of {questions.length}</span>

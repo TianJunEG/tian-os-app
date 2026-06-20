@@ -180,6 +180,27 @@ function calculateActivityStreak(dates = [], offsetHours = 8) {
   return streak;
 }
 
+// Builds a MathPathAttempt filter clause that excludes per-answer diagnostic
+// attempts whose parent check-in did NOT complete. Abandoned/in-progress
+// check-ins must not pollute profile aggregates (a student can interrupt a
+// check-in, which now resets it). Non-diagnostic attempts are left untouched.
+async function buildDiagnosticAttemptExclusion(studentId) {
+  const completed = await MathPathDiagnosticSession
+    .find({ studentId, status: 'completed' })
+    .select('diagnosticSessionId')
+    .lean();
+  const completedSessionIds = completed
+    .map((s) => s.diagnosticSessionId)
+    .filter(Boolean);
+  // Keep an attempt unless it is a diagnostic attempt tied to a session that did
+  // not complete. $nor leaves every non-diagnostic attempt unaffected.
+  return {
+    $nor: [
+      { sessionType: 'diagnostic', sessionId: { $nin: completedSessionIds } },
+    ],
+  };
+}
+
 async function getSkillName(skillId) {
   if (!skillId) return '';
   const skill = await Skill.findOne({
@@ -195,6 +216,10 @@ async function getSkillName(skillId) {
 async function deriveMetrics(student) {
   const studentObjectId = student._id;
   const studentId = String(student._id);
+
+  // Excludes per-answer diagnostic attempts from non-completed check-ins so an
+  // abandoned/in-progress check-in does not skew profile stats.
+  const excludeIncompleteDiagnostics = await buildDiagnosticAttemptExclusion(studentId);
 
   const [
     questionsSolved,
@@ -213,12 +238,13 @@ async function deriveMetrics(student) {
     masteryStreakRows,
     totalFractionsSkills,
   ] = await Promise.all([
-    MathPathAttempt.countDocuments({ studentId }),
+    MathPathAttempt.countDocuments({ studentId, ...excludeIncompleteDiagnostics }),
     MathPathDiagnosticSession.countDocuments({ studentId, status: 'completed' }),
     MathPathPracticeSession.countDocuments({ studentId, status: 'completed' }),
     MathPathAttempt.distinct('sessionId', { studentId, sessionType: 'fluency' }),
     MathPathAttempt.countDocuments({
       studentId,
+      ...excludeIncompleteDiagnostics,
       $or: [
         { workingSubmitted: true },
         { workingUploaded: true },
@@ -239,7 +265,7 @@ async function deriveMetrics(student) {
       assessmentType: 'mastery',
       status: { $in: SUBMITTED_ASSESSMENT_STATES },
     }),
-    MathPathAttempt.find({ studentId }).sort({ createdAt: -1 }).limit(30).lean(),
+    MathPathAttempt.find({ studentId, ...excludeIncompleteDiagnostics }).sort({ createdAt: -1 }).limit(30).lean(),
     MathPathPracticeSession.find({ studentId, status: 'completed' }).sort({ completedAt: -1, updatedAt: -1 }).limit(10).lean(),
     MathPathDiagnosticSession.find({ studentId, status: 'completed' }).sort({ completedAt: -1, updatedAt: -1 }).limit(10).lean(),
     MathPathStudentSkillState.find({ studentId, status: { $in: MASTERED_STATES } }).sort({ masteredAt: -1, updatedAt: -1 }).limit(10).lean(),
@@ -484,9 +510,12 @@ function weekKey(date, offsetHours = 8) {
 
 export async function getStudentPersonalBests(student, offsetHours = 8) {
   const studentId = String(student._id);
+  // Drop per-answer attempts from non-completed check-ins so personal bests are
+  // not skewed by an abandoned/in-progress diagnostic.
+  const excludeIncompleteDiagnostics = await buildDiagnosticAttemptExclusion(studentId);
 
   const [allAttempts, completedSessions] = await Promise.all([
-    MathPathAttempt.find({ studentId })
+    MathPathAttempt.find({ studentId, ...excludeIncompleteDiagnostics })
       .sort({ createdAt: -1 })
       .select('correct timeTaken createdAt sessionId skillId')
       .lean(),
