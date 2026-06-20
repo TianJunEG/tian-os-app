@@ -1,11 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Volume2 } from 'lucide-react';
 import { Alert, Badge, Button, Card, PageHeader, ProgressBar, Spinner } from '../../../../components/ui';
 import { MascotBubble } from '../../../../components/MascotAvatar';
 import { MathText } from '../../../../components/ui/Fraction';
 import FullScreenWorkingMode from '../../../../components/learning/FullScreenWorkingMode';
 import WorkingPreviewCard from '../../../../components/learning/WorkingPreviewCard';
+import ManipulativeDotArray, { parseDotStem, numericLine, toSpeakable } from '../../../../components/learning/ManipulativeDotArray';
+import { speak } from '../../../../utils/sound';
+import { useAuth } from '../../../../context/AuthContext';
 import { getMascotForModule } from '../../../../config/mascots';
 import MathSymbolBar from '../components/MathSymbolBar';
 import AnswerInputRenderer, { getAnswerInputType } from '../components/AnswerInputRenderer';
@@ -29,6 +32,13 @@ const REFLECTION_OPTIONS = [
   { value: 'i_need_help', label: 'Need help', color: 'bg-red-100 border-red-300 text-red-800 hover:bg-red-200' },
 ];
 
+const LP_REFLECTION_OPTIONS = [
+  { value: 'i_know_this', emoji: '😊', label: 'I know it!' },
+  { value: 'not_sure', emoji: '🤔', label: 'Not sure' },
+  { value: 'i_need_practice', emoji: '😕', label: 'Need practice' },
+  { value: 'i_need_help', emoji: '🙋', label: 'Need help' },
+];
+
 export default function DomainPracticeSession({ domain }) {
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -37,6 +47,10 @@ export default function DomainPracticeSession({ domain }) {
   const label = config?.label || 'Maths';
   const backRoute = `/student/mathpath/${domain}`;
   const domainSymbols = getDomainSymbols(domain);
+
+  const { user } = useAuth();
+  const sl = String(user?.studentLevel || '').toLowerCase().trim();
+  const isLPrimary = /k2|kindy|preschool/.test(sl) || /^p[123]$|^primary [123]$/.test(sl);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -135,6 +149,15 @@ export default function DomainPracticeSession({ domain }) {
   const isLast = index >= questions.length - 1;
   const currentWorking = current?.questionId ? (workingByQuestion[current.questionId] || {}) : {};
 
+  // Auto-read question aloud for lower primary students.
+  useEffect(() => {
+    if (isLPrimary && current) {
+      const readable = toSpeakable(current.prompt || '');
+      if (readable) speak(readable, { rate: 0.8, gender: 'female' });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current?.questionId]);
+
   async function finish(allAnswers) {
     setSubmitting(true);
     try {
@@ -147,11 +170,13 @@ export default function DomainPracticeSession({ domain }) {
     }
   }
 
-  function submitAnswer() {
-    if (!current || !draft.trim()) return;
+  function submitAnswer(choiceOverride) {
+    const studentAnswer = choiceOverride ?? draft;
+    if (!current || !String(studentAnswer).trim()) return;
+    if (choiceOverride) setDraft(choiceOverride);
     const answer = {
       questionId: current.questionId,
-      studentAnswer: draft,
+      studentAnswer: String(studentAnswer),
       timeTaken: Math.round((Date.now() - questionStartedAt.current) / 1000) - inactivityPausedSec.current,
       ...(currentWorking.workingSubmitted ? {
         workingSubmitted: true,
@@ -244,23 +269,69 @@ export default function DomainPracticeSession({ domain }) {
         <span className="shrink-0 font-mono text-sm text-ink-400">{elapsedSec}s</span>
       </div>
 
-      <Card className="p-6">
-        <p className="text-xl font-semibold leading-relaxed text-ink-900"><MathText text={current?.prompt || ''} /></p>
+      <Card className="p-6 space-y-4">
+        {(() => {
+          const prompt = current?.prompt || '';
+          const dotData = parseDotStem(prompt);
+          if (isLPrimary && dotData) {
+            return (
+              <>
+                <ManipulativeDotArray
+                  key={current?.questionId}
+                  a={dotData.a}
+                  b={dotData.b}
+                  operator={dotData.operator}
+                />
+                <div className="flex items-center gap-2">
+                  <p className="text-xl font-bold text-ink-900">{numericLine(prompt)}</p>
+                  <button
+                    type="button"
+                    aria-label="Read question"
+                    onClick={() => speak(toSpeakable(prompt), { rate: 0.8, gender: 'female' })}
+                    className="rounded-full p-1 text-ink-400 hover:text-emerald active:scale-90"
+                  >
+                    <Volume2 className="h-5 w-5" />
+                  </button>
+                </div>
+              </>
+            );
+          }
+          return <p className="text-xl font-semibold leading-relaxed text-ink-900"><MathText text={prompt} /></p>;
+        })()}
 
         {current?.type === 'mcq' ? (
-          <div className="mt-5 grid gap-3">
-            {(current.choices || []).map((choice) => (
-              <button
-                key={choice}
-                type="button"
-                disabled={showReflection}
-                onClick={() => setDraft(choice)}
-                className={`min-h-[3rem] rounded-xl border px-4 py-3 text-left text-lg transition ${draft === choice ? 'border-navy-400 bg-emerald-tint font-semibold text-emerald-deep' : 'border-ink-200 hover:border-navy-300'} disabled:opacity-50`}
-              >
-                <MathText text={String(choice)} />
-              </button>
-            ))}
-          </div>
+          isLPrimary ? (
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              {(current.choices || []).map((choice) => (
+                <button
+                  key={choice}
+                  type="button"
+                  disabled={showReflection || submitting}
+                  onClick={() => {
+                    speak(choice, { rate: 0.85, gender: 'female' });
+                    submitAnswer(choice);
+                  }}
+                  className="rounded-2xl border-2 border-line-soft bg-white py-5 text-center text-3xl font-bold text-ink-900 shadow-sm transition hover:border-emerald hover:bg-emerald-tint active:scale-95 disabled:opacity-40"
+                >
+                  {choice}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-5 grid gap-3">
+              {(current.choices || []).map((choice) => (
+                <button
+                  key={choice}
+                  type="button"
+                  disabled={showReflection}
+                  onClick={() => setDraft(choice)}
+                  className={`min-h-[3rem] rounded-xl border px-4 py-3 text-left text-lg transition ${draft === choice ? 'border-navy-400 bg-emerald-tint font-semibold text-emerald-deep' : 'border-ink-200 hover:border-navy-300'} disabled:opacity-50`}
+                >
+                  <MathText text={String(choice)} />
+                </button>
+              ))}
+            </div>
+          )
         ) : (
           <div className="mt-5">
             <AnswerInputRenderer
@@ -276,43 +347,71 @@ export default function DomainPracticeSession({ domain }) {
           </div>
         )}
 
-        <div className="mt-5">
-          <WorkingPreviewCard
-            workingImage={currentWorking.workingImage || ''}
-            workingSubmitted={Boolean(currentWorking.workingSubmitted)}
-            onOpen={() => setWorkingQuestionId(current?.questionId || null)}
-            onRemove={currentWorking.workingSubmitted ? () => setWorkingByQuestion((prev) => {
-              const next = { ...prev };
-              delete next[current.questionId];
-              return next;
-            }) : undefined}
-            openLabel="Open working"
-          />
-        </div>
+        {!isLPrimary && (
+          <div className="mt-5">
+            <WorkingPreviewCard
+              workingImage={currentWorking.workingImage || ''}
+              workingSubmitted={Boolean(currentWorking.workingSubmitted)}
+              onOpen={() => setWorkingQuestionId(current?.questionId || null)}
+              onRemove={currentWorking.workingSubmitted ? () => setWorkingByQuestion((prev) => {
+                const next = { ...prev };
+                delete next[current.questionId];
+                return next;
+              }) : undefined}
+              openLabel="Open working"
+            />
+          </div>
+        )}
       </Card>
 
       {showReflection ? (
         <div className="rounded-2xl border border-ink-100 bg-white p-5 shadow-sm">
-          <p className="mb-3 text-sm font-semibold text-ink-600">How did that feel?</p>
-          <div className="grid grid-cols-2 gap-2">
-            {REFLECTION_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => confirmReflection(opt.value)}
-                className={`rounded-xl border px-4 py-3 text-sm font-semibold transition ${opt.color}`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
+          {isLPrimary ? (
+            <>
+              <p className="mb-3 text-center text-base font-semibold text-ink-600">How did that feel?</p>
+              <div className="grid grid-cols-2 gap-3">
+                {LP_REFLECTION_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => {
+                      speak(opt.label, { rate: 0.85, gender: 'female' });
+                      confirmReflection(opt.value);
+                    }}
+                    className="flex flex-col items-center gap-2 rounded-2xl border-2 border-line-soft bg-surface-raised px-4 py-4 text-center transition hover:border-emerald hover:bg-emerald-tint active:scale-95"
+                  >
+                    <span className="text-4xl leading-none">{opt.emoji}</span>
+                    <span className="text-sm font-bold text-ink-800">{opt.label}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="mb-3 text-sm font-semibold text-ink-600">How did that feel?</p>
+              <div className="grid grid-cols-2 gap-2">
+                {REFLECTION_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => confirmReflection(opt.value)}
+                    className={`rounded-xl border px-4 py-3 text-sm font-semibold transition ${opt.color}`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       ) : (
-        <div className="flex justify-end">
-          <Button icon={isLast ? CheckCircle2 : ArrowRight} disabled={!draft.trim() || submitting} onClick={submitAnswer}>
-            {submitting ? 'Submitting…' : isLast ? 'Finish' : 'Next'}
-          </Button>
-        </div>
+        (!isLPrimary || current?.type !== 'mcq') && (
+          <div className="flex justify-end">
+            <Button icon={isLast ? CheckCircle2 : ArrowRight} disabled={!draft.trim() || submitting} onClick={() => submitAnswer()}>
+              {submitting ? 'Submitting…' : isLast ? 'Finish' : 'Next'}
+            </Button>
+          </div>
+        )
       )}
 
       <FullScreenWorkingMode

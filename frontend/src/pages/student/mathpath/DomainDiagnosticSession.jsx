@@ -5,7 +5,7 @@ import { diagnosticsAPI } from '../../../services/api';
 import { Alert, Badge, Button, Card, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
 import { MascotBubble } from '../../../components/MascotAvatar';
 import { useAuth } from '../../../context/AuthContext';
-import ManipulativeDotArray, { parseDotStem, numericLine } from '../../../components/learning/ManipulativeDotArray';
+import ManipulativeDotArray, { parseDotStem, numericLine, toSpeakable } from '../../../components/learning/ManipulativeDotArray';
 import { speak } from '../../../utils/sound';
 
 // Generic adaptive diagnostic ("check-in") that serves every MathPath domain.
@@ -71,22 +71,6 @@ function bandTone(band) {
   if (band === 'ready') return 'success';
   if (band === 'progressing') return 'gold';
   return 'navy';
-}
-
-function toSpeakable(text = '') {
-  return String(text)
-    .split('\n')
-    .filter((line) => !/^[\s⬤●○+\-×÷=?]+$/.test(line.trim()))
-    .join(' ')
-    .replace(/[⬤●○]/g, '')
-    .replace(/\+/g, ' plus ')
-    .replace(/[−–-]/g, ' minus ')
-    .replace(/[×]/g, ' times ')
-    .replace(/[÷]/g, ' divided by ')
-    .replace(/=/g, ' equals ')
-    .replace(/\?/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
 }
 
 export default function DomainDiagnosticSession() {

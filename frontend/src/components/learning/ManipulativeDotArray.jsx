@@ -1,5 +1,22 @@
 import React, { useState, useEffect } from 'react';
 
+// Convert a math prompt to a TTS-friendly string (strips dot-array lines and symbols).
+export function toSpeakable(text = '') {
+  return String(text)
+    .split('\n')
+    .filter((line) => !/^[\s⬤●○+\-×÷=?]+$/.test(line.trim()))
+    .join(' ')
+    .replace(/[⬤●○]/g, '')
+    .replace(/\+/g, ' plus ')
+    .replace(/[−–-]/g, ' minus ')
+    .replace(/[×]/g, ' times ')
+    .replace(/[÷]/g, ' divided by ')
+    .replace(/=/g, ' equals ')
+    .replace(/\?/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 // Parse a question prompt that contains dot arrays (⬤ characters) and return
 // {a, b, operator} for rendering the manipulative. Returns null if not a dot-array question.
 export function parseDotStem(prompt = '') {
