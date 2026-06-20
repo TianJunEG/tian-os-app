@@ -9,6 +9,7 @@ import MathPathWorkingSession from '../../models/mathpath/MathPathWorkingSession
 import StudentXP from '../../models/studentProfile/StudentXP.js';
 import StudentAchievement from '../../models/studentProfile/StudentAchievement.js';
 import StudentLearningEvent from '../../models/studentProfile/StudentLearningEvent.js';
+import { slugPrefixForDomain } from '../../utils/skillSlugDomain.js';
 
 export const XP_VALUES = Object.freeze({
   diagnosticCompleted: 25,
@@ -269,7 +270,21 @@ async function deriveMetrics(student) {
   // for the profile "days active" counter.
   const activityStreak = calculateActivityStreak(activityDates);
   const streak = activityStreak;
-  const totalSkills = currentDomain === 'fractions' ? Math.max(totalFractionsSkills || 0, 26) : Math.max(uniqueCount(masteredCodes), 1);
+  // Domain-aware skill total: count the curriculum skills in the student's
+  // current domain by slug prefix (mirrors domainIdFromSlug), so non-fractions
+  // students no longer get the degenerate max(masteredCount, 1) denominator
+  // (which made every non-fractions learner read X/X). Fractions keeps its
+  // existing count; unrecognised/empty domains fall back to the old value.
+  let totalSkills;
+  if (currentDomain === 'fractions') {
+    totalSkills = Math.max(totalFractionsSkills || 0, 26);
+  } else {
+    const prefix = slugPrefixForDomain(currentDomain);
+    const domainSkillCount = prefix
+      ? await Skill.countDocuments({ slug: new RegExp(`^${prefix}\\.`, 'i') })
+      : 0;
+    totalSkills = domainSkillCount > 0 ? domainSkillCount : Math.max(uniqueCount(masteredCodes), 1);
+  }
 
   return {
     studentId,

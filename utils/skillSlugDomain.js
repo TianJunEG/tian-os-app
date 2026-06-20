@@ -34,5 +34,17 @@ export function domainIdFromSlug(slug) {
   return PREFIX_TO_DOMAIN[prefix] || null;
 }
 
-export { PREFIX_TO_DOMAIN };
-export default { domainIdFromSlug, PREFIX_TO_DOMAIN };
+// Reverse of PREFIX_TO_DOMAIN (1:1, so each domain has a single prefix).
+const DOMAIN_TO_PREFIX = Object.fromEntries(
+  Object.entries(PREFIX_TO_DOMAIN).map(([prefix, domain]) => [domain, prefix]),
+);
+
+// Returns the slug prefix for a canonical domainId (e.g. 'four_operations' →
+// 'op'), or null for an unrecognised domain. Mirrors domainIdFromSlug for
+// `slug: /^<prefix>\./i` DB counts.
+export function slugPrefixForDomain(domainId) {
+  return DOMAIN_TO_PREFIX[String(domainId || '')] || null;
+}
+
+export { PREFIX_TO_DOMAIN, DOMAIN_TO_PREFIX };
+export default { domainIdFromSlug, slugPrefixForDomain, PREFIX_TO_DOMAIN, DOMAIN_TO_PREFIX };
