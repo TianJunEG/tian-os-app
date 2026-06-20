@@ -788,9 +788,10 @@ export async function answerAdaptiveDiagnostic({ student, sessionId, body = {} }
 
   let nextQuestion = null;
   if (!sessionComplete && nextGeneric) {
+    const nextGenericId = questionIdOf(nextGeneric);
     const nextDoc = nextGeneric.isRephrase
       ? question
-      : bankDocs.find((doc) => String(doc._id) === String(nextGeneric.questionId));
+      : bankDocs.find((doc) => questionIdOf(doc) === nextGenericId);
     if (!nextDoc) {
       decision.decisionType = DIAGNOSTIC_DECISIONS.STOP_AND_ASSIGN_PRACTICE;
       decision.shouldStopDiagnostic = true;

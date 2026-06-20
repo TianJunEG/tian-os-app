@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Volume2, VolumeX } from 'lucide-react';
 import { Alert, Badge, Button, Card, PageHeader, ProgressBar, Spinner } from '../../../../components/ui';
 import { MascotBubble } from '../../../../components/MascotAvatar';
 import { MathText } from '../../../../components/ui/Fraction';
 import FullScreenWorkingMode from '../../../../components/learning/FullScreenWorkingMode';
 import WorkingPreviewCard from '../../../../components/learning/WorkingPreviewCard';
-import { getMascotForModule } from '../../../../config/mascots';
+import { getMascotForModule, getMascotVoice } from '../../../../config/mascots';
+import { speak, isVoiceEnabled, setVoiceEnabled } from '../../../../utils/sound';
 import MathSymbolBar from '../components/MathSymbolBar';
 import AnswerInputRenderer, { getAnswerInputType } from '../components/AnswerInputRenderer';
 import {
@@ -17,6 +18,7 @@ import {
   friendlySkillName,
   getDomainConfig,
   getDomainSymbols,
+  toSpeakable,
 } from './core';
 
 const MASCOT_KEY = getMascotForModule('mathpath')?.key || 'kylo';
@@ -52,6 +54,7 @@ export default function DomainPracticeSession({ domain }) {
   const [showReflection, setShowReflection] = useState(false);
   const [pendingAnswer, setPendingAnswer] = useState(null);
   const [showInactivityAlert, setShowInactivityAlert] = useState(false);
+  const [voiceOn, setVoiceOn] = useState(() => isVoiceEnabled());
 
   const questionStartedAt = useRef(Date.now());
   const lastActivityAt = useRef(Date.now());
@@ -185,6 +188,18 @@ export default function DomainPracticeSession({ domain }) {
     }
   }
 
+  // Read the current question aloud. Enables voice on first tap so the button
+  // always produces audio (speak() is gated by the 'pslVoice' flag), then voices
+  // the prompt with math symbols/LaTeX/emoji stripped to plain speech.
+  function readPromptAloud() {
+    if (!voiceOn) {
+      setVoiceEnabled(true);
+      setVoiceOn(true);
+    }
+    const spoken = toSpeakable(current?.prompt || '');
+    if (spoken) speak(spoken, getMascotVoice(MASCOT_KEY));
+  }
+
   if (loading) return <div className="grid place-items-center py-20"><Spinner label="Starting practice…" /></div>;
 
   if (error && !result) {
@@ -245,7 +260,19 @@ export default function DomainPracticeSession({ domain }) {
       </div>
 
       <Card className="p-6">
-        <p className="text-xl font-semibold leading-relaxed text-ink-900"><MathText text={current?.prompt || ''} /></p>
+        <div className="flex items-start justify-between gap-3">
+          <p className="text-xl font-semibold leading-relaxed text-ink-900"><MathText text={current?.prompt || ''} /></p>
+          <button
+            type="button"
+            onClick={readPromptAloud}
+            disabled={showReflection}
+            aria-label={voiceOn ? 'Read question aloud' : 'Turn on voice and read question aloud'}
+            title="Read aloud"
+            className="mt-0.5 shrink-0 rounded-full border border-ink-200 p-2 text-ink-500 transition hover:border-navy-300 hover:text-navy-600 disabled:opacity-50"
+          >
+            {voiceOn ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+          </button>
+        </div>
 
         {current?.type === 'mcq' ? (
           <div className="mt-5 grid gap-3">

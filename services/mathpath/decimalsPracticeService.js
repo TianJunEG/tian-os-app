@@ -54,6 +54,7 @@ export function buildDecimalsPracticeSession({
     misconceptionTag: q.misconceptionTag || '',
     difficulty: q.difficulty,
     workingRequired: Boolean(q.workingRequired),
+    answerFormat: q.answerFormat,
   }));
 
   return {

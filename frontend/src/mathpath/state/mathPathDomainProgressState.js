@@ -1,5 +1,12 @@
 const STORAGE_KEY = 'tianos.mathpath.domainProgress.v1';
 
+// Per-user namespaced key. Falls back to the legacy global key when no studentId
+// is available so callers that don't (yet) pass one keep working, but real callers
+// supply a studentId and get an isolated cache that can't leak across accounts.
+function storageKeyFor(studentId) {
+  return studentId ? `${STORAGE_KEY}.${studentId}` : STORAGE_KEY;
+}
+
 function nowIso() {
   return new Date().toISOString();
 }
@@ -16,20 +23,20 @@ function daysSince(value) {
   return Math.floor((Date.now() - ts) / (24 * 60 * 60 * 1000));
 }
 
-function safeReadRoot() {
+function safeReadRoot(studentId) {
   if (typeof window === 'undefined' || !window.localStorage) return {};
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.localStorage.getItem(storageKeyFor(studentId));
     return raw ? JSON.parse(raw) : {};
   } catch (_) {
     return {};
   }
 }
 
-function safeWriteRoot(next) {
+function safeWriteRoot(studentId, next) {
   if (typeof window === 'undefined' || !window.localStorage) return;
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    window.localStorage.setItem(storageKeyFor(studentId), JSON.stringify(next));
   } catch (_) {
     // best-effort local cache only
   }
@@ -40,12 +47,12 @@ function composeKey(studentId, domainId) {
 }
 
 export function getMathPathDomainProgressState(studentId, domainId = 'fractions') {
-  const root = safeReadRoot();
+  const root = safeReadRoot(studentId);
   return root[composeKey(studentId, domainId)] || null;
 }
 
 export function setMathPathDomainProgressState(studentId, domainId = 'fractions', updates = {}) {
-  const root = safeReadRoot();
+  const root = safeReadRoot(studentId);
   const key = composeKey(studentId, domainId);
   const prev = root[key] || {};
   root[key] = {
@@ -55,16 +62,16 @@ export function setMathPathDomainProgressState(studentId, domainId = 'fractions'
     domainId,
     updatedAt: nowIso(),
   };
-  safeWriteRoot(root);
+  safeWriteRoot(studentId, root);
   return root[key];
 }
 
 export function clearMathPathDomainProgressState(studentId, domainId = 'fractions') {
-  const root = safeReadRoot();
+  const root = safeReadRoot(studentId);
   const key = composeKey(studentId, domainId);
   if (root[key]) {
     delete root[key];
-    safeWriteRoot(root);
+    safeWriteRoot(studentId, root);
   }
 }
 

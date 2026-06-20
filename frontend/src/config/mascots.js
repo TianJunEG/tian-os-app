@@ -96,14 +96,17 @@ export function getMascot(key) {
 // A distinct Kokoro voice per mascot, gender-matched (af_=Am. female,
 // am_=Am. male). Used when the Kokoro neural engine is active; the gender/pitch
 // below drive the Web Speech fallback so mascots stay distinct either way.
+// Boy voices: pitch can't change Kokoro's fixed neural timbres, so the youngest
+// boys use brighter/higher Kokoro IDs (am_puck/am_liam) instead of the deeper
+// am_eric / bm_fable, which sounded too low in the pilot (BUG 6).
 const KOKORO_VOICE = {
-  tiano: 'am_liam',
+  tiano: 'am_liam',   // age 18 — bright young-male tone (unchanged)
   lysa: 'af_sky',
-  lejo: 'bm_fable',
+  lejo: 'am_liam',    // age 14 — was bm_fable (deep British); brighter am_liam
   chelya: 'af_sarah',
   talia: 'af_heart',
   kaesy: 'bf_alice',
-  kylo: 'am_eric',
+  kylo: 'am_puck',    // age 6 — was am_eric; am_puck is the brightest male voice
 };
 
 // Voice profile for a mascot: gender (for voice selection) plus a pitch/rate
@@ -114,7 +117,7 @@ const KOKORO_VOICE = {
 export function getMascotVoice(key) {
   const m = MASCOTS[key];
   if (!m) return { gender: 'female', pitch: 1.1, rate: 0.95, kokoro: 'af_heart' };
-  const base = m.gender === 'boy' ? 0.85 : 1.15;
+  const base = m.gender === 'boy' ? 1.05 : 1.15;
   const ageAdjust = (12 - m.age) * 0.03; // younger → higher
   const pitch = Math.max(0.5, Math.min(1.6, base + ageAdjust));
   const rate = m.age <= 8 ? 0.9 : 0.95;   // youngest speak a touch slower

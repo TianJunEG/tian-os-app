@@ -387,6 +387,14 @@ export default function WorkingCanvas({
     }
     const ctx = canvasRef.current.getContext('2d');
     const pts = stroke.points;
+    if (stroke.tool === 'shade') {
+      // Shade renders the WHOLE stroke at once (even, flat tone). Incremental
+      // tail-stamps would re-composite overlaps and darken them, so redraw the
+      // committed strokes then the full current shade stroke every move.
+      redraw(strokes, submittedImage);
+      drawStroke(ctx, stroke);
+      return;
+    }
     if (pts.length < 3) {
       drawStroke(ctx, { ...stroke, points: pts.slice(-2) });
     } else {
@@ -395,12 +403,11 @@ export default function WorkingCanvas({
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
       ctx.globalCompositeOperation = stroke.tool === 'eraser' ? 'destination-out' : 'source-over';
-      ctx.globalAlpha = stroke.tool === 'highlighter' ? 0.18 : stroke.tool === 'shade' ? 0.24 : 1;
+      ctx.globalAlpha = stroke.tool === 'highlighter' ? 0.18 : 1;
       ctx.strokeStyle = stroke.tool === 'eraser' ? '#ffffff' : (stroke.colour || '#172554');
       const baseSize = Number(stroke.size || 4);
       const hasPressure = (stroke.tool === 'pen' || stroke.tool === 'pencil') && tail[2].p != null;
       ctx.lineWidth = stroke.tool === 'eraser' ? 24
-        : stroke.tool === 'shade' ? Math.max(34, baseSize * 8)
         : stroke.tool === 'highlighter' ? Math.max(48, baseSize * 10)
         : stroke.tool === 'pencil' ? Math.max(1, baseSize - 1)
         : hasPressure ? baseSize * (0.3 + (tail[2].p ?? 0.5) * 0.7)
@@ -797,7 +804,12 @@ export default function WorkingCanvas({
               touchAction: 'none',
               width: `${zoom * 100}%`,
               minWidth: '100%',
-              height: compact ? 150 : 260,
+              // Display height is decoupled from `compact` (which only controls
+              // toolbar density) so the embedded canvas is never squashed below
+              // its 320px bitmap. PSL/story/similar-question scratchpads all
+              // render the same un-squashed height.
+              height: CANVAS_HEIGHT,
+              minHeight: CANVAS_HEIGHT,
             }}
             onPointerDown={beginStroke}
             onPointerMove={moveStroke}

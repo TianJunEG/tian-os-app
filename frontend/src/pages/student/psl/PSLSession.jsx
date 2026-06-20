@@ -263,7 +263,10 @@ export default function PSLSession() {
     const resp = stepResponses[currentStepId];
     switch (currentStepId) {
       case 'understand': return resp?.selectedIndex !== undefined;
-      case 'identify_info': return (resp?.numbers || []).length > 0;
+      case 'identify_info': {
+        const expectedCount = currentProblem?.scaffoldSteps?.find((s) => s.stepId === 'identify_info')?.expectedCount || 2;
+        return (resp?.numbers || []).length >= expectedCount;
+      }
       case 'identify_question': return resp?.selectedIndex !== undefined;
       case 'plan': {
         const planStep = currentProblem?.scaffoldSteps?.find((s) => s.stepId === 'plan');
@@ -392,7 +395,7 @@ export default function PSLSession() {
         );
       case 'identify_info': {
         const nums = stepResponses.identify_info?.numbers || [];
-        const expected = currentProblem?.scaffoldSteps?.find((s) => s.stepId === 'identify_info')?.expectedNumbers?.length || 2;
+        const expected = currentProblem?.scaffoldSteps?.find((s) => s.stepId === 'identify_info')?.expectedCount || 2;
         return (
           <div className="flex flex-col gap-3">
             <p className="text-sm font-medium" style={{ color: '#5a6675' }}>
@@ -482,6 +485,18 @@ export default function PSLSession() {
               )}
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
+              {currentStepIdx < STEP_IDS.indexOf('solve') && (
+                <button
+                  type="button"
+                  onClick={() => { setFeedback(null); setCurrentStepIdx(STEP_IDS.indexOf('solve')); }}
+                  className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium transition-colors"
+                  style={{ color: '#d9892e' }}
+                  aria-label="Skip to solving"
+                >
+                  <span>Skip to solving</span>
+                  <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 17l5-5-5-5M6 17l5-5-5-5" /></svg>
+                </button>
+              )}
               <span className="mono-label hidden sm:inline" style={{ color: '#d9892e' }}>
                 Step {currentStepIdx + 1} of {STEP_IDS.length}
               </span>

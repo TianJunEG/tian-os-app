@@ -52,7 +52,7 @@ function reduceFraction(num, den) {
 }
 
 // ── Question assembly helpers ─────────────────────────────────────────────────
-function shortAnswer({ family, prompt, answer, display, solutionSteps, misconceptionTag, difficulty, mode, placeholder }) {
+function shortAnswer({ family, prompt, answer, display, solutionSteps, misconceptionTag, difficulty, mode, placeholder, answerFormat }) {
   return {
     id: `${family.id}#${mode}`,
     skillId: family.skillId,
@@ -69,6 +69,7 @@ function shortAnswer({ family, prompt, answer, display, solutionSteps, misconcep
     workingRequired: family.workingRequired,
     generatorKind: family.generatorKind,
     ...(placeholder ? { placeholder } : {}),
+    ...(answerFormat ? { answerFormat } : {}),
   };
 }
 
@@ -238,6 +239,7 @@ const GENERATORS = {
       prompt,
       answer: display,
       display,
+      answerFormat: 'fraction',
       solutionSteps: [
         `Total parts = ${a} + ${b} = ${total}.`,
         `Red fraction = ${a}/${total}${num !== a ? ` = ${num}/${den}` : ''}.`,

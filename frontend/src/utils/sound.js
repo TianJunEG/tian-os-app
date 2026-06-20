@@ -77,6 +77,15 @@ try {
 
 export const isVoiceEnabled = () => voiceEnabled;
 
+// Strip emoji / pictographs / dingbats so TTS engines don't read them aloud
+// ("🎉" → "party popper"). Collapses the whitespace the removal leaves behind.
+// Exported so utils/tts (comic bubbles) shares the exact same behaviour.
+export const stripEmoji = (text) =>
+  String(text ?? '')
+    .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}\u{FE00}-\u{FE0F}\u{200D}]/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
 export const setVoiceEnabled = (value) => {
   voiceEnabled = !!value;
   try {
@@ -132,17 +141,19 @@ const warmKokoro = () => {
 // getMascotVoice). Backward compatible: speak(text) keeps the default voice.
 export const speak = (text, opts = {}) => {
   if (!voiceEnabled || muted || typeof window === 'undefined') return;
+  const clean = stripEmoji(text);
+  if (!clean) return;
   // Interrupt whatever is currently speaking on either engine.
   if (window.speechSynthesis) window.speechSynthesis.cancel();
   stopKokoro();
 
   if (kokoroAllowed()) {
     if (kokoroReady) {
-      kokoroSpeak(text, { voice: opts.kokoro || 'af_heart', speed: opts.rate ?? 1 })
-        .catch(() => webSpeechSpeak(text, opts));
+      kokoroSpeak(clean, { voice: opts.kokoro || 'af_heart', speed: opts.rate ?? 1 })
+        .catch(() => webSpeechSpeak(clean, opts));
       return;
     }
     warmKokoro(); // load in the background; speak now via Web Speech
   }
-  webSpeechSpeak(text, opts);
+  webSpeechSpeak(clean, opts);
 };

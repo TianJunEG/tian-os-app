@@ -20,19 +20,29 @@ function evaluateUnderstand(response, expected) {
   return { correct: text.length > 5, partial: false, score: text.length > 5 ? 1 : 0, misconceptionTag: '' };
 }
 
+// Canonicalise a clue token to its comparison key (collapse internal whitespace, no number
+// coercion) so "2/5", "3 : 5", "30%", "$4" all survive and match the client token keys.
+function normalizeClueKey(token) {
+  return String(token == null ? '' : token).trim().replace(/\s+/g, '');
+}
+
 function evaluateIdentifyInfo(response, expected) {
-  const highlighted = (response?.numbers || []).map(Number).sort((a, b) => a - b);
-  const expectedNums = (expected?.numbers || []).map(Number).sort((a, b) => a - b);
-  if (!expectedNums.length) return { correct: true, partial: false, score: 1, misconceptionTag: '' };
+  const highlighted = (response?.numbers || []).map(normalizeClueKey).filter((t) => t.length > 0);
+  const expectedSet = new Set((expected?.numbers || []).map(normalizeClueKey).filter((t) => t.length > 0));
+  if (!expectedSet.size) return { correct: true, partial: false, score: 1, misconceptionTag: '' };
 
-  const correct = highlighted.length === expectedNums.length && highlighted.every((n, i) => n === expectedNums[i]);
-  if (correct) return { correct: true, partial: false, score: 1, misconceptionTag: '' };
+  const highlightedSet = new Set(highlighted);
+  const foundCount = [...expectedSet].filter((t) => highlightedSet.has(t)).length;
+  const hasExtra = [...highlightedSet].some((t) => !expectedSet.has(t));
 
-  const intersection = highlighted.filter((n) => expectedNums.includes(n));
-  if (intersection.length > 0 && intersection.length < expectedNums.length) {
+  // Fully correct only when EVERY expected clue is found and no irrelevant clue is included.
+  if (foundCount === expectedSet.size && !hasExtra) {
+    return { correct: true, partial: false, score: 1, misconceptionTag: '' };
+  }
+
+  if (foundCount > 0 && foundCount < expectedSet.size) {
     return { correct: false, partial: true, score: 0.5, misconceptionTag: 'psl/missed-number' };
   }
-  const hasExtra = highlighted.some((n) => !expectedNums.includes(n));
   return {
     correct: false, partial: false, score: 0,
     misconceptionTag: hasExtra ? 'psl/included-irrelevant' : 'psl/missed-number',

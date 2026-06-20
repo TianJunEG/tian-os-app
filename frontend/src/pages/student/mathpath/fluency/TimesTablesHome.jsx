@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Zap, Trophy, BarChart3 } from 'lucide-react';
 import { Button, Card, PageHeader, ProgressBar } from '../../../../components/ui';
+import { useAuth } from '../../../../context/AuthContext';
 import {
   TABLES,
   STRENGTH,
@@ -10,11 +11,12 @@ import {
   factKey,
 } from '../../../../mathpath/timesTablesEngine';
 
-const STORAGE_KEY = 'tian_times_tables_facts';
+const storageKey = (userId) => `tian_times_tables_facts_${userId}`;
 
-function loadFactState() {
+function loadFactState(userId) {
+  if (!userId) return initialFactState();
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(storageKey(userId));
     return raw ? JSON.parse(raw) : initialFactState();
   } catch {
     return initialFactState();
@@ -41,11 +43,14 @@ function TableStrengthBar({ table, factState }) {
 
 export default function TimesTablesHome() {
   const navigate = useNavigate();
-  const [factState, setFactState] = useState(() => loadFactState());
+  const { user } = useAuth();
+  const userId = user?.id || user?._id || user?.email || '';
+  const [factState, setFactState] = useState(() => initialFactState());
 
   useEffect(() => {
-    setFactState(loadFactState());
-  }, []);
+    if (!userId) return;
+    setFactState(loadFactState(userId));
+  }, [userId]);
 
   const allPairs = allFactPairs();
   const secureCount = allPairs.filter(([a, b]) => factState[factKey(a, b)]?.strength === STRENGTH.SECURE).length;

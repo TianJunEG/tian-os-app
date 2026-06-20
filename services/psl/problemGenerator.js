@@ -202,6 +202,13 @@ function substituteTokens(text, vars) {
   return text.replace(/\{(\w+)\}/g, (_, key) => vars[key] ?? `{${key}}`);
 }
 
+// Canonicalise a clue token so it matches the tappable token keys produced on the client
+// (StoryPanel.canonicalizeToken): collapse all internal whitespace, keep fractions/ratios/
+// money/percent intact, but DO NOT coerce to a number (that would drop "2/5", "3:5", "30%").
+function normalizeClue(token) {
+  return String(token).trim().replace(/\s+/g, '');
+}
+
 function buildScaffoldSteps(scaffold, vars) {
   const STEP_IDS = ['understand', 'identify_info', 'identify_question', 'plan', 'solve', 'check'];
   return STEP_IDS.map((stepId) => {
@@ -215,7 +222,13 @@ function buildScaffoldSteps(scaffold, vars) {
       if (raw.choices) step.choices = raw.choices.map((c) => substituteTokens(c, vars));
     } else if (raw.type === 'highlight') {
       step.prompt = 'Tap the numbers that are given in the story.';
-      step.expectedResponse = { numbers: (raw.expected || []).map((t) => substituteTokens(t, vars)).map(Number).filter(Boolean) };
+      // Keep clues as normalized STRINGS (not coerced numbers) so fractions ("2/5"),
+      // ratios ("3:5"), money ("$4"), and percentages ("30%") survive. Avoid filter(Boolean)
+      // dropping a legitimate "0".
+      const tokens = (raw.expected || [])
+        .map((t) => normalizeClue(substituteTokens(String(t), vars)))
+        .filter((t) => t.length > 0);
+      step.expectedResponse = { numbers: tokens };
     } else if (raw.type === 'model') {
       step.prompt = 'Which bar model fits this problem?';
       step.expectedResponse = { modelType: raw.modelType, unknownPosition: raw.unknownPosition };

@@ -133,19 +133,24 @@ const GENERATORS = {
       const num = p / g;
       const den = 100 / g;
       const display = `${num}/${den}`;
-      return shortAnswer({
-        family,
-        prompt: `Write ${p}% as a fraction in its simplest form.`,
-        answer: display,
-        display,
-        solutionSteps: [
-          `${p}% = ${p}/100.`,
-          `Simplify: divide both by ${g} → ${display}.`,
-        ],
-        misconceptionTag: family.misconceptionTags[0] || 'pct/keep-percent-sign',
-        difficulty,
-        mode,
-      });
+      return {
+        ...shortAnswer({
+          family,
+          prompt: `Write ${p}% as a fraction in its simplest form.`,
+          answer: display,
+          display,
+          solutionSteps: [
+            `${p}% = ${p}/100.`,
+            `Simplify: divide both by ${g} → ${display}.`,
+          ],
+          misconceptionTag: family.misconceptionTags[0] || 'pct/keep-percent-sign',
+          difficulty,
+          mode,
+        }),
+        // Bare proper-fraction answer ("a/b") → render stacked numerator/denominator
+        // input on the client (FractionAnswerInput) instead of a plain text box.
+        answerFormat: 'fraction',
+      };
     }
     const dec = p / 100;
     const display = String(dec);

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Check, Clock, Star, Trophy, X, Zap } from 'lucide-react';
 import { Button, Card, ProgressBar } from '../../../../components/ui';
+import { useAuth } from '../../../../context/AuthContext';
 import {
   TABLES,
   QUIZ_LENGTH,
@@ -13,19 +14,21 @@ import {
   factKey,
 } from '../../../../mathpath/timesTablesEngine';
 
-const STORAGE_KEY = 'tian_times_tables_facts';
+const storageKey = (userId) => `tian_times_tables_facts_${userId}`;
 
-function loadFactState() {
+function loadFactState(userId) {
+  if (!userId) return initialFactState();
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(storageKey(userId));
     return raw ? JSON.parse(raw) : initialFactState();
   } catch {
     return initialFactState();
   }
 }
 
-function saveFactState(state) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* noop */ }
+function saveFactState(userId, state) {
+  if (!userId) return;
+  try { localStorage.setItem(storageKey(userId), JSON.stringify(state)); } catch { /* noop */ }
 }
 
 // Visual hint: array model (SVG grid)
@@ -118,9 +121,11 @@ function ResultsScreen({ stats, onPlayAgain, onHome }) {
 export default function TimesTablesFlashQuiz() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
+  const userId = user?.id || user?._id || user?.email || '';
   const isPractice = location.state?.mode === 'practice';
 
-  const [factState, setFactState] = useState(() => loadFactState());
+  const [factState, setFactState] = useState(() => initialFactState());
   const [questions, setQuestions] = useState([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answer, setAnswer] = useState('');
@@ -132,12 +137,15 @@ export default function TimesTablesFlashQuiz() {
   const [showHint, setShowHint] = useState(false);
   const inputRef = useRef(null);
 
-  // Generate questions on mount
+  // Load per-user fact state and generate questions once the user is available
   useEffect(() => {
-    const qs = generateQuestions(factState, TABLES, QUIZ_LENGTH);
+    if (!userId) return;
+    const loaded = loadFactState(userId);
+    setFactState(loaded);
+    const qs = generateQuestions(loaded, TABLES, QUIZ_LENGTH);
     setQuestions(qs);
     setQuestionStart(Date.now());
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     if (!feedback && inputRef.current) inputRef.current.focus();
@@ -163,7 +171,7 @@ export default function TimesTablesFlashQuiz() {
         // Score and save
         const allResults = [...results, result];
         const { updatedFactState, sessionStats: stats } = scoreSession(factState, allResults);
-        saveFactState(updatedFactState);
+        saveFactState(userId, updatedFactState);
         setFactState(updatedFactState);
         setSessionStats(stats);
         setFinished(true);
@@ -172,7 +180,7 @@ export default function TimesTablesFlashQuiz() {
         setQuestionStart(Date.now());
       }
     }, correct ? 800 : 2000);
-  }, [currentQuestion, answer, feedback, questionStart, currentIdx, questions.length, results, factState]);
+  }, [currentQuestion, answer, feedback, questionStart, currentIdx, questions.length, results, factState, userId]);
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') handleSubmit();
