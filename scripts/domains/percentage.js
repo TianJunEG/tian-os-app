@@ -42,7 +42,7 @@ export default {
       remediation: { onRepeatedFail: 'worked-example', reinforce: ['dec.from-fraction', 'fr.equivalent'], strategy: 'percent → ÷100 → decimal; → over 100 → fraction → simplify' },
       questionStructures: [
         { mode: 'fluency_drill', type: 'short_answer', difficulty: 'easy', stem: 'Write {p}% as a decimal.', answerRule: 'p/100', misconceptionTag: 'pct/move-point-wrong' },
-        { mode: 'fluency_drill', type: 'short_answer', difficulty: 'medium', stem: 'Write {n}/{d} as a percentage.', answerRule: 'n/d*100', misconceptionTag: 'pct/keep-percent-sign' }] },
+        { mode: 'fluency_drill', type: 'short_answer', difficulty: 'medium', stem: 'Write {n}/{d} as a percentage.', answerRule: 'n/d*100 (n≤3, d∈{4,5,10,20,25,50})', misconceptionTag: 'pct/keep-percent-sign' }] },
 
     // ── Core applications ──
     { slug: 'pct.of-quantity', name: 'Percentage of a quantity', level: 'Primary 5',
@@ -59,7 +59,7 @@ export default {
       misconceptions: [{ tag: 'pct/wrong-base', label: 'Uses the wrong quantity as the whole (base)' }],
       practiceModes: ['short_answer', 'mcq', 'diagnostic'],
       remediation: { onRepeatedFail: 'worked-example', reinforce: ['pct.convert'], strategy: 'part ÷ whole × 100 — identify the whole first' },
-      questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'medium', stem: '{a} is what percentage of {b}?', answerRule: 'a/b*100', misconceptionTag: 'pct/wrong-base' }] },
+      questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'medium', stem: '{a} is what percentage of {b}?', answerRule: 'a/b*100 (a≤10, b∈{20,25,50,100})', misconceptionTag: 'pct/wrong-base' }] },
     { slug: 'pct.find-whole', name: 'Finding the whole from a percentage', level: 'Primary 6',
       prerequisites: ['pct.of-quantity'], masteryType: 'application', fluencyType: 'untimed-reasoning', heuristic: 'work-backwards',
       render: 'katex', visualModels: ['bar'],
