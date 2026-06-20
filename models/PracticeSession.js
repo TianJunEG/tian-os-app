@@ -27,7 +27,7 @@ const practiceSessionSchema = new mongoose.Schema({
     fluencyScore: { type: Number, default: null },
     fluencyStatus: { type: String, default: '' }
   }
-});
+}, { timestamps: true });
 
 practiceSessionSchema.index({ studentId: 1, startedAt: -1 });
 practiceSessionSchema.index({ workspaceId: 1, studentId: 1 });

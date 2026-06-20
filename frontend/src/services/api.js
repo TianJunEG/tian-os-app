@@ -826,6 +826,10 @@ export const worksheetGenAPI = {
   answers: (id) => api.get(`/worksheets/${id}/answers`),
   submit: (id, data) => api.post(`/worksheets/${id}/submit`, data),
   pdfUrl: (id, { answers = false } = {}) => `${API_BASE_URL}/worksheets/${id}/pdf${answers ? '?answers=1' : ''}`,
+  // Authenticated PDF fetch: goes through the axios instance so the bearer token
+  // is attached. pdfUrl() hits the raw endpoint without a token → 401, so callers
+  // that need a download should use this and build a blob URL.
+  pdfBlob: (id, { answers = false } = {}) => api.get(`/worksheets/${id}/pdf${answers ? '?answers=1' : ''}`, { responseType: 'blob' }),
   generatePersonalised: (data) => api.post('/worksheets/generate', data),
 };
 

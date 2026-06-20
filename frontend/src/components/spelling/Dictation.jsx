@@ -106,7 +106,11 @@ export default function Dictation({ words = [], onAttempt, lang = 'en' }) {
     stop();
     const r = diff();
     setReport(r);
-    onAttempt?.('dictation', r.accuracy >= 80);
+    // Log a real per-word attempt for each passage word (skip 1-char tokens),
+    // so spelling stats reflect actual words rather than a fabricated entry.
+    r.tokens.forEach((t) => {
+      if (t.w.length > 1) onAttempt?.(t.w, t.ok);
+    });
     if (r.accuracy >= 70) {
       playWin();
       confettiBurst();
