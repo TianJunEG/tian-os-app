@@ -344,7 +344,7 @@ const LandingPage = () => (
           <Link to="/founder" style={navLink} className="hidden sm:inline">Our story</Link>
           <Link to="/methodology" style={navLink} className="hidden sm:inline">Our Methodology</Link>
           <Link to="/login" style={navLink}>Login</Link>
-          <Link to="/register" style={{ padding: '10px 20px', borderRadius: 999, background: '#065F46', color: '#fff', fontFamily: SANS, fontWeight: 700, fontSize: 14, textDecoration: 'none', boxShadow: '0 10px 24px -8px rgba(6,95,70,0.35)' }}>Request Demo</Link>
+          <Link to="/register" style={{ padding: '10px 20px', borderRadius: 999, background: '#065F46', color: '#fff', fontFamily: SANS, fontWeight: 700, fontSize: 14, textDecoration: 'none', boxShadow: '0 10px 24px -8px rgba(6,95,70,0.35)' }}>Request access</Link>
         </nav>
       </div>
     </header>
@@ -366,7 +366,7 @@ const LandingPage = () => (
             </p>
           </Reveal>
           <Reveal delay={0.3} style={{ marginTop: 40, display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
-            <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '15px 30px', borderRadius: 999, background: CORAL, color: '#fff', fontWeight: 700, fontSize: 16, textDecoration: 'none', boxShadow: `0 20px 40px -12px ${CORAL_GLOW}` }}>Request a Demo <ArrowRight size={18} /></Link>
+            <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '15px 30px', borderRadius: 999, background: CORAL, color: '#fff', fontWeight: 700, fontSize: 16, textDecoration: 'none', boxShadow: `0 20px 40px -12px ${CORAL_GLOW}` }}>Join the waitlist <ArrowRight size={18} /></Link>
             <Link to="/methodology" style={{ padding: '15px 30px', borderRadius: 999, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,248,234,0.3)', color: IVORY, fontWeight: 600, fontSize: 16, textDecoration: 'none' }}>See the Platform</Link>
           </Reveal>
           <Reveal delay={0.4}>

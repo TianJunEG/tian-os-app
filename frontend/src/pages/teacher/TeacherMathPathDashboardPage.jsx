@@ -341,9 +341,15 @@ export default function TeacherMathPathDashboardPage() {
         subtitle="Class-level mastery, fluency, per-domain grasp, and the students who need you most this week."
         action={<Button onClick={() => navigate(`/teacher/classes/${id}/assign`)}>Assign Intervention</Button>}
       />
-      <Card className="mb-4 p-4">
-        <p className="text-sm text-ink-600">Students with saved Fractions placement: <span className="font-semibold text-ink-700">{placedCount}/{studentCount}</span></p>
-      </Card>
+      {placedCount > 0 ? (
+        <Card className="mb-4 p-4">
+          <p className="text-sm text-ink-600">Students with a saved Fractions placement check: <span className="font-semibold text-ink-700">{placedCount}/{studentCount}</span></p>
+        </Card>
+      ) : (
+        <Card className="mb-4 p-4">
+          <p className="text-sm text-ink-500">No placement check yet. Fractions placement results appear here once students complete the diagnostic.</p>
+        </Card>
+      )}
 
       <div className="space-y-4">
         <NeedsAttentionCard rows={dashboard.flaggedStudents || []} onOpenStudent={openStudent} />

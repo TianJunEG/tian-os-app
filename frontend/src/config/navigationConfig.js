@@ -36,10 +36,9 @@ export const NAV_ITEMS = [
   // Tutor (v0.4+)
   { key: 'tutor.home', label: 'Home', path: '/tutor', icon: Home, roles: ['tutor'], minVersion: 'v0.4', featureFlag: 'tutor' },
   { key: 'tutor.students', label: 'Students', path: '/tutor/students', icon: Users, roles: ['tutor'], minVersion: 'v0.4', featureFlag: 'tutor' },
-  { key: 'tutor.lessonprep', label: 'Lesson Prep', path: '/tutor/students/:id/lesson-prep', icon: Book, roles: ['tutor'], minVersion: 'v0.4', featureFlag: 'tutor' },
-  { key: 'tutor.assign', label: 'Assign Practice', path: '/tutor/students/:id/assign-homework', icon: ClipboardList, roles: ['tutor'], minVersion: 'v0.4', featureFlag: 'tutor' },
-  { key: 'tutor.mistakehistory', label: 'Mistake History', path: '/tutor/students/:id/mistakes', icon: BookOpen, roles: ['tutor'], minVersion: 'v0.4', featureFlag: 'tutor' },
-  { key: 'tutor.worksheets', label: 'Worksheets', path: '/parent/children/:studentId/worksheets', icon: FileText, roles: ['tutor'], minVersion: 'v0.4', featureFlag: 'worksheets' },
+  // Per-student actions (Lesson Prep, Assign Practice, Mistake History) live inside
+  // a chosen student via TutorStudentNav — they require an :id and are intentionally
+  // omitted from the persistent (student-agnostic) tutor nav to avoid dead-end links.
   { key: 'tutor.requestaccess', label: 'Request Access', path: '/tutor/request-access', icon: Link2, roles: ['tutor'], minVersion: 'v0.4', featureFlag: 'tutor' },
   { key: 'tutor.subscription', label: 'Subscription', path: '/tutor/subscription', icon: CreditCard, roles: ['tutor'], minVersion: 'v0.4', featureFlag: 'tutor' },
 

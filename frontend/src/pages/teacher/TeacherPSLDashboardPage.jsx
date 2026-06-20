@@ -5,6 +5,14 @@ import { teacherAPI } from '../../services/api';
 import ClassNav from './ClassNav';
 import { useClass } from './useClass';
 import { Badge, Card, EmptyState, ErrorState, PageHeader, Spinner } from '../../components/ui';
+import { getMisconception } from '../student/psl/utils/misconceptions';
+
+// Map a raw engine misconception slug (e.g. "psl/wrong-operation") to the plain
+// teacher-facing label used everywhere else in the app. Falls back gracefully.
+function misconceptionLabel(tag) {
+  if (!tag) return '';
+  return getMisconception(tag).label;
+}
 
 function scoreTone(pct) {
   if (pct >= 70) return 'navy';
@@ -71,7 +79,7 @@ function FlaggedStudentsCard({ rows = [], onOpenStudent }) {
                 <Badge tone="error">{s.avgScore}%</Badge>
               </div>
               {s.topMisconception ? (
-                <p className="mt-1 text-sm text-ink-500">Top misconception: <span className="font-medium text-ink-600">{s.topMisconception}</span></p>
+                <p className="mt-1 text-sm text-ink-500">Top misconception: <span className="font-medium text-ink-600">{misconceptionLabel(s.topMisconception)}</span></p>
               ) : null}
             </button>
           ))}
@@ -94,7 +102,7 @@ function TopMisconceptionsCard({ rows = [] }) {
         <div className="space-y-1.5">
           {rows.map((m, i) => (
             <div key={m.tag} className="flex items-center justify-between rounded-lg border border-line-soft px-3 py-2">
-              <p className="text-sm text-ink-700">{m.tag}</p>
+              <p className="text-sm text-ink-700">{misconceptionLabel(m.tag)}</p>
               <Badge tone="neutral">{m.count}</Badge>
             </div>
           ))}
