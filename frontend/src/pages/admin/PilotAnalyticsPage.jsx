@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, AlertTriangle, BarChart3, CheckCircle2, PenLine, Users } from 'lucide-react';
+import { Activity, AlertTriangle, BarChart3, BookOpen, CheckCircle2, PenLine, Users } from 'lucide-react';
 import { adminAPI } from '../../services/api';
 import { Badge, Card, ErrorState, PageHeader, Spinner } from '../../components/ui';
 
@@ -48,6 +48,7 @@ function SkillList({ title, rows = [], valueKey = 'missed', empty = 'No data yet
 
 export default function PilotAnalyticsPage() {
   const [state, setState] = useState({ loading: true, error: '', data: null });
+  const [comic, setComic] = useState(null); // comic engagement + trial→paid funnel
 
   useEffect(() => {
     let active = true;
@@ -58,6 +59,10 @@ export default function PilotAnalyticsPage() {
       .catch((err) => {
         if (active) setState({ loading: false, error: err?.response?.data?.error || 'Could not load pilot analytics.', data: null });
       });
+    // Comics analytics is a bonus section — never let it block or error the page.
+    adminAPI.getComicAnalytics({ days: 30 })
+      .then((res) => { if (active) setComic(res.data); })
+      .catch(() => { if (active) setComic(null); });
     return () => { active = false; };
   }, []);
 
@@ -79,6 +84,54 @@ export default function PilotAnalyticsPage() {
         title="Pilot Analytics"
         subtitle="Internal view of learning telemetry, confidence signals, working evidence, and skill risk."
       />
+
+      {comic && (() => {
+        const ce = comic.engagement || {};
+        const cf = comic.trialFunnel || {};
+        const cfc = cf.conversion || {};
+        const lift = Number(cfc.engaged?.rate || 0) - Number(cfc.notEngaged?.rate || 0);
+        const liftRounded = Math.round(lift * 10) / 10;
+        return (
+          <section className="mb-6 rounded-card border border-line bg-surface-white p-5 shadow-rest">
+            <h2 className="font-semibold text-ink-900">Comics — The Tian 7 Chronicles</h2>
+            <p className="mt-1 text-sm text-ink-500">Engagement (last {number(comic.windowDays)} days) and whether comic use during a trial lifts conversion to paid.</p>
+
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <MetricCard icon={BookOpen} label="Episodes Opened" value={ce.opens} />
+              <MetricCard icon={CheckCircle2} label="Episodes Completed" value={ce.completions} />
+              <MetricCard icon={Users} label="Distinct Readers" value={ce.distinctReaders} />
+              <MetricCard icon={Users} label="Trial Users" value={cf.trialUsers} />
+            </div>
+
+            <div className="mt-4 grid gap-5 lg:grid-cols-2">
+              <Card className="p-5">
+                <h3 className="font-semibold text-ink-900">Trial → Paid funnel</h3>
+                <div className="mt-4 space-y-3 text-sm">
+                  <div className="flex justify-between gap-3"><span className="text-ink-500">Engaged with comics during trial</span><strong>{number(cf.engagedDuringTrial)} of {number(cf.trialUsers)} ({number(cf.engagedRate)}%)</strong></div>
+                  <div className="flex justify-between gap-3"><span className="text-ink-500">Conversion — engaged</span><strong>{number(cfc.engaged?.rate)}% ({number(cfc.engaged?.converted)}/{number(cfc.engaged?.users)})</strong></div>
+                  <div className="flex justify-between gap-3"><span className="text-ink-500">Conversion — not engaged</span><strong>{number(cfc.notEngaged?.rate)}% ({number(cfc.notEngaged?.converted)}/{number(cfc.notEngaged?.users)})</strong></div>
+                  <div className="flex items-center justify-between gap-3 border-t border-line-soft pt-3"><span className="text-ink-500">Lift from comic engagement</span><Badge tone={liftRounded > 0 ? 'success' : 'neutral'}>{liftRounded > 0 ? '+' : ''}{number(liftRounded)} pp</Badge></div>
+                </div>
+              </Card>
+              <Card className="p-5">
+                <h3 className="font-semibold text-ink-900">Completions per day</h3>
+                {(ce.dailyCompletions || []).length ? (
+                  <div className="mt-4 space-y-2">
+                    {ce.dailyCompletions.slice(-10).map((d) => (
+                      <div key={d.date} className="flex items-center justify-between gap-3 text-sm">
+                        <span className="text-ink-500">{d.date}</span>
+                        <Badge tone="navy">{number(d.count)}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-4 text-sm text-ink-500">No completions in this window yet.</p>
+                )}
+              </Card>
+            </div>
+          </section>
+        );
+      })()}
 
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard icon={Users} label="Active Students" value={pilotMetrics.activeStudents} />
