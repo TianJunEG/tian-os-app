@@ -316,7 +316,7 @@ export default function StudentDashboardUpperPrimary({
             {expandedCards.a && (
               <div style={{ fontSize: 14.5, color: '#5a6675', lineHeight: 1.5, marginTop: 8 }}>{metrics.accuracy.body}</div>
             )}
-            {!metrics.accuracy.empty && (
+            {!expandedCards.a && !metrics.accuracy.empty && (
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height: 46, marginTop: 'auto', paddingTop: 16 }}>
                 <span style={{ flex: 1, height: Math.max(4, Math.round(Number(dashboardAnalytics?.accuracyRate || 0) * 0.46)), background: '#57b389', borderRadius: '6px 6px 2px 2px' }} />
                 <span style={{ flex: 1, height: 4, background: '#bfe3cf', borderRadius: '6px 6px 2px 2px', opacity: 0.5 }} />
@@ -339,7 +339,7 @@ export default function StudentDashboardUpperPrimary({
             {expandedCards.q && (
               <div style={{ fontSize: 14.5, color: '#5a6675', lineHeight: 1.5, marginTop: 8 }}>Across MathPath &amp; Word Problems this week.</div>
             )}
-            {!metrics.questions.empty && (
+            {!expandedCards.q && !metrics.questions.empty && (
               <div style={{ marginTop: 'auto', paddingTop: 16, fontSize: 12, color: '#a8743a', fontWeight: 500 }}>
                 This week
               </div>
@@ -361,7 +361,7 @@ export default function StudentDashboardUpperPrimary({
             {expandedCards.w && (
               <div style={{ fontSize: 14.5, color: '#5a6675', lineHeight: 1.5, marginTop: 8 }}>Keep showing your thinking {'—'} it helps your tutor help you.</div>
             )}
-            {!metrics.working.empty && (
+            {!expandedCards.w && !metrics.working.empty && (
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height: 46, marginTop: 'auto', paddingTop: 16 }}>
                 <span style={{ flex: 1, height: Math.max(4, Math.round(Number(dashboardAnalytics?.workingSubmissionRate || 0) * 0.46)), background: '#5a93e0', borderRadius: '6px 6px 2px 2px' }} />
                 <span style={{ flex: 1, height: 4, background: '#bcd6f5', borderRadius: '6px 6px 2px 2px', opacity: 0.5 }} />

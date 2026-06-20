@@ -93,7 +93,21 @@ export default function MistakesHome() {
           mistakesBase: '/student/mathpath/mistakes',
         },
       });
-    } catch (e) { setError(e.response?.data?.error || 'Could not start practice.'); setStarting(false); }
+    } catch (e) {
+      const msg = e.response?.data?.error || 'Could not start practice.';
+      setStarting(false);
+      // Don't dead-end on a recommended skill that has no questions in the practice
+      // bank yet (e.g. generator-only skills like "Place value to 100 000"): send the
+      // student to MathPath to pick a skill that works, instead of a stuck error screen.
+      if (/no questions/i.test(msg)) {
+        const name = (typeof skillRef === 'object' && skillRef?.skillName) || 'that skill';
+        navigate('/student/mathpath', {
+          state: { message: `We don't have practice questions for ${name} yet — pick another skill to practise.` },
+        });
+        return;
+      }
+      setError(msg);
+    }
   };
 
   if (loading) return <Spinner label="Loading mistakes…" />;
