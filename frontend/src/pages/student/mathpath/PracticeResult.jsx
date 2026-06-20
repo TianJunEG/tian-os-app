@@ -5,6 +5,7 @@ import { mathpathAPI } from '../../../services/api';
 import { Card, Button, Badge, StatTile, ProgressBar, PageHeader, Spinner, EmptyState, CollapsibleSection } from '../../../components/ui';
 import { MascotBubble } from '../../../components/MascotAvatar';
 import { MathText } from '../../../components/ui/Fraction';
+import MasteryStars from '../../../components/mathpath/learning/MasteryStars';
 import { getUniversalSkillByFrameworkId } from '../../../mathpath/curriculum';
 
 function canonicalSkillName(skillId, fallback = '') {
@@ -108,7 +109,8 @@ export default function PracticeResult() {
 
       <Card className="mb-5 p-6 text-center">
         <div className="font-mono text-5xl font-semibold tabular-nums text-emerald-deep">{stats.accuracy}%</div>
-        <p className="mt-1 text-sm text-ink-500">{stats.correct} of {stats.total} correct</p>
+        <MasteryStars percentage={stats.accuracy} size="lg" className="mt-3" />
+        <p className="mt-2 text-sm text-ink-500">{stats.correct} of {stats.total} correct</p>
         <ProgressBar value={stats.correct} max={Math.max(stats.total, 1)} className="mt-4" />
       </Card>
 

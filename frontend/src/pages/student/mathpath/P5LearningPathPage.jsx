@@ -10,13 +10,11 @@ import {
   BarChart3,
   BookOpen,
   ChevronRight,
-  Star,
-  Zap,
-  Trophy,
   ArrowLeft,
   Sparkles,
 } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
+import MasteryStars from '../../../components/mathpath/learning/MasteryStars';
 
 const DOMAIN_GROUPS = [
   {
@@ -133,10 +131,8 @@ const COLOR_MAP = {
 };
 
 function MasteryBadge({ mastery }) {
-  if (!mastery || mastery < 50) return null;
-  if (mastery >= 90) return <span className="flex items-center gap-0.5 text-xs font-medium text-yellow-600"><Trophy className="w-3 h-3" /> Mastered</span>;
-  if (mastery >= 70) return <span className="flex items-center gap-0.5 text-xs font-medium text-blue-600"><Star className="w-3 h-3" /> Proficient</span>;
-  return <span className="flex items-center gap-0.5 text-xs font-medium text-gray-500"><Zap className="w-3 h-3" /> In Progress</span>;
+  // Stars (1–3) by mastery %, plus a medal once the skill is mastered (>= 90%).
+  return <MasteryStars percentage={mastery} showLabel />;
 }
 
 export default function P5LearningPathPage() {
