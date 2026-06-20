@@ -63,7 +63,7 @@ export default {
       misconceptions: [{ tag: 'rr/part-part-as-fraction', label: 'Uses \\frac{a}{b} instead of \\frac{a}{a+b} for the part-of-whole fraction' }],
       practiceModes: ['visual_model', 'short_answer', 'diagnostic'],
       remediation: { onRepeatedFail: 'worked-example', reinforce: ['rr.meaning', 'fr.of-quantity'], strategy: 'total units = a+b; each part is that many out of the total' },
-      questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'medium', stem: 'Red to blue is {a} : {b}. What fraction of the counters are red?', answerRule: 'a/(a+b) (a,b≤9)', misconceptionTag: 'rr/part-part-as-fraction' }] },
+      questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'medium', stem: 'Red to blue is {a} : {b}. What proportion of the counters are red? Give your answer as a decimal.', answerRule: 'a/(a+b) (a,b≤9)', misconceptionTag: 'rr/part-part-as-fraction' }] },
     { slug: 'rr.ratio-percent', name: 'Relating ratio to percentage', level: 'Primary 6',
       prerequisites: ['rr.ratio-fraction', 'pct.convert'], masteryType: 'procedural', fluencyType: 'accuracy',
       render: 'katex', visualModels: ['bar', 'hundred-grid'],

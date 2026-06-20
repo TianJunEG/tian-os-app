@@ -278,7 +278,10 @@ router.get('/students/:id', asyncHandler(async (req, res) => {
   const recs = await MasteryRecord.find({ studentId: student._id }).populate({ path: 'skillId', model: Skill, populate: { path: 'topicId' } });
   const overall = recs.length ? Math.round(recs.reduce((a, r) => a + r.score, 0) / recs.length) : 0;
   const mistakes = await Mistake.find({ studentId: student._id, status: { $ne: 'resolved' } }).populate({ path: 'skillId', model: Skill }).sort({ occurredAt: -1 }).limit(10);
-  const assignments = await Assignment.find({ studentId: student._id }).populate({ path: 'skillIds', model: Skill }).sort({ createdAt: -1 });
+  // Scope to THIS teacher's workspace. A shared/partner student can be enrolled in
+  // classes across multiple workspaces; without this filter, assignments created in
+  // another teacher's/partner's workspace would leak into this view.
+  const assignments = await Assignment.find({ studentId: student._id, workspaceId: req.workspaceId }).populate({ path: 'skillIds', model: Skill }).sort({ createdAt: -1 });
   res.json({
     student: { id: student._id, name: student.name, level: student.level },
     overallMastery: overall,
@@ -345,10 +348,14 @@ router.get('/classes/:id/intervention-overview', asyncHandler(async (req, res) =
   const assignments = await MathPathAssignment.find({ studentId: { $in: ids }, subjectId, domainId }).lean();
   const recoveryPacksInProgress = assignments.filter((assignment) => ['assigned', 'in_progress'].includes(assignment.status)).length;
   const recheckReadyAssignments = assignments.filter((assignment) => assignment.recheck?.recommended && !assignment.recheck?.diagnosticSessionId);
+  // Scope the worksheet count to THIS class (mirrors how every other per-class
+  // teacher stat is scoped by classId/roster). Group/class worksheets are stored
+  // with the originating class on generatedFor.classId; without this filter the
+  // stat counted every teacher worksheet across the whole workspace.
   const worksheetsGenerated = await Worksheet.countDocuments({
     workspaceId: req.workspaceId,
     generatedByRole: 'teacher',
-    generatedFor: { $ne: null },
+    'generatedFor.classId': c._id,
     sourceMode: { $in: ['intervention_group', 'group', 'class'] },
   });
   const studentsNeedingAttention = Array.from(new Map(

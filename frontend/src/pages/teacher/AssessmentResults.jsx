@@ -4,7 +4,7 @@ import { CheckCircle2, XCircle, Clock, Users } from 'lucide-react';
 import { teacherAPI } from '../../services/api';
 import { useClass } from './useClass';
 import ClassNav from './ClassNav';
-import { Card, Badge, ProgressBar, Spinner } from '../../components/ui';
+import { Card, Badge, ProgressBar, Spinner, ErrorState } from '../../components/ui';
 
 function ScoreBadge({ score }) {
   if (score == null) return <span className="text-xs text-ink-400">-</span>;
@@ -17,17 +17,27 @@ export default function AssessmentResults() {
   const meta = useClass(id);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [expanded, setExpanded] = useState(null);
 
-  useEffect(() => {
+  const load = () => {
+    setLoading(true);
+    setLoadError(false);
     teacherAPI.assessmentResults(assessmentId)
       .then((r) => setData(r.data))
-      .catch((e) => console.warn("AssessmentResults: fetch failed", e))
+      .catch((e) => { console.warn("AssessmentResults: fetch failed", e); setLoadError(true); })
       .finally(() => setLoading(false));
-  }, [assessmentId]);
+  };
+  useEffect(() => { load(); }, [assessmentId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) return <div className="flex min-h-[40vh] items-center justify-center"><Spinner /></div>;
-  if (!data) return <div className="p-6 text-center text-red-600">Failed to load results.</div>;
+  if (loadError || !data) {
+    return (
+      <div className="mx-auto max-w-3xl p-4 sm:p-6">
+        <ErrorState message="Couldn't load assessment results." onRetry={load} />
+      </div>
+    );
+  }
 
   const { assessment, summary, perStudent, perQuestion } = data;
 

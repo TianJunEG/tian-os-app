@@ -156,8 +156,16 @@ export default function LessonRecorder() {
   const toggleShare = async () => {
     const next = !shared;
     setShared(next);
-    try { await recordingsAPI.setVisibility(ridRef.current, next ? 'shared_parent' : 'private'); }
-    catch { setShared(!next); }
+    try {
+      await recordingsAPI.setVisibility(ridRef.current, next ? 'shared_parent' : 'private');
+      setError(null);
+    } catch (e) {
+      console.error('[LessonRecorder] share toggle failed:', e);
+      setShared(!next); // revert to actual server state
+      setError(next
+        ? 'Could not share the recording with the parent. Please try again.'
+        : 'Could not stop sharing the recording. Please try again.');
+    }
   };
 
   // ── pointer handlers ──

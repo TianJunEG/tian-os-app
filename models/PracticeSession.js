@@ -14,6 +14,10 @@ const practiceSessionSchema = new mongoose.Schema({
     default: 'independent',
   },
   skillIds: { type: [mongoose.Schema.Types.ObjectId], ref: 'Skill', default: [] },
+  // Spelling Practice: the human-readable word-list name the student practised,
+  // persisted so per-list analytics (LearningResult.topic) don't collapse to
+  // the generic 'spelling' topic. null for non-spelling sessions.
+  listTitle: { type: String, default: null },
   // Set when this session was launched from an assignment.
   assignmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Assignment', default: null },
   status: { type: String, enum: ['active', 'completed', 'abandoned'], default: 'active' },

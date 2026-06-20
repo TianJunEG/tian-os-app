@@ -87,7 +87,7 @@ router.post('/sessions', protect, asyncHandler(async (req, res) => {
     if (!list) return res.status(404).json({ error: 'List not found.' });
     const session = await PracticeSession.create({
       studentId: student._id, workspaceId: student.workspaceId, module: MODULE, feature: 'Spelling',
-      mode: 'independent', skillIds: [list._id], assignmentId, status: 'active',
+      mode: 'independent', skillIds: [list._id], listTitle: list.title, assignmentId, status: 'active',
     });
     if (assignmentId) await Assignment.findByIdAndUpdate(assignmentId, { status: 'in_progress', sessionId: session._id });
     res.json({ session_id: session._id, listTitle: list.title,
@@ -139,11 +139,20 @@ router.post('/sessions/:id/complete', protect, asyncHandler(async (req, res) => 
   const minutes = Math.max(1, Math.round((session.endedAt - session.startedAt) / 60000));
   const studentDoc = await Student.findById(session.studentId).select('userId').lean();
   if (studentDoc?.userId) {
+    // Use the real word-list name the student practised so per-list analytics
+    // don't collapse to the generic 'spelling' topic. Fall back to the list's
+    // current title (for sessions created before listTitle was persisted),
+    // then to 'spelling' only as a last resort.
+    let topic = session.listTitle;
+    if (!topic) {
+      const list = await SpellingList.findById(session.skillIds[0]).select('title').lean().catch(() => null);
+      topic = list?.title || 'spelling';
+    }
     await LearningResult.create({
       user: studentDoc.userId,
       source: 'spelling',
       subject: 'english',
-      topic: session.listTitle || 'spelling',
+      topic,
       accuracy: scorePct,
       mastered: scorePct >= 85,
       minutes,
