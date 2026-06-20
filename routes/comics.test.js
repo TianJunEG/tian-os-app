@@ -109,6 +109,43 @@ describe('comics routes', () => {
     expect(change.correct).toBe(false);
   });
 
+  it('sanitises + bounds scratchpad strokes (whitelists fields, drops image/junk, caps strokes & points)', async () => {
+    const stroke = (pts = 2, extra = {}) => ({
+      tool: 'pen', colour: '#111', size: 4,
+      points: Array.from({ length: pts }, (_, i) => ({ x: i, y: i })),
+      ...extra,
+    });
+    const res = await request('/ep-001/complete', {
+      method: 'POST',
+      body: { problems: [
+        { problemId: 'p1-q1', correct: true,
+          workingStrokes: [stroke(2, { junk: 'z'.repeat(100), evil: { nested: 1 } })],
+          workingImage: 'data:image/png;base64,AAAA' },
+        { problemId: 'p3-q1', correct: false, workingStrokes: Array.from({ length: 450 }, () => stroke(2)) },
+        { problemId: 'e10-p1-q1', correct: true, workingStrokes: [stroke(2000)] }, // one huge stroke
+        { problemId: 'p2-q1', correct: true }, // no working drawn
+        { problemId: 'e8-p1-q1', correct: true, workingStrokes: [{ tool: 'pen' }] }, // no points → dropped
+      ] },
+    });
+
+    expect(res.status).toBe(200);
+    const [, update] = comicProgressFindOneAndUpdate.mock.calls[0];
+    const stored = update.problems;
+    // whitelisted to the known stroke shape; junk keys + rasterised image dropped
+    expect(stored[0].workingStrokes).toHaveLength(1);
+    expect(stored[0].workingStrokes[0]).toEqual({ points: [{ x: 0, y: 0 }, { x: 1, y: 1 }], tool: 'pen', colour: '#111', size: 4 });
+    expect(stored[0].workingStrokes[0].junk).toBeUndefined();
+    expect(stored[0].workingImage).toBeUndefined();
+    // stroke count capped at 400
+    expect(stored[1].workingStrokes).toHaveLength(400);
+    // points within a single stroke capped at 1500
+    expect(stored[2].workingStrokes[0].points).toHaveLength(1500);
+    // a panel with no working stores no working field at all
+    expect(stored[3]).toEqual({ problemId: 'p2-q1', correct: true });
+    // a malformed stroke (no points) is dropped → no working field
+    expect(stored[4].workingStrokes).toBeUndefined();
+  });
+
   it('still saves progress but skips mastery for an unmapped problem id', async () => {
     const res = await request('/ep-001/complete', {
       method: 'POST',
