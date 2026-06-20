@@ -46,4 +46,11 @@ export async function getUploadBuffer({ storageKey, storageProvider } = {}) {
   }
 }
 
-export default { isObjectStorageConfigured, putUpload, getUploadBuffer };
+// Back-compat: old callers used persistUploadFile(req.file, namespace [, index]).
+// Reads the multer file from disk and delegates to putUpload.
+export async function persistUploadFile(file, namespace) {
+  const buffer = await fs.readFile(file.path);
+  return putUpload({ namespace, filename: file.filename || file.originalname, buffer, contentType: file.mimetype });
+}
+
+export default { isObjectStorageConfigured, putUpload, getUploadBuffer, persistUploadFile };
