@@ -32,6 +32,7 @@ import { useAuth } from '../../context/AuthContext';
 import { runMathPathDomainPipeline } from '../../mathpath/orchestration/mathPathDomainOrchestrator';
 import { validateStudentDashboardPayload } from '../../mathpath/orchestration/pipelineContract';
 import { fractionSkillGraph, getSkill } from '../../mathpath/fractions/fractionSkillGraph';
+import { operationsSkillGraph } from '../../../../shared/mathpath/operations/OperationsSkillGraph';
 import { diagnosticsAPI, learningTelemetryAPI, mathpathAPI, studentProfileAPI } from '../../services/api';
 import { Card, Button, Spinner, ErrorState, Badge } from '../../components/ui';
 import { getVisualModeStyles, isLowerPrimary, isSecondary, resolveStudentVisualMode } from '../../design-os/studentVisualMode';
@@ -457,6 +458,18 @@ function defaultDomainForLevel(level = '') {
   return { domainId: 'fractions', displayName: 'Fractions' };
 }
 
+// Whether the dashboard's headline "Skills Mastered X/Y" stat should count
+// Operations rather than Fractions. K2/P1 are operations-first (they're routed
+// to the Operations check-in, not Fractions), so a fractions-derived stat reads
+// a misleading 0/26 for them. The count itself comes from the /mastery records'
+// slug-derived `domainId` ('four_operations'); the denominator is the canonical
+// operations curriculum size (operationsSkillGraph), matching the operations
+// skill map's "X of 24".
+function isOperationsSpineLevel(level = '') {
+  const sl = String(level || '').toLowerCase().trim();
+  return /k2|kindy|preschool/.test(sl) || sl === 'primary 1' || sl === 'p1';
+}
+
 function DiagnosticPrompts({ domains, level, containerClassName = '', containerStyle }) {
   const list = (domains && domains.length) ? domains : [defaultDomainForLevel(level)];
   return (
@@ -495,6 +508,10 @@ export default function StudentDashboard() {
   // domain), not hardcoded to Fractions. Seeded with Fractions so the card never
   // regresses if the registry call fails.
   const [diagnosticDomains, setDiagnosticDomains] = useState(() => [defaultDomainForLevel(user?.studentLevel || '')]);
+  // For operations-spine students (K2/P1): the headline mastery stat counted
+  // against the OP0xx operations graph, not the fractions pipeline. Null for
+  // fractions-spine students (the existing fractions logic drives their stat).
+  const [operationsStat, setOperationsStat] = useState(null);
 
   // Dev-only mock mode: explicit opt-in. Internal alpha/default users should
   // see real pipeline output, not synthetic dashboard data.
@@ -565,6 +582,23 @@ export default function StudentDashboard() {
             .filter((d) => d && d.domainId)
             .map((d) => ({ domainId: d.domainId, displayName: d.displayName || d.domainId }));
           if (domains.length) setDiagnosticDomains(domains);
+          // K2/P1: headline mastery stat counted from Operations records, not
+          // the fractions pipeline (which would otherwise read 0/26). The
+          // /mastery records carry a slug-derived `domainId`, so we count the
+          // ones tagged 'four_operations'; the total is the canonical operations
+          // curriculum size (matches the "X of 24" the operations skill map shows).
+          if (isOperationsSpineLevel(user?.studentLevel || '')) {
+            const masteredOps = persistedRecords.filter((r) =>
+              r.domainId === 'four_operations'
+              && ['mastered', 'accurate', 'fluent', 'retained'].includes(String(r.status || r.masteryState || '').toLowerCase())
+            ).length;
+            setOperationsStat({
+              mastered: masteredOps,
+              total: operationsSkillGraph.skillIds.length,
+            });
+          } else {
+            setOperationsStat(null);
+          }
           setPayload(result);
           setAnalytics(analyticsResponse?.data || null);
           setProfileSummary(profile || null);
@@ -637,11 +671,15 @@ export default function StudentDashboard() {
   const retainedProgress = Math.max(0, Math.min(100, Math.round(vm.masteryProgress?.percentageRetained || 0)));
   const hasActivity = (learningTimeline || []).length > 0 || Number(profileSummary?.practiceSessions || 0) > 0 || Number(profileSummary?.questionsSolved || 0) > 0;
   const profileProgress = profileSummary?.progress || {};
-  const totalSkills = Math.max(1, Number(profileProgress.total || vm.masteryProgress?.totalSkills || fractionSkillGraph.skillIds.length || 26));
+  const totalSkills = Math.max(1, operationsStat
+    ? operationsStat.total
+    : Number(profileProgress.total || vm.masteryProgress?.totalSkills || fractionSkillGraph.skillIds.length || 26));
   const masteredCount = Array.isArray(vm.masteryProgress?.masteredSkills)
     ? vm.masteryProgress.masteredSkills.length
     : Math.round((courseProgress / 100) * totalSkills);
-  const safeMasteredCount = Math.max(0, Math.min(totalSkills, Number.isFinite(Number(profileProgress.mastered)) ? Number(profileProgress.mastered) : masteredCount));
+  const safeMasteredCount = operationsStat
+    ? Math.max(0, Math.min(totalSkills, operationsStat.mastered))
+    : Math.max(0, Math.min(totalSkills, Number.isFinite(Number(profileProgress.mastered)) ? Number(profileProgress.mastered) : masteredCount));
   const profilePercentage = Number(profileProgress.percentage);
   const displayProgress = Number.isFinite(profilePercentage) ? Math.max(0, Math.min(100, Math.round(profilePercentage))) : courseProgress;
   const currentStreak = Number(profileSummary?.streak ?? 0);
