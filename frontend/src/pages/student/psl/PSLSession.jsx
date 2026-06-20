@@ -293,6 +293,7 @@ export default function PSLSession() {
         const planStep = currentProblem?.scaffoldSteps?.find((s) => s.stepId === 'plan');
         const planType = planStep?.type || 'model';
         if (planType === 'model') return resp?.modelType && resp?.unknownPosition;
+        if (planType === 'ratioBar') return Number.isFinite(Number(resp?.ratioBar?.valuePerPart));
         return resp && Object.keys(resp).length > 0;
       }
       case 'solve': return resp?.answer !== undefined && resp?.answer !== '';

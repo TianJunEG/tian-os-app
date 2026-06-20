@@ -489,6 +489,46 @@ export async function generateProblem(skillId, options = {}) {
 
   const scaffoldSteps = buildScaffoldSteps(template.scaffold, vars);
 
+  // Classic ratio-share problems get an interactive ratio-bar plan step, built
+  // in code at generation time so no template re-seed is needed. Gated tightly
+  // on the value-per-unit decomposition holding (valueA = ratioA × valuePerPart,
+  // valueB = ratioB × valuePerPart), so proportion / fraction-of-ratio variants
+  // keep their existing plan step. Old in-flight sessions keep whatever scaffold
+  // they were generated with — the dispatcher and grader handle both shapes.
+  if (template.heuristic === 'ratio') {
+    const rA = Number(vars.ratioA);
+    const rB = Number(vars.ratioB);
+    const vpp = Number(vars.valuePerPart);
+    const vA = Number(vars.valueA);
+    const vB = Number(vars.valueB);
+    const totalVal = Number(vars.totalValue ?? vars.total);
+    const decompositionHolds = [rA, rB, vpp, vA, vB].every(Number.isFinite)
+      && vpp > 0
+      && Math.abs(vA - rA * vpp) < 1e-6
+      && Math.abs(vB - rB * vpp) < 1e-6;
+    if (decompositionHolds) {
+      const planIdx = scaffoldSteps.findIndex((s) => s.stepId === 'plan');
+      if (planIdx !== -1) {
+        scaffoldSteps[planIdx] = {
+          stepId: 'plan',
+          type: 'ratioBar',
+          prompt: 'Build the ratio bar: set the value of one unit.',
+          expectedResponse: {
+            type: 'ratioBar',
+            ratioA: rA,
+            ratioB: rB,
+            valuePerPart: vpp,
+            valueA: vA,
+            valueB: vB,
+            total: Number.isFinite(totalVal) ? totalVal : (rA + rB) * vpp,
+            labelA: vars.entityA || 'A',
+            labelB: vars.entityB || 'B',
+          },
+        };
+      }
+    }
+  }
+
   const isBarModel = ['partWhole', 'comparison', 'twoStep'].includes(template.structure);
   return {
     problemId: crypto.randomUUID(),
