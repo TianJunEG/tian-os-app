@@ -298,7 +298,7 @@ export default function DomainDiagnosticSession() {
               </>
             );
           }
-          return <p className="text-lg font-semibold text-ink-900">{prompt}</p>;
+          return <p className="text-lg font-semibold text-ink-900 whitespace-pre-wrap">{prompt}</p>;
         })()}
 
         {question?.type === 'mcq' ? (

@@ -8,6 +8,8 @@ const VALID_MODES = new Set(Object.values(STUDENT_VISUAL_MODES));
 
 function levelNumber(level = '') {
   const raw = String(level || '').toLowerCase();
+  // K1/K2/Kindergarten → treat as year 1 so they get the lower-primary skin.
+  if (/^k[12]?$|kindy|kindergarten|preschool|nursery/.test(raw)) return { band: 'primary', year: 1 };
   const primary = raw.match(/(?:primary|p)\s*([1-6])/i);
   if (primary) return { band: 'primary', year: Number(primary[1]) };
   const secondary = raw.match(/(?:secondary|sec|s)\s*([1-6])/i);

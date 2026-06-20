@@ -320,7 +320,7 @@ export default function DomainPracticeSession({ domain }) {
               </>
             );
           }
-          return <p className="text-xl font-semibold leading-relaxed text-ink-900"><MathText text={prompt} /></p>;
+          return <p className="text-xl font-semibold leading-relaxed text-ink-900 whitespace-pre-wrap"><MathText text={prompt} /></p>;
         })()}
 
         {current?.type === 'mcq' ? (
