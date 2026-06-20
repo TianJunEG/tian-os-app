@@ -12,7 +12,7 @@ describe('all comic problems generate validly at every tier', () => {
     it(`${ep.id} (${ep.slug})`, () => {
       for (let tier = 0; tier <= 3; tier++) {
         for (let seed = 0; seed < 60; seed++) {
-          const probs = generateEpisodeProblems(ep, tier, seed);
+          const { problems: probs } = generateEpisodeProblems(ep, tier, seed);
           expect(probs.length).toBe(ep.panels.length);
           probs.forEach((p, i) => {
             if (!p) return;
@@ -39,7 +39,7 @@ describe('difficulty actually scales across the library', () => {
     const meanFirstAnswer = (ep, tier) => {
       let sum = 0, n = 0;
       for (let s = 0; s < 60; s++) {
-        const first = generateEpisodeProblems(ep, tier, s).find(Boolean);
+        const first = generateEpisodeProblems(ep, tier, s).problems.find(Boolean);
         if (first) { sum += Number(first.answer); n += 1; }
       }
       return n ? sum / n : 0;

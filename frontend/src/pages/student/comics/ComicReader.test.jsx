@@ -23,7 +23,8 @@ vi.mock('../../../data/comics/comicDifficulty', () => ({
   resolveTier: () => 1,
   generateEpisodeProblems: (episode) => {
     const fixed = { 'p1-q1': 20, 'p2-q1': 9, 'p3-q1': 11 };
-    return episode.panels.map((p) => (p.problem ? { ...p.problem, question: 'Q', hint: 'H', answer: fixed[p.problem.id] ?? 1 } : null));
+    const problems = episode.panels.map((p) => (p.problem ? { ...p.problem, question: 'Q', hint: 'H', answer: fixed[p.problem.id] ?? 1 } : null));
+    return { problems, ctx: {} };
   },
 }));
 
