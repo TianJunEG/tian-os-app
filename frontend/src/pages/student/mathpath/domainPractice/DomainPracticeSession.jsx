@@ -6,7 +6,7 @@ import { MascotBubble } from '../../../../components/MascotAvatar';
 import { MathText } from '../../../../components/ui/Fraction';
 import FullScreenWorkingMode from '../../../../components/learning/FullScreenWorkingMode';
 import WorkingPreviewCard from '../../../../components/learning/WorkingPreviewCard';
-import ManipulativeDotArray, { parseDotStem, numericLine, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram } from '../../../../components/learning/ManipulativeDotArray';
+import ManipulativeDotArray, { parseDotStem, numericLine, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram, parseCountDiagram, ManipulativeCountArray, parseCompareDiagram, ManipulativeCompareSets } from '../../../../components/learning/ManipulativeDotArray';
 import { speak, isVoiceEnabled, setVoiceEnabled } from '../../../../utils/sound';
 import { useAuth } from '../../../../context/AuthContext';
 import { getMascotForModule, getMascotVoice } from '../../../../config/mascots';
@@ -294,6 +294,9 @@ export default function DomainPracticeSession({ domain }) {
               // Shown at every level — it's the question's intended visual; the tap-to-
               // count hint just helps younger pupils.
               const coinTokens = domain === 'money' ? parseCoinsDiagram(current) : null;
+              // K2 Early Numeracy count/compare visuals (tap-to-count).
+              const countData = parseCountDiagram(current);
+              const compareData = parseCompareDiagram(current);
               if (coinTokens) {
                 return (
                   <>
@@ -315,6 +318,22 @@ export default function DomainPracticeSession({ domain }) {
                       b={moneyData.b}
                       operator={moneyData.operator}
                     />
+                    <p className="text-xl font-bold text-ink-900">{prompt}</p>
+                  </>
+                );
+              }
+              if (isLPrimary && compareData) {
+                return (
+                  <>
+                    <ManipulativeCompareSets key={current?.questionId} left={compareData.left} right={compareData.right} />
+                    <p className="text-xl font-bold text-ink-900">{prompt}</p>
+                  </>
+                );
+              }
+              if (isLPrimary && countData) {
+                return (
+                  <>
+                    <ManipulativeCountArray key={current?.questionId} emoji={countData.emoji} count={countData.count} />
                     <p className="text-xl font-bold text-ink-900">{prompt}</p>
                   </>
                 );

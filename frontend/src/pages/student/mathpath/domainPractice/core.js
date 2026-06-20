@@ -13,6 +13,7 @@ import { buildAlgebraLearningPathView } from '../../../../mathpath/algebra/Algeb
 import { buildAreaPerimeterLearningPathView } from '../../../../mathpath/areaPerimeter/AreaPerimeterLearningPathModel';
 import { buildCirclesLearningPathView } from '../../../../mathpath/circles/CirclesLearningPathModel';
 import { buildDecimalsLearningPathView } from '../../../../mathpath/decimals/decimalsLearningPathModel';
+import { buildEarlyNumeracyLearningPathView } from '../../../../mathpath/earlyNumeracy/EarlyNumeracyLearningPathModel';
 import { buildGeometryLearningPathView } from '../../../../mathpath/geometry/GeometryLearningPathModel';
 import { buildMeasurementLearningPathView } from '../../../../mathpath/measurement/MeasurementLearningPathModel';
 import { buildMoneyLearningPathView } from '../../../../mathpath/money/MoneyLearningPathModel';
@@ -123,6 +124,12 @@ export const DOMAIN_PRACTICE_CONFIG = {
   money: {
     label: 'Money', start: mathpathAPI.startMoneyPractice, submit: mathpathAPI.submitMoneyPractice, buildView: buildMoneyLearningPathView,
     skillStates: mathpathAPI.moneySkillStates, pattern: /MN0\d\d/, subtitle: 'Notes, coins, addition, subtraction and change (P1–P3).',
+  },
+  'early-numeracy': {
+    label: 'Numeracy', start: mathpathAPI.startEarlyNumeracyPractice, submit: mathpathAPI.submitEarlyNumeracyPractice, buildView: buildEarlyNumeracyLearningPathView,
+    skillStates: mathpathAPI.earlyNumeracySkillStates, pattern: /EN0\d\d/, subtitle: 'Counting, comparing and number bonds — for K2/P1.',
+    // Gentle K2 "Explore" mode: no high-stakes diagnostic check-in.
+    gentle: true,
   },
   'number-sense': {
     label: 'Whole Numbers', start: mathpathAPI.startNumberSensePractice, submit: mathpathAPI.submitNumberSensePractice, buildView: buildNumberSenseLearningPathView,

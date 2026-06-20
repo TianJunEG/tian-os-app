@@ -379,3 +379,88 @@ export function ManipulativeCoinArray({ a, b, operator }) {
 
   return null;
 }
+
+// ── K2 Early Numeracy: count & compare visuals (driven by question.diagram) ──
+// Generator emits diagram:{kind:'count', emoji, count} and
+// diagram:{kind:'compare', left:{emoji,count}, right:{emoji,count}}.
+export function parseCountDiagram(question) {
+  const d = question?.diagram;
+  if (!d || d.kind !== 'count') return null;
+  const count = Math.max(0, Math.min(30, Number(d.count) || 0));
+  return { emoji: d.emoji || '🍎', count };
+}
+
+export function parseCompareDiagram(question) {
+  const d = question?.diagram;
+  if (!d || d.kind !== 'compare' || !d.left || !d.right) return null;
+  const norm = (g) => ({ emoji: g.emoji || '🍎', count: Math.max(0, Math.min(20, Number(g.count) || 0)) });
+  return { left: norm(d.left), right: norm(d.right) };
+}
+
+// One tappable emoji token that toggles a "counted" check — same affordance as
+// the apple dots, but any emoji and reset-on-key handled by the parent.
+function EmojiToken({ emoji, counted, onClick, label }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className="relative flex shrink-0 items-center justify-center select-none transition-all"
+      style={{ width: 48, height: 48, fontSize: 34, lineHeight: 1, transform: counted ? 'scale(0.82)' : 'scale(1)' }}
+    >
+      {emoji}
+      {counted && <span className="absolute bottom-0 right-0 text-base leading-none">✓</span>}
+    </button>
+  );
+}
+
+// Single group of objects to count (EN001–EN004, EN006 whole). Pass
+// key={questionId} from the parent so the counted-state resets per question.
+export function ManipulativeCountArray({ emoji = '🍎', count = 0 }) {
+  const [counted, setCounted] = useState(new Set());
+  const toggle = (i) => setCounted((prev) => {
+    const next = new Set(prev);
+    if (next.has(i)) next.delete(i); else next.add(i);
+    return next;
+  });
+  return (
+    <div className="rounded-2xl bg-sky-50 p-4 space-y-3">
+      <div className="flex flex-wrap items-center justify-center gap-1">
+        {Array.from({ length: count }, (_, i) => (
+          <EmojiToken key={i} emoji={emoji} counted={counted.has(i)} onClick={() => toggle(i)} label={`Item ${i + 1}`} />
+        ))}
+      </div>
+      <p className="text-center text-xs text-ink-400">Tap to count</p>
+    </div>
+  );
+}
+
+// Two rows to compare (EN005). Tapping counts within a row.
+export function ManipulativeCompareSets({ left, right }) {
+  const [counted, setCounted] = useState(new Set());
+  const toggle = (key) => setCounted((prev) => {
+    const next = new Set(prev);
+    if (next.has(key)) next.delete(key); else next.add(key);
+    return next;
+  });
+  const Row = ({ group, prefix }) => (
+    <div className="flex flex-wrap items-center justify-center gap-1 rounded-xl bg-white/70 p-2">
+      {Array.from({ length: group.count }, (_, i) => (
+        <EmojiToken
+          key={`${prefix}${i}`}
+          emoji={group.emoji}
+          counted={counted.has(`${prefix}${i}`)}
+          onClick={() => toggle(`${prefix}${i}`)}
+          label={`${group.emoji} ${i + 1}`}
+        />
+      ))}
+    </div>
+  );
+  return (
+    <div className="rounded-2xl bg-sky-50 p-4 space-y-2">
+      <Row group={left} prefix="l" />
+      <Row group={right} prefix="r" />
+      <p className="text-center text-xs text-ink-400">Tap to count each row</p>
+    </div>
+  );
+}

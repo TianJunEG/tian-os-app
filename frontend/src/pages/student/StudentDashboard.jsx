@@ -34,6 +34,7 @@ import { runMathPathDomainPipeline } from '../../mathpath/orchestration/mathPath
 import { validateStudentDashboardPayload } from '../../mathpath/orchestration/pipelineContract';
 import { fractionSkillGraph, getSkill } from '../../mathpath/fractions/fractionSkillGraph';
 import { operationsSkillGraph } from '../../../../shared/mathpath/operations/OperationsSkillGraph';
+import { earlyNumeracySkillGraph } from '../../../../shared/mathpath/earlyNumeracy/EarlyNumeracySkillGraph';
 import { diagnosticsAPI, learningTelemetryAPI, mathpathAPI, studentProfileAPI } from '../../services/api';
 import { Card, Button, Spinner, ErrorState, Badge } from '../../components/ui';
 import { getVisualModeStyles, isLowerPrimary, isSecondary, resolveStudentVisualMode } from '../../design-os/studentVisualMode';
@@ -214,8 +215,12 @@ function DecorativeMotifs({ enabled }) {
 function TodaysMissionCard({ currentSkill, nextAction, hasPlacement, visual, assessmentReady = true, studentLevel }) {
   const action = actionMeta(nextAction, assessmentReady);
   const sl = String(studentLevel || '').toLowerCase().trim();
-  const isK2orP1 = /k2|kindy|preschool/.test(sl) || sl === 'primary 1' || sl === 'p1';
-  const noPlacementRoute = isK2orP1 ? '/student/mathpath/operations/diagnostic' : '/student/mathpath/diagnostic';
+  const isK2 = /k2|kindy|preschool|kindergarten/.test(sl);
+  const isP1 = sl === 'primary 1' || sl === 'p1';
+  // K2 → gentle Numeracy Explore (no diagnostic); P1 → Operations check-in; else Fractions.
+  const noPlacementRoute = isK2
+    ? '/student/mathpath/early-numeracy'
+    : isP1 ? '/student/mathpath/operations/diagnostic' : '/student/mathpath/diagnostic';
   const primaryTo = hasPlacement ? action.to : noPlacementRoute;
   const primaryState = hasPlacement && primaryTo.startsWith('/student/mathpath/practice/')
     ? {
@@ -459,16 +464,21 @@ function defaultDomainForLevel(level = '') {
   return { domainId: 'fractions', displayName: 'Fractions' };
 }
 
-// Whether the dashboard's headline "Skills Mastered X/Y" stat should count
-// Operations rather than Fractions. K2/P1 are operations-first (they're routed
-// to the Operations check-in, not Fractions), so a fractions-derived stat reads
-// a misleading 0/26 for them. The count itself comes from the /mastery records'
-// slug-derived `domainId` ('four_operations'); the denominator is the canonical
-// operations curriculum size (operationsSkillGraph), matching the operations
-// skill map's "X of 24".
-function isOperationsSpineLevel(level = '') {
+// The headline "Skills Mastered X/Y" stat counts the student's level-appropriate
+// "spine" domain rather than Fractions. K2 learners live in Early Numeracy, P1 in
+// Operations — a fractions-derived stat reads a misleading 0/26 for them. The
+// numerator comes from the /mastery records' slug-derived `domainId`; the
+// denominator is that domain's canonical curriculum size. Returns null for
+// fractions-spine levels (the existing fractions logic drives their stat).
+function spineDomainForLevel(level = '') {
   const sl = String(level || '').toLowerCase().trim();
-  return /k2|kindy|preschool/.test(sl) || sl === 'primary 1' || sl === 'p1';
+  if (/k2|kindy|preschool|kindergarten/.test(sl)) {
+    return { domainId: 'early_numeracy', total: earlyNumeracySkillGraph.skillIds.length };
+  }
+  if (sl === 'primary 1' || sl === 'p1') {
+    return { domainId: 'four_operations', total: operationsSkillGraph.skillIds.length };
+  }
+  return null;
 }
 
 function DiagnosticPrompts({ domains, level, containerClassName = '', containerStyle }) {
@@ -586,20 +596,17 @@ export default function StudentDashboard() {
             .filter((d) => d && d.domainId)
             .map((d) => ({ domainId: d.domainId, displayName: d.displayName || d.domainId }));
           if (domains.length) setDiagnosticDomains(domains);
-          // K2/P1: headline mastery stat counted from Operations records, not
-          // the fractions pipeline (which would otherwise read 0/26). The
-          // /mastery records carry a slug-derived `domainId`, so we count the
-          // ones tagged 'four_operations'; the total is the canonical operations
-          // curriculum size (matches the "X of 24" the operations skill map shows).
-          if (isOperationsSpineLevel(user?.studentLevel || '')) {
-            const masteredOps = persistedRecords.filter((r) =>
-              r.domainId === 'four_operations'
+          // K2 (Early Numeracy) / P1 (Operations): headline mastery stat counted
+          // from that domain's records, not the fractions pipeline (which would
+          // otherwise read 0/26). The /mastery records carry a slug-derived
+          // `domainId`; the total is the domain's canonical curriculum size.
+          const spine = spineDomainForLevel(user?.studentLevel || '');
+          if (spine) {
+            const masteredInSpine = persistedRecords.filter((r) =>
+              r.domainId === spine.domainId
               && ['mastered', 'accurate', 'fluent', 'retained'].includes(String(r.status || r.masteryState || '').toLowerCase())
             ).length;
-            setOperationsStat({
-              mastered: masteredOps,
-              total: operationsSkillGraph.skillIds.length,
-            });
+            setOperationsStat({ mastered: masteredInSpine, total: spine.total });
           } else {
             setOperationsStat(null);
           }

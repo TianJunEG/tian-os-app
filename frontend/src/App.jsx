@@ -77,6 +77,8 @@ const MeasurementLearningPathPage = lazy(() => import('./pages/student/mathpath/
 const MeasurementPracticeSession = lazy(() => import('./pages/student/mathpath/MeasurementPracticeSession'));
 const MoneyLearningPathPage = lazy(() => import('./pages/student/mathpath/MoneyLearningPathPage'));
 const MoneyPracticeSession = lazy(() => import('./pages/student/mathpath/MoneyPracticeSession'));
+const EarlyNumeracyLearningPathPage = lazy(() => import('./pages/student/mathpath/EarlyNumeracyLearningPathPage'));
+const EarlyNumeracyPracticeSession = lazy(() => import('./pages/student/mathpath/EarlyNumeracyPracticeSession'));
 const NumberSenseLearningPathPage = lazy(() => import('./pages/student/mathpath/NumberSenseLearningPathPage'));
 const NumberSensePracticeSession = lazy(() => import('./pages/student/mathpath/NumberSensePracticeSession'));
 const OperationsLearningPathPage = lazy(() => import('./pages/student/mathpath/OperationsLearningPathPage'));
@@ -651,6 +653,8 @@ function App() {
             <Route path="/student/mathpath/measurement/practice" element={<MeasurementPracticeSession />} />
             <Route path="/student/mathpath/money" element={<MoneyLearningPathPage />} />
             <Route path="/student/mathpath/money/practice" element={<MoneyPracticeSession />} />
+            <Route path="/student/mathpath/early-numeracy" element={<EarlyNumeracyLearningPathPage />} />
+            <Route path="/student/mathpath/early-numeracy/practice" element={<EarlyNumeracyPracticeSession />} />
             <Route path="/student/mathpath/number-sense" element={<NumberSenseLearningPathPage />} />
             <Route path="/student/mathpath/number-sense/practice" element={<NumberSensePracticeSession />} />
             <Route path="/student/mathpath/operations" element={<OperationsLearningPathPage />} />
