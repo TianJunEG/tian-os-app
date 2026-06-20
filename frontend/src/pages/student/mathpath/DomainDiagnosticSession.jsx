@@ -1,10 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Sparkles, Volume2 } from 'lucide-react';
 import { diagnosticsAPI } from '../../../services/api';
 import { Alert, Badge, Button, Card, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
 import { MascotBubble } from '../../../components/MascotAvatar';
 import { useAuth } from '../../../context/AuthContext';
+import ManipulativeDotArray, { parseDotStem, numericLine } from '../../../components/learning/ManipulativeDotArray';
+import { speak } from '../../../utils/sound';
 
 // Generic adaptive diagnostic ("check-in") that serves every MathPath domain.
 // Mirrors DecimalsDiagnosticSession but reads the domain from the :domainId
@@ -71,11 +73,30 @@ function bandTone(band) {
   return 'navy';
 }
 
+function toSpeakable(text = '') {
+  return String(text)
+    .split('\n')
+    .filter((line) => !/^[\s⬤●○+\-×÷=?]+$/.test(line.trim()))
+    .join(' ')
+    .replace(/[⬤●○]/g, '')
+    .replace(/\+/g, ' plus ')
+    .replace(/[−–-]/g, ' minus ')
+    .replace(/[×]/g, ' times ')
+    .replace(/[÷]/g, ' divided by ')
+    .replace(/=/g, ' equals ')
+    .replace(/\?/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export default function DomainDiagnosticSession() {
   const navigate = useNavigate();
   const { domainId: domainParam } = useParams();
   const domain = resolveDomain(domainParam);
   const { user } = useAuth();
+
+  const sl = String(user?.studentLevel || '').toLowerCase().trim();
+  const isLowerPrimary = /k2|kindy|preschool/.test(sl) || /^p[123]$|^primary [123]$/.test(sl);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -87,6 +108,12 @@ export default function DomainDiagnosticSession() {
   const [encouragement, setEncouragement] = useState('');
   const [result, setResult] = useState(null);
   const startedAt = useRef(Date.now());
+
+  const speakQuestion = useCallback((q) => {
+    if (!isLowerPrimary || !q) return;
+    const readable = toSpeakable(q.prompt || q.stem || '');
+    if (readable) speak(readable, { rate: 0.8, gender: 'female' });
+  }, [isLowerPrimary]);
 
   useEffect(() => {
     let active = true;
@@ -133,11 +160,19 @@ export default function DomainDiagnosticSession() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [domain.domainId]);
 
-  async function submitAnswer() {
-    if (!question || submitting) return;
+  // Auto-read question aloud for lower primary students.
+  useEffect(() => {
+    if (question) speakQuestion(question);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [question?.questionId]);
+
+  async function submitAnswer(choiceOverride) {
+    const answer = choiceOverride ?? draft;
+    if (!question || submitting || !String(answer).trim()) return;
+    if (choiceOverride) setDraft(choiceOverride);
     setSubmitting(true);
     try {
-      const body = buildAnswerBody({ question, draft, startedAtMs: startedAt.current, nowMs: Date.now() });
+      const body = buildAnswerBody({ question, draft: String(answer), startedAtMs: startedAt.current, nowMs: Date.now() });
       const res = await diagnosticsAPI.answerDiagnostic(sessionId, body);
       const data = res?.data || {};
       if (data.sessionComplete) {
@@ -228,21 +263,68 @@ export default function DomainDiagnosticSession() {
         <p className="text-sm font-medium text-emerald-deep">{encouragement}</p>
       )}
 
-      <Card className="p-6">
-        <p className="text-lg font-semibold text-ink-900">{question?.prompt}</p>
+      <Card className="p-6 space-y-4">
+        {(() => {
+          const prompt = question?.prompt || '';
+          const dotData = parseDotStem(prompt);
+          if (isLowerPrimary && dotData) {
+            return (
+              <>
+                <ManipulativeDotArray
+                  key={question?.questionId}
+                  a={dotData.a}
+                  b={dotData.b}
+                  operator={dotData.operator}
+                />
+                <div className="flex items-center gap-2">
+                  <p className="text-xl font-bold text-ink-900">{numericLine(prompt)}</p>
+                  <button
+                    type="button"
+                    aria-label="Read question"
+                    onClick={() => speak(toSpeakable(prompt), { rate: 0.8, gender: 'female' })}
+                    className="rounded-full p-1 text-ink-400 hover:text-emerald active:scale-90"
+                  >
+                    <Volume2 className="h-5 w-5" />
+                  </button>
+                </div>
+              </>
+            );
+          }
+          return <p className="text-lg font-semibold text-ink-900">{prompt}</p>;
+        })()}
+
         {question?.type === 'mcq' ? (
-          <div className="mt-5 grid gap-2">
-            {(question.choices || []).map((choice) => (
-              <button
-                key={choice}
-                type="button"
-                onClick={() => setDraft(choice)}
-                className={`rounded-xl border px-4 py-3 text-left text-base transition ${draft === choice ? 'border-navy-400 bg-emerald-tint font-semibold text-emerald-deep' : 'border-ink-200 hover:border-navy-300'}`}
-              >
-                {choice}
-              </button>
-            ))}
-          </div>
+          isLowerPrimary ? (
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              {(question.choices || []).map((choice) => (
+                <button
+                  key={choice}
+                  type="button"
+                  disabled={submitting}
+                  onClick={() => {
+                    speak(choice, { rate: 0.85, gender: 'female' });
+                    submitAnswer(choice);
+                  }}
+                  className="rounded-2xl border-2 border-line-soft bg-white py-5 text-center text-3xl font-bold text-ink-900 shadow-sm transition hover:border-emerald hover:bg-emerald-tint active:scale-95"
+                >
+                  {choice}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-5 grid gap-2">
+              {(question.choices || []).map((choice) => (
+                <button
+                  key={choice}
+                  type="button"
+                  onClick={() => setDraft(choice)}
+                  className={`rounded-xl border px-4 py-3 text-left text-base transition ${draft === choice ? 'border-navy-400 bg-emerald-tint font-semibold text-emerald-deep' : 'border-ink-200 hover:border-navy-300'}`}
+                >
+                  {choice}
+                </button>
+              ))}
+            </div>
+          )
         ) : (
           <input
             type="text"
@@ -257,11 +339,13 @@ export default function DomainDiagnosticSession() {
         )}
       </Card>
 
-      <div className="flex justify-end">
-        <Button icon={CheckCircle2} disabled={!draft.trim() || submitting} onClick={submitAnswer}>
-          {submitting ? 'Checking…' : 'Submit'}
-        </Button>
-      </div>
+      {(!isLowerPrimary || question?.type !== 'mcq') && (
+        <div className="flex justify-end">
+          <Button icon={CheckCircle2} disabled={!draft.trim() || submitting} onClick={() => submitAnswer()}>
+            {submitting ? 'Checking…' : 'Submit'}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
