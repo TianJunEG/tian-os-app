@@ -23,6 +23,8 @@ export function buildOperationsPracticeSession({
   if (!skillId || !getSkill(skillId)) {
     skillId = selectNextOperationsPracticeTarget({ masteredSkillIds, weakSkillIds }).skillId;
   }
+  // Resolve slug (op.add.facts) to canonical ID (OP001) — families and generator use ID-format keys.
+  skillId = getSkill(skillId)?.id ?? skillId;
   if (!getSkill(skillId)) {
     const err = new Error(`Unknown operations skill: ${targetSkillId}`);
     err.status = 400;
