@@ -301,6 +301,7 @@ export default function StudentDashboardLowerPrimary({
         hasPlacement={vm.hasPlacement}
         visual={visual}
         assessmentReady={assessmentGate.ready}
+        studentLevel={studentLevel}
       />
 
       <section className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">

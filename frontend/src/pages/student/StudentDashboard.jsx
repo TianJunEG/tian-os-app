@@ -209,9 +209,12 @@ function DecorativeMotifs({ enabled }) {
   );
 }
 
-function TodaysMissionCard({ currentSkill, nextAction, hasPlacement, visual, assessmentReady = true }) {
+function TodaysMissionCard({ currentSkill, nextAction, hasPlacement, visual, assessmentReady = true, studentLevel }) {
   const action = actionMeta(nextAction, assessmentReady);
-  const primaryTo = hasPlacement ? action.to : '/student/mathpath/diagnostic';
+  const sl = String(studentLevel || '').toLowerCase().trim();
+  const isK2orP1 = /k2|kindy|preschool/.test(sl) || sl === 'primary 1' || sl === 'p1';
+  const noPlacementRoute = isK2orP1 ? '/student/mathpath/operations/diagnostic' : '/student/mathpath/diagnostic';
+  const primaryTo = hasPlacement ? action.to : noPlacementRoute;
   const primaryState = hasPlacement && primaryTo.startsWith('/student/mathpath/practice/')
     ? {
         skillId: currentSkill?.skillId || null,
