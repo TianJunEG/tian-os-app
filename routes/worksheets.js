@@ -75,7 +75,7 @@ router.post(
       }
 
       const imageBase64 = req.file.buffer.toString('base64');
-      const { fileUrl: sourceImageUrl } = await persistUploadFile(req.file, 'worksheets');
+      const { fileUrl: sourceImageUrl, storageKey, storageProvider } = await persistUploadFile(req.file, 'worksheets');
       const studentUserId = assignedStudent ? assignedStudent._id : null;
       const resolvedStudentName = studentName ? String(studentName).slice(0, 100) : assignedStudent?.name;
       const base = {
@@ -95,9 +95,13 @@ router.post(
         let pending = null;
         try {
           pending = await Worksheet.create({ ...base, generationStatus: 'pending', practiceSessions: [] });
+          // Pass the photo by reference (storageKey), not as an inline base64 blob:
+          // the upload is already persisted via the storage facade above, so the
+          // worker re-reads it. Keeps the Redis payload small (a key, not ~8MB).
           await queue.add('run', {
             worksheetId: String(pending._id),
-            imageBase64,
+            storageKey,
+            storageProvider,
             mimeType: req.file.mimetype,
             gradeLevel,
             topicHint,
