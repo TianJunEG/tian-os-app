@@ -94,6 +94,15 @@ describe('ComicReader', () => {
     expect(screen.getByText('Episode not found.')).toBeInTheDocument();
   });
 
+  it('offers an optional working scratchpad, collapsed by default', () => {
+    renderReader();
+    // The toggle is available on the problem panel...
+    expect(screen.getByRole('button', { name: /Show working/ })).toBeInTheDocument();
+    // ...but the canvas stays collapsed until tapped, so the quick-read flow is
+    // unchanged (and the heavy canvas isn't mounted up front).
+    expect(screen.queryByText('Sketch your working')).not.toBeInTheDocument();
+  });
+
   it('emits telemetry: comic_episode_opened on mount and comic_episode_completed on finish', async () => {
     const { container } = renderReader();
 
