@@ -5,7 +5,7 @@ import { diagnosticsAPI } from '../../../services/api';
 import { Alert, Badge, Button, Card, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
 import { MascotBubble } from '../../../components/MascotAvatar';
 import { useAuth } from '../../../context/AuthContext';
-import ManipulativeDotArray, { parseDotStem, numericLine, toSpeakable } from '../../../components/learning/ManipulativeDotArray';
+import ManipulativeDotArray, { parseDotStem, numericLine, toSpeakable, parseMoneyPrompt, ManipulativeCoinArray } from '../../../components/learning/ManipulativeDotArray';
 import { speak } from '../../../utils/sound';
 
 // Generic adaptive diagnostic ("check-in") that serves every MathPath domain.
@@ -251,6 +251,30 @@ export default function DomainDiagnosticSession() {
         {(() => {
           const prompt = question?.prompt || '';
           const dotData = parseDotStem(prompt);
+          const moneyData = domain.segment === 'money' ? parseMoneyPrompt(prompt) : null;
+          if (isLowerPrimary && moneyData && moneyData.a <= 20 && moneyData.b <= 20) {
+            return (
+              <>
+                <ManipulativeCoinArray
+                  key={question?.questionId}
+                  a={moneyData.a}
+                  b={moneyData.b}
+                  operator={moneyData.operator}
+                />
+                <div className="flex items-center gap-2">
+                  <p className="text-xl font-bold text-ink-900">{prompt}</p>
+                  <button
+                    type="button"
+                    aria-label="Read question"
+                    onClick={() => speak(toSpeakable(prompt), { rate: 0.8, gender: 'female' })}
+                    className="rounded-full p-1 text-ink-400 hover:text-emerald active:scale-90"
+                  >
+                    <Volume2 className="h-5 w-5" />
+                  </button>
+                </div>
+              </>
+            );
+          }
           if (isLowerPrimary && dotData) {
             return (
               <>

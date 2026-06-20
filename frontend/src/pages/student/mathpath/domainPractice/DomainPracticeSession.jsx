@@ -6,7 +6,7 @@ import { MascotBubble } from '../../../../components/MascotAvatar';
 import { MathText } from '../../../../components/ui/Fraction';
 import FullScreenWorkingMode from '../../../../components/learning/FullScreenWorkingMode';
 import WorkingPreviewCard from '../../../../components/learning/WorkingPreviewCard';
-import ManipulativeDotArray, { parseDotStem, numericLine, toSpeakable } from '../../../../components/learning/ManipulativeDotArray';
+import ManipulativeDotArray, { parseDotStem, numericLine, toSpeakable, parseMoneyPrompt, ManipulativeCoinArray } from '../../../../components/learning/ManipulativeDotArray';
 import { speak } from '../../../../utils/sound';
 import { useAuth } from '../../../../context/AuthContext';
 import { getMascotForModule } from '../../../../config/mascots';
@@ -273,6 +273,30 @@ export default function DomainPracticeSession({ domain }) {
         {(() => {
           const prompt = current?.prompt || '';
           const dotData = parseDotStem(prompt);
+          const moneyData = domain === 'money' ? parseMoneyPrompt(prompt) : null;
+          if (isLPrimary && moneyData && moneyData.a <= 20 && moneyData.b <= 20) {
+            return (
+              <>
+                <ManipulativeCoinArray
+                  key={current?.questionId}
+                  a={moneyData.a}
+                  b={moneyData.b}
+                  operator={moneyData.operator}
+                />
+                <div className="flex items-center gap-2">
+                  <p className="text-xl font-bold text-ink-900">{prompt}</p>
+                  <button
+                    type="button"
+                    aria-label="Read question"
+                    onClick={() => speak(toSpeakable(prompt), { rate: 0.8, gender: 'female' })}
+                    className="rounded-full p-1 text-ink-400 hover:text-emerald active:scale-90"
+                  >
+                    <Volume2 className="h-5 w-5" />
+                  </button>
+                </div>
+              </>
+            );
+          }
           if (isLPrimary && dotData) {
             return (
               <>

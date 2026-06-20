@@ -90,42 +90,72 @@ function fractionCircle(spec) {
 function fractionTriangle(spec) {
   const { parts, shaded } = spec.data;
   const w = spec.width || 640;
-  const h = spec.height || 200;
+  const h = spec.height || 220;
   const cx = w / 2;
   const apexY = 20;
-  const baseY = h - 28;
+  const baseY = h - 32;
   const triH = baseY - apexY;
-  const baseHalfW = Math.min(cx - 50, triH * 0.65);
-  // Equal-area horizontal bands: dividing lines at triH * sqrt(k/parts) from apex
-  const yLines = [apexY, ...Array.from({ length: parts - 1 }, (_, k) => apexY + triH * Math.sqrt((k + 1) / parts)), baseY];
-  const widthAt = (y) => baseHalfW * 2 * (y - apexY) / triH;
-  let body = '';
-  const sectionsWithAnim = [];
-  for (let i = 0; i < parts; i++) {
-    const y1 = yLines[i]; const y2 = yLines[i + 1];
-    const w1 = widthAt(y1); const w2 = widthAt(y2);
-    const isShaded = i >= (parts - shaded);
-    const fill = isShaded ? SHADED_FILL : UNSHADED_FILL;
-    const pts = i === 0
-      ? `${cx},${y1.toFixed(1)} ${(cx - w2 / 2).toFixed(1)},${y2.toFixed(1)} ${(cx + w2 / 2).toFixed(1)},${y2.toFixed(1)}`
-      : `${(cx - w1 / 2).toFixed(1)},${y1.toFixed(1)} ${(cx + w1 / 2).toFixed(1)},${y1.toFixed(1)} ${(cx + w2 / 2).toFixed(1)},${y2.toFixed(1)} ${(cx - w2 / 2).toFixed(1)},${y2.toFixed(1)}`;
-    if (REDUCE_MOTION) {
-      body += `<polygon points="${pts}" fill="${fill}" stroke="${PARTITION_STROKE}"/>`;
-    } else {
-      if (isShaded) {
-        sectionsWithAnim.push({ pts, delay: ((parts - 1 - i) * 0.12).toFixed(2) });
-        body += `<polygon points="${pts}" fill="${UNSHADED_FILL}" stroke="${PARTITION_STROKE}"><animate attributeName="fill" from="${UNSHADED_FILL}" to="${SHADED_FILL}" dur="0.3s" begin="${((parts - 1 - i) * 0.12).toFixed(2)}s" fill="freeze"/></polygon>`;
-      } else {
-        body += `<polygon points="${pts}" fill="${UNSHADED_FILL}" stroke="${PARTITION_STROKE}"/>`;
+  const baseHalfW = Math.min(cx - 40, triH * 0.72);
+
+  // Only render proper equal sub-triangles when parts is a perfect square (n²).
+  // Supported: 4 (n=2) and 9 (n=3). Other denominators fall back to fraction bar.
+  const n = Math.round(Math.sqrt(parts));
+  if (n * n !== parts || n < 2 || n > 3) {
+    return fractionBar({ ...spec, width: w, height: h });
+  }
+
+  // Main triangle vertices: A = apex (top), B = bottom-left, C = bottom-right.
+  const A = [cx, apexY];
+  const B = [cx - baseHalfW, baseY];
+  const C = [cx + baseHalfW, baseY];
+
+  // Barycentric grid point P(i, j): i steps toward B, j toward C, rest toward A.
+  const P = (i, j) => {
+    const k = n - i - j;
+    return [(k * A[0] + i * B[0] + j * C[0]) / n, (k * A[1] + i * B[1] + j * C[1]) / n];
+  };
+  const toPts = (...ps) => ps.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
+
+  // Build all small triangles in visual bottom-to-top, left-to-right order.
+  // Visual row r (r=n at bottom, r=1 at top):
+  //   Upward triangles with i+j = n-r, ordered left-to-right (j=0..n-r).
+  //   Between consecutive upward triangles, insert a downward triangle.
+  // Down triangle between Up(i,j) and Up(i-1,j+1): vertices P(i,j), P(i-1,j+1), P(i,j+1).
+  const allTriangles = [];
+  for (let r = n; r >= 1; r--) {
+    const upSum = n - r;
+    for (let j = 0; j <= upSum; j++) {
+      const i = upSum - j;
+      // Upward triangle
+      allTriangles.push([P(i, j), P(i + 1, j), P(i, j + 1)]);
+      // Downward triangle between this and next upward (if not last in row)
+      if (j < upSum) {
+        allTriangles.push([P(i, j + 1), P(i - 1, j + 1), P(i, j + 2)]);
       }
     }
   }
-  const labelDelay = REDUCE_MOTION ? 0 : (shaded * 0.12 + 0.15).toFixed(2);
-  if (REDUCE_MOTION) {
-    body += `<text x="${cx}" y="${baseY + 22}" font-size="18" text-anchor="middle" fill="#111">${shaded}/${parts}</text>`;
-  } else {
-    body += `<text x="${cx}" y="${baseY + 22}" font-size="18" text-anchor="middle" fill="#111" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.3s" begin="${labelDelay}s" fill="freeze"/>${shaded}/${parts}</text>`;
-  }
+  // total triangles = n² ✓
+
+  let body = '';
+  allTriangles.forEach((pts, idx) => {
+    const isShaded = idx < shaded;
+    const fill = isShaded ? SHADED_FILL : UNSHADED_FILL;
+    const ptsStr = toPts(...pts);
+    if (REDUCE_MOTION) {
+      body += `<polygon points="${ptsStr}" fill="${fill}" stroke="${PARTITION_STROKE}" stroke-width="1.5"/>`;
+    } else {
+      const delay = isShaded ? (idx * 0.1).toFixed(2) : 0;
+      body += isShaded
+        ? `<polygon points="${ptsStr}" fill="${UNSHADED_FILL}" stroke="${PARTITION_STROKE}" stroke-width="1.5"><animate attributeName="fill" from="${UNSHADED_FILL}" to="${SHADED_FILL}" dur="0.25s" begin="${delay}s" fill="freeze"/></polygon>`
+        : `<polygon points="${ptsStr}" fill="${UNSHADED_FILL}" stroke="${PARTITION_STROKE}" stroke-width="1.5"/>`;
+    }
+  });
+
+  const labelDelay = REDUCE_MOTION ? 0 : (shaded * 0.1 + 0.15).toFixed(2);
+  body += REDUCE_MOTION
+    ? `<text x="${cx}" y="${baseY + 24}" font-size="18" text-anchor="middle" fill="#111">${shaded}/${parts}</text>`
+    : `<text x="${cx}" y="${baseY + 24}" font-size="18" text-anchor="middle" fill="#111" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.3s" begin="${labelDelay}s" fill="freeze"/>${shaded}/${parts}</text>`;
+
   return svgShell({ ...spec, width: w, height: h }, body, 'fraction triangle');
 }
 
