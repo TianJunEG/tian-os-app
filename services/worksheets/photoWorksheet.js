@@ -5,6 +5,7 @@ import Worksheet from '../../models/Worksheet.js';
 import { analyzeAndGenerateWorksheet } from '../../utils/aiService.js';
 import { buildSessions, recomputeSchedule } from '../../utils/practiceSchedule.js';
 import { logDiagnosedMisconceptions } from '../../utils/misconceptionLog.js';
+import r2 from '../../services/storage/r2.js';
 
 // Map an AI analysis result to the worksheet's photo-flow fields.
 export function photoWorksheetFields(result) {
@@ -30,14 +31,21 @@ export async function logPhotoMisconceptions({ result, ownerUserId, studentUserI
 // it in, and mark it ready. On failure, persist 'failed' + the message, then
 // re-throw so BullMQ records/retries the job.
 export async function runPhotoWorksheetGeneration({
-  worksheetId, imageBase64, mimeType, gradeLevel, topicHint, totalQuestions,
+  worksheetId, imageBase64, imageR2Key, mimeType, gradeLevel, topicHint, totalQuestions,
   ownerUserId, studentUserId, studentName,
 }) {
   const worksheet = await Worksheet.findById(worksheetId);
   if (!worksheet) throw new Error('Worksheet not found for generation job.');
+  // Resolve the image: prefer fetching by R2 key (payload-by-reference) over
+  // the inline base64 fallback used when R2 is not configured.
+  let resolvedBase64 = imageBase64;
+  if (imageR2Key) {
+    const buf = await r2.getObjectBuffer(imageR2Key);
+    resolvedBase64 = buf.toString('base64');
+  }
   try {
     const result = await analyzeAndGenerateWorksheet({
-      imageBase64, mimeType, gradeLevel, topicHint, numQuestions: totalQuestions,
+      imageBase64: resolvedBase64, mimeType, gradeLevel, topicHint, numQuestions: totalQuestions,
     });
     Object.assign(worksheet, photoWorksheetFields(result));
     worksheet.generationStatus = 'ready';

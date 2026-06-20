@@ -5,11 +5,17 @@
 // filename) — never the raw file — keeping Redis payloads small. The pipeline owns
 // all status transitions (processing → … → needs_review, or → failed on error and
 // re-throws so BullMQ retries).
-import { runPaperAnalysisPipeline } from '../services/mathpath/paperAnalysisPipeline.js';
+import { runPaperAnalysisPipeline, resumeFromOcrConfirmation } from '../services/mathpath/paperAnalysisPipeline.js';
 
 export async function processPaperAnalysis(job) {
-  const { analysisId, mimeType = '', filename = '' } = job.data || {};
+  const { analysisId, mimeType = '', filename = '', resumeFrom } = job.data || {};
   if (!analysisId) throw new Error('paper-analysis job is missing analysisId.');
+  // 'resume' jobs (name set by the OCR-confirm route) continue from a mid-pipeline
+  // checkpoint rather than re-running OCR from the start.
+  if (job.name === 'resume' || resumeFrom === 'questions_confirmed') {
+    const analysis = await resumeFromOcrConfirmation(analysisId);
+    return { analysisId: String(analysis._id), status: analysis.status };
+  }
   const analysis = await runPaperAnalysisPipeline({ analysisId, mimeType, filename });
   return { analysisId: String(analysis._id), status: analysis.status };
 }

@@ -342,3 +342,13 @@ async function shutdown(signal) {
 
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
+
+// Log loudly and keep serving — don't let an unhandled rejection or a
+// non-async exception crash the Railway dyno (BullMQ event callbacks can
+// throw outside of Express middleware error handling).
+process.on('unhandledRejection', (reason) => {
+  console.error('[server] unhandledRejection:', reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('[server] uncaughtException:', err);
+});

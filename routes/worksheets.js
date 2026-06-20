@@ -20,6 +20,7 @@ import { isCorrectWithContext } from '../utils/answerCheck.js';
 import { recordAttempt } from '../utils/masteryEngine.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 import LearningResult from '../models/LearningResult.js';
+import r2 from '../services/storage/r2.js';
 
 const router = express.Router();
 
@@ -94,9 +95,20 @@ router.post(
         let pending = null;
         try {
           pending = await Worksheet.create({ ...base, generationStatus: 'pending', practiceSessions: [] });
+          // Store the image by reference (R2 key) rather than embedding base64 in
+          // the Redis job payload — an 8 MB base64 blob per concurrent upload would
+          // exhaust Redis memory quickly. Fall back to base64 when R2 is not wired up.
+          let imageRef = {};
+          if (r2.isConfigured()) {
+            const r2Key = `worksheet-photos/${String(pending._id)}-${Date.now()}.${req.file.mimetype.split('/')[1] || 'bin'}`;
+            await r2.putObject(r2Key, buffer, req.file.mimetype);
+            imageRef = { imageR2Key: r2Key };
+          } else {
+            imageRef = { imageBase64 };
+          }
           await queue.add('run', {
             worksheetId: String(pending._id),
-            imageBase64,
+            ...imageRef,
             mimeType: req.file.mimetype,
             gradeLevel,
             topicHint,
