@@ -16,7 +16,8 @@ import WorkedSolutionWalkthrough from './components/WorkedSolutionWalkthrough';
 import WorkingCanvas from '../../../components/learning/WorkingCanvas';
 import { getVoiceScripts } from './utils/voiceScripts';
 import { confettiBurst } from '../../../utils/confetti';
-import { playCorrect, playWin, isVoiceEnabled, setVoiceEnabled } from '../../../utils/sound';
+import { playCorrect, playWin, isVoiceEnabled, setVoiceEnabled, speak } from '../../../utils/sound';
+import { getMascotVoice } from '../../../config/mascots';
 import { useAuth } from '../../../context/AuthContext';
 import { resolveStudentVisualMode, getVisualModeStyles } from '../../../design-os/studentVisualMode';
 
@@ -282,12 +283,31 @@ export default function PSLSession() {
 
   const STEP_SHORT_LABELS = ['Read', 'Clues', 'Question', 'Plan', 'Solve', 'Check'];
 
-  const voiceScript = (() => {
-    if (completedSteps[currentStepId]) return null;
-    const scripts = getVoiceScripts(currentProblem.heuristic, currentProblem.structure, currentProblem.unknownPosition);
-    const stepIdx = STEP_IDS.indexOf(currentStepId);
-    return stepIdx >= 0 && stepIdx < 4 ? scripts.steps?.[stepIdx] : null;
-  })();
+  const pslScripts = getVoiceScripts(currentProblem.heuristic, currentProblem.structure, currentProblem.unknownPosition);
+
+  // Narration script for a given step. Steps 0-3 use their dedicated script;
+  // solve (4) and check (5) fall back to the answer-stage script so they also
+  // narrate — matching MathPath practice's read-aloud parity.
+  const scriptForStep = (stepId) => {
+    const idx = STEP_IDS.indexOf(stepId);
+    if (idx < 0) return null;
+    if (idx < 4) return pslScripts.steps?.[idx] || null;
+    return pslScripts.answer || null;
+  };
+
+  const voiceScript = completedSteps[currentStepId] ? null : scriptForStep(currentStepId);
+
+  // On-demand read-aloud: force-enable voice (so speak() isn't gated off), then
+  // speak the story text + the current step's prompt/label using Lejo's voice.
+  // speak() cancels any in-flight utterance first, so this won't double up with
+  // the MascotBubble narration above.
+  const handleReadAloud = () => {
+    if (!voice) { setVoice(true); setVoiceEnabled(true); }
+    const story = currentProblem.storyText || '';
+    const prompt = scriptForStep(currentStepId) || STEP_LABELS[currentStepId] || '';
+    const toRead = [story, prompt].filter(Boolean).join('. ');
+    if (toRead) speak(toRead, getMascotVoice('lejo'));
+  };
 
   const renderNotebookContent = () => {
     switch (currentStepId) {
@@ -500,6 +520,17 @@ export default function PSLSession() {
               <span className="mono-label hidden sm:inline" style={{ color: '#d9892e' }}>
                 Step {currentStepIdx + 1} of {STEP_IDS.length}
               </span>
+              <button
+                type="button"
+                onClick={handleReadAloud}
+                className="flex h-8 items-center justify-center gap-1 rounded-full px-2.5 transition-colors"
+                style={{ color: voice ? '#d9892e' : '#94A3B8', border: '1px solid', borderColor: voice ? '#fbf1e1' : '#e7eaef' }}
+                aria-label={voice ? 'Read aloud' : 'Turn on voice and read aloud'}
+                title="Read aloud"
+              >
+                {voice ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                <span className="hidden text-xs font-semibold sm:inline">Read aloud</span>
+              </button>
               <button
                 type="button"
                 onClick={() => { const next = !voice; setVoice(next); setVoiceEnabled(next); }}

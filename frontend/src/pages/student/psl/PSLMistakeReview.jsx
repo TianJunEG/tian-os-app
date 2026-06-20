@@ -1,11 +1,45 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, ArrowLeft, ChevronDown, ChevronRight, RotateCcw } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, ChevronDown, ChevronRight, RotateCcw, Volume2, VolumeX } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import MISCONCEPTIONS, { CATEGORY_ORDER, getMisconception } from './utils/misconceptions';
 import { useAuth } from '../../../context/AuthContext';
 import { resolveStudentVisualMode, getVisualModeStyles } from '../../../design-os/studentVisualMode';
 import MascotAvatar from '../../../components/MascotAvatar';
+import { speak, setVoiceEnabled, isVoiceEnabled } from '../../../utils/sound';
+import { getMascotVoice } from '../../../config/mascots';
+
+// Spoken script for a PSL mistake: the story stem, then the student's answer
+// and the correct answer so the read-aloud reinforces the gap.
+function buildPSLReadAloudText(mistake = {}) {
+  const parts = [mistake.questionText || mistake.questionStem || ''];
+  if (mistake.studentAnswer) parts.push(`Your answer was ${mistake.studentAnswer}.`);
+  if (mistake.correctAnswer) parts.push(`The correct answer is ${mistake.correctAnswer}.`);
+  if (mistake.workedSolution) parts.push(mistake.workedSolution);
+  return parts.filter(Boolean).join(' ');
+}
+
+// Read-aloud toggle for a PSL mistake (lejo is the PSL mascot). Voice is gated
+// behind a localStorage flag, so the first click enables it before speaking.
+function PSLReadAloudButton({ mistake }) {
+  const [speaking, setSpeaking] = useState(false);
+  const onClick = () => {
+    if (speaking) {
+      if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
+      setSpeaking(false);
+      return;
+    }
+    if (!isVoiceEnabled()) setVoiceEnabled(true);
+    speak(buildPSLReadAloudText(mistake), getMascotVoice('lejo'));
+    setSpeaking(true);
+  };
+  return (
+    <button type="button" onClick={onClick} className="btn-gold-outline mt-2 !h-9 !px-3 !text-xs">
+      {speaking ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+      {speaking ? 'Stop' : 'Read aloud'}
+    </button>
+  );
+}
 
 const TAG_TO_HEURISTIC = {
   'psl/missed-ratio': 'ratio', 'psl/missed-ratio-term': 'ratio',
@@ -51,9 +85,11 @@ export default function PSLMistakeReview() {
   }
 
   const tagCounts = {};
+  const mistakesByTag = {};
   for (const m of mistakes) {
     const tag = m.misconceptionTag || 'unknown';
     tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+    (mistakesByTag[tag] = mistakesByTag[tag] || []).push(m);
   }
 
   const grouped = {};
@@ -159,6 +195,31 @@ export default function PSLMistakeReview() {
                                 <span className="mono-label shrink-0" style={{ color: '#b06f1f' }}>{count}x</span>
                               </div>
                               {tip && <p className="mt-1 text-xs" style={{ color: '#5a6675' }}>{tip}</p>}
+                              {/* Individual mistakes for this tag: the story stem plus
+                                  the student's and correct answers the endpoint returns,
+                                  each read-aloud-able. */}
+                              {(mistakesByTag[tag] || [])
+                                .filter((m) => (m.questionText || m.questionStem))
+                                .map((m, idx) => (
+                                  <div
+                                    key={m._id || m.id || `${tag}-${idx}`}
+                                    className="mt-2 rounded-lg border p-2"
+                                    style={{ borderColor: '#e6e9ef', background: '#fff' }}
+                                  >
+                                    <p className="text-xs" style={{ color: '#232c39' }}>
+                                      {m.questionText || m.questionStem}
+                                    </p>
+                                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px]">
+                                      {m.studentAnswer && (
+                                        <span style={{ color: '#b06f1f' }}>Your answer: {m.studentAnswer}</span>
+                                      )}
+                                      {m.correctAnswer && (
+                                        <span style={{ color: '#2f7d5b' }}>Correct: {m.correctAnswer}</span>
+                                      )}
+                                    </div>
+                                    <PSLReadAloudButton mistake={m} />
+                                  </div>
+                                ))}
                               {tag === 'psl/arithmetic-error' && (
                                 <button
                                   onClick={() => navigate('/student/mathpath')}

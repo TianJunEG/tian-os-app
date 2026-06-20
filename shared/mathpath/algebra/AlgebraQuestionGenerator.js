@@ -193,11 +193,19 @@ function runBuilder(skillId, rng, variant) {
 function makePractice(skillId) {
   return (family, rng, variant) => {
     const q = runBuilder(skillId, rng, variant);
-    return shortAnswer({
+    const base = shortAnswer({
       family, prompt: q.prompt, answerDisplay: String(q.value),
       solutionSteps: q.steps, misconceptionTag: q.tag || (family.misconceptionTags || [])[0] || '',
       difficulty: family.difficulty, mode: 'practice',
     });
+    // Free-text typed-expression answers (simplify / expand / write-an-expression,
+    // e.g. "5n", "2x + 7", "n - 3") carry answerFormat:'expression' so the client
+    // renders the algebra input + MathSymbolBar. Detected via canonLinear, which
+    // is non-null exactly when the answer string contains a variable letter.
+    if (canonLinear(String(q.value)) !== null) {
+      base.answerFormat = 'expression';
+    }
+    return base;
   };
 }
 function makeMCQ(skillId) {

@@ -308,12 +308,16 @@ function runBuilder(skillId, rng, variant) {
 function makePractice(skillId) {
   return (family, rng, variant) => {
     const q = runBuilder(skillId, rng, variant);
-    return shortAnswer({
+    const base = shortAnswer({
       family, prompt: q.prompt, answerDisplay: String(q.answer),
       acceptedAnswers: [String(q.answer)], solutionSteps: q.steps,
       misconceptionTag: q.tag || (family.misconceptionTags || [])[0] || '',
       difficulty: family.difficulty, mode: 'practice', diagram: q.diagram,
     });
+    // "Write <, > or =" comparison items get answerFormat:'comparison' so the
+    // client renders the symbol picker (with '=') instead of a plain text box.
+    if (['<', '>', '='].includes(String(q.answer))) base.answerFormat = 'comparison';
+    return base;
   };
 }
 function makeMCQ(skillId) {

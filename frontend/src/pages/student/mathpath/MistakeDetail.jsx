@@ -1,13 +1,51 @@
 import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Check, Dumbbell, AlertTriangle, Lightbulb, Wand2 } from 'lucide-react';
+import { Check, Dumbbell, AlertTriangle, Lightbulb, Volume2, VolumeX, Wand2 } from 'lucide-react';
 import { mathpathAPI, learningTelemetryAPI } from '../../../services/api';
 import { Card, Button, Badge, PageHeader, Spinner, EmptyState, CollapsibleSection, Textarea } from '../../../components/ui';
 import { MathText } from '../../../components/ui/Fraction';
+import { SolutionStepsCard } from '../../../components/mathpath/review/QuestionReviewCards';
 import RemediationPanel from '../../../components/mathpath/RemediationPanel';
 import { getModelDrawingTrainerForMistake } from '../../../mathpath/fractions/fractionMistakeToMasteryEngine';
+import { speak, setVoiceEnabled, isVoiceEnabled } from '../../../utils/sound';
+import { getMascotVoice } from '../../../config/mascots';
 
 const StrokeReplayPlayer = lazy(() => import('../../../components/learning/StrokeReplayPlayer'));
+
+// Build the spoken script for a mistake: the question, then its walkthrough
+// (structured steps preferred, worked-solution paragraph as fallback). speak()
+// already strips emoji, so callers just pass readable text.
+function buildReadAloudText(mistake = {}) {
+  const parts = [mistake.questionStem || mistake.questionText || ''];
+  if (Array.isArray(mistake.solutionSteps) && mistake.solutionSteps.length) {
+    parts.push('Here are the steps.');
+    mistake.solutionSteps.forEach((step, idx) => parts.push(`Step ${idx + 1}. ${step}`));
+  } else if (mistake.workedSolution) {
+    parts.push(mistake.workedSolution);
+  }
+  return parts.filter(Boolean).join('. ');
+}
+
+// Read-aloud toggle. Voice is gated behind a localStorage flag, so the first
+// click enables it before speaking (kylo is the MathPath mascot).
+function ReadAloudButton({ mistake, mascotKey = 'kylo' }) {
+  const [speaking, setSpeaking] = useState(false);
+  const onClick = () => {
+    if (speaking) {
+      if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
+      setSpeaking(false);
+      return;
+    }
+    if (!isVoiceEnabled()) setVoiceEnabled(true);
+    speak(buildReadAloudText(mistake), getMascotVoice(mascotKey));
+    setSpeaking(true);
+  };
+  return (
+    <Button size="s" variant="secondary" icon={speaking ? VolumeX : Volume2} onClick={onClick}>
+      {speaking ? 'Stop' : 'Read aloud'}
+    </Button>
+  );
+}
 
 const TYPE_LABEL = {
   concept_gap: 'Concept gap', calculation_error: 'Calculation error',
@@ -215,9 +253,13 @@ export default function MistakeDetail() {
 
           <section>
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Why</p>
-            <div className="mt-2 text-base leading-7 text-emerald-deep">
-              {m.workedSolution ? <MathText text={m.workedSolution} /> : 'Review the method, then try a guided similar question.'}
-            </div>
+            {Array.isArray(m.solutionSteps) && m.solutionSteps.length > 0 ? (
+              <div className="mt-2"><SolutionStepsCard solutionSteps={m.solutionSteps} /></div>
+            ) : (
+              <div className="mt-2 text-base leading-7 text-emerald-deep">
+                {m.workedSolution ? <MathText text={m.workedSolution} /> : 'Review the method, then try a guided similar question.'}
+              </div>
+            )}
           </section>
           <WorkingReviewCard mistake={m} />
           {m.tutorExplanation?.strokes?.length > 0 && (
@@ -351,6 +393,7 @@ export default function MistakeDetail() {
             </Button>
           )}
           {!showHelp && <Button variant="secondary" icon={Lightbulb} onClick={() => setShowHelp(true)}>Try Together</Button>}
+          <ReadAloudButton mistake={m} />
           <Button icon={Dumbbell} disabled={starting} onClick={practise}>Try Again</Button>
           {modelTrainer?.href && (
             <Button icon={Wand2} variant="secondary" onClick={() => navigate(modelTrainer.href)}>

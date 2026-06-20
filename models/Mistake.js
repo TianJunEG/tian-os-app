@@ -16,6 +16,9 @@ const mistakeSchema = new mongoose.Schema({
   questionText: { type: String, default: '' },
   questionStem: { type: String, default: '' },
   workedSolution: { type: String, default: '' },
+  // Structured step-by-step walkthrough for the review screen. Rendered as an
+  // ordered list (SolutionStepsCard); falls back to the workedSolution paragraph.
+  solutionSteps: { type: [String], default: [] },
   studentAnswer: { type: String, default: '' },
   correctAnswer: { type: String, default: '' },
   answerCorrect: { type: Boolean, default: false },

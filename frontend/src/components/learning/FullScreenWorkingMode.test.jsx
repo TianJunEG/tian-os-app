@@ -78,7 +78,10 @@ describe('FullScreenWorkingMode', () => {
 
     expect(screen.getAllByText('Shade 3/5 of the bar.').length).toBeGreaterThan(0);
     expect(screen.getByRole('button', { name: 'Clear' })).not.toBeDisabled();
+    // Clear is now destructive and prompts for confirmation; approve it.
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
     fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+    confirmSpy.mockRestore();
     expect(screen.getAllByText('Shade 3/5 of the bar.').length).toBeGreaterThan(0);
     expect(screen.getByText('Save Working')).toBeDisabled();
   });

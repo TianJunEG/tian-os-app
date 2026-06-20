@@ -23,6 +23,8 @@ vi.mock('../../../data/comics/comicDifficulty', () => ({
   resolveTier: () => 1,
   generateEpisodeProblems: (episode) => {
     const fixed = { 'p1-q1': 20, 'p2-q1': 9, 'p3-q1': 11 };
+    // Real engine now returns { problems, ctx }; mirror that shape so the reader
+    // can destructure it (ctx carries intermediate values for speech-bubble text).
     const problems = episode.panels.map((p) => (p.problem ? { ...p.problem, question: 'Q', hint: 'H', answer: fixed[p.problem.id] ?? 1 } : null));
     return { problems, ctx: {} };
   },

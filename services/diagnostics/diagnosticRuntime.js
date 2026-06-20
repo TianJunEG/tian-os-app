@@ -302,6 +302,10 @@ async function maybePersistMistake({ student, session, question, skillId, respon
           module: 'MathPath',
           questionText: question.stem || question.prompt || '',
           questionStem: question.stem || question.prompt || '',
+          // Carry a walkthrough so the review shows worked steps instead of the
+          // generic "Review the method" fallback for diagnostic-sourced mistakes.
+          workedSolution: String(question.workedSolution || question.explanation || question.modelAnswer || ''),
+          solutionSteps: Array.isArray(question.solutionSteps) ? question.solutionSteps : [],
           studentAnswer: String(response.answer || ''),
           correctAnswer: String(question.answer || ''),
           confidence: response.confidence || '',

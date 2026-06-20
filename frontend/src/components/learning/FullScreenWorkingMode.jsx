@@ -594,6 +594,25 @@ export default function FullScreenWorkingMode({
   };
 
   const undo = () => {
+    // The most recent reversible action is whichever sits on top of the redo
+    // stack's mirror — but undo here pops live state. A Clear leaves nothing on
+    // the canvas, so undoing it means restoring the snapshot it parked on the
+    // redo stack (both strokes AND math objects). Otherwise undo just removes
+    // the last stroke.
+    const topRedo = redoStack.at(-1);
+    if (topRedo && topRedo.type === 'clear') {
+      setRedoStack((prev) => prev.slice(0, -1));
+      const restoredStrokes = Array.isArray(topRedo.strokes) ? topRedo.strokes : [];
+      const restoredObjects = Array.isArray(topRedo.mathObjects) ? topRedo.mathObjects : [];
+      strokesRef.current = restoredStrokes;
+      mathObjectsRef.current = restoredObjects;
+      setStrokes(restoredStrokes);
+      setMathObjects(restoredObjects);
+      setSelectedObjectId(null);
+      setHasCanvasMarks(restoredStrokes.length > 0 || restoredObjects.length > 0);
+      setHasObjectEdit(restoredObjects.length > 0);
+      return;
+    }
     setStrokes((prev) => {
       const undone = prev.at(-1);
       const next = prev.slice(0, -1);
@@ -608,6 +627,17 @@ export default function FullScreenWorkingMode({
     const restored = redoStack.at(-1);
     if (!restored) return;
     setRedoStack((prev) => prev.slice(0, -1));
+    // A clear frame re-applies the wipe: drop both strokes and math objects.
+    if (restored.type === 'clear') {
+      strokesRef.current = [];
+      mathObjectsRef.current = [];
+      setStrokes([]);
+      setMathObjects([]);
+      setSelectedObjectId(null);
+      setHasCanvasMarks(false);
+      setHasObjectEdit(false);
+      return;
+    }
     setStrokes((prev) => {
       const next = [...prev, restored];
       strokesRef.current = next;
@@ -617,7 +647,22 @@ export default function FullScreenWorkingMode({
   };
 
   const clear = () => {
-    if (strokesRef.current.length) setRedoStack((prev) => [...prev, ...strokesRef.current]);
+    // Nothing to clear → no-op (also guards the confirm from firing on an empty
+    // canvas).
+    if (!strokesRef.current.length && !mathObjectsRef.current.length) return;
+    // Clear is destructive, so confirm before wiping.
+    if (typeof window !== 'undefined' && typeof window.confirm === 'function') {
+      const ok = window.confirm('Clear all working? You can undo this.');
+      if (!ok) return;
+    }
+    // Snapshot BOTH strokes and math objects so the clear is reversible via
+    // Undo/Redo (previously only strokes were saved and labels/stamps were lost).
+    const snapshot = {
+      type: 'clear',
+      strokes: strokesRef.current,
+      mathObjects: mathObjectsRef.current,
+    };
+    setRedoStack((prev) => [...prev, snapshot]);
     strokesRef.current = [];
     mathObjectsRef.current = [];
     setStrokes([]);
@@ -799,7 +844,7 @@ export default function FullScreenWorkingMode({
           tool={tool}
           colour={colour}
           brushSize={brushSize}
-          canUndo={strokes.length > 0}
+          canUndo={strokes.length > 0 || mathObjects.length > 0 || redoStack.some((frame) => frame?.type === 'clear')}
           canRedo={redoStack.length > 0}
           zoom={zoom}
           onToolChange={setTool}

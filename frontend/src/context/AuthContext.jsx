@@ -1,31 +1,8 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { authAPI } from '../services/api';
+import { clearClientCaches } from '../utils/clientCache';
 
 export const AuthContext = createContext();
-
-// Per-student client caches that must never leak across accounts on a shared
-// browser. We sweep both the bare keys and any per-user namespaced variants
-// (e.g. `tian_times_tables_facts_<id>`) by prefix on every auth boundary.
-const CLIENT_CACHE_PREFIXES = [
-  'tian_times_tables_facts',
-  'tianos.mathpath.domainProgress.v1',
-];
-
-const clearClientCaches = () => {
-  if (typeof window === 'undefined' || !window.localStorage) return;
-  try {
-    const keys = [];
-    for (let i = 0; i < window.localStorage.length; i += 1) {
-      const key = window.localStorage.key(i);
-      if (key && CLIENT_CACHE_PREFIXES.some((prefix) => key.startsWith(prefix))) {
-        keys.push(key);
-      }
-    }
-    keys.forEach((key) => window.localStorage.removeItem(key));
-  } catch (_) {
-    // best-effort defensive cleanup
-  }
-};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);

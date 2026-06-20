@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { clearClientCaches } from '../utils/clientCache';
 
 // Resolve the API base URL.
 // 1. An explicit VITE_API_URL (set at build time) always wins.
@@ -140,6 +141,10 @@ api.interceptors.response.use(
 
     if (status === 401) {
       localStorage.removeItem('token');
+      // A forced logout must clear the same per-account client caches as an
+      // explicit logout, otherwise stale per-account state survives the
+      // redirect into the next account on a shared device.
+      clearClientCaches();
       window.location.href = '/login';
     } else if ((status === 429 || (typeof status === 'number' && status >= 500))
       && !config.skipErrorToast && apiErrorHandler) {

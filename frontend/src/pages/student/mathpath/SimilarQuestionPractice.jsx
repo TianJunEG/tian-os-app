@@ -245,6 +245,8 @@ export default function SimilarQuestionPractice() {
           allowNoWorking={workingRequirement.allowNoWorking}
           submittedImage={currentWorking.workingImage || ''}
           submittedStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
+          initialColumnGrid={currentWorking.workingColumnGrid || null}
+          initialMathSteps={currentWorking.workingSteps || null}
           initialSubmitted={Boolean(currentWorking.workingSubmitted)}
           initialWorkingNotNeeded={Boolean(currentWorking.workingNotNeeded)}
           onChange={(payload) => setWorkingByQuestion((prev) => ({
