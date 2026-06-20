@@ -947,6 +947,8 @@ export const comicsAPI = {
   recommended: () => api.get('/comics/recommended'),
   // studentId scopes to a child (parent view); omit for the logged-in student.
   activity: (studentId) => api.get('/comics/activity', studentId ? { params: { studentId } } : undefined),
+  // Saved scratchpad working for one episode (parent/teacher review surface).
+  working: (studentId, episodeId) => api.get('/comics/working', { params: { ...(studentId ? { studentId } : {}), episodeId } }),
 };
 
 // Science API — P6 science revision bank (open-ended Q&A).
