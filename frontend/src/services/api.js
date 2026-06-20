@@ -833,6 +833,7 @@ export const adminAPI = {
   getDashboard: () => api.get('/admin/dashboard'),
   getMathPathPilot: (params) => api.get('/admin/mathpath-pilot', { params }),
   getPilotAnalytics: (params) => api.get('/admin/pilot-analytics', { params }),
+  getComicAnalytics: (params) => api.get('/admin/comic-analytics', { params }),
   getPilotInterventionMetrics: (params) => api.get('/admin/pilot/intervention-metrics', { params }),
   getPilotInterventionSummary: (params) => api.get('/admin/pilot/intervention-summary', { params }),
   getQuestionQuality: (params) => api.get('/admin/question-quality', { params }),
