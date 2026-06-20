@@ -7,7 +7,27 @@ import StoryPanel from './components/StoryPanel';
 import QuestionIdentifier from './components/QuestionIdentifier';
 import PlanDispatcher from './components/PlanDispatcher';
 import SolveDispatcher from './components/SolveDispatcher';
+import BarModelViewer from './components/BarModelViewer';
 import CheckPanel from './components/CheckPanel';
+
+// Adapt the bar model the student built in the Plan step (parts:[{label,value}])
+// into the flat shape BarModelViewer reads, so the Solve step can show it as a
+// read-only reference while they work.
+function barViewerValues(plan = {}) {
+  const parts = Array.isArray(plan.parts) ? plan.parts : [];
+  const num = (v) => (v === undefined || v === null || v === '' ? undefined : Number(v));
+  if (plan.modelType === 'comparison') {
+    const larger = num(parts[0]?.value);
+    const smaller = num(parts[1]?.value);
+    return {
+      larger, smaller,
+      difference: Number.isFinite(larger) && Number.isFinite(smaller) ? Math.abs(larger - smaller) : undefined,
+    };
+  }
+  const v = {};
+  ['partA', 'partB', 'partC'].forEach((key, i) => { const n = num(parts[i]?.value); if (n !== undefined) v[key] = n; });
+  return v;
+}
 import StepFeedbackCard from './components/StepFeedbackCard';
 import MascotBubble from './components/MascotBubble';
 import HintLadder from './components/HintLadder';
@@ -351,6 +371,16 @@ export default function PSLSession() {
             <div className="mb-4 rounded-xl border border-[#edf0f4] bg-[#fafbfc] p-3">
               <p className="text-sm leading-relaxed" style={{ color: '#5a6675' }}>{currentProblem.storyText}</p>
             </div>
+            {(currentProblem.scaffoldSteps?.find((s) => s.stepId === 'plan')?.type || 'model') === 'model' && stepResponses.plan?.modelType && (
+              <div className="mb-4">
+                <p className="mb-1.5 text-xs font-medium text-ink-400">Your bar model</p>
+                <BarModelViewer
+                  modelType={stepResponses.plan.modelType}
+                  unknownPosition={stepResponses.plan.unknownPosition}
+                  values={barViewerValues(stepResponses.plan)}
+                />
+              </div>
+            )}
             <SolveDispatcher
               scaffoldStep={currentProblem.scaffoldSteps?.find((s) => s.stepId === 'solve')}
               response={stepResponses.solve || {}}
