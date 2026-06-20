@@ -232,11 +232,15 @@ function levelToYear(level = '') {
 
 const LEVEL_LABELS = ['K2', 'P1', 'P2', 'P3', 'P4', 'P5', 'P6'];
 
+// The two halves of the gentle K2 Early Numeracy track (counting/numbers vs
+// part-whole & within-10 +/−). Both deep-link into the same early-numeracy
+// Explore track at a representative starting skill — NOT the P1-level
+// number-sense/operations domains (which K2 is no longer pushed into).
 const K2_TILES = [
   {
     label: 'Count & Numbers',
-    desc: 'Count to 20, bigger & smaller',
-    to: '/student/mathpath/number-sense',
+    desc: 'Count to 10, more or fewer',
+    to: '/student/mathpath/early-numeracy/practice?skill=EN001',
     Icon: Hash,
     colorClass: 'bg-indigo-50 border-indigo-100',
     iconBg: 'bg-indigo-100',
@@ -246,8 +250,8 @@ const K2_TILES = [
   },
   {
     label: 'Add & Take Away',
-    desc: 'Sums within 10, then 20',
-    to: '/student/mathpath/operations',
+    desc: 'Put together & take away, within 10',
+    to: '/student/mathpath/early-numeracy/practice?skill=EN007',
     Icon: Calculator,
     colorClass: 'bg-orange-50 border-orange-100',
     iconBg: 'bg-orange-100',
