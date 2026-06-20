@@ -143,6 +143,13 @@ export function AvatarPicker({ currentAvatar, onSelect, onClose }) {
   );
 }
 
+export function MascotGreeting({ mascotKey, studentName, className = '' }) {
+  const mascot = getMascot(mascotKey);
+  if (!mascot) return null;
+  const greeting = mascot.greeting ? mascot.greeting(studentName) : `Hi ${studentName}! I'm ${mascot.name}.`;
+  return <MascotBubble name={mascotKey} message={greeting} className={className} />;
+}
+
 export function MascotBubble({ name, message, size = 'md', className = '', voiced = false }) {
   const mascot = getMascot(name);
   // Opt-in TTS: read the message aloud in this mascot's voice (Kokoro when
