@@ -441,7 +441,7 @@ export default function StudentDashboardUpperPrimary({
                   {getLatestEpisode() ? `New: Ep ${getLatestEpisode().episode} — ${getLatestEpisode().title}` : 'Comic word problems with Kylo & friends'}
                 </p>
               </div>
-              <Button to={getLatestEpisode() ? `/student/comics/${getLatestEpisode().slug}` : '/student/comics'} size="s" icon={ArrowRight}>Read</Button>
+              <Button to="/student/comics" size="s" icon={ArrowRight}>Read</Button>
             </Card>
           </div>
         )}
