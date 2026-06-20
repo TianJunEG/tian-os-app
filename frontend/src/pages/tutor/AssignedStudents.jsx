@@ -9,6 +9,7 @@ export default function AssignedStudents() {
   const [students, setStudents] = useState(null);
   const [loadError, setLoadError] = useState(false);
   const [inviteUrl, setInviteUrl] = useState('');
+  const [inviteError, setInviteError] = useState('');
   const [creatingInvite, setCreatingInvite] = useState(false);
 
   const load = () => {
@@ -23,9 +24,12 @@ export default function AssignedStudents() {
 
   const createInvite = async () => {
     setCreatingInvite(true);
+    setInviteError('');
     try {
       const res = await tutorInviteAPI.create({ focusArea: 'MathPath' });
       setInviteUrl(res.data?.inviteUrl || '');
+    } catch (_) {
+      setInviteError("Couldn’t create an invite link. Please try again.");
     } finally {
       setCreatingInvite(false);
     }
@@ -45,6 +49,11 @@ export default function AssignedStudents() {
         subtitle="Private students in this workspace."
         action={<Button size="s" icon={Link2} onClick={createInvite} disabled={creatingInvite}>{creatingInvite ? 'Creating…' : 'Invite Student'}</Button>}
       />
+      {inviteError && (
+        <Card className="mb-4 p-4">
+          <p className="text-sm text-error-700">{inviteError}</p>
+        </Card>
+      )}
       {inviteUrl && (
         <Card className="mb-4 p-4">
           <div className="flex flex-wrap items-center gap-2">
