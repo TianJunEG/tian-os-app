@@ -5,7 +5,6 @@ import { learningTelemetryAPI, mathpathAPI } from '../../../services/api';
 import { confettiBurst } from '../../../utils/confetti';
 import { useAuth } from '../../../context/AuthContext';
 import { Card, Button, ProgressBar, Spinner } from '../../../components/ui';
-import { MascotBubble } from '../../../components/MascotAvatar';
 import { getVisualModeStyles, resolveStudentVisualMode } from '../../../design-os/studentVisualMode';
 import { MathText } from '../../../components/ui/Fraction';
 import { getUniversalSkillByFrameworkId } from '../../../mathpath/curriculum';
