@@ -194,6 +194,92 @@ function MoneyToken({ type, counted, onClick, label }) {
   );
 }
 
+// ── Money coin/note diagram (driven by the generated question.diagram) ────────
+// Real SGD denominations (in cents) → display metadata. Coins render as circles,
+// notes as rounded rectangles, so a child can tell them apart at a glance. The
+// label is what matters pedagogically; colours just help differentiate values.
+const SGD_DENOM_META = {
+  5:     { label: '5¢',   shape: 'coin', bg: '#b08d57', ring: '#8a6d3b', fg: '#fff' },
+  10:    { label: '10¢',  shape: 'coin', bg: '#b9bcc2', ring: '#8a8f98', fg: '#1f2937' },
+  20:    { label: '20¢',  shape: 'coin', bg: '#b9bcc2', ring: '#8a8f98', fg: '#1f2937' },
+  50:    { label: '50¢',  shape: 'coin', bg: '#b9bcc2', ring: '#8a8f98', fg: '#1f2937' },
+  100:   { label: '$1',   shape: 'coin', bg: '#d4a017', ring: '#a16207', fg: '#fff' },
+  200:   { label: '$2',   shape: 'note', bg: '#7c3aed', ring: '#6d28d9', fg: '#fff' },
+  500:   { label: '$5',   shape: 'note', bg: '#16a34a', ring: '#15803d', fg: '#fff' },
+  1000:  { label: '$10',  shape: 'note', bg: '#dc2626', ring: '#b91c1c', fg: '#fff' },
+  5000:  { label: '$50',  shape: 'note', bg: '#2563eb', ring: '#1d4ed8', fg: '#fff' },
+  10000: { label: '$100', shape: 'note', bg: '#ea580c', ring: '#c2410c', fg: '#fff' },
+};
+
+// Extract the generated coin/note diagram from a question into a flat token list.
+// The money generator emits diagram: { kind:'coins', items:[{ valueCents, count }] }.
+// Returns null when the question has no usable coins diagram.
+export function parseCoinsDiagram(question) {
+  const d = question?.diagram;
+  if (!d || d.kind !== 'coins' || !Array.isArray(d.items)) return null;
+  const tokens = [];
+  d.items.forEach((it, gi) => {
+    const value = Number(it.valueCents);
+    const count = Math.max(0, Number(it.count) || 0);
+    if (!SGD_DENOM_META[value]) return;
+    for (let i = 0; i < count; i += 1) tokens.push({ value, key: `g${gi}-${value}-${i}` });
+  });
+  return tokens.length ? tokens : null;
+}
+
+function MoneyPiece({ value, counted, onClick }) {
+  const meta = SGD_DENOM_META[value];
+  if (!meta) return null;
+  const isCoin = meta.shape === 'coin';
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={meta.label}
+      className="relative flex shrink-0 items-center justify-center select-none transition-all"
+      style={{
+        width: isCoin ? 50 : 72,
+        height: isCoin ? 50 : 44,
+        borderRadius: isCoin ? '9999px' : 8,
+        background: meta.bg,
+        border: `3px solid ${meta.ring}`,
+        transform: counted ? 'scale(0.82)' : 'scale(1)',
+        boxShadow: counted ? 'none' : '0 2px 4px rgba(0,0,0,0.18)',
+      }}
+    >
+      <span className="font-bold" style={{ color: meta.fg, fontSize: isCoin ? 14 : 16, lineHeight: 1 }}>
+        {meta.label}
+      </span>
+      {counted && <span className="absolute -bottom-1 -right-1 text-sm leading-none">✓</span>}
+    </button>
+  );
+}
+
+// Interactive coin/note display for money questions, driven by the question's
+// GENERATED diagram (not a fragile prompt-text parse). Handles every SGD
+// denomination the generator emits (5¢…$100), mixed in one question. Pass
+// key={questionId} from the parent so the counted-state resets per question.
+export function ManipulativeMoneyDiagram({ tokens = [] }) {
+  const [counted, setCounted] = useState(new Set());
+  const toggle = (key) =>
+    setCounted((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  if (!tokens.length) return null;
+  return (
+    <div className="rounded-2xl bg-yellow-50 p-4 space-y-3">
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        {tokens.map(({ value, key }) => (
+          <MoneyPiece key={key} value={value} counted={counted.has(key)} onClick={() => toggle(key)} />
+        ))}
+      </div>
+      <p className="text-center text-xs text-ink-400">Tap the money to count</p>
+    </div>
+  );
+}
+
 // Interactive coin/note array for K2/P1 money questions.
 // Shows $5 notes (green circles) and $1 coins (gold circles) for each dollar group.
 // Only supports whole-dollar amounts ≤ $20 per group.
