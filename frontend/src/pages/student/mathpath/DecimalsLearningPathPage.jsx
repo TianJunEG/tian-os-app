@@ -12,7 +12,7 @@ import DomainSkillMap from './components/DomainSkillMap';
 // routes, surfaced via the footerSlot. All status / locking / recommended-next
 // logic lives in the pure buildDecimalsLearningPathView() model.
 export default function DecimalsLearningPathPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [records, setRecords] = useState([]);
@@ -21,6 +21,7 @@ export default function DecimalsLearningPathPage() {
   const startPractice = (skillId) => navigate(`/student/mathpath/decimals/practice?skill=${skillId}`);
 
   useEffect(() => {
+    if (authLoading) return;
     let active = true;
     (async () => {
       try {
@@ -41,7 +42,7 @@ export default function DecimalsLearningPathPage() {
       }
     })();
     return () => { active = false; };
-  }, [user]);
+  }, [user, authLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const view = useMemo(() => buildDecimalsLearningPathView({ masteryRecords: records }), [records]);
 
