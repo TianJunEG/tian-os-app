@@ -6,8 +6,13 @@
 // Notes:
 //  - `area_perimeter` maps to the P6 area & volume graph as the closest
 //    available figure-geometry graph until a dedicated one exists.
-//  - Lower-primary domains (money, time, measurement, four_operations,
-//    number_sense) aggregate skills across all relevant P-levels.
+//  - `four_operations` maps to the canonical shared OP0xx operations graph —
+//    the SAME graph the practice/diagnostic engines and the backend resolver
+//    (services/mathpath/domainSkillGraphServer.js) use, so a student's OP0xx
+//    mastery records match. (It previously used a separate P1-ADD-* aggregation
+//    whose ids never matched those records.)
+//  - Other lower-primary domains (money, time, measurement, number_sense)
+//    aggregate skills across all relevant P-levels.
 
 import { fractionSkillGraph, getSkill as getFractionSkill } from '../fractions/fractionSkillGraph.js';
 import { p6PercentageSkillGraph, getSkill as getPercentageSkill } from '../primary/p6PercentageSkillGraph.js';
@@ -21,7 +26,7 @@ import { p6SpeedSkillGraph, getSkill as getSpeedSkill } from '../primary/p6Speed
 import { moneySkillGraph, getSkill as getMoneySkill } from './moneySkillGraph.js';
 import { timeSkillGraph, getSkill as getTimeSkill } from './timeSkillGraph.js';
 import { measurementSkillGraph, getSkill as getMeasurementSkill } from './measurementSkillGraph.js';
-import { fourOperationsSkillGraph, getSkill as getFourOperationsSkill } from './fourOperationsSkillGraph.js';
+import { operationsSkillGraph as fourOperationsSkillGraph, getSkill as getFourOperationsSkill } from '../../../../shared/mathpath/operations/OperationsSkillGraph.js';
 import { numberSenseSkillGraph, getSkill as getNumberSenseSkill } from './numberSenseSkillGraph.js';
 
 // Empty graph + identity lookup for domains without a frontend graph yet.
