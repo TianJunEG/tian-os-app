@@ -266,7 +266,8 @@ router.get('/activity', async (req, res) => {
       { episodeId: 1, completedAt: 1, problems: 1 },
     ).sort({ completedAt: -1 }).lean();
 
-    const completed = records.map((r) => ({ episodeId: r.episodeId, completedAt: r.completedAt }));
+    const hasWorking = (r) => (r.problems || []).some((p) => Array.isArray(p.workingStrokes) && p.workingStrokes.length);
+    const completed = records.map((r) => ({ episodeId: r.episodeId, completedAt: r.completedAt, hasWorking: hasWorking(r) }));
     const slugs = [...new Set(
       records.flatMap((r) => (r.problems || []).map((p) => SKILL_SLUG[p.problemId]).filter(Boolean)),
     )];
@@ -279,6 +280,49 @@ router.get('/activity', async (req, res) => {
     if (err && err.status) return res.status(err.status).json({ error: err.message });
     console.error('comics activity error', err);
     res.status(500).json({ error: 'Failed to fetch activity' });
+  }
+});
+
+// GET /api/comics/working?studentId=…&episodeId=… — the saved scratchpad
+// working for one completed episode, for the parent/teacher review surface.
+// resolveStudent validates guardianship when studentId is supplied. Returns one
+// entry per problem that HAS working (vector strokes), each tagged with the
+// skill it practises and whether the answer was correct. Empty list when the
+// episode has no record or no working was drawn.
+router.get('/working', async (req, res) => {
+  try {
+    const student = await resolveStudent(req, req.query.studentId);
+    const episodeId = String(req.query.episodeId || '');
+    if (!episodeId) return res.status(400).json({ error: 'episodeId is required' });
+
+    const record = await ComicProgress.findOne(
+      { studentId: student._id, episodeId },
+      { problems: 1, completedAt: 1 },
+    ).lean();
+
+    const withWork = (record?.problems || []).filter(
+      (p) => Array.isArray(p.workingStrokes) && p.workingStrokes.length,
+    );
+
+    const slugs = [...new Set(withWork.map((p) => SKILL_SLUG[p.problemId]).filter(Boolean))];
+    const skillDocs = slugs.length ? await Skill.find({ slug: { $in: slugs } }, { slug: 1, name: 1 }).lean() : [];
+    const nameBySlug = new Map(skillDocs.map((s) => [s.slug, s.name]));
+
+    const problems = withWork.map((p) => {
+      const slug = SKILL_SLUG[p.problemId];
+      return {
+        problemId: p.problemId,
+        correct: !!p.correct,
+        skillName: slug ? (nameBySlug.get(slug) || slug) : null,
+        workingStrokes: p.workingStrokes,
+      };
+    });
+
+    res.json({ episodeId, completedAt: record?.completedAt || null, problems });
+  } catch (err) {
+    if (err && err.status) return res.status(err.status).json({ error: err.message });
+    console.error('comics working error', err);
+    res.status(500).json({ error: 'Failed to fetch working' });
   }
 });
 
