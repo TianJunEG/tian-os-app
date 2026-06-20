@@ -47,13 +47,13 @@ export default function LoginPage() {
           Back to homepage
         </Link>
         <div className="mb-6 flex justify-center"><Wordmark onDark={false} size={34} /></div>
-        <div className="mb-4 flex justify-center gap-1">
+        <div className="mb-4 -mx-8 flex items-end justify-center gap-1 overflow-x-auto px-4">
           {MASCOT_ORDER.map((key) => (
             <img
               key={key}
               src={`/mascots/${key}.png`}
               alt={key}
-              className="h-16 w-10 object-contain drop-shadow-sm"
+              className="h-24 w-12 shrink-0 object-contain drop-shadow-sm"
             />
           ))}
         </div>
