@@ -39,27 +39,28 @@ export function numericLine(prompt = '') {
     ?.trim() || String(prompt).trim();
 }
 
-function Dot({ color, removed, counted, onClick, label }) {
+function Dot({ removed, counted, onClick, label }) {
   return (
     <button
       type="button"
       onClick={removed ? undefined : onClick}
       disabled={removed}
       aria-label={label}
-      className={`flex shrink-0 items-center justify-center rounded-full transition-all select-none ${!removed ? 'active:scale-90 cursor-pointer' : 'cursor-default'}`}
+      className="relative flex shrink-0 items-center justify-center select-none transition-all"
       style={{
-        width: 44,
-        height: 44,
-        background: removed ? '#fee2e2' : counted ? '#d1fae5' : color,
-        border: removed
-          ? '2px solid #fca5a5'
-          : counted
-            ? '2px solid #34d399'
-            : '2px solid rgba(0,0,0,0.10)',
+        width: 52,
+        height: 52,
+        fontSize: 38,
+        lineHeight: 1,
+        cursor: removed ? 'default' : 'pointer',
+        filter: removed ? 'grayscale(1) opacity(0.25)' : 'none',
+        transform: counted ? 'scale(0.82)' : 'scale(1)',
       }}
     >
-      {removed && <span className="text-xl font-bold text-red-400">×</span>}
-      {!removed && counted && <span className="text-xl font-bold text-emerald-600">✓</span>}
+      🍎
+      {!removed && counted && (
+        <span className="absolute bottom-0 right-0 text-base leading-none">✓</span>
+      )}
     </button>
   );
 }
@@ -86,34 +87,32 @@ export default function ManipulativeDotArray({ a, b, operator }) {
 
   if (operator === '+') {
     return (
-      <div className="rounded-2xl bg-blue-50 p-4 space-y-3">
+      <div className="rounded-2xl bg-red-50 p-4 space-y-3">
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <div className="flex flex-wrap justify-center gap-2">
+          <div className="flex flex-wrap justify-center gap-1">
             {Array.from({ length: a }, (_, i) => (
               <Dot
                 key={`a${i}`}
-                color="#3b82f6"
                 counted={counted.has(`a${i}`)}
                 onClick={() => toggle(`a${i}`)}
-                label={`Group 1, dot ${i + 1}`}
+                label={`Apple ${i + 1}`}
               />
             ))}
           </div>
-          <span className="text-2xl font-bold text-ink-500">+</span>
-          <div className="flex flex-wrap justify-center gap-2">
+          <span className="text-3xl font-bold text-ink-500">+</span>
+          <div className="flex flex-wrap justify-center gap-1">
             {Array.from({ length: b }, (_, i) => (
               <Dot
                 key={`b${i}`}
-                color="#f97316"
                 counted={counted.has(`b${i}`)}
                 onClick={() => toggle(`b${i}`)}
-                label={`Group 2, dot ${i + 1}`}
+                label={`Apple ${i + 1}`}
               />
             ))}
           </div>
-          <span className="text-2xl font-bold text-ink-500">= ?</span>
+          <span className="text-3xl font-bold text-ink-500">= ?</span>
         </div>
-        <p className="text-center text-xs text-ink-400">Tap the dots to count</p>
+        <p className="text-center text-xs text-ink-400">Tap the apples to count</p>
       </div>
     );
   }
@@ -121,25 +120,24 @@ export default function ManipulativeDotArray({ a, b, operator }) {
   if (operator === '−' || operator === '-') {
     const remaining = a - b;
     return (
-      <div className="rounded-2xl bg-orange-50 p-4 space-y-3">
-        <div className="flex flex-wrap items-center justify-center gap-2">
+      <div className="rounded-2xl bg-red-50 p-4 space-y-3">
+        <div className="flex flex-wrap items-center justify-center gap-1">
           {Array.from({ length: a }, (_, i) => {
             const isRemoved = i >= remaining;
             const key = `d${i}`;
             return (
               <Dot
                 key={key}
-                color="#3b82f6"
                 removed={isRemoved}
                 counted={counted.has(key)}
                 onClick={() => toggle(key)}
-                label={isRemoved ? `Taken away` : `Dot ${i + 1}`}
+                label={isRemoved ? `Taken away` : `Apple ${i + 1}`}
               />
             );
           })}
-          <span className="text-2xl font-bold text-ink-500">= ?</span>
+          <span className="text-3xl font-bold text-ink-500">= ?</span>
         </div>
-        <p className="text-center text-xs text-ink-400">Tap the dots left to count</p>
+        <p className="text-center text-xs text-ink-400">Tap the apples left to count</p>
       </div>
     );
   }
