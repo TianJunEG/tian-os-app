@@ -124,7 +124,7 @@ describe('DiagnosticQuestionScreen adaptive flow', () => {
     await screen.findByText(/What is 3 \+ 4/i, {}, { timeout: 5000 });
     fireEvent.click(await screen.findByRole('button', { name: '7' }));
     fireEvent.click((await screen.findAllByRole('button', { name: /Next Question/i }))[0]);
-    fireEvent.click(screen.getByRole('button', { name: /I know this 100%/i }));
+    fireEvent.click(screen.getByRole('button', { name: /I know this!/i }));
     fireEvent.click(screen.getByLabelText(/I really didn't need working for this one/i));
     fireEvent.click((await screen.findAllByRole('button', { name: /Next Question/i }))[1]);
 
@@ -187,7 +187,7 @@ describe('DiagnosticQuestionScreen adaptive flow', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: '6' }));
     fireEvent.click((await screen.findAllByRole('button', { name: /Next Question/i }))[0]);
-    fireEvent.click(screen.getByRole('button', { name: /^I need help$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Need help/i }));
     fireEvent.click(screen.getByLabelText(/I really didn't need working for this one/i));
     fireEvent.click((await screen.findAllByRole('button', { name: /Next Question/i }))[1]);
 

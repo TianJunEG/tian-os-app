@@ -501,7 +501,7 @@ export default function DiagnosticQuestionScreen() {
         }))}
         onOpenWorking={() => setFullscreenQuestionId(q.questionId)}
         confirmLabel="Next Question"
-        onConfirm={confirmSubmissionReview}
+        onConfirm={() => confirmSubmissionReview()}
         onClose={() => setReviewModalOpen(false)}
         busy={busy}
         canSubmit={() => Boolean(answer.trim() && reflection && workingReady)}

@@ -13,8 +13,8 @@ describe('domainSkillGraphResolver', () => {
   });
 
   it('falls back to a safe empty graph for unmapped (lower-primary) domains', () => {
-    expect(hasDomainSkillGraph('money')).toBe(false);
-    const { skillGraph, getSkill } = resolveDomainSkillGraph('money');
+    expect(hasDomainSkillGraph('k1_counting')).toBe(false);
+    const { skillGraph, getSkill } = resolveDomainSkillGraph('k1_counting');
     expect(skillGraph.skillIds).toEqual([]);
     expect(getSkill('anything')).toBeNull();
   });
