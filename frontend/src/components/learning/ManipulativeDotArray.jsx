@@ -7,6 +7,10 @@ export function toSpeakable(text = '') {
     .filter((line) => !/^[\s⬤●○+\-×÷=?]+$/.test(line.trim()))
     .join(' ')
     .replace(/[⬤●○]/g, '')
+    // Mixed numbers before fractions: "4 1/4" → "4 and 1 out of 4"
+    .replace(/(\d+)\s+(\d+)\/(\d+)/g, '$1 and $2 out of $3')
+    // Plain fractions: "10/14" → "10 out of 14"
+    .replace(/(\d+)\/(\d+)/g, '$1 out of $2')
     .replace(/\+/g, ' plus ')
     .replace(/[−–-]/g, ' minus ')
     .replace(/[×]/g, ' times ')
