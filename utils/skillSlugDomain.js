@@ -14,6 +14,7 @@ const PREFIX_TO_DOMAIN = {
   rr: 'ratio',
   op: 'four_operations',
   ns: 'number_sense',
+  en: 'early_numeracy',
   geo: 'geometry',
   mea: 'measurement',
   alg: 'algebra',
