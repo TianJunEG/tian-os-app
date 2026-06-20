@@ -716,6 +716,16 @@ function AnswerFeedbackCard({ feedback, correctAnswer, solutionSteps, onTryAgain
         <p className="relative mt-2 text-sm font-semibold text-success-700">{feedback.streakMessage}</p>
       )}
 
+      {/* Talia offers a gentle nudge after a wrong answer. */}
+      {!correct && !feedback.skipped && (
+        <MascotBubble
+          mascotKey="talia"
+          text="Mistakes are how we learn — take a look and give it another go."
+          showName={false}
+          className="relative mt-3"
+        />
+      )}
+
       {/* Guided hints — progressive one-at-a-time reveal */}
       {hasSteps && !correct && (
         <div className="relative mt-3 space-y-2">

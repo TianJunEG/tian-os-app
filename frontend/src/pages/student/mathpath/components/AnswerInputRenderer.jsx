@@ -7,10 +7,16 @@ import MathSymbolBar from './MathSymbolBar';
 const EXPRESSION_SYMBOLS = ['x', 'power', 'root', 'fraction', 'times', 'divide', 'lparen', 'rparen', 'pi'];
 
 function isComparisonQuestion(question = {}) {
+  // Robust signal first: the generator tags compare / "<, > or =" families with
+  // answerFormat:'comparison' (survives the server-side allowlist).
+  const fmt = String(
+    question.answerFormat || question.answer_format || question.format || ''
+  ).toLowerCase();
+  if (fmt === 'comparison') return true;
   const prompt = String(question.prompt || question.stem || '');
-  if (/write\s*[><]\s*or\s*[><]/i.test(prompt)) return true;
+  if (/write\s*[<>=]\s*,?\s*[<>=]?\s*or\s*[<>=]/i.test(prompt)) return true;
   const ans = String(question.answer?.value ?? question.answer?.display ?? question.answer ?? '').trim();
-  return ans === '>' || ans === '<';
+  return ans === '>' || ans === '<' || ans === '=';
 }
 
 function ComparisonAnswerInput({ value, onChange, disabled }) {
@@ -18,7 +24,7 @@ function ComparisonAnswerInput({ value, onChange, disabled }) {
     <div>
       <span className="mb-3 block text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Choose the symbol</span>
       <div className="flex gap-4">
-        {['>', '<'].map((sym) => (
+        {['>', '<', '='].map((sym) => (
           <button
             key={sym}
             type="button"
@@ -90,6 +96,26 @@ function normalizeType(question = {}) {
   return 'text';
 }
 
+// True when the question explicitly declares a free-text / algebraic-expression
+// answer (so the keyboard should stay alphanumeric). The bare `text` fallback —
+// an unclassified short-answer that is really numeric — returns false, so it
+// gets the numeric pad instead of a QWERTY keyboard on iPad.
+function isExplicitFreeText(question = {}) {
+  const explicit = String(
+    question.answerFormat
+      || question.answer_format
+      || question.format
+      || question.inputFormat
+      || question.input_format
+      || question.answer_type
+      || question.answerType
+      || question.answerInputType
+      || question.expectedAnswerType
+      || ''
+  ).toLowerCase();
+  return ['expression', 'algebra', 'equation', 'text'].includes(explicit);
+}
+
 function extractOrderingItems(question = {}) {
   const prompt = String(question.prompt || question.stem || '');
   const match = prompt.match(/:\s*([^.?]+)[.?]?$/);
@@ -125,6 +151,7 @@ function OrderingAnswerInput({ question, value, onChange, disabled, onEnter }) {
               value={parts[index] || ''}
               onChange={(event) => setPart(index, event.target.value)}
               disabled={disabled}
+              aria-label={`Your answer for position ${index + 1}`}
               placeholder={items[index] ? 'Type here' : 'Fraction'}
               className="h-12 w-full rounded-xl border border-line-soft px-3 text-center font-mono text-base text-ink-900 focus:border-emerald focus:outline-none focus:ring-2 focus:ring-emerald/20"
               onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
@@ -167,7 +194,17 @@ export default function AnswerInputRenderer({
     return <ComparisonAnswerInput value={value} onChange={onChange} disabled={disabled} />;
   }
 
-  const inputMode = type === 'decimal' ? 'decimal' : type === 'whole_number' ? 'numeric' : 'text';
+  // iPad keyboard selection: decimal/numeric answers must get the number pad.
+  // 'decimal' gives the pad with '.' and '-'; 'numeric' is digits-only. The
+  // generic short-answer/numeric fallback defaults to 'decimal'; only genuine
+  // free-text / algebraic-expression answers keep the full 'text' keyboard.
+  const inputMode = type === 'decimal'
+    ? 'decimal'
+    : type === 'whole_number'
+      ? 'numeric'
+      : (type === 'expression' || isExplicitFreeText(question))
+        ? 'text'
+        : 'decimal';
   const label = type === 'decimal' ? 'Decimal answer' : type === 'whole_number' ? 'Whole number answer' : type === 'expression' ? 'Expression answer' : 'Answer';
   return (
     <div className="block">
@@ -177,6 +214,7 @@ export default function AnswerInputRenderer({
         onChange={(event) => onChange?.(event.target.value)}
         disabled={disabled}
         inputMode={inputMode}
+        aria-label={`Your answer${label === 'Answer' ? '' : ` (${label})`}`}
         placeholder={question?.placeholder || (type === 'decimal' ? 'e.g. 0.25' : type === 'whole_number' ? 'e.g. 12' : 'Type your answer')}
         className="w-full rounded-xl border border-line-soft px-4 py-3 font-mono text-lg text-ink-900 focus:border-emerald focus:outline-none focus:ring-2 focus:ring-emerald/20"
         onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}

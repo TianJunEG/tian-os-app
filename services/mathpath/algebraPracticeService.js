@@ -39,6 +39,7 @@ export function buildAlgebraPracticeSession({
     misconceptionTag: q.misconceptionTag || '',
     difficulty: q.difficulty,
     workingRequired: Boolean(q.workingRequired),
+    answerFormat: q.answerFormat,
   }));
   return {
     domainId: DOMAIN_ID,

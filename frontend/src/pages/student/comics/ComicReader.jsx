@@ -1,11 +1,12 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Lightbulb, CheckCircle, XCircle, BookOpen, Volume2, VolumeX } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Lightbulb, CheckCircle, XCircle, BookOpen, Volume2, VolumeX, Pencil } from 'lucide-react';
 import { getEpisode, getEpisodeById, MASCOT_COLORS } from '../../../data/comics/episodes';
 import { resolveTier, generateEpisodeProblems } from '../../../data/comics/comicDifficulty';
-import { comicsAPI } from '../../../services/api';
+import { comicsAPI, learningTelemetryAPI } from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 import useComicNarration from './useComicNarration';
+import WorkingCanvas from '../../../components/learning/WorkingCanvas';
 
 // ─── Speech bubble ───────────────────────────────────────────────────────────
 
@@ -402,6 +403,55 @@ function ProblemBox({ problem, onSolve, solved, episode, panelIndex }) {
   );
 }
 
+// ─── Optional working scratchpad ──────────────────────────────────────────────
+// A lightweight, collapsed-by-default sketch area so a child CAN show working
+// without slowing the quick-read format. Reuses the MathPath WorkingCanvas in
+// compact mode; never required. Captures vector strokes only (no AI analysis) —
+// surfaced upward via onChange so the reader can save them with the episode.
+
+function WorkingScratch({ problemId, value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const hasWork = (value?.workingStrokes?.length || 0) > 0;
+  return (
+    <div style={{ marginTop: 10 }}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          background: 'transparent',
+          border: '1.5px dashed #d4d4d4',
+          borderRadius: 10,
+          padding: '7px 12px',
+          fontSize: 13,
+          fontWeight: 600,
+          color: hasWork ? '#b45309' : '#78716c',
+          cursor: 'pointer',
+        }}
+      >
+        <Pencil size={13} />
+        {open ? 'Hide working' : hasWork ? 'Working added · edit' : 'Show working (optional)'}
+      </button>
+      {open && (
+        <div style={{ marginTop: 8 }}>
+          <WorkingCanvas
+            questionId={problemId}
+            required={false}
+            allowNoWorking
+            compact
+            label="Sketch your working"
+            submittedStrokes={value?.workingStrokes || []}
+            onChange={(payload) => onChange(problemId, payload)}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── End card ─────────────────────────────────────────────────────────────────
 
 function EndCard({ nextEpisode, nextRec, onPlayNext }) {
@@ -484,6 +534,7 @@ export default function ComicReader() {
 
   const [currentPanel, setCurrentPanel] = useState(0);
   const [solvedProblems, setSolvedProblems] = useState({});
+  const [workingByProblem, setWorkingByProblem] = useState({}); // optional scratchpad strokes, keyed by problemId
   const [submitted, setSubmitted] = useState(false);
   const [nextRec, setNextRec] = useState(null); // adaptive "play next" pick
 
@@ -495,13 +546,21 @@ export default function ComicReader() {
   const tier = useMemo(() => resolveTier(user || {}, episode?.grade || ''), [user, episode]);
   // Concrete, level-scaled problems for every panel, generated once per reading
   // with a shared ctx so story-linked numbers stay consistent across panels.
-  const problems = useMemo(
-    () => (episode ? generateEpisodeProblems(episode, tier, seed) : []),
+  // generateEpisodeProblems returns { problems, ctx } — ctx carries intermediate
+  // values (totals, counts) that speech bubble functions reference.
+  const { problems, ctx: episodeCtx } = useMemo(
+    () => (episode ? generateEpisodeProblems(episode, tier, seed) : { problems: [], ctx: {} }),
     [episode, tier, seed],
   );
 
   const handleSolve = useCallback((problemId, correct) => {
     setSolvedProblems((prev) => ({ ...prev, [problemId]: correct }));
+  }, []);
+
+  // Keep only the vector strokes from the scratchpad (drop any rasterised image)
+  // so the saved payload stays small.
+  const handleWorking = useCallback((problemId, payload) => {
+    setWorkingByProblem((prev) => ({ ...prev, [problemId]: { workingStrokes: payload?.workingStrokes || [] } }));
   }, []);
 
   const narration = useComicNarration();
@@ -511,7 +570,17 @@ export default function ComicReader() {
   useEffect(() => {
     narration.stop();
     const current = episode?.panels?.[currentPanel];
-    if (narration.autoNarrate && current) narration.playPanel(current);
+    if (narration.autoNarrate && current) {
+      // Resolve any function-based speech text before handing to narration.
+      const resolved = {
+        ...current,
+        speech: (current.speech || []).map((s) => ({
+          ...s,
+          text: typeof s.text === 'function' ? s.text(episodeCtx, problems[currentPanel]) : s.text,
+        })),
+      };
+      narration.playPanel(resolved);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPanel, narration.autoNarrate, episode]);
 
@@ -520,9 +589,22 @@ export default function ComicReader() {
   useEffect(() => {
     setCurrentPanel(0);
     setSolvedProblems({});
+    setWorkingByProblem({});
     setSubmitted(false);
     setNextRec(null);
   }, [slug]);
+
+  // Phase 3 instrumentation — one "opened" event per episode view (the top of
+  // the engagement funnel). Fire-and-forget; never block the reader.
+  useEffect(() => {
+    if (!episode) return;
+    learningTelemetryAPI.recordEvent({
+      eventType: 'comic_episode_opened',
+      domain: 'comics',
+      sessionId: episode.id,
+      metadata: { episodeId: episode.id, episodeTitle: episode.title },
+    }).catch(() => {});
+  }, [episode?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // On the end card, fetch the adaptive next pick. The finished episode was just
   // written to progress, so /recommended already excludes it; we also guard
@@ -562,11 +644,28 @@ export default function ComicReader() {
     if (isLast) {
       if (!submitted && allSolved) {
         setSubmitted(true);
+        const answers = Object.values(solvedProblems);
         try {
-          await comicsAPI.complete(episode.id, Object.entries(solvedProblems).map(([id, correct]) => ({ problemId: id, correct })));
+          await comicsAPI.complete(episode.id, Object.entries(solvedProblems).map(([id, correct]) => {
+            const strokes = workingByProblem[id]?.workingStrokes;
+            return strokes?.length ? { problemId: id, correct, workingStrokes: strokes } : { problemId: id, correct };
+          }));
         } catch (_) {
           // non-blocking
         }
+        // Phase 3 instrumentation — the engagement signal for retention /
+        // trial→paid. Fire-and-forget; never block the reader.
+        learningTelemetryAPI.recordEvent({
+          eventType: 'comic_episode_completed',
+          domain: 'comics',
+          sessionId: episode.id,
+          metadata: {
+            episodeId: episode.id,
+            tier,
+            problemsCorrect: answers.filter(Boolean).length,
+            problemsTotal: answers.length,
+          },
+        }).catch(() => {});
       }
       setCurrentPanel(episode.panels.length); // show end card
     } else {
@@ -663,11 +762,15 @@ export default function ComicReader() {
         />
       ) : (
         <>
-          {/* Scene */}
+          {/* Scene — speech entries may be plain strings or functions (ctx, problem) => string
+              so story numbers always match the generated math challenge numbers. */}
           <ScenePanel
             scene={panel.scene}
             characters={panel.characters}
-            speech={panel.speech}
+            speech={(panel.speech || []).map((s) => ({
+              ...s,
+              text: typeof s.text === 'function' ? s.text(episodeCtx, problems[currentPanel]) : s.text,
+            }))}
             onPlayLine={narration.supported ? (line) => narration.playLine(line, panel.characters) : undefined}
             speakingIndex={narration.speakingIndex}
           />
@@ -691,16 +794,24 @@ export default function ComicReader() {
             </div>
           )}
 
-          {/* Problem */}
+          {/* Problem + optional working scratchpad */}
           {problem && (
-            <ProblemBox
-              key={panel.id}
-              problem={problem}
-              onSolve={handleSolve}
-              solved={solvedProblems[problem.id] === true}
-              episode={episode.id}
-              panelIndex={currentPanel}
-            />
+            <>
+              <ProblemBox
+                key={panel.id}
+                problem={problem}
+                onSolve={handleSolve}
+                solved={solvedProblems[problem.id] === true}
+                episode={episode.id}
+                panelIndex={currentPanel}
+              />
+              <WorkingScratch
+                key={`work-${panel.id}`}
+                problemId={problem.id}
+                value={workingByProblem[problem.id]}
+                onChange={handleWorking}
+              />
+            </>
           )}
 
           {/* Nav */}

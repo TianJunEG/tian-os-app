@@ -29,8 +29,10 @@ function ensureTutorWorkspace(req, res) {
 }
 
 // The student must be linked to this tutor in this workspace (or partner-accessible).
+// status:'active' is required so a revoked/ended/paused link cannot grant access
+// — mirrors findActiveTutorLink in routes/tutor.js.
 async function assertLinkedStudent(req, studentId) {
-  const link = await TutorStudentLink.findOne({ workspaceId: req.workspaceId, tutorUserId: req.user.id, studentId });
+  const link = await TutorStudentLink.findOne({ workspaceId: req.workspaceId, tutorUserId: req.user.id, studentId, status: 'active' });
   if (link) return true;
   if (await userCanAccessPartnerStudent({ userId: req.user.id, studentId })) return true;
   return process.env.NODE_ENV !== 'production' && process.env.QA_DISABLE_RATE_LIMIT === '1';

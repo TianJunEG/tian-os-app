@@ -1,12 +1,51 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, AlertTriangle, PartyPopper, Wand2, Wrench, Zap } from 'lucide-react';
+import { ArrowRight, AlertTriangle, PartyPopper, Volume2, VolumeX, Wand2, Wrench, Zap } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { Card, Button, Badge, PageHeader, Spinner, EmptyState } from '../../../components/ui';
 import { MathText } from '../../../components/ui/Fraction';
+import { SolutionStepsCard } from '../../../components/mathpath/review/QuestionReviewCards';
 import RemediationPanel from '../../../components/mathpath/RemediationPanel';
 import { getModelDrawingTrainerForMistake } from '../../../mathpath/fractions/fractionMistakeToMasteryEngine';
 import { groupTimesTableMistakes } from '../../../mathpath/timesTablesEngine';
+import { speak, setVoiceEnabled, isVoiceEnabled } from '../../../utils/sound';
+import { getMascotVoice } from '../../../config/mascots';
+
+// Build the spoken script for a mistake: the question, then its walkthrough
+// (structured steps preferred, worked-solution paragraph as fallback). speak()
+// already strips emoji, so callers just pass readable text.
+function buildReadAloudText(mistake = {}) {
+  const parts = [mistake.questionStem || mistake.questionText || ''];
+  if (Array.isArray(mistake.solutionSteps) && mistake.solutionSteps.length) {
+    parts.push('Here are the steps.');
+    mistake.solutionSteps.forEach((step, idx) => parts.push(`Step ${idx + 1}. ${step}`));
+  } else if (mistake.workedSolution) {
+    parts.push(mistake.workedSolution);
+  }
+  return parts.filter(Boolean).join('. ');
+}
+
+// Read-aloud toggle reused across both Mistake review screens. Voice is gated
+// behind a localStorage flag, so the first click enables it before speaking
+// (kylo is the MathPath mascot — its voice keeps the walkthrough consistent).
+function ReadAloudButton({ mistake, mascotKey = 'kylo' }) {
+  const [speaking, setSpeaking] = useState(false);
+  const onClick = () => {
+    if (speaking) {
+      if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
+      setSpeaking(false);
+      return;
+    }
+    if (!isVoiceEnabled()) setVoiceEnabled(true);
+    speak(buildReadAloudText(mistake), getMascotVoice(mascotKey));
+    setSpeaking(true);
+  };
+  return (
+    <Button size="s" variant="secondary" icon={speaking ? VolumeX : Volume2} onClick={onClick}>
+      {speaking ? 'Stop' : 'Read aloud'}
+    </Button>
+  );
+}
 
 const TYPE_LABEL = {
   concept_gap: 'Concept gap', calculation_error: 'Calculation', careless: 'Careless',
@@ -215,7 +254,9 @@ export default function MistakeReview() {
                 </section>
                 <section>
                   <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Why</p>
-                  {m.workedSolution ? (
+                  {Array.isArray(m.solutionSteps) && m.solutionSteps.length > 0 ? (
+                    <div className="mt-2"><SolutionStepsCard solutionSteps={m.solutionSteps} /></div>
+                  ) : m.workedSolution ? (
                     <p className="mt-2 text-base leading-7 text-ink-700"><MathText text={m.workedSolution} /></p>
                   ) : (
                     <p className="mt-2 text-base leading-7 text-ink-600">Review the method, then try a similar question with guidance.</p>
@@ -228,6 +269,7 @@ export default function MistakeReview() {
                     so the correction loop actually closes (Try Again alone never
                     records that the mistake was fixed). */}
                 <Button size="s" icon={Wrench} onClick={() => navigate(`/student/mathpath/mistakes/${m.id}`)}>Fix this mistake</Button>
+                <ReadAloudButton mistake={m} />
                 <Button variant="secondary" size="s" icon={ArrowRight} onClick={() => setOpenHelp(openHelp === m.id ? null : m.id)}>
                   {openHelp === m.id ? 'Hide Try Together' : 'Try Together'}
                 </Button>

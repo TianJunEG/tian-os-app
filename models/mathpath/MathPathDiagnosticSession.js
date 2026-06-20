@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const MODES = ['basic', 'core', 'full'];
-const STATUS = ['notStarted', 'inProgress', 'completed'];
+const STATUS = ['notStarted', 'inProgress', 'completed', 'abandoned'];
 
 const mathPathDiagnosticSessionSchema = new mongoose.Schema(
   {

@@ -53,7 +53,7 @@ export default function LifeLab() {
     loadActivities(competency);
     loadSubs();
     lifelabAPI.competencies().then((r) => setCompetencyList(r.data.competencies || [])).catch((e) => console.warn("LifeLab: fetch failed", e));
-    teacherAPI.groups(id).then((r) => setGroups(r.data.groups || r.data || [])).catch((e) => console.warn("LifeLab: fetch failed", e));
+    teacherAPI.groups(id).then((r) => setGroups(r.data.saved || [])).catch((e) => console.warn("LifeLab: fetch failed", e));
     teacherAPI.classStudents(id).then((r) => setStudents(r.data.students || r.data || [])).catch((e) => console.warn("LifeLab: fetch failed", e));
   }, [id]); // eslint-disable-line
 
@@ -140,7 +140,7 @@ export default function LifeLab() {
                   <label className="mb-1.5 block text-sm font-semibold text-ink-700">Group</label>
                   <Select value={targetId} onChange={(e) => setTargetId(e.target.value)}>
                     <option value="">Select a group…</option>
-                    {groups.map((g) => <option key={g._id} value={g._id}>{g.name || g.label || 'Group'}</option>)}
+                    {Array.isArray(groups) && groups.map((g) => <option key={g._id} value={g._id}>{g.name || g.label || 'Group'}</option>)}
                   </Select>
                 </div>
               )}

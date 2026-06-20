@@ -302,6 +302,10 @@ async function maybePersistMistake({ student, session, question, skillId, respon
           module: 'MathPath',
           questionText: question.stem || question.prompt || '',
           questionStem: question.stem || question.prompt || '',
+          // Carry a walkthrough so the review shows worked steps instead of the
+          // generic "Review the method" fallback for diagnostic-sourced mistakes.
+          workedSolution: String(question.workedSolution || question.explanation || question.modelAnswer || ''),
+          solutionSteps: Array.isArray(question.solutionSteps) ? question.solutionSteps : [],
           studentAnswer: String(response.answer || ''),
           correctAnswer: String(question.answer || ''),
           confidence: response.confidence || '',
@@ -346,20 +350,26 @@ async function maybePersistMistake({ student, session, question, skillId, respon
 }
 
 async function enforceReplayPolicy({ student, userId, subjectId, domainId, purpose }) {
-  const [latestCompleted, inProgressSession] = await Promise.all([
-    MathPathDiagnosticSession.findOne({
-      studentId: String(student._id),
-      subjectId,
-      domainId,
-      status: 'completed',
-    }).sort({ completedAt: -1, createdAt: -1 }),
-    MathPathDiagnosticSession.findOne({
+  const latestCompleted = await MathPathDiagnosticSession.findOne({
+    studentId: String(student._id),
+    subjectId,
+    domainId,
+    status: 'completed',
+  }).sort({ completedAt: -1, createdAt: -1 });
+
+  // Product decision: an interrupted/exited check-in must RESET. Rather than
+  // resuming, abandon every lingering in-progress session for this domain so the
+  // student always begins a fresh session from question 1 on the next entry.
+  await MathPathDiagnosticSession.updateMany(
+    {
       studentId: String(student._id),
       subjectId,
       domainId,
       status: 'inProgress',
-    }).sort({ createdAt: -1 }).select('diagnosticSessionId'),
-  ]);
+    },
+    { $set: { status: 'abandoned' } }
+  );
+
   const requester = userId ? await User.findById(userId).select('is_test_account email') : null;
   const replayPolicy = evaluateDiagnosticReplayPolicy({
     diagnosticPurpose: purpose,
@@ -372,9 +382,6 @@ async function enforceReplayPolicy({ student, userId, subjectId, domainId, purpo
     err.payload = {
       code: err.code,
       replayPolicy,
-      // Surfaces any in-progress session so the frontend can call GET /:sessionId/resume
-      // instead of displaying an error when the student reloads mid-diagnostic.
-      inProgressSessionId: inProgressSession?.diagnosticSessionId || null,
       latestPlacement: latestCompleted
         ? {
             sessionId: latestCompleted.diagnosticSessionId,
@@ -788,9 +795,10 @@ export async function answerAdaptiveDiagnostic({ student, sessionId, body = {} }
 
   let nextQuestion = null;
   if (!sessionComplete && nextGeneric) {
+    const nextGenericId = questionIdOf(nextGeneric);
     const nextDoc = nextGeneric.isRephrase
       ? question
-      : bankDocs.find((doc) => String(doc._id) === String(nextGeneric.questionId));
+      : bankDocs.find((doc) => questionIdOf(doc) === nextGenericId);
     if (!nextDoc) {
       decision.decisionType = DIAGNOSTIC_DECISIONS.STOP_AND_ASSIGN_PRACTICE;
       decision.shouldStopDiagnostic = true;

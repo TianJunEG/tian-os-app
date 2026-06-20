@@ -80,6 +80,54 @@ export function finalizeStroke(stroke) {
 
 // ─── Stroke rendering ───────────────────────────────────────────────────
 
+export const SHADE_ALPHA = 0.24;
+
+/**
+ * Render a shade stroke EVENLY.
+ *
+ * A translucent freehand brush composited tail-by-tail darkens wherever the
+ * path overlaps itself, leaving a blotchy fill. Instead we draw the whole
+ * stroke opaque into an offscreen canvas (so self-overlaps merge into one solid
+ * shape) and composite that shape ONCE at the target alpha — giving a flat,
+ * even tone no matter how many times the brush crossed itself.
+ *
+ * Used by both the live canvas (redraw-per-move) and replay/export, so the
+ * shading looks identical everywhere.
+ */
+function drawShadeStroke(ctx, stroke, lineWidth) {
+  const points = stroke.points || [];
+  if (points.length < 2) return;
+  const target = ctx.canvas;
+  const offscreen = typeof document !== 'undefined' ? document.createElement('canvas') : null;
+  if (!offscreen) return;
+  offscreen.width = target.width;
+  offscreen.height = target.height;
+  const octx = offscreen.getContext('2d');
+  octx.lineCap = 'round';
+  octx.lineJoin = 'round';
+  octx.strokeStyle = stroke.colour || '#172554';
+  octx.lineWidth = lineWidth;
+  octx.beginPath();
+  octx.moveTo(points[0].x, points[0].y);
+  if (points.length === 2) {
+    octx.lineTo(points[1].x, points[1].y);
+  } else {
+    for (let i = 1; i < points.length - 1; i++) {
+      const mid = { x: (points[i].x + points[i + 1].x) / 2, y: (points[i].y + points[i + 1].y) / 2 };
+      octx.quadraticCurveTo(points[i].x, points[i].y, mid.x, mid.y);
+    }
+    const last = points[points.length - 1];
+    octx.lineTo(last.x, last.y);
+  }
+  octx.stroke();
+
+  ctx.save();
+  ctx.globalAlpha = SHADE_ALPHA;
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.drawImage(offscreen, 0, 0);
+  ctx.restore();
+}
+
 /**
  * Draw a single stroke onto a canvas 2D context.
  *
@@ -104,19 +152,22 @@ export function drawStroke(ctx, stroke, options = {}) {
   const points = stroke?.points || [];
   if (points.length < 2) return;
 
+  if (stroke.tool === 'shade') {
+    const baseSize = Number(stroke.size || 4);
+    drawShadeStroke(ctx, stroke, Math.max(34, baseSize * 8));
+    return;
+  }
+
   ctx.save();
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   ctx.globalCompositeOperation = stroke.tool === 'eraser' ? 'destination-out' : 'source-over';
-  ctx.globalAlpha = stroke.tool === 'highlighter' ? 0.18
-    : stroke.tool === 'shade' ? 0.24
-    : 1;
+  ctx.globalAlpha = stroke.tool === 'highlighter' ? 0.18 : 1;
   ctx.strokeStyle = stroke.tool === 'eraser' ? '#ffffff' : (stroke.colour || '#172554');
   ctx.fillStyle = stroke.colour || '#172554';
 
   const baseSize = Number(stroke.size || 4);
   const lineWidth = stroke.tool === 'eraser' ? 24
-    : stroke.tool === 'shade' ? Math.max(34, baseSize * 8)
     : stroke.tool === 'highlighter' ? Math.max(48, baseSize * 10)
     : stroke.tool === 'pencil' ? Math.max(1, baseSize - 1)
     : baseSize;

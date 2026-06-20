@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Flag } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Flag, X } from 'lucide-react';
 import { Card, Button, ProgressBar, ErrorState } from '../../../../components/ui';
 import { MathText } from '../../../../components/ui/Fraction';
 import { repairFractionQuestions } from '../../../../mathpath/fractions/fractionQuestionRepair';
@@ -98,6 +98,15 @@ export default function AssessmentQuestionScreen() {
     setIdx(Math.max(0, Math.min(questions.length - 1, to)));
   };
 
+  // In-page exit — the activity shell hides the global nav during the question
+  // loop, so a persistent control is the only way out. Confirm first because
+  // answers in progress are not yet saved to the server.
+  const exitSession = () => {
+    const hasWork = Object.keys(answers).length > 0;
+    if (hasWork && !window.confirm('Leave the assessment? Your answers will not be saved.')) return;
+    navigate('/student/mathpath/assessment');
+  };
+
   const toReview = () => {
     stampTimeForCurrent();
     navigate(`/student/mathpath/assessment/review/${session.assessmentSessionId}`, {
@@ -117,6 +126,17 @@ export default function AssessmentQuestionScreen() {
 
   return (
     <div className="mx-auto max-w-2xl">
+      <div className="mb-3 flex items-center justify-between">
+        <button
+          type="button"
+          onClick={exitSession}
+          aria-label="Exit assessment"
+          className="flex min-h-[44px] items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-medium text-ink-500 transition-colors hover:text-ink-800"
+        >
+          <X className="h-4 w-4" />
+          Exit
+        </button>
+      </div>
       <div className="mb-2 flex items-center justify-between text-sm text-ink-500">
         <span className="font-mono">Question {idx + 1} of {questions.length}</span>
         <span className="font-mono">Time left: {Math.floor(remainingSec / 60)}:{String(remainingSec % 60).padStart(2, '0')}</span>

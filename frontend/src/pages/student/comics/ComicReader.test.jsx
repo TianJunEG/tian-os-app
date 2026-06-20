@@ -11,8 +11,10 @@ import ComicReader from './ComicReader';
 
 const completeMock = vi.fn().mockResolvedValue({});
 const recommendedMock = vi.fn().mockResolvedValue({ data: { recommended: null } });
+const recordEventMock = vi.fn().mockResolvedValue({});
 vi.mock('../../../services/api', () => ({
   comicsAPI: { complete: (...a) => completeMock(...a), recommended: (...a) => recommendedMock(...a) },
+  learningTelemetryAPI: { recordEvent: (...a) => recordEventMock(...a) },
 }));
 vi.mock('../../../context/AuthContext', () => ({ useAuth: () => ({ user: { studentLevel: 'P4' } }) }));
 // Deterministic problems so this reader-flow test is stable; the engine's own
@@ -21,7 +23,10 @@ vi.mock('../../../data/comics/comicDifficulty', () => ({
   resolveTier: () => 1,
   generateEpisodeProblems: (episode) => {
     const fixed = { 'p1-q1': 20, 'p2-q1': 9, 'p3-q1': 11 };
-    return episode.panels.map((p) => (p.problem ? { ...p.problem, question: 'Q', hint: 'H', answer: fixed[p.problem.id] ?? 1 } : null));
+    // Real engine now returns { problems, ctx }; mirror that shape so the reader
+    // can destructure it (ctx carries intermediate values for speech-bubble text).
+    const problems = episode.panels.map((p) => (p.problem ? { ...p.problem, question: 'Q', hint: 'H', answer: fixed[p.problem.id] ?? 1 } : null));
+    return { problems, ctx: {} };
   },
 }));
 
@@ -47,6 +52,7 @@ function solveCurrentPanel(container, answer) {
 describe('ComicReader', () => {
   beforeEach(() => {
     completeMock.mockClear();
+    recordEventMock.mockClear();
     recommendedMock.mockReset();
     recommendedMock.mockResolvedValue({ data: { recommended: null } });
   });
@@ -86,6 +92,38 @@ describe('ComicReader', () => {
   it('shows a friendly message for an unknown episode slug', () => {
     renderReader('does-not-exist');
     expect(screen.getByText('Episode not found.')).toBeInTheDocument();
+  });
+
+  it('offers an optional working scratchpad, collapsed by default', () => {
+    renderReader();
+    // The toggle is available on the problem panel...
+    expect(screen.getByRole('button', { name: /Show working/ })).toBeInTheDocument();
+    // ...but the canvas stays collapsed until tapped, so the quick-read flow is
+    // unchanged (and the heavy canvas isn't mounted up front).
+    expect(screen.queryByText('Sketch your working')).not.toBeInTheDocument();
+  });
+
+  it('emits telemetry: comic_episode_opened on mount and comic_episode_completed on finish', async () => {
+    const { container } = renderReader();
+
+    await waitFor(() => expect(recordEventMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventType: 'comic_episode_opened',
+        domain: 'comics',
+        metadata: expect.objectContaining({ episodeId: 'ep-001' }),
+      }),
+    ));
+
+    finishEpisode(container);
+    await screen.findByText('Episode complete!');
+
+    await waitFor(() => expect(recordEventMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventType: 'comic_episode_completed',
+        domain: 'comics',
+        metadata: expect.objectContaining({ episodeId: 'ep-001', problemsTotal: 3, problemsCorrect: 3 }),
+      }),
+    ));
   });
 
   it('offers an adaptive "Play next" on the end card and navigates to it', async () => {

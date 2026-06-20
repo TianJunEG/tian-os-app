@@ -90,6 +90,8 @@ router.get('/:id', asyncHandler(async (req, res) => {
   if (!ensureTeacher(req, res)) return;
   const assessment = await InformalAssessment.findOne({ _id: req.params.id, workspaceId: req.workspaceId }).lean();
   if (!assessment) return res.status(404).json({ error: 'Assessment not found.' });
+  const cls = await Class.findOne({ _id: assessment.classId, workspaceId: req.workspaceId, teacherUserId: req.user.id });
+  if (!cls) return res.status(404).json({ error: 'Assessment not found.' });
   res.json({ assessment });
 }));
 
@@ -99,6 +101,8 @@ router.post('/:id/assign', asyncHandler(async (req, res) => {
   try {
     const assessment = await InformalAssessment.findOne({ _id: req.params.id, workspaceId: req.workspaceId });
     if (!assessment) return res.status(404).json({ error: 'Assessment not found.' });
+    const cls = await Class.findOne({ _id: assessment.classId, workspaceId: req.workspaceId, teacherUserId: req.user.id });
+    if (!cls) return res.status(404).json({ error: 'Assessment not found.' });
     if (assessment.status === 'closed') return res.status(409).json({ error: 'Assessment is closed.' });
 
     const target = req.body.target || { type: 'class' };
@@ -121,6 +125,8 @@ router.get('/:id/results', asyncHandler(async (req, res) => {
   try {
     const assessment = await InformalAssessment.findOne({ _id: req.params.id, workspaceId: req.workspaceId });
     if (!assessment) return res.status(404).json({ error: 'Assessment not found.' });
+    const cls = await Class.findOne({ _id: assessment.classId, workspaceId: req.workspaceId, teacherUserId: req.user.id });
+    if (!cls) return res.status(404).json({ error: 'Assessment not found.' });
     const results = await buildClassResults(req.params.id);
     res.json(results);
   } catch (err) {
@@ -133,6 +139,8 @@ router.post('/:id/close', asyncHandler(async (req, res) => {
   if (!ensureTeacher(req, res)) return;
   const assessment = await InformalAssessment.findOne({ _id: req.params.id, workspaceId: req.workspaceId });
   if (!assessment) return res.status(404).json({ error: 'Assessment not found.' });
+  const cls = await Class.findOne({ _id: assessment.classId, workspaceId: req.workspaceId, teacherUserId: req.user.id });
+  if (!cls) return res.status(404).json({ error: 'Assessment not found.' });
   assessment.status = 'closed';
   assessment.closedAt = new Date();
   await assessment.save();
@@ -144,6 +152,8 @@ router.delete('/:id', asyncHandler(async (req, res) => {
   if (!ensureTeacher(req, res)) return;
   const assessment = await InformalAssessment.findOne({ _id: req.params.id, workspaceId: req.workspaceId });
   if (!assessment) return res.status(404).json({ error: 'Assessment not found.' });
+  const cls = await Class.findOne({ _id: assessment.classId, workspaceId: req.workspaceId, teacherUserId: req.user.id });
+  if (!cls) return res.status(404).json({ error: 'Assessment not found.' });
   if (assessment.status !== 'draft') return res.status(409).json({ error: 'Only draft assessments can be deleted.' });
   await assessment.deleteOne();
   res.json({ deleted: true });

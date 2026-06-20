@@ -368,6 +368,7 @@ export default function FullScreenWorkingMode({
   const strokesRef = useRef(Array.isArray(initialStrokes) ? initialStrokes : []);
   const mathObjectsRef = useRef([]);
   const objectDragRef = useRef(null);
+  const textInputRef = useRef(null);
   const toolRef = useRef('pen');
   const colourRef = useRef(WORKING_COLOURS[0].value);
   const brushSizeRef = useRef(4);
@@ -434,6 +435,16 @@ export default function FullScreenWorkingMode({
     if (toolRef.current === 'text') {
       event.stopPropagation();
       const point = pointFromEvent(event);
+      // This pointerdown fires BEFORE the open input's blur, so commit any
+      // in-progress draft synchronously (passing it explicitly to dodge the
+      // setState race) before wiping it with the new empty draft. Without this
+      // the new draft would clobber the old one and its text would be lost.
+      // Mark the live input committed so its trailing blur becomes a no-op and
+      // can't wipe the new draft we open below.
+      if (textDraft && String(textDraft.text || '').trim()) {
+        if (textInputRef.current) textInputRef.current.dataset.committed = 'true';
+        saveTextDraft(textDraft);
+      }
       setSelectedObjectId(null);
       setMathDraft(null);
       setTextDraft({
@@ -442,6 +453,17 @@ export default function FullScreenWorkingMode({
         y: point.y,
         text: '',
       });
+      // React reuses the same input element across draft swaps, so the
+      // `committed` flag set above would persist onto the new draft and silence
+      // its blur-commit. Clear it once the new input is in place.
+      if (typeof window !== 'undefined' && window.requestAnimationFrame) {
+        window.requestAnimationFrame(() => {
+          if (textInputRef.current) textInputRef.current.dataset.committed = 'false';
+        });
+      }
+      // saveTextDraft flips the tool back to 'pen'; keep Text active so the new
+      // draft we just opened stays editable.
+      setTool('text');
       return;
     }
     drawingRef.current = true;
@@ -462,7 +484,10 @@ export default function FullScreenWorkingMode({
       stroke.points.push(pointFromEvent(e));
     }
     setHasCanvasMarks(true);
-    if (stroke.tool === 'line' || stroke.tool === 'rectangle') {
+    // Shade joins line/rectangle in the full-redraw path: it renders the whole
+    // stroke at once as a flat even tone, so incremental tail-stamping (which
+    // would darken self-overlaps) must not be used.
+    if (stroke.tool === 'line' || stroke.tool === 'rectangle' || stroke.tool === 'shade') {
       redraw(strokesRef.current);
       drawStroke(canvasRef.current.getContext('2d'), stroke, { stampScale: FS_STAMP_SCALE });
     } else {
@@ -476,12 +501,11 @@ export default function FullScreenWorkingMode({
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         ctx.globalCompositeOperation = stroke.tool === 'eraser' ? 'destination-out' : 'source-over';
-        ctx.globalAlpha = stroke.tool === 'highlighter' ? 0.18 : stroke.tool === 'shade' ? 0.24 : 1;
+        ctx.globalAlpha = stroke.tool === 'highlighter' ? 0.18 : 1;
         ctx.strokeStyle = stroke.tool === 'eraser' ? '#ffffff' : (stroke.colour || '#172554');
         const baseSize = Number(stroke.size || 4);
         const hasPressure = (stroke.tool === 'pen' || stroke.tool === 'pencil') && tail[2].p != null;
         ctx.lineWidth = stroke.tool === 'eraser' ? 24
-          : stroke.tool === 'shade' ? Math.max(34, baseSize * 8)
           : stroke.tool === 'highlighter' ? Math.max(48, baseSize * 10)
           : stroke.tool === 'pencil' ? Math.max(1, baseSize - 1)
           : hasPressure ? baseSize * (0.3 + (tail[2].p ?? 0.5) * 0.7)
@@ -570,6 +594,25 @@ export default function FullScreenWorkingMode({
   };
 
   const undo = () => {
+    // The most recent reversible action is whichever sits on top of the redo
+    // stack's mirror — but undo here pops live state. A Clear leaves nothing on
+    // the canvas, so undoing it means restoring the snapshot it parked on the
+    // redo stack (both strokes AND math objects). Otherwise undo just removes
+    // the last stroke.
+    const topRedo = redoStack.at(-1);
+    if (topRedo && topRedo.type === 'clear') {
+      setRedoStack((prev) => prev.slice(0, -1));
+      const restoredStrokes = Array.isArray(topRedo.strokes) ? topRedo.strokes : [];
+      const restoredObjects = Array.isArray(topRedo.mathObjects) ? topRedo.mathObjects : [];
+      strokesRef.current = restoredStrokes;
+      mathObjectsRef.current = restoredObjects;
+      setStrokes(restoredStrokes);
+      setMathObjects(restoredObjects);
+      setSelectedObjectId(null);
+      setHasCanvasMarks(restoredStrokes.length > 0 || restoredObjects.length > 0);
+      setHasObjectEdit(restoredObjects.length > 0);
+      return;
+    }
     setStrokes((prev) => {
       const undone = prev.at(-1);
       const next = prev.slice(0, -1);
@@ -584,6 +627,17 @@ export default function FullScreenWorkingMode({
     const restored = redoStack.at(-1);
     if (!restored) return;
     setRedoStack((prev) => prev.slice(0, -1));
+    // A clear frame re-applies the wipe: drop both strokes and math objects.
+    if (restored.type === 'clear') {
+      strokesRef.current = [];
+      mathObjectsRef.current = [];
+      setStrokes([]);
+      setMathObjects([]);
+      setSelectedObjectId(null);
+      setHasCanvasMarks(false);
+      setHasObjectEdit(false);
+      return;
+    }
     setStrokes((prev) => {
       const next = [...prev, restored];
       strokesRef.current = next;
@@ -593,7 +647,22 @@ export default function FullScreenWorkingMode({
   };
 
   const clear = () => {
-    if (strokesRef.current.length) setRedoStack((prev) => [...prev, ...strokesRef.current]);
+    // Nothing to clear → no-op (also guards the confirm from firing on an empty
+    // canvas).
+    if (!strokesRef.current.length && !mathObjectsRef.current.length) return;
+    // Clear is destructive, so confirm before wiping.
+    if (typeof window !== 'undefined' && typeof window.confirm === 'function') {
+      const ok = window.confirm('Clear all working? You can undo this.');
+      if (!ok) return;
+    }
+    // Snapshot BOTH strokes and math objects so the clear is reversible via
+    // Undo/Redo (previously only strokes were saved and labels/stamps were lost).
+    const snapshot = {
+      type: 'clear',
+      strokes: strokesRef.current,
+      mathObjects: mathObjectsRef.current,
+    };
+    setRedoStack((prev) => [...prev, snapshot]);
     strokesRef.current = [];
     mathObjectsRef.current = [];
     setStrokes([]);
@@ -643,15 +712,19 @@ export default function FullScreenWorkingMode({
     });
   };
 
-  const saveTextDraft = () => {
-    const text = String(textDraft?.text || '').trim();
+  // `draft` defaults to the current state, but callers that need to commit the
+  // in-progress draft synchronously (e.g. beginStroke flushing a label before
+  // opening a new one) pass it explicitly to avoid a setState race where the
+  // canvas pointerdown wipes `textDraft` before the input's blur reads it.
+  const saveTextDraft = (draft = textDraft) => {
+    const text = String(draft?.text || '').trim();
     if (!text) {
       setTextDraft(null);
       return;
     }
-    if (textDraft.id) {
+    if (draft.id) {
       updateMathObjects((prev) => prev.map((object) => (
-        object.id === textDraft.id
+        object.id === draft.id
           ? {
             ...object,
             text,
@@ -660,12 +733,12 @@ export default function FullScreenWorkingMode({
           }
           : object
       )));
-      setSelectedObjectId(textDraft.id);
+      setSelectedObjectId(draft.id);
     } else {
       const nextObject = createTextObject({
         text,
-        x: textDraft.x,
-        y: textDraft.y,
+        x: draft.x,
+        y: draft.y,
         colour: colourRef.current || '#111827',
       });
       updateMathObjects((prev) => [...prev, nextObject]);
@@ -771,7 +844,7 @@ export default function FullScreenWorkingMode({
           tool={tool}
           colour={colour}
           brushSize={brushSize}
-          canUndo={strokes.length > 0}
+          canUndo={strokes.length > 0 || mathObjects.length > 0 || redoStack.some((frame) => frame?.type === 'clear')}
           canRedo={redoStack.length > 0}
           zoom={zoom}
           onToolChange={setTool}
@@ -924,6 +997,7 @@ export default function FullScreenWorkingMode({
             <div className="pointer-events-none absolute inset-0 z-10 touch-none" aria-label="Math object layer">
               {textDraft && (
                 <input
+                  ref={textInputRef}
                   autoFocus
                   value={textDraft.text}
                   onPointerDown={(event) => event.stopPropagation()}

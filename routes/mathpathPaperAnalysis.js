@@ -54,7 +54,11 @@ const upload = multer({
   fileFilter: (_req, file, cb) => {
     const allowed = new Set(['application/pdf', 'image/jpeg', 'image/jpg', 'image/png']);
     if (!allowed.has(file.mimetype)) {
-      cb(new Error('Only PDF, JPG and PNG paper uploads are supported.'));
+      // Tag with status 400 so the global errorHandler returns a clean 400
+      // instead of a generic 500 for unsupported file types.
+      const e = new Error('Only PDF, JPG and PNG paper uploads are supported.');
+      e.status = 400;
+      cb(e);
       return;
     }
     cb(null, true);

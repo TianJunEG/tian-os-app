@@ -42,11 +42,17 @@ function par(n) { return n < 0 ? `(${n})` : `${n}`; }
 function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a || 1; }
 function lcm(a, b) { return Math.abs(a * b) / gcd(a, b); }
 function primeFactors(n) { const f = []; let d = 2; while (d * d <= n) { while (n % d === 0) { f.push(d); n /= d; } d++; } if (n > 1) f.push(n); return f; }
+function questionKey(prompt, answerDisplay) {
+  return hashSeed(`${prompt}|${answerDisplay}`).toString(36);
+}
+function generatedQuestionId(family, mode, prompt, answerDisplay) {
+  return `${family.id}#${mode}#${questionKey(prompt, answerDisplay)}`;
+}
 
 // ── Question envelope builders ───────────────────────────────────────────────
 function shortAnswer({ family, prompt, answerDisplay, acceptedAnswers, solutionSteps, misconceptionTag, difficulty, mode, diagram }) {
   return {
-    id: `${family.id}#${mode}`,
+    id: generatedQuestionId(family, mode, prompt, answerDisplay),
     skillId: family.skillId,
     questionFamilyId: family.id,
     type: 'short_answer',
@@ -92,7 +98,7 @@ function mcqFrom({ family, prompt, answerDisplay, choices, distractors, solution
     [opts[i], opts[j]] = [opts[j], opts[i]];
   }
   return {
-    id: `${family.id}#${mode}`,
+    id: generatedQuestionId(family, mode, prompt, answerDisplay),
     skillId: family.skillId,
     questionFamilyId: family.id,
     type: 'mcq',
@@ -302,12 +308,16 @@ function runBuilder(skillId, rng, variant) {
 function makePractice(skillId) {
   return (family, rng, variant) => {
     const q = runBuilder(skillId, rng, variant);
-    return shortAnswer({
+    const base = shortAnswer({
       family, prompt: q.prompt, answerDisplay: String(q.answer),
       acceptedAnswers: [String(q.answer)], solutionSteps: q.steps,
       misconceptionTag: q.tag || (family.misconceptionTags || [])[0] || '',
       difficulty: family.difficulty, mode: 'practice', diagram: q.diagram,
     });
+    // "Write <, > or =" comparison items get answerFormat:'comparison' so the
+    // client renders the symbol picker (with '=') instead of a plain text box.
+    if (['<', '>', '='].includes(String(q.answer))) base.answerFormat = 'comparison';
+    return base;
   };
 }
 function makeMCQ(skillId) {

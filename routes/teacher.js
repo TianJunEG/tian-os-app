@@ -77,12 +77,15 @@ function topicStatusForStudent(recordsInTopic) {
 // ── Home ──────────────────────────────────────────────────────────
 router.get('/home', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
-  const [classes, activeInterventions] = await Promise.all([
-    Class.find({ workspaceId: req.workspaceId, teacherUserId: req.user.id, status: 'active' }),
-    InterventionRecord.countDocuments({ workspaceId: req.workspaceId, status: { $in: ['needs_support', 'improving'] } }),
-  ]);
+  const classes = await Class.find({ workspaceId: req.workspaceId, teacherUserId: req.user.id, status: 'active' });
   // Batch roster + mastery look-ups to avoid N+1.
   const classIds = classes.map((c) => c._id);
+  // Scope the active-intervention count to THIS teacher's classes (not the whole workspace).
+  const activeInterventions = await InterventionRecord.countDocuments({
+    workspaceId: req.workspaceId,
+    classId: { $in: classIds },
+    status: { $in: ['needs_support', 'improving'] },
+  });
   const allLinks = await ClassStudent.find({ classId: { $in: classIds }, status: 'active' }).select('classId studentId');
   const idsPerClass = new Map(classIds.map((id) => [String(id), []]));
   for (const l of allLinks) idsPerClass.get(String(l.classId))?.push(l.studentId);
@@ -568,12 +571,87 @@ router.get('/classes/:id/reports', asyncHandler(async (req, res) => {
   const overall = recs.length ? Math.round(recs.reduce((a, r) => a + r.score, 0) / recs.length) : 0;
   const byTopic = {};
   for (const r of recs) { const t = r.skillId?.topicId?.name || '—'; (byTopic[t] ||= []).push(r.score); }
-  res.json({
+  const topics = Object.entries(byTopic)
+    .map(([t, arr]) => ({ topic: t, avg: Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) }))
+    .sort((a, b) => a.avg - b.avg);
+  const assignmentCompletion = assignments.length
+    ? Math.round((assignments.filter((a) => a.status === 'completed').length / assignments.length) * 100)
+    : 0;
+
+  // Base shape every report type returns, so the existing preview UI (StatTiles +
+  // topic list) renders safely regardless of which report was requested.
+  const base = {
     type: req.query.type || 'class_progress', className: c.name, generatedAt: new Date(),
-    overallMastery: overall, studentCount: ids.length,
-    assignmentCompletion: assignments.length ? Math.round((assignments.filter((a) => a.status === 'completed').length / assignments.length) * 100) : 0,
-    topics: Object.entries(byTopic).map(([t, arr]) => ({ topic: t, avg: Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) })).sort((a, b) => a.avg - b.avg),
-  });
+    overallMastery: overall, studentCount: ids.length, assignmentCompletion, topics,
+  };
+
+  const type = req.query.type || 'class_progress';
+
+  if (type === 'intervention_summary') {
+    // Roll up active/closed interventions for this class by status, with a per-student list.
+    const interventions = await InterventionRecord.find({ classId: c._id })
+      .populate({ path: 'targetSkillId', model: Skill });
+    const students = await Student.find({ _id: { $in: interventions.map((i) => i.studentId) } }).select('name');
+    const nameById = Object.fromEntries(students.map((s) => [String(s._id), s.name]));
+    const byStatus = { needs_support: 0, improving: 0, stable: 0, mastered: 0 };
+    for (const i of interventions) { byStatus[i.status] = (byStatus[i.status] || 0) + 1; }
+    const activeCount = (byStatus.needs_support || 0) + (byStatus.improving || 0);
+    return res.json({
+      ...base,
+      interventionSummary: {
+        total: interventions.length,
+        active: activeCount,
+        byStatus,
+        records: interventions.map((i) => ({
+          studentId: i.studentId,
+          studentName: nameById[String(i.studentId)] || 'Student',
+          targetSkill: i.targetSkillId?.name || null,
+          status: i.status,
+          nextAction: i.nextAction || '',
+          startedAt: i.startedAt,
+        })),
+      },
+    });
+  }
+
+  if (type === 'parent_friendly') {
+    // Per-student plain-language narrative parents can read without jargon.
+    const students = await Student.find({ _id: { $in: ids } }).select('name');
+    const nameById = Object.fromEntries(students.map((s) => [String(s._id), s.name]));
+    const byStudent = new Map(ids.map((id) => [String(id), []]));
+    for (const r of recs) {
+      const arr = byStudent.get(String(r.studentId));
+      if (arr) arr.push(r);
+    }
+    const narratives = ids.map((id) => {
+      const rs = byStudent.get(String(id)) || [];
+      const avg = rs.length ? Math.round(rs.reduce((a, r) => a + r.score, 0) / rs.length) : 0;
+      const mastered = rs.filter((r) => r.status === 'mastered').length;
+      const needsReview = rs
+        .filter((r) => r.status === 'needs_review')
+        .map((r) => r.skillId?.name)
+        .filter(Boolean);
+      const name = nameById[String(id)] || 'Your child';
+      let narrative;
+      if (!rs.length) {
+        narrative = `${name} has not started any practice yet. Encourage them to log in and try their first activity.`;
+      } else if (avg >= 70) {
+        narrative = `${name} is doing well, with strong understanding across ${mastered} skill${mastered === 1 ? '' : 's'} mastered so far. Keep up the steady practice!`;
+      } else if (avg >= 50) {
+        narrative = `${name} is making good progress and building confidence. A little extra practice on tricky topics will help them move ahead.`;
+      } else {
+        narrative = `${name} is working hard and would benefit from some extra support. Short, regular practice sessions make a big difference.`;
+      }
+      if (needsReview.length) {
+        narrative += ` Topics to revisit together: ${needsReview.slice(0, 3).join(', ')}.`;
+      }
+      return { studentId: id, studentName: name, averageMastery: avg, masteredCount: mastered, narrative };
+    });
+    return res.json({ ...base, parentFriendly: { narratives } });
+  }
+
+  // Default: class progress report (unchanged shape).
+  return res.json(base);
 }));
 
 // ── PSL class dashboard ─────────────────────────────────────────────
@@ -596,12 +674,22 @@ router.get('/classes/:id/psl/dashboard', asyncHandler(async (req, res) => {
     ? Math.round((attempts.reduce((a, at) => a + at.overallScore, 0) / attempts.length) * 100)
     : 0;
 
+  // PSL MasteryRecord.skillId is the PSLSkill document _id (ObjectId), not the
+  // string slug. Bucket mastered records by String(_id) so per-skill counts work.
+  const masteredCountBySkillObjId = {};
+  for (const r of masteryRecs) {
+    if (r.status === 'mastered' && r.skillId) {
+      const key = String(r.skillId);
+      masteredCountBySkillObjId[key] = (masteredCountBySkillObjId[key] || 0) + 1;
+    }
+  }
+
   const skillMap = {};
   for (const sk of skills) {
     const skSessions = sessions.filter((s) => s.skillId === sk.skillId);
     const skAttempts = attempts.filter((a) => a.skillId === sk.skillId);
     const skStudents = new Set(skSessions.map((s) => String(s.studentId)));
-    const skMastered = masteryRecs.filter((r) => r.skillId?.toString() === sk.skillId && r.status === 'mastered');
+    const skMasteredCount = masteredCountBySkillObjId[String(sk._id)] || 0;
     const avgScore = skAttempts.length
       ? Math.round((skAttempts.reduce((a, at) => a + at.overallScore, 0) / skAttempts.length) * 100)
       : 0;
@@ -614,7 +702,7 @@ router.get('/classes/:id/psl/dashboard', asyncHandler(async (req, res) => {
     const topMisconceptions = Object.entries(miscCounts).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([tag, count]) => ({ tag, count }));
     skillMap[sk.skillId] = {
       skillId: sk.skillId, name: sk.name, heuristic: sk.heuristic, level: sk.level,
-      sessions: skSessions.length, students: skStudents.size, mastered: skMastered.length,
+      sessions: skSessions.length, students: skStudents.size, mastered: skMasteredCount,
       averageScore: avgScore, topMisconceptions,
     };
   }

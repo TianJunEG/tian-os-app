@@ -74,6 +74,11 @@ function normalizeMistakePayload(raw = {}) {
     confidence: String(raw.confidence || raw.confidenceLevel || raw.reflection || '').trim(),
     ...shapeWorkingFields(raw),
     workedSolution: String(raw.workedSolution || '').trim(),
+    // Keep the structured walkthrough as an array (don't flatten to a string) so
+    // the review can render an ordered list of steps.
+    solutionSteps: Array.isArray(raw.solutionSteps)
+      ? raw.solutionSteps.map((step) => String(step)).filter((step) => step.trim())
+      : [],
     misconceptionTag: String(raw.misconceptionTag || '').trim(),
     occurredAt: raw.timestamp ? new Date(raw.timestamp) : new Date(),
   };
@@ -141,7 +146,9 @@ router.get('/', protect, asyncHandler(async (req, res) => {
       questionStem: m.questionStem || m.questionText,
       studentAnswer: m.studentAnswer, correctAnswer: m.correctAnswer,
       answerCorrect: Boolean(m.answerCorrect),
-      workedSolution: m.workedSolution, mistakeType: m.mistakeType, misconceptionTag: m.misconceptionTag, source: m.source || 'other',
+      workedSolution: m.workedSolution,
+      solutionSteps: Array.isArray(m.solutionSteps) ? m.solutionSteps : [],
+      mistakeType: m.mistakeType, misconceptionTag: m.misconceptionTag, source: m.source || 'other',
       mistakeTypeLabel: MISCONCEPTION_LABELS[m.misconceptionTag] || '',
       confidence: m.confidence || '',
       workingSubmitted: Boolean(m.workingSubmitted),
@@ -205,6 +212,7 @@ router.post('/bulk', protect, asyncHandler(async (req, res) => {
         module: raw.module || 'MathPath',
         questionStem: normalized.questionStem,
         workedSolution: normalized.workedSolution,
+        solutionSteps: normalized.solutionSteps,
         studentAnswer: normalized.studentAnswer,
         correctAnswer: normalized.correctAnswer,
         confidence: normalized.confidence,
@@ -276,7 +284,9 @@ router.get('/:id', protect, asyncHandler(async (req, res) => {
       questionStem: m.questionStem || m.questionText,
       studentAnswer: m.studentAnswer, correctAnswer: m.correctAnswer,
       answerCorrect: Boolean(m.answerCorrect),
-      workedSolution: m.workedSolution, mistakeType: m.mistakeType, misconceptionTag: m.misconceptionTag, source: m.source || 'other',
+      workedSolution: m.workedSolution,
+      solutionSteps: Array.isArray(m.solutionSteps) ? m.solutionSteps : [],
+      mistakeType: m.mistakeType, misconceptionTag: m.misconceptionTag, source: m.source || 'other',
       mistakeTypeLabel: MISCONCEPTION_LABELS[m.misconceptionTag] || '',
       confidence: m.confidence || '',
       workingSubmitted: Boolean(m.workingSubmitted),

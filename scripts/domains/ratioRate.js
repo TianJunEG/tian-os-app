@@ -63,14 +63,14 @@ export default {
       misconceptions: [{ tag: 'rr/part-part-as-fraction', label: 'Uses \\frac{a}{b} instead of \\frac{a}{a+b} for the part-of-whole fraction' }],
       practiceModes: ['visual_model', 'short_answer', 'diagnostic'],
       remediation: { onRepeatedFail: 'worked-example', reinforce: ['rr.meaning', 'fr.of-quantity'], strategy: 'total units = a+b; each part is that many out of the total' },
-      questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'medium', stem: 'Red to blue is {a} : {b}. What fraction of the counters are red?', answerRule: 'a/(a+b)', misconceptionTag: 'rr/part-part-as-fraction' }] },
+      questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'medium', stem: 'Red to blue is {a} : {b}. What fraction of the counters are red?', answerRule: 'a/(a+b) (a,b≤9)', misconceptionTag: 'rr/part-part-as-fraction' }] },
     { slug: 'rr.ratio-percent', name: 'Relating ratio to percentage', level: 'Primary 6',
       prerequisites: ['rr.ratio-fraction', 'pct.convert'], masteryType: 'procedural', fluencyType: 'accuracy',
       render: 'katex', visualModels: ['bar', 'hundred-grid'],
       misconceptions: [{ tag: 'rr/percent-of-part', label: 'Takes the percentage of the wrong base (a part, not the whole)' }],
       practiceModes: ['short_answer', 'mcq'],
       remediation: { onRepeatedFail: 'worked-example', reinforce: ['rr.ratio-fraction', 'pct.convert'], strategy: 'part ÷ total → fraction → percentage' },
-      questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'medium', stem: 'The ratio of boys to girls is {a} : {b}. What percentage are boys?', answerRule: 'a/(a+b)*100', misconceptionTag: 'rr/percent-of-part' }] },
+      questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'medium', stem: 'The ratio of boys to girls is {a} : {b}. What percentage are boys?', answerRule: 'a/(a+b)*100 (a,b≤9)', misconceptionTag: 'rr/percent-of-part' }] },
 
     // ── Dividing in a ratio ──
     { slug: 'rr.divide', name: 'Dividing a quantity in a given ratio', level: 'Primary 5',

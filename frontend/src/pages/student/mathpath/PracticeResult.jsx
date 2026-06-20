@@ -3,10 +3,9 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowRight, Wrench, BookOpen } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { Card, Button, Badge, StatTile, ProgressBar, PageHeader, Spinner, EmptyState, CollapsibleSection } from '../../../components/ui';
+import { MascotBubble } from '../../../components/MascotAvatar';
 import { MathText } from '../../../components/ui/Fraction';
 import { getUniversalSkillByFrameworkId } from '../../../mathpath/curriculum';
-import { MascotBubble } from '../../../components/MascotAvatar';
-import { getMascotForModule } from '../../../config/mascots';
 
 function canonicalSkillName(skillId, fallback = '') {
   const normalized = String(skillId || '').toUpperCase();
@@ -37,9 +36,6 @@ export default function PracticeResult() {
     })();
   }, [sessionId]);
 
-  // Start the recommended next practice. Mirrors MistakesHome.practise so the
-  // session returns to MathPath afterwards. Framework (fraction) skills use the
-  // recommended-pathway flow; everything else gets a normal practice session.
   async function practiseRecommended() {
     const skillId = recommended?.skillId || recommended?.skillCode || recommended?.id || '';
     if (!skillId || starting) {
@@ -84,12 +80,15 @@ export default function PracticeResult() {
     }
   }
 
-  if (loading) return <Spinner label="Scoring…" />;
+  if (loading) return <Spinner label="Scoring\u2026" />;
   if (!data) return <EmptyState message="Could not load these results." />;
 
   const { stats, skills, mistakes, remediationGated } = data;
-  // Route follow-on actions by module/feature so a session returns where it began
-  // (Science → Science, an assigned Mastery Worksheet → the worksheets list).
+  // Reward (Kaesy) on a solid session; encouragement (Talia) when it was a struggle.
+  const accuracy = Number(stats.accuracy) || 0;
+  const cheer = accuracy >= 70
+    ? { key: 'kaesy', text: accuracy >= 90 ? `Incredible \u2014 ${accuracy}%! You're on fire!` : `Nice work \u2014 ${accuracy}% correct!` }
+    : { key: 'talia', text: `Every rep counts. Let's review these and bounce back stronger.` };
   const isScience = data.session?.module === 'Science Adaptive Revision';
   const isWorksheet = data.session?.feature === 'Mastery Worksheet';
   const isFluency = data.session?.mode === 'fluency' || data.session?.feature === 'Fluency Practice';
@@ -102,21 +101,10 @@ export default function PracticeResult() {
       : defaultHomeLabel
     : defaultHomeLabel);
   const mistakesBase = state.mistakesBase || (isScience ? '/student/science/mistakes' : '/student/mathpath/mistakes');
-  const moduleKey = isScience ? 'science' : 'mathpath';
-  const mascot = getMascotForModule(moduleKey);
-  const mascotMessage = stats.accuracy >= 80
-    ? `Amazing — ${stats.accuracy}% accuracy! You're crushing it!`
-    : stats.accuracy >= 50
-      ? `Good effort — ${stats.accuracy}%. Let's review the tricky ones together.`
-      : `${stats.accuracy}% this round. Don't worry — every mistake is a chance to learn!`;
 
   return (
     <div className="mx-auto max-w-xl">
-      <PageHeader title="Session complete" subtitle="Nice work — here's how it went." />
-
-      {mascot && (
-        <MascotBubble name={mascot.key} message={mascotMessage} size="sm" className="mb-4" voiced />
-      )}
+      <PageHeader title="Session complete" subtitle="Nice work \u2014 here's how it went." />
 
       <Card className="mb-5 p-6 text-center">
         <div className="font-mono text-5xl font-semibold tabular-nums text-emerald-deep">{stats.accuracy}%</div>
@@ -124,11 +112,13 @@ export default function PracticeResult() {
         <ProgressBar value={stats.correct} max={Math.max(stats.total, 1)} className="mt-4" />
       </Card>
 
+      <MascotBubble name={cheer.key} message={cheer.text} className="mb-5 justify-center" />
+
       <Card className="mb-5 p-5">
         <div className="flex items-center gap-6">
           <StatTile label="Correct" value={stats.correct} />
           <StatTile label="To review" value={stats.incorrect} />
-          <StatTile label="Avg time" value={stats.avgTimeMs ? Math.round(stats.avgTimeMs / 1000) : '—'} suffix={stats.avgTimeMs ? 's' : ''} />
+          <StatTile label="Avg time" value={stats.avgTimeMs ? Math.round(stats.avgTimeMs / 1000) : '\u2014'} suffix={stats.avgTimeMs ? 's' : ''} />
         </div>
       </Card>
 
@@ -160,7 +150,7 @@ export default function PracticeResult() {
             {mistakes.map((m) => (
               <li key={m.id} className="text-sm">
                 <div className="text-ink-700"><MathText text={m.stem} /></div>
-                <div className="mt-0.5 text-ink-500">You: <MathText text={m.yourAnswer} className="font-mono" /> · Answer: <MathText text={m.correctAnswer} className="font-mono text-success-700" /></div>
+                <div className="mt-0.5 text-ink-500">You: <MathText text={m.yourAnswer} className="font-mono" /> \u00b7 Answer: <MathText text={m.correctAnswer} className="font-mono text-success-700" /></div>
               </li>
             ))}
           </ul>
@@ -168,15 +158,15 @@ export default function PracticeResult() {
       )}
 
       {recommended && (
-        <Card className="mb-5 border-l-4 border-l-gold p-4">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-gold-deep">Recommended next</div>
+        <Card className="mb-5 border-l-4 border-l-gold-400 p-4">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-gold-700">Recommended next</div>
           <p className="mt-0.5 text-base font-semibold text-ink-800">
             {canonicalSkillName(recommended.skillId, recommended.skillName)}
-            {recommended.topicName ? <span className="font-normal text-ink-500"> · {recommended.topicName}</span> : null}
+            {recommended.topicName ? <span className="font-normal text-ink-500"> \u00b7 {recommended.topicName}</span> : null}
           </p>
           <p className="mt-1 text-xs text-ink-500">
             {mistakes.length > 0
-              ? 'Building on the skills you just practised — this is your best next step to turn those slips into mastery.'
+              ? 'Building on the skills you just practised \u2014 this is your best next step to turn those slips into mastery.'
               : 'This is your best next step to keep building mastery.'}
           </p>
           {startError && <p className="mt-2 text-xs font-semibold text-error-700">{startError}</p>}
@@ -186,7 +176,7 @@ export default function PracticeResult() {
             onClick={practiseRecommended}
             className="mt-3 w-full sm:w-auto"
           >
-            {starting ? 'Starting…' : 'Start this practice'}
+            {starting ? 'Starting\u2026' : 'Start this practice'}
           </Button>
         </Card>
       )}
@@ -217,7 +207,7 @@ export default function PracticeResult() {
             onClick={startGuidedRecovery}
             className="mt-4 w-full"
           >
-            {guidedStarting ? 'Starting…' : 'Work through this with guidance'}
+            {guidedStarting ? 'Starting\u2026' : 'Work through this with guidance'}
           </Button>
         </Card>
       ) : (

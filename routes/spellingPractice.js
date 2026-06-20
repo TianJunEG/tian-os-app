@@ -136,7 +136,7 @@ router.post('/sessions/:id/complete', protect, asyncHandler(async (req, res) => 
   if (session.assignmentId) {
     await Assignment.findByIdAndUpdate(session.assignmentId, { status: 'completed', completionDate: new Date(), score: scorePct });
   }
-  const minutes = Math.max(1, Math.round((session.endedAt - session.createdAt) / 60000));
+  const minutes = Math.max(1, Math.round((session.endedAt - session.startedAt) / 60000));
   const studentDoc = await Student.findById(session.studentId).select('userId').lean();
   if (studentDoc?.userId) {
     await LearningResult.create({

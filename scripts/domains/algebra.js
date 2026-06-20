@@ -25,7 +25,7 @@ export default {
       misconceptions: [{ tag: 'alg/equals-means-answer', label: 'Reads = as "work it out" rather than "both sides balance"' }],
       practiceModes: ['mcq', 'short_answer', 'visual_model'],
       remediation: { onRepeatedFail: 'worked-example', reinforce: ['op.sub.facts'], strategy: 'balance model: what keeps both sides equal' },
-      questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'easy', stem: 'Find the missing number: {a} + \\square = {c}', answerRule: 'c-a', misconceptionTag: 'alg/equals-means-answer' }] },
+      questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'easy', stem: 'Find the missing number: {a} + ___ = {c}', answerRule: 'c-a', misconceptionTag: 'alg/equals-means-answer' }] },
     { slug: 'alg.unknown-letter', name: 'Using a letter for an unknown', level: 'Primary 6',
       prerequisites: ['alg.unknown-arith'], masteryType: 'conceptual', fluencyType: 'accuracy',
       render: 'katex', visualModels: ['bar'],

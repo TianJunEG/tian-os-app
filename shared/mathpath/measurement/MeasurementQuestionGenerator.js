@@ -419,11 +419,15 @@ function makePractice(skillId) {
   return (family, rng, variant) => {
     const q = runBuilder(skillId, rng, variant);
     const answerDisplay = q.raw ? String(q.value) : fmtVal(q.value, q);
-    return shortAnswer({
+    const base = shortAnswer({
       family, prompt: q.prompt, answerDisplay, solutionSteps: q.steps,
       misconceptionTag: q.tag || (family.misconceptionTags || [])[0] || '',
       difficulty: family.difficulty, mode: 'practice', diagram: q.diagram,
     });
+    // "Write <, > or =" comparison items get answerFormat:'comparison' so the
+    // client renders the symbol picker (with '=') instead of a plain text box.
+    if (['<', '>', '='].includes(String(q.value))) base.answerFormat = 'comparison';
+    return base;
   };
 }
 function makeMCQ(skillId) {

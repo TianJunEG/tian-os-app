@@ -78,17 +78,21 @@ export const POLYGONS = [
 ];
 
 // Generate the concrete problem for each panel, in order, sharing one ctx so
-// story-linked values stay consistent. Returns an array aligned to panels;
-// each entry merges the static problem fields with the generated ones (and may
-// carry a `menuNote` override when prices are regenerated).
+// story-linked values stay consistent. Returns { problems, ctx } where problems
+// is an array aligned to panels and ctx holds any cross-panel values written by
+// generate() functions (e.g. totals or counts referenced in speech bubbles).
+// Speech entries may define `text` as a function (ctx, problem) => string
+// instead of a plain string; ComicReader resolves them after generation so
+// speech bubble numbers always match the math challenge numbers.
 export function generateEpisodeProblems(episode, tier, seed) {
   const rng = makeRng(`${episode.id}:${seed}`);
   const ctx = {};
-  return episode.panels.map((panel) => {
+  const problems = episode.panels.map((panel) => {
     const p = panel.problem;
     if (!p) return null;
     if (typeof p.generate !== 'function') return p; // static problem — unchanged
     const dynamic = p.generate(rng, tier, ctx) || {};
     return { ...p, ...dynamic };
   });
+  return { problems, ctx };
 }

@@ -60,14 +60,23 @@ export default function MascotAvatar({ name, size = 'md', className = '', showRi
     );
   }
 
+  // Wrapper carries the size, clipped circle, ring/border, and a solid white
+  // background fill so the two opaque-white-background mascots (tiano, chelya)
+  // blend seamlessly into the disc and transparent mascots get a consistent
+  // clean disc behind the character. overflow-hidden prevents the image from
+  // spilling past the circle. Mirrors the AvatarPicker pattern below.
   return (
-    <img
-      src={imgSrc}
-      alt={mascot.name}
-      className={`${sizeClass} rounded-full object-cover ${ringClass} ${className}`}
-      style={showRing ? { '--tw-ring-color': mascot.color } : undefined}
-      onError={() => setImgFailed(true)}
-    />
+    <div
+      className={`${sizeClass} overflow-hidden rounded-full bg-white ${ringClass} ${className}`}
+      style={showRing ? { '--tw-ring-color': mascot.color, '--tw-ring-offset-color': '#ffffff' } : undefined}
+    >
+      <img
+        src={imgSrc}
+        alt={mascot.name}
+        className="h-full w-full object-cover"
+        onError={() => setImgFailed(true)}
+      />
+    </div>
   );
 }
 
@@ -144,6 +153,13 @@ export function AvatarPicker({ currentAvatar, onSelect, onClose }) {
 // still speaks. Manual replay buttons call speak() directly and bypass this.
 const lastAutoSpokenAt = new Map(); // `${name}|${message}` -> epoch ms
 const AUTO_SPEAK_COOLDOWN_MS = 5 * 60 * 1000;
+
+export function MascotGreeting({ mascotKey, studentName, className = '' }) {
+  const mascot = getMascot(mascotKey);
+  if (!mascot) return null;
+  const greeting = mascot.greeting ? mascot.greeting(studentName) : `Hi ${studentName}! I'm ${mascot.name}.`;
+  return <MascotBubble name={mascotKey} message={greeting} className={className} />;
+}
 
 export function MascotBubble({ name, message, size = 'md', className = '', voiced = false }) {
   const mascot = getMascot(name);

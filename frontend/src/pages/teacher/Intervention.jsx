@@ -5,7 +5,14 @@ import { useClass } from './useClass';
 import ClassNav from './ClassNav';
 import { Card, Button, StatusBadge, Spinner, ErrorState } from '../../components/ui';
 
-const STATUSES = ['needs_support', 'improving', 'stable', 'mastered'];
+// Status options a teacher can set on an intervention, with plain labels
+// (the raw enum keys read as jargon when rendered directly).
+const STATUSES = [
+  ['needs_support', 'Needs support'],
+  ['improving', 'Improving'],
+  ['stable', 'Stable'],
+  ['mastered', 'Mastered'],
+];
 
 // Intervention tracker: list + inline status update.
 export default function Intervention() {
@@ -87,10 +94,10 @@ export default function Intervention() {
               {i.notes && <p className="text-sm text-ink-500">{i.notes}</p>}
               {i.nextAction && <p className="mt-1 text-sm text-ink-700">Next: {i.nextAction}</p>}
               <div className="mt-3 flex flex-wrap gap-1.5">
-                {STATUSES.map((s) => (
-                  <button key={s} onClick={() => update(i.id, s)}
-                    className={`rounded-full border px-2.5 py-1 text-xs font-semibold transition ${i.status === s ? 'border-emerald bg-emerald-tint text-emerald-deep' : 'border-line-soft text-ink-500 hover:text-emerald-deep'}`}>
-                    {s.replace(/_/g, ' ')}
+                {STATUSES.map(([value, label]) => (
+                  <button key={value} onClick={() => update(i.id, value)}
+                    className={`rounded-full border px-2.5 py-1 text-xs font-semibold transition ${i.status === value ? 'border-emerald bg-emerald-tint text-emerald-deep' : 'border-line-soft text-ink-500 hover:text-emerald-deep'}`}>
+                    {label}
                   </button>
                 ))}
               </div>

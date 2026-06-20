@@ -2,40 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AlertCircle, Check, ChevronRight, FileText, GraduationCap, Search } from 'lucide-react';
 import { tutorAPI } from '../../services/api';
-import { Spinner } from '../../components/ui';
+import { Spinner, PageHeader, Segmented } from '../../components/ui';
 
 const FONT = "'Hanken Grotesk', system-ui, sans-serif";
 const MONO = "'JetBrains Mono', monospace";
-
-const pageStyle = {
-  fontFamily: FONT,
-  color: '#232c39',
-  minHeight: '100vh',
-  background: '#e7eaef',
-  backgroundImage: 'radial-gradient(#d3d8e0 1px, transparent 1.4px)',
-  backgroundSize: '26px 26px',
-  padding: '0 0 96px',
-};
-
-const shellStyle = {
-  background: '#f5f6f8',
-  border: '1px solid #dde1e8',
-  borderRadius: 16,
-  overflowX: 'hidden',
-  boxShadow: '0 36px 70px -34px rgba(30,42,66,0.45)',
-};
-
-const navStyle = {
-  background: '#fff',
-  borderBottom: '1px solid #eaedf2',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  flexWrap: 'wrap',
-  gap: 8,
-  padding: '10px 16px',
-  minHeight: 54,
-};
 
 const cardStyle = {
   background: '#fff',
@@ -68,28 +38,6 @@ const CERT_LABEL = {
   approved: 'Approved',
   suspended: 'Suspended',
 };
-
-function NavTab({ label, active, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        padding: '7px 13px',
-        borderRadius: 8,
-        background: active ? '#e7f3ec' : 'transparent',
-        color: active ? '#1c5b3e' : '#6b7585',
-        fontSize: 13.5,
-        fontWeight: active ? 600 : 500,
-        border: 'none',
-        cursor: 'pointer',
-        fontFamily: FONT,
-      }}
-    >
-      {label}
-    </button>
-  );
-}
 
 function StudentCard({ name, initials, level, schedule, statusBg, statusFg, statusIcon, statusText, onClick }) {
   return (
@@ -206,7 +154,7 @@ export default function TutorHome() {
   useEffect(() => { load(); }, []);
 
   if (error) return (
-    <div style={{ ...pageStyle, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ display: 'flex', minHeight: '40vh', alignItems: 'center', justifyContent: 'center', fontFamily: FONT }}>
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontSize: 16, fontWeight: 700, color: '#d8694f', marginBottom: 8 }}>{error}</div>
         <button type="button" onClick={load} style={emeraldCTAStyle}>Retry</button>
@@ -258,40 +206,33 @@ export default function TutorHome() {
   );
 
   return (
-    <div style={pageStyle}>
-      <div className="mx-auto max-w-[1360px] px-4 sm:px-11">
-        <div style={shellStyle}>
-          {/* Nav */}
-          <div style={navStyle}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 30 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 9, background: 'linear-gradient(150deg, #39b07e, #1f8a5b)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 17, boxShadow: '0 2px 6px rgba(31,138,91,0.4)' }}>T</div>
-                <span style={{ fontWeight: 800, fontSize: 18, letterSpacing: '-0.02em' }}>TianOS</span>
-                <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, letterSpacing: '0.1em', color: '#1f8a5b', background: '#e7f3ec', border: '1px solid #c7e6d4', padding: '3px 7px', borderRadius: 6 }}>TUTOR</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                {['Today', 'Students', 'Notes'].map((tab) => (
-                  <NavTab key={tab} label={tab} active={activeTab === tab} onClick={() => setActiveTab(tab)} />
-                ))}
-              </div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-              <div style={{ width: 30, height: 30, borderRadius: '50%', background: '#1f8a5b', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>
-                {initials(data.tutorName || 'Tutor')}
-              </div>
-              <span style={{ fontSize: 13.5, fontWeight: 600 }}>{data.tutorName || 'Tutor'}</span>
-            </div>
-          </div>
+    <div style={{ fontFamily: FONT, color: '#232c39' }}>
+      <PageHeader
+        title="Tutor home"
+        subtitle={data.tutorName ? `Welcome back, ${data.tutorName}.` : 'Your caseload at a glance.'}
+        action={(
+          <Segmented
+            label="View"
+            value={activeTab}
+            onChange={setActiveTab}
+            options={[
+              { value: 'Today', label: 'Today' },
+              { value: 'Students', label: 'Students' },
+              { value: 'Notes', label: 'Notes' },
+            ]}
+          />
+        )}
+      />
 
-          {activeTab === 'Students' ? (
-            <div className="p-4 sm:p-6">
-              <div style={{ fontSize: 23, fontWeight: 800, letterSpacing: '-0.01em', marginBottom: 16 }}>My students</div>
-              {studentGrid}
-            </div>
-          ) : activeTab === 'Notes' ? (
-            <div className="p-4 sm:p-6">
-              <div style={{ fontSize: 23, fontWeight: 800, letterSpacing: '-0.01em', marginBottom: 16 }}>Recent lesson notes</div>
-              {data.recentNotes?.length > 0 ? (
+      {activeTab === 'Students' ? (
+        <div>
+          <div style={{ fontSize: 23, fontWeight: 800, letterSpacing: '-0.01em', marginBottom: 16 }}>My students</div>
+          {studentGrid}
+        </div>
+      ) : activeTab === 'Notes' ? (
+        <div>
+          <div style={{ fontSize: 23, fontWeight: 800, letterSpacing: '-0.01em', marginBottom: 16 }}>Recent lesson notes</div>
+          {data.recentNotes?.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {data.recentNotes.map((n) => (
                     <div
@@ -316,7 +257,7 @@ export default function TutorHome() {
               )}
             </div>
           ) : (
-          <div className="grid grid-cols-1 gap-5 p-4 sm:p-6 lg:grid-cols-[1.35fr_1fr] lg:items-start">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.35fr_1fr] lg:items-start">
             {/* Caseload */}
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
@@ -378,10 +319,9 @@ export default function TutorHome() {
             />
           </div>
           )}
-        </div>
 
-        {/* Recent notes — only shown on Today tab */}
-        {activeTab === 'Today' && data.recentNotes?.length > 0 && (
+      {/* Recent notes — only shown on Today tab */}
+      {activeTab === 'Today' && data.recentNotes?.length > 0 && (
           <div style={{ marginTop: 24 }}>
             <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#8a93a3', marginBottom: 10, paddingLeft: 4 }}>Recent lesson notes</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -405,7 +345,6 @@ export default function TutorHome() {
             </div>
           </div>
         )}
-      </div>
     </div>
   );
 }

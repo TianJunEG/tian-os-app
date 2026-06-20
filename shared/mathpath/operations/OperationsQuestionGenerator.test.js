@@ -72,6 +72,14 @@ describe('OperationsQuestionGenerator', () => {
     }
   });
 
+  it('generates unique ids within repeated-family practice sets', () => {
+    for (const skillId of ['OP001', 'OP019', 'OP024']) {
+      const qs = generateOperationsQuestionSet({ skillId, count: 12, sessionSalt: 'id-regression' });
+      const ids = qs.map((q) => q.id);
+      expect(new Set(ids).size, `${skillId}: ${ids.join('|')}`).toBe(ids.length);
+    }
+  });
+
   it('writes real worked solutions (not boilerplate)', () => {
     for (const q of questions) {
       expect(q.solutionSteps.length).toBeGreaterThanOrEqual(2);

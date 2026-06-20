@@ -37,6 +37,21 @@ export default function WorksheetPreview() {
     finally { setAssigning(false); }
   };
 
+  // The /worksheets/:id/pdf endpoint is authenticated, so we fetch it as a blob
+  // through the axios client (which attaches the Bearer token) instead of opening
+  // the raw URL directly — opening it would 401. Open the blob URL in a new tab
+  // and revoke it shortly after so the browser keeps the loaded document.
+  const downloadPdf = async () => {
+    try {
+      const { data } = await worksheetGenAPI.pdfBlob(worksheetId);
+      const url = window.URL.createObjectURL(data);
+      window.open(url, '_blank');
+      setTimeout(() => window.URL.revokeObjectURL(url), 60000);
+    } catch (e) {
+      setError(e.response?.data?.error || 'Could not download PDF.');
+    }
+  };
+
   // Keep the child context (back link + tabs) visible across loading/error
   // states so the worksheet preview is recognisably part of the child's surface.
   const Frame = ({ children }) => (
@@ -122,7 +137,7 @@ export default function WorksheetPreview() {
           ? <span className="inline-flex flex-1 items-center justify-center gap-2 rounded-btn bg-success-100 px-5 py-3 font-semibold text-success-700"><Check className="h-4 w-4" /> Worksheet assigned</span>
           : <Button icon={Send} disabled={assigning} onClick={assign} className="flex-1">{assigning ? 'Assigning…' : 'Assign worksheet'}</Button>}
         <Button variant="secondary" icon={Printer} onClick={() => window.print()}>Print</Button>
-        <Button variant="secondary" icon={Download} onClick={() => window.open(worksheetGenAPI.pdfUrl(worksheetId), '_blank')}>PDF</Button>
+        <Button variant="secondary" icon={Download} onClick={downloadPdf}>PDF</Button>
         <Button variant="secondary" icon={RotateCcw} onClick={() => navigate(`/parent/children/${studentId}/worksheets/new?${regenParams(w)}`)}>Regenerate</Button>
       </div>
       <p className="mt-2 text-xs text-ink-500 print:hidden">Use Print for paper copies or PDF for a quick download.</p>

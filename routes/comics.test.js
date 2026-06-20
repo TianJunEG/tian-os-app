@@ -17,6 +17,7 @@ const comicProgressFindOneAndUpdate = vi.fn(async () => ({}));
 const comicProgressFind = vi.fn(() => ({
   lean: async () => [{ episodeId: 'ep-001', completedAt: new Date('2026-01-01') }],
 }));
+const comicProgressFindOne = vi.fn(() => ({ lean: async () => null }));
 const skillFind = vi.fn(() => ({
   lean: async () => [
     { _id: 'skill_mon_add', slug: 'mon.add' },
@@ -35,7 +36,11 @@ vi.mock('../utils/masteryEngine.js', () => ({
   weakSkills: (...args) => weakSkillsMock(...args),
 }));
 vi.mock('../models/ComicProgress.js', () => ({
-  default: { findOneAndUpdate: (...a) => comicProgressFindOneAndUpdate(...a), find: (...a) => comicProgressFind(...a) },
+  default: {
+    findOneAndUpdate: (...a) => comicProgressFindOneAndUpdate(...a),
+    find: (...a) => comicProgressFind(...a),
+    findOne: (...a) => comicProgressFindOne(...a),
+  },
 }));
 vi.mock('../models/Skill.js', () => ({
   default: { find: (...a) => skillFind(...a) },
@@ -63,6 +68,7 @@ describe('comics routes', () => {
     resolveStudentMock.mockImplementation(async () => MOCK_STUDENT);
     weakSkillsMock.mockImplementation(async () => []);
     comicProgressFind.mockImplementation(() => ({ lean: async () => [{ episodeId: 'ep-001', completedAt: new Date('2026-01-01') }] }));
+    comicProgressFindOne.mockImplementation(() => ({ lean: async () => null }));
     skillFind.mockImplementation(() => ({ lean: async () => [
       { _id: 'skill_mon_add', slug: 'mon.add' }, { _id: 'skill_mon_change', slug: 'mon.change' },
     ] }));
@@ -107,6 +113,43 @@ describe('comics routes', () => {
     // correctness flows through per problem
     const change = byArgs.find((a) => a.skillId === 'skill_mon_change');
     expect(change.correct).toBe(false);
+  });
+
+  it('sanitises + bounds scratchpad strokes (whitelists fields, drops image/junk, caps strokes & points)', async () => {
+    const stroke = (pts = 2, extra = {}) => ({
+      tool: 'pen', colour: '#111', size: 4,
+      points: Array.from({ length: pts }, (_, i) => ({ x: i, y: i })),
+      ...extra,
+    });
+    const res = await request('/ep-001/complete', {
+      method: 'POST',
+      body: { problems: [
+        { problemId: 'p1-q1', correct: true,
+          workingStrokes: [stroke(2, { junk: 'z'.repeat(100), evil: { nested: 1 } })],
+          workingImage: 'data:image/png;base64,AAAA' },
+        { problemId: 'p3-q1', correct: false, workingStrokes: Array.from({ length: 450 }, () => stroke(2)) },
+        { problemId: 'e10-p1-q1', correct: true, workingStrokes: [stroke(2000)] }, // one huge stroke
+        { problemId: 'p2-q1', correct: true }, // no working drawn
+        { problemId: 'e8-p1-q1', correct: true, workingStrokes: [{ tool: 'pen' }] }, // no points → dropped
+      ] },
+    });
+
+    expect(res.status).toBe(200);
+    const [, update] = comicProgressFindOneAndUpdate.mock.calls[0];
+    const stored = update.problems;
+    // whitelisted to the known stroke shape; junk keys + rasterised image dropped
+    expect(stored[0].workingStrokes).toHaveLength(1);
+    expect(stored[0].workingStrokes[0]).toEqual({ points: [{ x: 0, y: 0 }, { x: 1, y: 1 }], tool: 'pen', colour: '#111', size: 4 });
+    expect(stored[0].workingStrokes[0].junk).toBeUndefined();
+    expect(stored[0].workingImage).toBeUndefined();
+    // stroke count capped at 400
+    expect(stored[1].workingStrokes).toHaveLength(400);
+    // points within a single stroke capped at 1500
+    expect(stored[2].workingStrokes[0].points).toHaveLength(1500);
+    // a panel with no working stores no working field at all
+    expect(stored[3]).toEqual({ problemId: 'p2-q1', correct: true });
+    // a malformed stroke (no points) is dropped → no working field
+    expect(stored[4].workingStrokes).toBeUndefined();
   });
 
   it('still saves progress but skips mastery for an unmapped problem id', async () => {
@@ -185,7 +228,7 @@ describe('comics routes', () => {
     comicProgressFind.mockImplementationOnce(() => ({
       sort: () => ({
         lean: async () => [
-          { episodeId: 'ep-003', completedAt: new Date('2026-02-02'), problems: [{ problemId: 'e3-p1-q1', correct: true }, { problemId: 'e3-p3-q1', correct: true }] },
+          { episodeId: 'ep-003', completedAt: new Date('2026-02-02'), problems: [{ problemId: 'e3-p1-q1', correct: true, workingStrokes: [{ tool: 'pen', points: [{ x: 0, y: 0 }] }] }, { problemId: 'e3-p3-q1', correct: true }] },
           { episodeId: 'ep-001', completedAt: new Date('2026-01-01'), problems: [{ problemId: 'p1-q1', correct: true }] },
         ],
       }),
@@ -200,8 +243,8 @@ describe('comics routes', () => {
     // resolveStudent validates guardianship with the explicit studentId
     expect(resolveStudentMock).toHaveBeenCalledWith(expect.anything(), 'child_9');
     expect(res.data.completed).toEqual([
-      { episodeId: 'ep-003', completedAt: expect.any(Date) },
-      { episodeId: 'ep-001', completedAt: expect.any(Date) },
+      { episodeId: 'ep-003', completedAt: expect.any(Date), hasWorking: true },
+      { episodeId: 'ep-001', completedAt: expect.any(Date), hasWorking: false },
     ]);
     // e3-p1-q1→mon.add, e3-p3-q1→mon.change, p1-q1→mon.add ⇒ distinct, name-resolved
     expect(res.data.skills).toEqual([
@@ -213,6 +256,57 @@ describe('comics routes', () => {
   it('propagates a guardianship access error from /activity', async () => {
     resolveStudentMock.mockRejectedValueOnce({ status: 403, message: 'Not your child.' });
     const res = await request('/activity', { query: { studentId: 'someone-elses-kid' } });
+    expect(res.status).toBe(403);
+    expect(res.data).toEqual({ error: 'Not your child.' });
+  });
+
+  it("returns a child's saved working for one episode (only problems with strokes, named by skill), parent-scoped", async () => {
+    comicProgressFindOne.mockImplementationOnce(() => ({ lean: async () => ({
+      completedAt: new Date('2026-02-02'),
+      problems: [
+        { problemId: 'p1-q1', correct: true, workingStrokes: [{ tool: 'pen', points: [{ x: 0, y: 0 }, { x: 1, y: 1 }] }] },
+        { problemId: 'p3-q1', correct: false, workingStrokes: [{ tool: 'pen', points: [{ x: 2, y: 2 }, { x: 3, y: 3 }] }] },
+        { problemId: 'p2-q1', correct: true }, // no working drawn → excluded
+      ],
+    }) }));
+    skillFind.mockImplementationOnce(() => ({ lean: async () => [
+      { slug: 'mon.add', name: 'Adding money' }, { slug: 'mon.change', name: 'Giving change' },
+    ] }));
+
+    const res = await request('/working', { query: { studentId: 'child_9', episodeId: 'ep-001' } });
+
+    expect(res.status).toBe(200);
+    // resolveStudent validates guardianship with the explicit studentId
+    expect(resolveStudentMock).toHaveBeenCalledWith(expect.anything(), 'child_9');
+    expect(comicProgressFindOne).toHaveBeenCalledWith(
+      { studentId: 'student_1', episodeId: 'ep-001' },
+      { problems: 1, completedAt: 1 },
+    );
+    expect(res.data.episodeId).toBe('ep-001');
+    // only the problems that have working, tagged by skill + correctness; p2-q1 omitted
+    expect(res.data.problems).toEqual([
+      { problemId: 'p1-q1', correct: true, skillName: 'Adding money', workingStrokes: [{ tool: 'pen', points: [{ x: 0, y: 0 }, { x: 1, y: 1 }] }] },
+      { problemId: 'p3-q1', correct: false, skillName: 'Giving change', workingStrokes: [{ tool: 'pen', points: [{ x: 2, y: 2 }, { x: 3, y: 3 }] }] },
+    ]);
+  });
+
+  it('returns an empty working list when the episode has no record', async () => {
+    comicProgressFindOne.mockImplementationOnce(() => ({ lean: async () => null }));
+    const res = await request('/working', { query: { studentId: 'child_9', episodeId: 'ep-099' } });
+    expect(res.status).toBe(200);
+    expect(res.data).toEqual({ episodeId: 'ep-099', completedAt: null, problems: [] });
+    expect(skillFind).not.toHaveBeenCalled(); // no slugs to resolve
+  });
+
+  it('400s when /working is missing episodeId', async () => {
+    const res = await request('/working', { query: { studentId: 'child_9' } });
+    expect(res.status).toBe(400);
+    expect(comicProgressFindOne).not.toHaveBeenCalled();
+  });
+
+  it('propagates a guardianship access error from /working', async () => {
+    resolveStudentMock.mockRejectedValueOnce({ status: 403, message: 'Not your child.' });
+    const res = await request('/working', { query: { studentId: 'someone-elses-kid', episodeId: 'ep-001' } });
     expect(res.status).toBe(403);
     expect(res.data).toEqual({ error: 'Not your child.' });
   });

@@ -60,3 +60,33 @@ export async function kokoroSpeak(text, { voice = 'af_heart', speed = 1 } = {}) 
   await el.play();
   return blob.size;
 }
+
+// Like kokoroSpeak, but invokes onEnded() when the clip finishes playing (not
+// when it merely starts). Used by the comic narrator to chain mascot lines
+// without overlap. An external stopKokoro() pauses the clip, so 'ended' never
+// fires for an interrupted line — the narrator's own cancel flag halts the
+// chain. Resolves once playback starts; rejects if the model isn't loaded /
+// generation or playback fails (caller falls back to Web Speech).
+//
+// shouldAbort() is re-checked AFTER the (slow) generate step: if a newer line or
+// sequence has superseded this one in the meantime, we bail before touching the
+// shared currentAudio or playing — otherwise a stale clip could hijack playback
+// and the wrong panel's narration would be heard.
+export async function kokoroPlay(text, { voice = 'af_heart', speed = 1 } = {}, onEnded, shouldAbort) {
+  const tts = await loadKokoro();
+  const audio = await tts.generate(text, { voice, speed });
+  if (shouldAbort?.()) return 0; // superseded while generating — don't hijack playback
+  const blob = audio.toBlob();
+  stopKokoro();
+  const url = URL.createObjectURL(blob);
+  const el = new Audio(url);
+  currentAudio = el;
+  currentUrl = url;
+  el.addEventListener('ended', () => {
+    URL.revokeObjectURL(url);
+    if (currentUrl === url) currentUrl = null;
+    onEnded?.();
+  }, { once: true });
+  await el.play();
+  return blob.size;
+}

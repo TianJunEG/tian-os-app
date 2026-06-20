@@ -13,7 +13,7 @@
   /* ── Brand accents ────────────────────────────────────────────────── */
   --gold:            #d9892e;
   --gold-deep:       #b06f1f;
-  --gold-label:      #a8743a;
+  --gold-label:      #8c5c1d;  /* WCAG AA: 5.12:1 on --gold-tint (was #a8743a ≈ 3.6:1) */
   --gold-tint:       #fbf1e1;
   --gold-tint2:      #fdf6ea;
   --gold-tint3:      #f6eee3;
@@ -43,8 +43,8 @@
   --body:            #46505f;
   --body-soft:       #5a6675;
   --body-muted:      #6b7585;
-  --body-faint:      #8a93a3;
-  --body-faint2:     #9aa1b0;
+  --body-faint:      #687282;  /* WCAG AA: 4.86:1 on white (was #8a93a3 ≈ 3.1:1) */
+  --body-faint2:     #6d7585;  /* WCAG AA: 4.63:1 on white (was #9aa1b0 ≈ 2.6:1) */
 
   /* ── Surfaces & borders ───────────────────────────────────────────── */
   --surface-app:     #e7eaef;

@@ -36,10 +36,9 @@ export const NAV_ITEMS = [
   // Tutor (v0.4+)
   { key: 'tutor.home', label: 'Home', path: '/tutor', icon: Home, roles: ['tutor'], minVersion: 'v0.4', featureFlag: 'tutor' },
   { key: 'tutor.students', label: 'Students', path: '/tutor/students', icon: Users, roles: ['tutor'], minVersion: 'v0.4', featureFlag: 'tutor' },
-  { key: 'tutor.lessonprep', label: 'Lesson Prep', path: '/tutor/students/:id/lesson-prep', icon: Book, roles: ['tutor'], minVersion: 'v0.4', featureFlag: 'tutor' },
-  { key: 'tutor.assign', label: 'Assign Practice', path: '/tutor/students/:id/assign-homework', icon: ClipboardList, roles: ['tutor'], minVersion: 'v0.4', featureFlag: 'tutor' },
-  { key: 'tutor.mistakehistory', label: 'Mistake History', path: '/tutor/students/:id/mistakes', icon: BookOpen, roles: ['tutor'], minVersion: 'v0.4', featureFlag: 'tutor' },
-  { key: 'tutor.worksheets', label: 'Worksheets', path: '/parent/children/:studentId/worksheets', icon: FileText, roles: ['tutor'], minVersion: 'v0.4', featureFlag: 'worksheets' },
+  // Per-student actions (Lesson Prep, Assign Practice, Mistake History) live inside
+  // a chosen student via TutorStudentNav — they require an :id and are intentionally
+  // omitted from the persistent (student-agnostic) tutor nav to avoid dead-end links.
   { key: 'tutor.requestaccess', label: 'Request Access', path: '/tutor/request-access', icon: Link2, roles: ['tutor'], minVersion: 'v0.4', featureFlag: 'tutor' },
   { key: 'tutor.subscription', label: 'Subscription', path: '/tutor/subscription', icon: CreditCard, roles: ['tutor'], minVersion: 'v0.4', featureFlag: 'tutor' },
 
@@ -71,10 +70,15 @@ export function buildNav({ version = VERSION, featureFlags = FEATURE_FLAGS, role
   // Sidebar: include main items and group by logical sections for roles
   const sidebar = items.map((it) => ({ to: it.path, label: it.label, icon: it.icon }));
 
-  // Bottom nav: pick up to 5 priority items for mobile
-  const bottom = items.slice(0, 5).map((it) => ({ to: it.path, label: it.label, icon: it.icon }));
+  // Bottom nav (mobile): the floating bar fits 4 primary items + a "More"
+  // overflow button (AppShell renders the 5th slot). Reserve 4 here so the
+  // remaining items (e.g. Progress, Worksheets) stay reachable via `more`
+  // rather than silently dropping off the phone nav.
+  const navItem = (it) => ({ to: it.path, label: it.label, icon: it.icon });
+  const bottom = items.slice(0, 4).map(navItem);
+  const more = items.slice(4).map(navItem);
 
-  return { sidebar, bottom, all: items };
+  return { sidebar, bottom, more, all: items };
 }
 
 export default { NAV_ITEMS, buildNav };

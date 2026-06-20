@@ -1,12 +1,13 @@
 import React, { useEffect, useCallback, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { ArrowRight, Volume2 } from 'lucide-react';
-import { speak } from '../../../../utils/sound';
+import { ArrowRight, Volume2, X } from 'lucide-react';
+import { speak, setVoiceEnabled } from '../../../../utils/sound';
+import { getMascotVoice } from '../../../../config/mascots';
 import { Card, Button, ProgressBar, Spinner, ErrorState } from '../../../../components/ui';
 import { MathText } from '../../../../components/ui/Fraction';
 import { checkFractionAnswer } from '../../../../mathpath/fractions/fractionQuestionGenerator';
 import { repairFractionQuestions } from '../../../../mathpath/fractions/fractionQuestionRepair';
-import { mathpathAPI } from '../../../../services/api';
+import { mathpathAPI, diagnosticsAPI } from '../../../../services/api';
 import { useAuth } from '../../../../context/AuthContext';
 import { getVisualModeStyles, resolveStudentVisualMode, isLowerPrimary as checkIsLowerPrimary } from '../../../../design-os/studentVisualMode';
 import { shouldUseFractionAnswerInput } from '../components/FractionAnswerInput';
@@ -119,8 +120,10 @@ export default function DiagnosticQuestionScreen() {
     setElapsed(0);
     const t = setInterval(() => setElapsed(Math.floor((Date.now() - questionStart) / 1000)), 250);
     if (isLowerPrimary) {
+      // Enable voice so auto-narration is audible (speak() is gated by 'pslVoice').
+      setVoiceEnabled(true);
       const readable = toSpeakable(questions[idx]?.prompt || questions[idx]?.stem || '');
-      if (readable) speak(readable, { rate: 0.8, gender: 'female' });
+      if (readable) speak(readable, getMascotVoice('kylo'));
     }
     return () => {
       clearInterval(t);
@@ -146,9 +149,12 @@ export default function DiagnosticQuestionScreen() {
   const workingReady = hasWorkingDecision(currentWorking);
   const questionText = q.prompt || q.stem || '';
   const currentQuestionValidation = validateQuestionDiagram(q);
+  // Enables voice before speaking so the Read button is never silent (speak() is
+  // gated by the 'pslVoice' flag). Available to every student, not just lower primary.
   const speakQuestion = useCallback(() => {
+    setVoiceEnabled(true);
     const readable = toSpeakable(questionText);
-    if (readable) speak(readable, { rate: 0.8, gender: 'female' });
+    if (readable) speak(readable, getMascotVoice('kylo'));
   }, [questionText]);
 
   const confidenceCalibration = (correct, value) => {
@@ -268,6 +274,22 @@ export default function DiagnosticQuestionScreen() {
     }
   };
 
+  // Persistent in-page exit. This route renders inside the activity shell, whose
+  // nav is hidden on phones, so without this control a student is trapped. On exit
+  // we ABANDON the session (progress is discarded); the next entry starts fresh.
+  const exitCheckIn = async () => {
+    if (typeof window !== 'undefined' && !window.confirm("Exit the check-in? Your progress won't be saved.")) return;
+    const sessionId = session?.sessionId || diagnosticSessionId;
+    if (sessionId) {
+      try {
+        await diagnosticsAPI.abandonDiagnostic(sessionId);
+      } catch (_) {
+        // Best-effort — still navigate away even if the abandon call fails.
+      }
+    }
+    navigate('/student/mathpath');
+  };
+
   const openSubmissionReview = () => {
     if (!answer.trim()) return;
     setReviewModalOpen(true);
@@ -304,18 +326,24 @@ export default function DiagnosticQuestionScreen() {
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{session?.displayName || 'Maths Diagnostic'}</p>
               <div className="flex items-center gap-2">
-                {isLowerPrimary && (
-                  <button
-                    type="button"
-                    aria-label="Read question aloud"
-                    onClick={speakQuestion}
-                    className="flex items-center gap-1.5 rounded-full bg-sky-100 px-3 py-1.5 text-sm font-semibold text-sky-700 hover:bg-sky-200 active:scale-95 transition"
-                  >
-                    <Volume2 className="h-4 w-4" />
-                    Read
-                  </button>
-                )}
+                <button
+                  type="button"
+                  aria-label="Read question aloud"
+                  onClick={speakQuestion}
+                  className="flex min-h-[44px] items-center gap-1.5 rounded-full bg-sky-100 px-3 py-1.5 text-sm font-semibold text-sky-700 hover:bg-sky-200 active:scale-95 transition"
+                >
+                  <Volume2 className="h-4 w-4" aria-hidden="true" />
+                  Read
+                </button>
                 <QuestionZoomControls value={questionZoom} onChange={setQuestionZoom} />
+                <button
+                  type="button"
+                  aria-label="Exit the check-in"
+                  onClick={exitCheckIn}
+                  className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-surface-raised text-ink-500 transition hover:bg-error-100 hover:text-error-700 active:scale-95"
+                >
+                  <X className="h-5 w-5" aria-hidden="true" />
+                </button>
               </div>
             </div>
             {!isLowerPrimary && <p className="mb-3 rounded-lg bg-emerald-tint px-3 py-1.5 text-xs text-emerald-deep">Do not use a calculator for this diagnostic unless your teacher allows it.</p>}
@@ -338,10 +366,10 @@ export default function DiagnosticQuestionScreen() {
           </section>
 
           <aside className="min-w-0 min-h-0 rounded-xl bg-surface-raised p-2 xl:h-full xl:overflow-y-auto">
-            <div className="rounded-xl bg-white p-2 sm:p-3">
-              <label className="mb-2 block text-sm font-semibold text-ink-700">Your answer</label>
+            <div className="rounded-xl bg-white p-2 sm:p-3" role="group" aria-labelledby="diagnostic-answer-label">
+              <label id="diagnostic-answer-label" className="mb-2 block text-sm font-semibold text-ink-700">Your answer</label>
               {q.type === 'mcq' ? (
-                <div className={`grid gap-2 ${isLowerPrimary ? 'grid-cols-2' : ''}`}>
+                <div className={`grid gap-2 ${isLowerPrimary ? 'grid-cols-2' : ''}`} role="group" aria-label="Choose your answer">
                   {choices.map((c, i) => (
                     <button
                       key={`${i}-${c}`}
@@ -401,7 +429,7 @@ export default function DiagnosticQuestionScreen() {
             {isLowerPrimary && q.type !== 'mcq' && (
               <div className="mt-3">
                 <Button icon={ArrowRight} className="w-full py-4 text-lg font-bold" disabled={busy || !answer.trim()} onClick={openSubmissionReview}>
-                  {busy ? 'Checking…' : 'Next ➜'}
+                  {busy ? 'Checking…' : <>Next <span aria-hidden="true">➜</span></>}
                 </Button>
               </div>
             )}
@@ -501,7 +529,7 @@ export default function DiagnosticQuestionScreen() {
         }))}
         onOpenWorking={() => setFullscreenQuestionId(q.questionId)}
         confirmLabel="Next Question"
-        onConfirm={confirmSubmissionReview}
+        onConfirm={() => confirmSubmissionReview()}
         onClose={() => setReviewModalOpen(false)}
         busy={busy}
         canSubmit={() => Boolean(answer.trim() && reflection && workingReady)}

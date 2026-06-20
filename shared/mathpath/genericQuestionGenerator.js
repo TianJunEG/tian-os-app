@@ -110,7 +110,10 @@ function evaluateExpr(exprRaw, bindings) {
 }
 
 // ── Answer rule parsing ───────────────────────────────────────────────────────
-const CONSTRAINT_RE = /^([^(]+)\s*\(([^)]*)\)\s*$/;
+// Rule may itself contain parens (e.g. "a/(a+b)"), so capture the LAST
+// parenthesised group as the candidate constraint annotation; isAnnotation()
+// below decides whether it's really a constraint (vs part of the expression).
+const CONSTRAINT_RE = /^(.+)\s*\(([^()]*)\)\s*$/;
 
 export function parseAnswerRule(raw = '') {
   const s = raw.trim();

@@ -3,17 +3,20 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import ComicReader from './ComicReader';
 
-// Drive the narration UI by mocking the Web Speech wrapper as "supported" and
-// capturing what gets played. (In real jsdom, ttsSupported() is false, so the
-// vocals UI is hidden — that's exercised by the other ComicReader test.)
+// Drive the narration UI by mocking TTS as "supported" and capturing what gets
+// played. Comic vocals now run through utils/sound's mascot speaker (per-mascot
+// Kokoro voice + Web Speech fallback), so we mock createMascotSpeaker. (In real
+// jsdom the vocals UI visibility depends on engine support — exercised by the
+// other ComicReader test.)
 const play = vi.fn();
 const stop = vi.fn();
-vi.mock('../../../utils/tts', () => ({
-  ttsSupported: () => true,
-  createSpeaker: () => ({ play, stop }),
-}));
+vi.mock('../../../utils/tts', () => ({ ttsSupported: () => true }));
+vi.mock('../../../utils/sound', () => ({ createMascotSpeaker: () => ({ play, stop }) }));
 vi.mock('../../../context/AuthContext', () => ({ useAuth: () => ({ user: { studentLevel: 'P4' } }) }));
-vi.mock('../../../services/api', () => ({ comicsAPI: { complete: vi.fn().mockResolvedValue({}) } }));
+vi.mock('../../../services/api', () => ({
+  comicsAPI: { complete: vi.fn().mockResolvedValue({}), recommended: vi.fn().mockResolvedValue({ data: { recommended: null } }) },
+  learningTelemetryAPI: { recordEvent: vi.fn().mockResolvedValue({}) },
+}));
 
 function renderReader() {
   return render(
@@ -43,6 +46,9 @@ describe('ComicReader narration UI', () => {
     expect(steps).toHaveLength(1); // a single line, not the whole panel
     expect(typeof steps[0].text).toBe('string');
     expect(typeof steps[0].pitch).toBe('number');
+    // the per-bubble (playLine) path must also carry the mascot's chosen Kokoro
+    // voice — not just pitch — so tapping a bubble isn't the generic voice.
+    expect(typeof steps[0].kokoro).toBe('string');
   });
 
   it('auto-narrates the whole panel only after the toggle is switched on', () => {

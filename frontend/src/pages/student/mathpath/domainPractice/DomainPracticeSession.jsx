@@ -1,15 +1,15 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, CheckCircle2, Volume2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Volume2, VolumeX } from 'lucide-react';
 import { Alert, Badge, Button, Card, PageHeader, ProgressBar, Spinner } from '../../../../components/ui';
 import { MascotBubble } from '../../../../components/MascotAvatar';
 import { MathText } from '../../../../components/ui/Fraction';
 import FullScreenWorkingMode from '../../../../components/learning/FullScreenWorkingMode';
 import WorkingPreviewCard from '../../../../components/learning/WorkingPreviewCard';
-import ManipulativeDotArray, { parseDotStem, numericLine, toSpeakable, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram } from '../../../../components/learning/ManipulativeDotArray';
-import { speak } from '../../../../utils/sound';
+import ManipulativeDotArray, { parseDotStem, numericLine, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram } from '../../../../components/learning/ManipulativeDotArray';
+import { speak, isVoiceEnabled, setVoiceEnabled } from '../../../../utils/sound';
 import { useAuth } from '../../../../context/AuthContext';
-import { getMascotForModule } from '../../../../config/mascots';
+import { getMascotForModule, getMascotVoice } from '../../../../config/mascots';
 import MathSymbolBar from '../components/MathSymbolBar';
 import AnswerInputRenderer, { getAnswerInputType } from '../components/AnswerInputRenderer';
 import {
@@ -20,6 +20,7 @@ import {
   friendlySkillName,
   getDomainConfig,
   getDomainSymbols,
+  toSpeakable,
 } from './core';
 
 const MASCOT_KEY = getMascotForModule('mathpath')?.key || 'kylo';
@@ -66,6 +67,7 @@ export default function DomainPracticeSession({ domain }) {
   const [showReflection, setShowReflection] = useState(false);
   const [pendingAnswer, setPendingAnswer] = useState(null);
   const [showInactivityAlert, setShowInactivityAlert] = useState(false);
+  const [voiceOn, setVoiceOn] = useState(() => isVoiceEnabled());
 
   const questionStartedAt = useRef(Date.now());
   const lastActivityAt = useRef(Date.now());
@@ -210,6 +212,18 @@ export default function DomainPracticeSession({ domain }) {
     }
   }
 
+  // Read the current question aloud. Enables voice on first tap so the button
+  // always produces audio (speak() is gated by the 'pslVoice' flag), then voices
+  // the prompt with math symbols/LaTeX/emoji stripped to plain speech.
+  function readPromptAloud() {
+    if (!voiceOn) {
+      setVoiceEnabled(true);
+      setVoiceOn(true);
+    }
+    const spoken = toSpeakable(current?.prompt || '');
+    if (spoken) speak(spoken, getMascotVoice(MASCOT_KEY));
+  }
+
   if (loading) return <div className="grid place-items-center py-20"><Spinner label="Starting practice…" /></div>;
 
   if (error && !result) {
@@ -270,84 +284,68 @@ export default function DomainPracticeSession({ domain }) {
       </div>
 
       <Card className="p-6 space-y-4">
-        {(() => {
-          const prompt = current?.prompt || '';
-          const dotData = parseDotStem(prompt);
-          const moneyData = domain === 'money' ? parseMoneyPrompt(prompt) : null;
-          // Prefer the GENERATED coin/note diagram (reliable) over prompt parsing.
-          // Shown at every level — it's the question's intended visual; the tap-to-
-          // count hint just helps younger pupils.
-          const coinTokens = domain === 'money' ? parseCoinsDiagram(current) : null;
-          if (coinTokens) {
-            return (
-              <>
-                <ManipulativeMoneyDiagram key={current?.questionId} tokens={coinTokens} />
-                {isLPrimary ? (
-                  <div className="flex items-center gap-2">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1 space-y-3">
+            {(() => {
+              const prompt = current?.prompt || '';
+              const dotData = parseDotStem(prompt);
+              const moneyData = domain === 'money' ? parseMoneyPrompt(prompt) : null;
+              // Prefer the GENERATED coin/note diagram (reliable) over prompt parsing.
+              // Shown at every level — it's the question's intended visual; the tap-to-
+              // count hint just helps younger pupils.
+              const coinTokens = domain === 'money' ? parseCoinsDiagram(current) : null;
+              if (coinTokens) {
+                return (
+                  <>
+                    <ManipulativeMoneyDiagram key={current?.questionId} tokens={coinTokens} />
+                    {isLPrimary ? (
+                      <p className="text-xl font-bold text-ink-900">{prompt}</p>
+                    ) : (
+                      <p className="text-xl font-semibold leading-relaxed text-ink-900 whitespace-pre-wrap"><MathText text={prompt} /></p>
+                    )}
+                  </>
+                );
+              }
+              if (isLPrimary && moneyData && moneyData.a <= 20 && moneyData.b <= 20) {
+                return (
+                  <>
+                    <ManipulativeCoinArray
+                      key={current?.questionId}
+                      a={moneyData.a}
+                      b={moneyData.b}
+                      operator={moneyData.operator}
+                    />
                     <p className="text-xl font-bold text-ink-900">{prompt}</p>
-                    <button
-                      type="button"
-                      aria-label="Read question"
-                      onClick={() => speak(toSpeakable(prompt), { rate: 0.8, gender: 'female' })}
-                      className="rounded-full p-1 text-ink-400 hover:text-emerald active:scale-90"
-                    >
-                      <Volume2 className="h-5 w-5" />
-                    </button>
-                  </div>
-                ) : (
-                  <p className="text-xl font-semibold leading-relaxed text-ink-900 whitespace-pre-wrap"><MathText text={prompt} /></p>
-                )}
-              </>
-            );
-          }
-          if (isLPrimary && moneyData && moneyData.a <= 20 && moneyData.b <= 20) {
-            return (
-              <>
-                <ManipulativeCoinArray
-                  key={current?.questionId}
-                  a={moneyData.a}
-                  b={moneyData.b}
-                  operator={moneyData.operator}
-                />
-                <div className="flex items-center gap-2">
-                  <p className="text-xl font-bold text-ink-900">{prompt}</p>
-                  <button
-                    type="button"
-                    aria-label="Read question"
-                    onClick={() => speak(toSpeakable(prompt), { rate: 0.8, gender: 'female' })}
-                    className="rounded-full p-1 text-ink-400 hover:text-emerald active:scale-90"
-                  >
-                    <Volume2 className="h-5 w-5" />
-                  </button>
-                </div>
-              </>
-            );
-          }
-          if (isLPrimary && dotData) {
-            return (
-              <>
-                <ManipulativeDotArray
-                  key={current?.questionId}
-                  a={dotData.a}
-                  b={dotData.b}
-                  operator={dotData.operator}
-                />
-                <div className="flex items-center gap-2">
-                  <p className="text-xl font-bold text-ink-900">{numericLine(prompt)}</p>
-                  <button
-                    type="button"
-                    aria-label="Read question"
-                    onClick={() => speak(toSpeakable(prompt), { rate: 0.8, gender: 'female' })}
-                    className="rounded-full p-1 text-ink-400 hover:text-emerald active:scale-90"
-                  >
-                    <Volume2 className="h-5 w-5" />
-                  </button>
-                </div>
-              </>
-            );
-          }
-          return <p className="text-xl font-semibold leading-relaxed text-ink-900 whitespace-pre-wrap"><MathText text={prompt} /></p>;
-        })()}
+                  </>
+                );
+              }
+              if (isLPrimary && dotData) {
+                return (
+                  <>
+                    <ManipulativeDotArray
+                      key={current?.questionId}
+                      a={dotData.a}
+                      b={dotData.b}
+                      operator={dotData.operator}
+                    />
+                    <p className="text-xl font-bold text-ink-900">{numericLine(prompt)}</p>
+                  </>
+                );
+              }
+              return <p className="text-xl font-semibold leading-relaxed text-ink-900 whitespace-pre-wrap"><MathText text={prompt} /></p>;
+            })()}
+          </div>
+          <button
+            type="button"
+            onClick={readPromptAloud}
+            disabled={showReflection}
+            aria-label={voiceOn ? 'Read question aloud' : 'Turn on voice and read question aloud'}
+            title="Read aloud"
+            className="mt-0.5 shrink-0 rounded-full border border-ink-200 p-2 text-ink-500 transition hover:border-navy-300 hover:text-navy-600 disabled:opacity-50"
+          >
+            {voiceOn ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+          </button>
+        </div>
 
         {current?.type === 'mcq' ? (
           isLPrimary ? (
@@ -383,7 +381,16 @@ export default function DomainPracticeSession({ domain }) {
             </div>
           )
         ) : (
-          <div className="mt-5">
+          <div
+            className="mt-5"
+            onFocus={(e) => {
+              // On touch devices the soft keyboard slides up over the input; nudge
+              // it into view (focus bubbles, so this fires for the inner <input>).
+              if (e.target?.tagName === 'INPUT') {
+                setTimeout(() => e.target.scrollIntoView({ block: 'center', behavior: 'smooth' }), 250);
+              }
+            }}
+          >
             <AnswerInputRenderer
               question={current}
               value={draft}
@@ -414,55 +421,61 @@ export default function DomainPracticeSession({ domain }) {
         )}
       </Card>
 
-      {showReflection ? (
-        <div className="rounded-2xl border border-ink-100 bg-white p-5 shadow-sm">
-          {isLPrimary ? (
-            <>
-              <p className="mb-3 text-center text-base font-semibold text-ink-600">How did that feel?</p>
-              <div className="grid grid-cols-2 gap-3">
-                {LP_REFLECTION_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => {
-                      speak(opt.label, { rate: 0.85, gender: 'female' });
-                      confirmReflection(opt.value);
-                    }}
-                    className="flex flex-col items-center gap-2 rounded-2xl border-2 border-line-soft bg-surface-raised px-4 py-4 text-center transition hover:border-emerald hover:bg-emerald-tint active:scale-95"
-                  >
-                    <span className="text-4xl leading-none">{opt.emoji}</span>
-                    <span className="text-sm font-bold text-ink-800">{opt.label}</span>
-                  </button>
-                ))}
-              </div>
-            </>
-          ) : (
-            <>
-              <p className="mb-3 text-sm font-semibold text-ink-600">How did that feel?</p>
-              <div className="grid grid-cols-2 gap-2">
-                {REFLECTION_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => confirmReflection(opt.value)}
-                    className={`rounded-xl border px-4 py-3 text-sm font-semibold transition ${opt.color}`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      ) : (
-        (!isLPrimary || current?.type !== 'mcq') && (
-          <div className="flex justify-end">
-            <Button icon={isLast ? CheckCircle2 : ArrowRight} disabled={!draft.trim() || submitting} onClick={() => submitAnswer()}>
-              {submitting ? 'Submitting…' : isLast ? 'Finish' : 'Next'}
-            </Button>
+      {/* Sticky action bar — on iPad/phone the soft keyboard covers the bottom of
+          the viewport, so the Submit/Next button and the "How did that feel?"
+          confidence buttons are pinned above it (with safe-area padding) so they
+          stay reachable. On desktop it sits inline at the page bottom. */}
+      <div className="sticky bottom-0 z-10 -mx-4 mt-2 border-t border-ink-100 bg-white/95 px-4 pt-3 backdrop-blur supports-[backdrop-filter]:bg-white/80 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+        {showReflection ? (
+          <div className="rounded-2xl border border-ink-100 bg-white p-5 shadow-sm">
+            {isLPrimary ? (
+              <>
+                <p className="mb-3 text-center text-base font-semibold text-ink-600">How did that feel?</p>
+                <div className="grid grid-cols-2 gap-3">
+                  {LP_REFLECTION_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => {
+                        speak(opt.label, { rate: 0.85, gender: 'female' });
+                        confirmReflection(opt.value);
+                      }}
+                      className="flex flex-col items-center gap-2 rounded-2xl border-2 border-line-soft bg-surface-raised px-4 py-4 text-center transition hover:border-emerald hover:bg-emerald-tint active:scale-95"
+                    >
+                      <span className="text-4xl leading-none">{opt.emoji}</span>
+                      <span className="text-sm font-bold text-ink-800">{opt.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="mb-3 text-sm font-semibold text-ink-600">How did that feel?</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {REFLECTION_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => confirmReflection(opt.value)}
+                      className={`rounded-xl border px-4 py-3 text-sm font-semibold transition ${opt.color}`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
-        )
-      )}
+        ) : (
+          (!isLPrimary || current?.type !== 'mcq') && (
+            <div className="flex justify-end">
+              <Button icon={isLast ? CheckCircle2 : ArrowRight} disabled={!draft.trim() || submitting} onClick={() => submitAnswer()}>
+                {submitting ? 'Submitting…' : isLast ? 'Finish' : 'Next'}
+              </Button>
+            </div>
+          )
+        )}
+      </div>
 
       <FullScreenWorkingMode
         open={Boolean(workingQuestionId)}

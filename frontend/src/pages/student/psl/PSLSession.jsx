@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { BookOpen, ChevronDown, ChevronUp, Compass, Flame, HelpCircle, Pencil, Volume2, VolumeX, X } from 'lucide-react';
+import { BookOpen, ChevronDown, ChevronUp, Compass, Flame, HelpCircle, Pencil, Volume2, X } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import StepProgressBar from './components/StepProgressBar';
 import StoryPanel from './components/StoryPanel';
@@ -16,7 +16,8 @@ import WorkedSolutionWalkthrough from './components/WorkedSolutionWalkthrough';
 import WorkingCanvas from '../../../components/learning/WorkingCanvas';
 import { getVoiceScripts } from './utils/voiceScripts';
 import { confettiBurst } from '../../../utils/confetti';
-import { playCorrect, playWin, isVoiceEnabled, setVoiceEnabled } from '../../../utils/sound';
+import { playCorrect, playWin, isVoiceEnabled, setVoiceEnabled, speak } from '../../../utils/sound';
+import { getMascotVoice } from '../../../config/mascots';
 import { useAuth } from '../../../context/AuthContext';
 import { resolveStudentVisualMode, getVisualModeStyles } from '../../../design-os/studentVisualMode';
 
@@ -111,7 +112,7 @@ export default function PSLSession() {
       case 'plan': {
         const planStep = currentProblem?.scaffoldSteps?.find((s) => s.stepId === 'plan');
         const planType = planStep?.type || 'model';
-        if (planType === 'model') return { modelType: resp?.modelType, unknownPosition: resp?.unknownPosition, reasoning: resp?.reasoning || '' };
+        if (planType === 'model') return { modelType: resp?.modelType, unknownPosition: resp?.unknownPosition, parts: resp?.parts, reasoning: resp?.reasoning || '' };
         return { ...(resp || {}), reasoning: resp?.reasoning || '' };
       }
       case 'solve': {
@@ -263,7 +264,10 @@ export default function PSLSession() {
     const resp = stepResponses[currentStepId];
     switch (currentStepId) {
       case 'understand': return resp?.selectedIndex !== undefined;
-      case 'identify_info': return (resp?.numbers || []).length > 0;
+      case 'identify_info': {
+        const expectedCount = currentProblem?.scaffoldSteps?.find((s) => s.stepId === 'identify_info')?.expectedCount || 2;
+        return (resp?.numbers || []).length >= expectedCount;
+      }
       case 'identify_question': return resp?.selectedIndex !== undefined;
       case 'plan': {
         const planStep = currentProblem?.scaffoldSteps?.find((s) => s.stepId === 'plan');
@@ -279,12 +283,31 @@ export default function PSLSession() {
 
   const STEP_SHORT_LABELS = ['Read', 'Clues', 'Question', 'Plan', 'Solve', 'Check'];
 
-  const voiceScript = (() => {
-    if (completedSteps[currentStepId]) return null;
-    const scripts = getVoiceScripts(currentProblem.heuristic, currentProblem.structure, currentProblem.unknownPosition);
-    const stepIdx = STEP_IDS.indexOf(currentStepId);
-    return stepIdx >= 0 && stepIdx < 4 ? scripts.steps?.[stepIdx] : null;
-  })();
+  const pslScripts = getVoiceScripts(currentProblem.heuristic, currentProblem.structure, currentProblem.unknownPosition);
+
+  // Narration script for a given step. Steps 0-3 use their dedicated script;
+  // solve (4) and check (5) fall back to the answer-stage script so they also
+  // narrate — matching MathPath practice's read-aloud parity.
+  const scriptForStep = (stepId) => {
+    const idx = STEP_IDS.indexOf(stepId);
+    if (idx < 0) return null;
+    if (idx < 4) return pslScripts.steps?.[idx] || null;
+    return pslScripts.answer || null;
+  };
+
+  const voiceScript = completedSteps[currentStepId] ? null : scriptForStep(currentStepId);
+
+  // On-demand read-aloud: force-enable voice (so speak() isn't gated off), then
+  // speak the story text + the current step's prompt/label using Lejo's voice.
+  // speak() cancels any in-flight utterance first, so this won't double up with
+  // the MascotBubble narration above.
+  const handleReadAloud = () => {
+    if (!voice) { setVoice(true); setVoiceEnabled(true); }
+    const story = currentProblem.storyText || '';
+    const prompt = scriptForStep(currentStepId) || STEP_LABELS[currentStepId] || '';
+    const toRead = [story, prompt].filter(Boolean).join('. ');
+    if (toRead) speak(toRead, getMascotVoice('lejo'));
+  };
 
   const renderNotebookContent = () => {
     switch (currentStepId) {
@@ -392,7 +415,7 @@ export default function PSLSession() {
         );
       case 'identify_info': {
         const nums = stepResponses.identify_info?.numbers || [];
-        const expected = currentProblem?.scaffoldSteps?.find((s) => s.stepId === 'identify_info')?.expectedNumbers?.length || 2;
+        const expected = currentProblem?.scaffoldSteps?.find((s) => s.stepId === 'identify_info')?.expectedCount || 2;
         return (
           <div className="flex flex-col gap-3">
             <p className="text-sm font-medium" style={{ color: '#5a6675' }}>
@@ -482,29 +505,45 @@ export default function PSLSession() {
               )}
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
+              {currentStepIdx < STEP_IDS.indexOf('solve') && (
+                <button
+                  type="button"
+                  onClick={() => { setFeedback(null); setCurrentStepIdx(STEP_IDS.indexOf('solve')); }}
+                  className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium transition-colors"
+                  style={{ color: '#d9892e' }}
+                  aria-label="Skip to solving"
+                >
+                  <span>Skip to solving</span>
+                  <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 17l5-5-5-5M6 17l5-5-5-5" /></svg>
+                </button>
+              )}
               <span className="mono-label hidden sm:inline" style={{ color: '#d9892e' }}>
                 Step {currentStepIdx + 1} of {STEP_IDS.length}
               </span>
               <button
                 type="button"
-                onClick={() => { const next = !voice; setVoice(next); setVoiceEnabled(next); }}
-                className="flex h-8 w-8 items-center justify-center rounded-full transition-colors"
-                style={{ color: voice ? '#d9892e' : '#94A3B8' }}
-                aria-label={voice ? 'Mute Lejo' : 'Let Lejo speak'}
+                onClick={handleReadAloud}
+                className="flex h-8 items-center justify-center gap-1 rounded-full px-2.5 transition-colors"
+                style={{ color: voice ? '#d9892e' : '#94A3B8', border: '1px solid', borderColor: voice ? '#fbf1e1' : '#e7eaef' }}
+                aria-label="Read this step aloud"
+                title="Read aloud"
               >
-                {voice ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                <Volume2 className="h-4 w-4" aria-hidden="true" />
+                <span className="hidden text-xs font-semibold sm:inline">Read aloud</span>
               </button>
               <button
                 type="button"
                 onClick={async () => {
+                  if (!window.confirm('Exit this session? Your progress on this problem will be lost.')) return;
                   try { await pslAPI.abandonSession(sessionId); } catch {}
                   navigate('/student/psl');
                 }}
                 className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium transition-colors"
                 style={{ color: '#8a93a3' }}
-                aria-label="Exit session"
+                aria-label="Exit session — your progress on this problem will be lost"
+                title="Exit session"
               >
-                <X className="h-3.5 w-3.5" />
+                <X className="h-3.5 w-3.5" aria-hidden="true" />
                 <span className="hidden sm:inline">Exit</span>
               </button>
             </div>

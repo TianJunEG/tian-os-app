@@ -62,7 +62,12 @@ export async function persistDomainPracticeMistakes({ student, domainId, session
           module: 'MathPath',
           questionText,
           questionStem: questionText,
-          workedSolution: Array.isArray(q.solutionSteps) ? q.solutionSteps.join('\n') : '',
+          // Structured walkthrough + flattened paragraph so the review can render
+          // an ordered list (preferred) and still fall back to prose.
+          solutionSteps: Array.isArray(q.solutionSteps) ? q.solutionSteps : [],
+          workedSolution: String(
+            q.workedSolution || (Array.isArray(q.solutionSteps) ? q.solutionSteps.join('\n') : '')
+          ),
           studentAnswer: String(mistake.studentAnswer ?? ''),
           correctAnswer: String(mistake.correctAnswer ?? ''),
           answerCorrect: false,

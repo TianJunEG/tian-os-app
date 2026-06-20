@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { clearClientCaches } from '../utils/clientCache';
 
 // Resolve the API base URL.
 // 1. An explicit VITE_API_URL (set at build time) always wins.
@@ -140,6 +141,10 @@ api.interceptors.response.use(
 
     if (status === 401) {
       localStorage.removeItem('token');
+      // A forced logout must clear the same per-account client caches as an
+      // explicit logout, otherwise stale per-account state survives the
+      // redirect into the next account on a shared device.
+      clearClientCaches();
       window.location.href = '/login';
     } else if ((status === 429 || (typeof status === 'number' && status >= 500))
       && !config.skipErrorToast && apiErrorHandler) {
@@ -164,6 +169,7 @@ export const diagnosticsAPI = {
   startDiagnostic: (data) => api.post('/diagnostics/start', data),
   answerDiagnostic: (sessionId, data) => api.post(`/diagnostics/${sessionId}/answer`, data),
   resumeDiagnostic: (sessionId) => api.get(`/diagnostics/${sessionId}/resume`),
+  abandonDiagnostic: (sessionId) => api.patch(`/diagnostics/${sessionId}/abandon`),
   history: (params) => api.get('/diagnostics/history', { params }),
   growth: (params) => api.get('/diagnostics/growth', { params }),
   recheckSummary: (sessionId, params) => api.get(`/diagnostics/recheck-summary/${sessionId}`, { params }),
@@ -820,6 +826,10 @@ export const worksheetGenAPI = {
   answers: (id) => api.get(`/worksheets/${id}/answers`),
   submit: (id, data) => api.post(`/worksheets/${id}/submit`, data),
   pdfUrl: (id, { answers = false } = {}) => `${API_BASE_URL}/worksheets/${id}/pdf${answers ? '?answers=1' : ''}`,
+  // Authenticated PDF fetch: goes through the axios instance so the bearer token
+  // is attached. pdfUrl() hits the raw endpoint without a token → 401, so callers
+  // that need a download should use this and build a blob URL.
+  pdfBlob: (id, { answers = false } = {}) => api.get(`/worksheets/${id}/pdf${answers ? '?answers=1' : ''}`, { responseType: 'blob' }),
   generatePersonalised: (data) => api.post('/worksheets/generate', data),
 };
 
@@ -828,6 +838,7 @@ export const adminAPI = {
   getDashboard: () => api.get('/admin/dashboard'),
   getMathPathPilot: (params) => api.get('/admin/mathpath-pilot', { params }),
   getPilotAnalytics: (params) => api.get('/admin/pilot-analytics', { params }),
+  getComicAnalytics: (params) => api.get('/admin/comic-analytics', { params }),
   getPilotInterventionMetrics: (params) => api.get('/admin/pilot/intervention-metrics', { params }),
   getPilotInterventionSummary: (params) => api.get('/admin/pilot/intervention-summary', { params }),
   getQuestionQuality: (params) => api.get('/admin/question-quality', { params }),
@@ -936,6 +947,8 @@ export const comicsAPI = {
   recommended: () => api.get('/comics/recommended'),
   // studentId scopes to a child (parent view); omit for the logged-in student.
   activity: (studentId) => api.get('/comics/activity', studentId ? { params: { studentId } } : undefined),
+  // Saved scratchpad working for one episode (parent/teacher review surface).
+  working: (studentId, episodeId) => api.get('/comics/working', { params: { ...(studentId ? { studentId } : {}), episodeId } }),
 };
 
 // Science API — P6 science revision bank (open-ended Q&A).

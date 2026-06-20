@@ -41,19 +41,19 @@ describe('generateEpisodeProblems', () => {
   };
 
   it('merges generated fields over static ones and aligns to panels (null where no problem)', () => {
-    const out = generateEpisodeProblems(fakeEpisode, 1, 123);
+    const { problems: out } = generateEpisodeProblems(fakeEpisode, 1, 123);
     expect(out).toHaveLength(4);
     expect(out[1]).toBeNull();
     expect(out[0]).toMatchObject({ id: 'a', skill: 's', unit: '$', answer: 8 }); // 7 + tier(1)
   });
 
   it('threads a shared ctx so later panels reuse earlier values', () => {
-    const out = generateEpisodeProblems(fakeEpisode, 1, 123);
+    const { problems: out } = generateEpisodeProblems(fakeEpisode, 1, 123);
     expect(out[2].answer).toBe(out[0].answer * 2); // panel c reuses panel a's total
   });
 
   it('passes static (non-generate) problems through unchanged', () => {
-    const out = generateEpisodeProblems(fakeEpisode, 3, 1);
+    const { problems: out } = generateEpisodeProblems(fakeEpisode, 3, 1);
     expect(out[3]).toEqual({ id: 'c', question: 'static', answer: 42 });
   });
 });
@@ -62,7 +62,7 @@ describe('Episode 1 generated problems are correct and story-consistent', () => 
   it('answers match the numbers in the question, and the menu stays in sync', () => {
     const ep = getEpisode('hawker-heroes');
     for (const seed of [1, 2, 99, 1000]) {
-      const [p1, p2, p3] = generateEpisodeProblems(ep, 1, seed);
+      const { problems: [p1, p2, p3] } = generateEpisodeProblems(ep, 1, seed);
 
       // p1: "Lejo has $a and Kylo has $b" ⇒ a + b
       const m1 = p1.question.match(/\$(\d+) and Kylo has \$(\d+)/);
@@ -91,7 +91,7 @@ describe('Episode 1 generated problems are correct and story-consistent', () => 
     const ep = getEpisode('hawker-heroes');
     const meanP1 = (tier) => {
       let sum = 0;
-      for (let s = 0; s < 40; s++) sum += generateEpisodeProblems(ep, tier, s)[0].answer;
+      for (let s = 0; s < 40; s++) sum += generateEpisodeProblems(ep, tier, s).problems[0].answer;
       return sum / 40;
     };
     expect(meanP1(3)).toBeGreaterThan(meanP1(1));

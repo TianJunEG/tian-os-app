@@ -32,7 +32,8 @@ export default function WorksheetPreview() {
   const { worksheetId } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [loadError, setLoadError] = useState('');
+  const [submitError, setSubmitError] = useState('');
   const [w, setW] = useState(null);
   const [view, setView] = useState('worksheet');
   const [answers, setAnswers] = useState({});
@@ -43,12 +44,12 @@ export default function WorksheetPreview() {
   useEffect(() => {
     worksheetGenAPI.get(worksheetId)
       .then((r) => setW(r.data.worksheet))
-      .catch((e) => setError(e.response?.data?.error || 'Couldn’t load worksheet preview.'))
+      .catch((e) => setLoadError(e.response?.data?.error || 'Couldn’t load worksheet preview.'))
       .finally(() => setLoading(false));
   }, [worksheetId]);
 
   if (loading) return <Spinner label="Loading worksheet…" />;
-  if (error) return <EmptyState icon={AlertTriangle} message={error} />;
+  if (loadError) return <EmptyState icon={AlertTriangle} message={loadError} />;
   if (!w) return <EmptyState icon={AlertTriangle} message="Worksheet not found." />;
 
   const c = w.content || {};
@@ -58,6 +59,7 @@ export default function WorksheetPreview() {
   const topicLabel = (c.topicNames || []).join(', ') || [...new Set(questions.map((q) => q.topicName).filter(Boolean))].join(', ');
   const personalization = c.personalization || w.personalization || null;
   const submit = async () => {
+    setSubmitError('');
     setSubmitting(true);
     try {
       const payload = {
@@ -70,7 +72,7 @@ export default function WorksheetPreview() {
       setResult(data);
       setView('answers');
     } catch (e) {
-      setError(e.response?.data?.error || 'Couldn’t submit worksheet.');
+      setSubmitError(e.response?.data?.error || 'Couldn’t submit worksheet.');
     } finally {
       setSubmitting(false);
     }
@@ -161,6 +163,10 @@ export default function WorksheetPreview() {
           </div>
           <p className="mt-1">{result.correctAnswers}/{result.totalAnswered} answered correctly.</p>
         </Card>
+      )}
+
+      {submitError && (
+        <Alert tone="error" icon={AlertTriangle} className="mt-4">{submitError}</Alert>
       )}
 
       <div className="mt-4 flex flex-wrap gap-2">

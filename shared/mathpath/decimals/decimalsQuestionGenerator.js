@@ -93,6 +93,22 @@ function mcq({ family, prompt, answerDisplay, distractors, solutionSteps, miscon
   for (const d of distractors.map(String)) {
     if (!seen.has(d)) { seen.add(d); opts.push(d); }
   }
+  const answerNumber = Number(String(answerDisplay).replace(/,/g, ''));
+  if (Number.isFinite(answerNumber)) {
+    const decimalPlaces = String(answerDisplay).split('.')[1]?.length || 1;
+    const dp = Math.min(3, Math.max(1, decimalPlaces));
+    const deltas = [0.1, -0.1, 0.01, -0.01, 0.2, -0.2, 1, -1, 0.05, -0.05];
+    for (const delta of deltas) {
+      if (opts.length >= 3) break;
+      const value = round(answerNumber + delta, dp);
+      if (value < 0) continue;
+      const candidate = decStr(value, dp);
+      if (!seen.has(candidate)) {
+        seen.add(candidate);
+        opts.push(candidate);
+      }
+    }
+  }
   const choices = [answerDisplay, ...opts.slice(0, 3)];
   // deterministic shuffle
   for (let i = choices.length - 1; i > 0; i--) {

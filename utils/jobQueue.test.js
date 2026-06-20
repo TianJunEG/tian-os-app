@@ -3,9 +3,10 @@
 // that the worker delegates to the pipeline by reference (never shipping buffers).
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-const h = vi.hoisted(() => ({ runPipeline: vi.fn() }));
+const h = vi.hoisted(() => ({ runPipeline: vi.fn(), resume: vi.fn() }));
 vi.mock('../services/mathpath/paperAnalysisPipeline.js', () => ({
   runPaperAnalysisPipeline: (...args) => h.runPipeline(...args),
+  resumeFromOcrConfirmation: (...args) => h.resume(...args),
 }));
 
 describe('config/queue.js — feature gating', () => {
@@ -45,9 +46,11 @@ describe('config/queue.js — feature gating', () => {
 describe('paperAnalysisWorker — handler', () => {
   const runPipeline = h.runPipeline;
 
+  const resume = h.resume;
   let processPaperAnalysis;
   beforeEach(async () => {
     runPipeline.mockReset();
+    resume.mockReset();
     ({ processPaperAnalysis } = await import('../workers/paperAnalysisWorker.js'));
   });
 
@@ -69,5 +72,25 @@ describe('paperAnalysisWorker — handler', () => {
   it('propagates a pipeline failure so BullMQ retries', async () => {
     runPipeline.mockRejectedValueOnce(new Error('OCR exploded'));
     await expect(processPaperAnalysis({ data: { analysisId: 'a1' } })).rejects.toThrow('OCR exploded');
+  });
+
+  it('resumes (not re-runs) when the payload flags questions_confirmed', async () => {
+    resume.mockResolvedValueOnce({ _id: 'a2', status: 'processing' });
+    const out = await processPaperAnalysis({ data: { analysisId: 'a2', resumeFrom: 'questions_confirmed' } });
+
+    expect(resume).toHaveBeenCalledWith('a2');
+    expect(runPipeline).not.toHaveBeenCalled();
+    expect(out).toEqual({ analysisId: 'a2', status: 'processing' });
+  });
+
+  it("resumes when the job is named 'resume' even if resumeFrom is absent", async () => {
+    resume.mockResolvedValueOnce({ _id: 'a3', status: 'processing' });
+    const out = await processPaperAnalysis({ name: 'resume', data: { analysisId: 'a3' } });
+
+    // defensive: name alone routes to resume, so a resume job that lost its
+    // resumeFrom field is not re-run from the top
+    expect(resume).toHaveBeenCalledWith('a3');
+    expect(runPipeline).not.toHaveBeenCalled();
+    expect(out).toEqual({ analysisId: 'a3', status: 'processing' });
   });
 });

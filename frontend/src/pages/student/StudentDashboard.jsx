@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { TianIntro, shouldShowTianIntro } from '../../components/TianIntro';
 import {
   ArrowRight,
   BarChart2,
@@ -36,8 +37,6 @@ import { operationsSkillGraph } from '../../../../shared/mathpath/operations/Ope
 import { diagnosticsAPI, learningTelemetryAPI, mathpathAPI, studentProfileAPI } from '../../services/api';
 import { Card, Button, Spinner, ErrorState, Badge } from '../../components/ui';
 import { getVisualModeStyles, isLowerPrimary, isSecondary, resolveStudentVisualMode } from '../../design-os/studentVisualMode';
-import { MascotBubble } from '../../components/MascotAvatar';
-import { getDashboardMascot } from '../../config/mascots';
 import {
   clearMathPathDomainProgressState,
 } from '../../mathpath/state/mathPathDomainProgressState';
@@ -46,6 +45,8 @@ import {
   getFractionAssessmentBlueprintReadiness,
 } from '../../mathpath/fractions/fractionAssessmentReadinessGate';
 import FEATURE_FLAGS from '../../config/featureFlags';
+import { getDashboardMascot } from '../../config/mascots';
+import { MascotBubble } from '../../components/MascotAvatar';
 
 function actionMeta(nextAction = {}, assessmentReady = true) {
   const action = String(nextAction.action || '');
@@ -503,6 +504,9 @@ export default function StudentDashboard() {
   const [profileSummary, setProfileSummary] = useState(null);
   const [learningTimeline, setLearningTimeline] = useState([]);
   const [resetting, setResetting] = useState(false);
+  const studentId = user?.id || user?._id || user?.email || '';
+  const [showIntro, setShowIntro] = useState(() => shouldShowTianIntro(studentId));
+  const handleIntroDone = useCallback(() => setShowIntro(false), []);
   const [expandedCards, setExpandedCards] = useState({ a: false, q: false, w: false, c: false, li: false });
   // Diagnostic CTAs are driven by the diagnostic domain registry (one per
   // domain), not hardcoded to Fractions. Seeded with Fractions so the card never
@@ -752,6 +756,8 @@ export default function StudentDashboard() {
   }
 
   return (
+    <>
+      {showIntro && <TianIntro userId={studentId} onDone={handleIntroDone} />}
     <main className={visual.styles.page}>
       <div className="mb-5 flex items-center justify-between gap-3">
         <div className="min-w-0">
@@ -1053,5 +1059,6 @@ export default function StudentDashboard() {
         </Card>
       )}
     </main>
+    </>
   );
 }

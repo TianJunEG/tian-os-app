@@ -7,6 +7,7 @@
 // slug to its API methods, friendly labels, and skill-name source.
 
 import { mathpathAPI } from '../../../../services/api';
+import { stripEmoji } from '../../../../utils/sound';
 
 import { buildAlgebraLearningPathView } from '../../../../mathpath/algebra/AlgebraLearningPathModel';
 import { buildAreaPerimeterLearningPathView } from '../../../../mathpath/areaPerimeter/AreaPerimeterLearningPathModel';
@@ -195,4 +196,36 @@ export function getSkillNameMap(domain) {
 export function friendlySkillName(domain, skillId, fallback = '') {
   const name = getSkillNameMap(domain).get(String(skillId));
   return name || fallback || String(skillId || '');
+}
+
+// Turn a question prompt (which renders through <MathText>: KaTeX commands,
+// $…$, a/b fractions, math symbols) into something a TTS engine reads naturally
+// — and strip emoji so they aren't spoken literally. Used by the read-aloud
+// button on the practice question screen.
+export function toSpeakable(text = '') {
+  return stripEmoji(
+    String(text ?? '')
+      // KaTeX / LaTeX noise → spoken words.
+      .replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, ' $1 over $2 ')
+      .replace(/\\times/g, ' times ')
+      .replace(/\\div/g, ' divided by ')
+      .replace(/\\cdot/g, ' times ')
+      .replace(/\\square/g, ' square ')
+      .replace(/\\%/g, ' percent ')
+      .replace(/\\,/g, ' ')
+      .replace(/\$/g, ' ')
+      // a/b fraction notation → "a over b".
+      .replace(/(\d+|\?)\s*\/\s*(\d+|\?)/g, '$1 over $2')
+      // Bare math symbols → words.
+      .replace(/[×]/g, ' times ')
+      .replace(/[÷]/g, ' divided by ')
+      .replace(/[−–]/g, ' minus ')
+      .replace(/=/g, ' equals ')
+      .replace(/%/g, ' percent ')
+      .replace(/[²]/g, ' squared ')
+      .replace(/[³]/g, ' cubed ')
+      .replace(/\?/g, '')
+      .replace(/\s+/g, ' ')
+      .trim(),
+  );
 }

@@ -53,6 +53,20 @@ import {
   submitFractionPracticeAttempt,
 } from '../shared/mathpath/fractions/fractionPracticeFlow.js';
 import { fractionSkillGraph } from '../shared/mathpath/fractions/fractionSkillGraph.js';
+import decimalsSkillGraph from '../shared/mathpath/decimals/decimalsSkillGraph.js';
+import percentageSkillGraph from '../shared/mathpath/percentages/percentageSkillGraph.js';
+import ratioRateSkillGraph from '../shared/mathpath/ratioRate/ratioRateSkillGraph.js';
+import algebraSkillGraph from '../shared/mathpath/algebra/AlgebraSkillGraph.js';
+import numberSenseSkillGraph from '../shared/mathpath/numberSense/NumberSenseSkillGraph.js';
+import operationsSkillGraph from '../shared/mathpath/operations/OperationsSkillGraph.js';
+import geometrySkillGraph from '../shared/mathpath/geometry/GeometrySkillGraph.js';
+import measurementSkillGraph from '../shared/mathpath/measurement/MeasurementSkillGraph.js';
+import areaPerimeterSkillGraph from '../shared/mathpath/areaPerimeter/AreaPerimeterSkillGraph.js';
+import volumeSkillGraph from '../shared/mathpath/volume/VolumeSkillGraph.js';
+import circlesSkillGraph from '../shared/mathpath/circles/CirclesSkillGraph.js';
+import statisticsSkillGraph from '../shared/mathpath/statistics/StatisticsSkillGraph.js';
+import timeSkillGraph from '../shared/mathpath/time/TimeSkillGraph.js';
+import moneySkillGraph from '../shared/mathpath/money/MoneySkillGraph.js';
 import {
   approvePracticeSet,
   extractQuestionPattern,
@@ -284,15 +298,47 @@ function normalizeSkillGraphStatus(status = '') {
   return 'not_started';
 }
 
-function buildFractionsGraphTopicsFromAuthoredMap() {
+// Registry of the per-domain authored skill graphs, keyed by their own domainId.
+// Lets the Skill Graph route build a domain-aware view (not always fractions).
+// Each graph exposes { domainId, skills:[{ id, name, strand, prerequisites,
+// singaporeLevel }] } — a uniform shape across domains.
+const DOMAIN_SKILL_GRAPHS = [
+  fractionSkillGraph,
+  decimalsSkillGraph,
+  percentageSkillGraph,
+  ratioRateSkillGraph,
+  algebraSkillGraph,
+  numberSenseSkillGraph,
+  operationsSkillGraph,
+  geometrySkillGraph,
+  measurementSkillGraph,
+  areaPerimeterSkillGraph,
+  volumeSkillGraph,
+  circlesSkillGraph,
+  statisticsSkillGraph,
+  timeSkillGraph,
+  moneySkillGraph,
+].reduce((acc, graph) => {
+  if (graph?.domainId) acc[graph.domainId] = graph;
+  return acc;
+}, {});
+
+// Turn one authored domain graph into the topic/skill structure buildSkillGraphView
+// expects. Each skill's real `strand` becomes the topic name, so the hero header
+// reflects the actual domain the student is working in (e.g. a Percentage skill
+// under a Percentage strand — not the hard-coded "Recognise Fractions / Foundations").
+function buildGraphTopicsFromAuthoredMap(graph) {
+  if (!graph) return [];
+  const domainId = graph.domainId || 'domain';
+  const fallbackTopic = graph.domainName || domainId;
   const topicsByName = new Map();
-  for (const skill of fractionSkillGraph.skills || []) {
-    const topicName = skill.strand || 'Fractions';
+  for (const skill of graph.skills || []) {
+    const topicName = skill.strand || fallbackTopic;
     if (!topicsByName.has(topicName)) {
       topicsByName.set(topicName, {
-        topicId: `fractions-${topicName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+        topicId: `${domainId}-${topicName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
         name: topicName,
-        moeLevel: 'P4 Fractions',
+        moeLevel: graph.domainName || domainId,
         skills: [],
       });
     }
@@ -300,14 +346,17 @@ function buildFractionsGraphTopicsFromAuthoredMap() {
       _id: skill.id,
       skillId: skill.id,
       name: skill.name,
-      moeLevel: Array.isArray(skill.singaporeLevel) ? skill.singaporeLevel.join(', ') : 'P4',
+      moeLevel: Array.isArray(skill.singaporeLevel) ? skill.singaporeLevel.join(', ') : '',
       prerequisiteSkillIds: skill.prerequisites || [],
     });
   }
   return [...topicsByName.values()];
 }
 
-export function buildFractionsPersistedSkillGraphView(skillStates = []) {
+// Build the persisted Skill Graph view across one or more domains. `domainIds`
+// selects which authored graphs supply the curriculum denominator; topics from
+// each domain are concatenated so an all-domains view spans the full set.
+export function buildPersistedSkillGraphView({ skillStates = [], domainIds = [] } = {}) {
   const recordsBySkill = new Map();
   for (const row of skillStates || []) {
     recordsBySkill.set(String(row.skillId), {
@@ -324,11 +373,21 @@ export function buildFractionsPersistedSkillGraphView(skillStates = []) {
       .filter((row) => normalizeSkillGraphStatus(row.status) === 'mastered')
       .map((row) => String(row.skillId))
   );
-  return buildSkillGraphView({
-    topics: buildFractionsGraphTopicsFromAuthoredMap(),
-    recordsBySkill,
-    masteredIds,
-  });
+  const topics = (domainIds || [])
+    .map((id) => DOMAIN_SKILL_GRAPHS[id])
+    .filter(Boolean)
+    .flatMap((graph) => buildGraphTopicsFromAuthoredMap(graph));
+  return buildSkillGraphView({ topics, recordsBySkill, masteredIds });
+}
+
+// Backward-compatible fractions-only helpers (exported for unit tests and any
+// fractions-specific callers). Delegate to the generalized builders above.
+function buildFractionsGraphTopicsFromAuthoredMap() {
+  return buildGraphTopicsFromAuthoredMap(fractionSkillGraph);
+}
+
+export function buildFractionsPersistedSkillGraphView(skillStates = []) {
+  return buildPersistedSkillGraphView({ skillStates, domainIds: ['fractions'] });
 }
 
 // Build the MathPathPracticeSession fields for a client-generated ("offline
@@ -2569,20 +2628,45 @@ router.get('/analytics', protect, asyncHandler(async (req, res) => {
   }
 }));
 
-// @route GET /api/mastery/graph?studentId=
+// @route GET /api/mastery/graph?studentId=&domainId=
 // @desc  The Math curriculum graph + this student's mastery, with prerequisite-
 //        aware lock/ready state and a "ready to learn next" list. Powers the
 //        student Skill Graph page. Math (MathPath) only — that's where the
 //        prerequisite graph is authored. A skill is `ready` when all its
 //        prerequisites are mastered (stale mastery doesn't count, matching
 //        recommendNextSkill), and `locked` when it's not yet started and a
-//        prerequisite is still missing.
+//        prerequisite is still missing. Domain-aware: pass `domainId` (or
+//        `domain`) to scope to a domain; otherwise the student's ACTIVE
+//        (most-recently-practised) domain is inferred so the hero header
+//        reflects where they're actually working — not a hard-coded fractions view.
 // @access Private
 router.get('/graph', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
-    const skillStates = await MathPathStudentSkillState.find({ studentId: String(student._id), domainId: 'fractions' }).lean();
-    const view = buildFractionsPersistedSkillGraphView(skillStates);
+    const requestedDomainId = String(req.query.domainId || req.query.domain || '').trim();
+    const skillStates = await MathPathStudentSkillState.find({
+      studentId: String(student._id),
+      ...(requestedDomainId ? { domainId: requestedDomainId } : {}),
+    }).lean();
+
+    // Resolve which authored domain graph(s) supply the curriculum denominator.
+    // 1) explicit ?domainId wins; 2) else the student's active domain = the
+    // domainId of their most-recently-practised skill state; 3) else fractions
+    // (preserves the prior default for students with no practice yet).
+    let resolvedDomainIds;
+    if (requestedDomainId) {
+      resolvedDomainIds = [requestedDomainId];
+    } else {
+      const activeState = skillStates.reduce((latest, row) => {
+        if (!row.lastPractisedAt) return latest;
+        if (!latest || new Date(row.lastPractisedAt) > new Date(latest.lastPractisedAt)) return row;
+        return latest;
+      }, null);
+      const activeDomainId = activeState?.domainId;
+      resolvedDomainIds = activeDomainId ? [activeDomainId] : ['fractions'];
+    }
+
+    const view = buildPersistedSkillGraphView({ skillStates, domainIds: resolvedDomainIds });
 
     res.json({ studentId: student._id, ...view });
   } catch (err) {

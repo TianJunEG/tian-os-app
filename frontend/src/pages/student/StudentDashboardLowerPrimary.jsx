@@ -7,8 +7,10 @@ import {
   Box,
   Brain,
   Calculator,
+  ChevronDown,
   Circle,
   Clock,
+  Compass,
   DollarSign,
   Hash,
   Percent,
@@ -98,7 +100,7 @@ function LowerPrimaryStatCard({ icon: Icon, img, label, value, subtitle, caption
   );
 }
 
-function LowerPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, masteredSkillCount = 0, visual, studentLevel }) {
+function LowerPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, masteredSkillCount = 0, visual, studentLevel, isKindergarten }) {
   const assessmentGate = getFractionAssessmentBlueprintReadiness({
     completedSkillIds: Array.from({ length: masteredSkillCount }, (_, index) => `F${String(index + 1).padStart(3, '0')}`),
   });
@@ -138,7 +140,8 @@ function LowerPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, m
       tone: 'border-violet-100 from-violet-50 to-white text-purple',
       disabled: !assessmentGate.ready,
     }] : []),
-    ...(FEATURE_FLAGS.psl ? [{
+    // PSL is designed for P3+ — hide for kindergarten students
+    ...(!isKindergarten && FEATURE_FLAGS.psl ? [{
       icon: Brain,
       img: null,
       title: 'Word Problems',
@@ -225,6 +228,86 @@ function levelToYear(level = '') {
 
 const LEVEL_LABELS = ['K2', 'P1', 'P2', 'P3', 'P4', 'P5', 'P6'];
 
+const K2_TILES = [
+  {
+    label: 'Count & Numbers',
+    desc: 'Count to 20, bigger & smaller',
+    to: '/student/mathpath/number-sense',
+    Icon: Hash,
+    colorClass: 'bg-indigo-50 border-indigo-100',
+    iconBg: 'bg-indigo-100',
+    iconColor: 'text-indigo-600',
+    textColor: 'text-indigo-800',
+    subColor: 'text-indigo-500',
+  },
+  {
+    label: 'Add & Take Away',
+    desc: 'Sums within 10, then 20',
+    to: '/student/mathpath/operations',
+    Icon: Calculator,
+    colorClass: 'bg-orange-50 border-orange-100',
+    iconBg: 'bg-orange-100',
+    iconColor: 'text-orange-600',
+    textColor: 'text-orange-800',
+    subColor: 'text-orange-500',
+  },
+];
+
+function K2TopicsView({ visibleDomains }) {
+  const [showExplore, setShowExplore] = useState(false);
+
+  return (
+    <section>
+      <div className="space-y-3">
+        {K2_TILES.map(({ label, desc, to, Icon, colorClass, iconBg, iconColor, textColor, subColor }) => (
+          <Card key={to} className={`flex items-center gap-4 border p-4 ${colorClass}`} interactive>
+            <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${iconBg}`}>
+              <Icon className={`h-6 w-6 ${iconColor}`} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className={`text-base font-semibold ${textColor}`}>{label}</p>
+              <p className={`text-sm ${subColor}`}>{desc}</p>
+            </div>
+            <Button to={to} size="s" icon={ArrowRight}>Start</Button>
+          </Card>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        onClick={() => setShowExplore((v) => !v)}
+        className="mt-4 flex w-full items-center justify-between gap-2 rounded-xl border border-dashed border-ink-200 px-4 py-3 text-sm font-medium text-ink-500 transition hover:border-ink-300 hover:bg-surface-raised"
+      >
+        <span className="flex items-center gap-2">
+          <Compass className="h-4 w-4 shrink-0" />
+          {showExplore ? 'Hide extra topics' : 'Explore more topics'}
+        </span>
+        <ChevronDown className={`h-4 w-4 shrink-0 transition-transform ${showExplore ? 'rotate-180' : ''}`} />
+      </button>
+
+      {showExplore && (
+        <div className="mt-3 space-y-2">
+          {visibleDomains.map(({ label, desc, to, Icon, bg, iconColor, minYear }) => {
+            const opacity = minYear <= 1 ? 0.7 : minYear <= 2 ? 0.5 : 0.3;
+            return (
+              <Card key={to} className="flex items-center gap-4 p-4" interactive style={{ opacity }}>
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${bg}`}>
+                  <Icon className={`h-5 w-5 ${iconColor}`} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-ink-700">{label}</p>
+                  <p className="text-xs text-ink-500">{desc}</p>
+                </div>
+                <Button to={to} size="s" icon={ArrowRight}>Explore</Button>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
 const DOMAIN_LIST = [
   { flag: 'operations',    minYear: 0, maxYear: 6, label: 'Operations',        desc: 'Add, subtract, multiply & divide',        to: '/student/mathpath/operations',     bg: 'bg-orange-100',    iconColor: 'text-orange-600',   Icon: Calculator },
   { flag: 'numberSense',   minYear: 0, maxYear: 4, label: 'Number Sense',      desc: 'Place value, counting & patterns',         to: '/student/mathpath/number-sense',   bg: 'bg-indigo-100',    iconColor: 'text-indigo-600',   Icon: Hash },
@@ -263,8 +346,13 @@ export default function StudentDashboardLowerPrimary({
 }) {
   const bp = brainPower(displayXp);
   const [selectedLevel, setSelectedLevel] = useState(() => levelToYear(studentLevel));
+  const isKindergarten = selectedLevel === 0;
   const visibleDomains = DOMAIN_LIST.filter(
     (d) => FEATURE_FLAGS[d.flag] !== false && selectedLevel >= d.minYear && selectedLevel <= d.maxYear,
+  );
+  // For the K2 explore panel, show all domains beyond K2 sorted by minYear ascending
+  const exploreDomains = DOMAIN_LIST.filter(
+    (d) => FEATURE_FLAGS[d.flag] !== false && d.minYear > 0,
   );
   return (
     <main className={`${visual.styles.page} space-y-5`}>
@@ -318,42 +406,47 @@ export default function StudentDashboardLowerPrimary({
         masteredSkillCount={safeMasteredCount}
         visual={visual}
         studentLevel={studentLevel}
+        isKindergarten={isKindergarten}
       />
 
       <LowerPrimaryBanner />
 
-      <section>
-        <div className="mb-3 flex flex-wrap items-center gap-1.5">
-          <span className="mr-1 text-sm font-semibold text-ink-600">Topics for:</span>
-          {LEVEL_LABELS.map((label, yr) => (
-            <button
-              key={yr}
-              type="button"
-              onClick={() => setSelectedLevel(yr)}
-              className={`rounded-full px-3 py-1 text-sm font-semibold transition ${selectedLevel === yr ? 'bg-emerald text-white shadow-sm' : 'bg-surface-raised text-ink-600 hover:bg-emerald-tint'}`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-        {visibleDomains.length === 0 && (
-          <p className="text-sm text-ink-400">No topics for this level yet.</p>
-        )}
-        <div className="space-y-2">
-          {visibleDomains.map(({ label, desc, to, Icon, bg, iconColor }) => (
-            <Card key={to} className="flex items-center gap-4 p-4" interactive>
-              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${bg}`}>
-                <Icon className={`h-5 w-5 ${iconColor}`} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-ink-700">{label}</p>
-                <p className="text-xs text-ink-500">{desc}</p>
-              </div>
-              <Button to={to} size="s" icon={ArrowRight}>Explore</Button>
-            </Card>
-          ))}
-        </div>
-      </section>
+      {isKindergarten ? (
+        <K2TopicsView visibleDomains={exploreDomains} />
+      ) : (
+        <section>
+          <div className="mb-3 flex flex-wrap items-center gap-1.5">
+            <span className="mr-1 text-sm font-semibold text-ink-600">Topics for:</span>
+            {LEVEL_LABELS.map((label, yr) => (
+              <button
+                key={yr}
+                type="button"
+                onClick={() => setSelectedLevel(yr)}
+                className={`rounded-full px-3 py-1 text-sm font-semibold transition ${selectedLevel === yr ? 'bg-emerald text-white shadow-sm' : 'bg-surface-raised text-ink-600 hover:bg-emerald-tint'}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {visibleDomains.length === 0 && (
+            <p className="text-sm text-ink-400">No topics for this level yet.</p>
+          )}
+          <div className="space-y-2">
+            {visibleDomains.map(({ label, desc, to, Icon, bg, iconColor }) => (
+              <Card key={to} className="flex items-center gap-4 p-4" interactive>
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${bg}`}>
+                  <Icon className={`h-5 w-5 ${iconColor}`} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-ink-700">{label}</p>
+                  <p className="text-xs text-ink-500">{desc}</p>
+                </div>
+                <Button to={to} size="s" icon={ArrowRight}>Explore</Button>
+              </Card>
+            ))}
+          </div>
+        </section>
+      )}
 
       {showDiagnosticPrompt && (
         <DiagnosticPrompts domains={diagnosticDomains} level={studentLevel} />

@@ -1,4 +1,5 @@
 import LearningTelemetryEvent, { LEARNING_EVENT_TYPES } from '../../models/LearningTelemetryEvent.js';
+import Subscription from '../../models/Subscription.js';
 import logger from '../../config/logger.js';
 
 export const CONFIDENCE = Object.freeze({
@@ -384,11 +385,100 @@ function calculateTelemetryStreak(events = []) {
   return streak;
 }
 
+// Comics engagement + trial→paid funnel (Phase 3). Reads the comic_episode_*
+// telemetry events and joins them against subscriptions on the user, to answer
+// the two questions the comics feature exists for: are kids coming back, and
+// does comic engagement during a trial correlate with converting to paid?
+export async function getComicAnalytics({ days = 30 } = {}) {
+  const windowDays = Number(days) || 30;
+  const since = new Date(Date.now() - windowDays * 24 * 60 * 60 * 1000);
+
+  // --- Engagement in the window (retention) ---
+  const events = await LearningTelemetryEvent.find(
+    { eventType: { $in: ['comic_episode_opened', 'comic_episode_completed'] }, timestamp: { $gte: since } },
+    { eventType: 1, studentId: 1, timestamp: 1 },
+  ).lean();
+
+  let opens = 0;
+  let completions = 0;
+  const readers = new Set();
+  const dayBuckets = new Map(); // YYYY-MM-DD → completions that day
+  for (const e of events) {
+    readers.add(e.studentId);
+    if (e.eventType === 'comic_episode_opened') opens += 1;
+    else if (e.eventType === 'comic_episode_completed') {
+      completions += 1;
+      const key = new Date(e.timestamp).toISOString().slice(0, 10);
+      dayBuckets.set(key, (dayBuckets.get(key) || 0) + 1);
+    }
+  }
+  const dailyCompletions = [...dayBuckets.entries()]
+    .sort(([a], [b]) => (a < b ? -1 : 1))
+    .map(([date, count]) => ({ date, count }));
+
+  // --- Trial → paid funnel (conversion) ---
+  // One subscription per user (unique {ownerType, ownerId}). A user "converted"
+  // if their (trial-bearing) subscription is now active. They "engaged during
+  // trial" if they completed a comic episode within [trialStart, trialEnd].
+  const trialSubs = await Subscription.find(
+    { ownerType: 'user', trialStart: { $ne: null }, trialEnd: { $ne: null } },
+    { ownerId: 1, status: 1, trialStart: 1, trialEnd: 1 },
+  ).lean();
+
+  const trialUserIds = trialSubs.map((s) => String(s.ownerId));
+  const trialCompletions = trialUserIds.length
+    ? await LearningTelemetryEvent.find(
+      { eventType: 'comic_episode_completed', studentId: { $in: trialUserIds } },
+      { studentId: 1, timestamp: 1 },
+    ).lean()
+    : [];
+  const completionsByUser = new Map();
+  for (const e of trialCompletions) {
+    if (!completionsByUser.has(e.studentId)) completionsByUser.set(e.studentId, []);
+    completionsByUser.get(e.studentId).push(new Date(e.timestamp));
+  }
+
+  let engaged = 0;
+  let engagedConverted = 0;
+  let notEngaged = 0;
+  let notEngagedConverted = 0;
+  for (const s of trialSubs) {
+    const converted = s.status === 'active';
+    const stamps = completionsByUser.get(String(s.ownerId)) || [];
+    const ts = new Date(s.trialStart);
+    const te = new Date(s.trialEnd);
+    const didEngage = stamps.some((t) => t >= ts && t <= te);
+    if (didEngage) { engaged += 1; if (converted) engagedConverted += 1; }
+    else { notEngaged += 1; if (converted) notEngagedConverted += 1; }
+  }
+  const pct = (c, n) => (n ? Math.round((c / n) * 1000) / 10 : 0); // 1-dp %
+
+  return {
+    windowDays,
+    engagement: {
+      opens,
+      completions,
+      distinctReaders: readers.size,
+      dailyCompletions,
+    },
+    trialFunnel: {
+      trialUsers: trialSubs.length,
+      engagedDuringTrial: engaged,
+      engagedRate: pct(engaged, trialSubs.length),
+      conversion: {
+        engaged: { users: engaged, converted: engagedConverted, rate: pct(engagedConverted, engaged) },
+        notEngaged: { users: notEngaged, converted: notEngagedConverted, rate: pct(notEngagedConverted, notEngaged) },
+      },
+    },
+  };
+}
+
 export default {
   recordLearningEvent,
   recordLearningEvents,
   getStudentAnalytics,
   getSkillAnalytics,
   getPilotAnalytics,
+  getComicAnalytics,
   normalizeConfidence,
 };

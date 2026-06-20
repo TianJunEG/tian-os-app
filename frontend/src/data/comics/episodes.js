@@ -79,7 +79,7 @@ export const episodes = [
           {
             character: 'kylo',
             side: 'left',
-            text: 'One char kway teow! One chicken rice! One ice kachang!',
+            text: 'Char kway teow! Chicken rice! Ice kachang! Load me up!',
           },
           {
             character: 'lejo',
@@ -189,7 +189,7 @@ export const episodes = [
           {
             character: 'kaesy',
             side: 'left',
-            text: 'Game over! I have 24 reward stickers to share equally among 3 friends.',
+            text: (ctx) => `Game over! I have ${ctx.ep2p1total} reward stickers to share equally among ${ctx.ep2p1friends} friends.`,
           },
           {
             character: 'kylo',
@@ -204,10 +204,12 @@ export const episodes = [
         ],
         problem: {
           id: 'e2-p1-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const friends = tierInt(rng, tier, [[2, 3], [2, 4], [3, 6], [4, 8]]);
             const each = tierInt(rng, tier, [[3, 6], [4, 9], [6, 12], [8, 15]]);
             const total = friends * each;
+            ctx.ep2p1friends = friends;
+            ctx.ep2p1total = total;
             return {
               question: `Kaesy shares ${total} stickers equally among ${friends} friends. How many stickers does each friend get?`,
               hint: `Split ${total} into ${friends} equal groups: ${total} ÷ ${friends}.`,
@@ -230,7 +232,7 @@ export const episodes = [
           {
             character: 'kaesy',
             side: 'left',
-            text: 'Next round! 36 stickers, but now there are 4 of us sharing.',
+            text: (ctx) => `Next round! ${ctx.ep2p2total} stickers, but now there are ${ctx.ep2p2friends} of us sharing.`,
           },
           {
             character: 'kylo',
@@ -240,10 +242,12 @@ export const episodes = [
         ],
         problem: {
           id: 'e2-p2-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const friends = tierInt(rng, tier, [[3, 4], [3, 5], [4, 7], [5, 9]]);
             const each = tierInt(rng, tier, [[3, 7], [5, 9], [7, 12], [9, 15]]);
             const total = friends * each;
+            ctx.ep2p2friends = friends;
+            ctx.ep2p2total = total;
             return {
               question: `Kaesy shares ${total} stickers equally among ${friends} friends. How many stickers does each friend get?`,
               hint: `Split ${total} into ${friends} equal groups: ${total} ÷ ${friends}.`,
@@ -266,12 +270,12 @@ export const episodes = [
           {
             character: 'kaesy',
             side: 'left',
-            text: 'Last batch — 30 stickers among 4 of us. Uh oh.',
+            text: (ctx) => `Last batch — ${ctx.ep2p3total} stickers among ${ctx.ep2p3friends} of us. Uh oh.`,
           },
           {
             character: 'kylo',
             side: 'right',
-            text: '30 does not split evenly into 4... some will be left over!',
+            text: (ctx) => `${ctx.ep2p3total} does not split evenly into ${ctx.ep2p3friends}... some will be left over!`,
           },
           {
             character: 'kaesy',
@@ -281,11 +285,13 @@ export const episodes = [
         ],
         problem: {
           id: 'e2-p3-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const friends = tierInt(rng, tier, [[3, 4], [3, 5], [4, 6], [5, 8]]);
             const each = tierInt(rng, tier, [[4, 7], [5, 9], [7, 12], [9, 15]]);
             const rem = rint(rng, 1, friends - 1);
             const total = friends * each + rem;
+            ctx.ep2p3friends = friends;
+            ctx.ep2p3total = total;
             return {
               question: `Kaesy shares ${total} stickers equally among ${friends} friends. How many stickers are left over?`,
               hint: `Each friend gets ${each} (because ${friends} × ${each} = ${friends * each}). Then ${total} − ${friends * each} tells you how many are left over.`,
@@ -325,7 +331,7 @@ export const episodes = [
           {
             character: 'talia',
             side: 'left',
-            text: "I've got $50 to plan our class party. Let's start with the decorations.",
+            text: "I've got a budget to plan our class party. Let's start with the decorations.",
           },
           {
             character: 'kylo',
@@ -361,18 +367,19 @@ export const episodes = [
           {
             character: 'talia',
             side: 'left',
-            text: 'Now the food. Let me get pizzas — 5 of them.',
+            text: (ctx) => `Now the food. Let me get pizzas — ${ctx.ep3pizzaQty} of them.`,
           },
           {
             character: 'kylo',
             side: 'right',
-            text: "Five pizzas? Now we're talking.",
+            text: (ctx) => `${ctx.ep3pizzaQty} pizzas? Now we're talking.`,
           },
         ],
         problem: {
           id: 'e3-p2-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const qty = tierInt(rng, tier, [[2, 4], [3, 6], [5, 9], [6, 12]]);
+            ctx.ep3pizzaQty = qty;
             const price = tierInt(rng, tier, [[3, 6], [4, 9], [5, 12], [6, 15]]);
             return {
               question: `Talia buys ${qty} pizzas that cost $${price} each. How much do the pizzas cost in total?`,
@@ -396,7 +403,7 @@ export const episodes = [
           {
             character: 'talia',
             side: 'left',
-            text: 'Decorations and food are sorted. How much of our $50 is left?',
+            text: 'Decorations and food are sorted. How much of the budget is left?',
           },
           {
             character: 'kylo',
@@ -532,7 +539,7 @@ export const episodes = [
           {
             character: 'kylo',
             side: 'right',
-            text: '1, 4, 9, 16… the jumps get bigger each time.',
+            text: 'Look — the jumps get bigger each time!',
           },
           {
             character: 'lejo',
@@ -622,7 +629,7 @@ export const episodes = [
           {
             character: 'chelya',
             side: 'left',
-            text: 'This long ribbon is 90 cm, but I only need part of it.',
+            text: (ctx) => `This long ribbon is ${ctx.ep5p2total} cm, but I only need part of it.`,
           },
           {
             character: 'kylo',
@@ -632,10 +639,11 @@ export const episodes = [
         ],
         problem: {
           id: 'e5-p2-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const cut = tierInt(rng, tier, [[10, 40], [20, 70], [40, 120], [80, 300]]);
             const left = tierInt(rng, tier, [[10, 50], [20, 80], [40, 150], [80, 400]]);
             const total = cut + left;
+            ctx.ep5p2total = total;
             return {
               question: `Chelya cuts ${cut} cm off a ${total} cm ribbon. How many centimetres are left?`,
               hint: `Take away the piece she cut: ${total} cm − ${cut} cm.`,
@@ -658,12 +666,12 @@ export const episodes = [
           {
             character: 'chelya',
             side: 'left',
-            text: 'Last step — 4 equal ribbons, each 25 cm, laid in a row.',
+            text: (ctx) => `Last step — ${ctx.ep5p3count} equal ribbons, each ${ctx.ep5p3each} cm, laid in a row.`,
           },
           {
             character: 'kylo',
             side: 'right',
-            text: "That's 100 cm altogether. Is that a whole metre?",
+            text: (ctx) => `That's ${ctx.ep5p3total} cm altogether. How many metres is that?`,
           },
           {
             character: 'chelya',
@@ -673,11 +681,14 @@ export const episodes = [
         ],
         problem: {
           id: 'e5-p3-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const metres = tierInt(rng, tier, [[1, 2], [1, 4], [3, 8], [5, 15]]);
             const each = pick(rng, [20, 25, 50]); // realistic length that divides 100
             const total = metres * 100;
             const count = total / each;
+            ctx.ep5p3count = count;
+            ctx.ep5p3each = each;
+            ctx.ep5p3total = total;
             return {
               question: `${count} ribbons, each ${each} cm, laid end to end, measure ${total} cm in total. How many metres is that?`,
               hint: 'Remember: 100 cm makes 1 metre.',
@@ -717,7 +728,7 @@ export const episodes = [
           {
             character: 'tiano',
             side: 'left',
-            text: "Listen up, team. Kick-off is at 3 o'clock sharp. We don't waste a second.",
+            text: (ctx) => `Listen up, team. Kick-off is at ${ctx.ep6kickoff} sharp. We don't waste a second.`,
           },
           {
             character: 'kylo',
@@ -727,17 +738,19 @@ export const episodes = [
           {
             character: 'tiano',
             side: 'left',
-            text: 'Quarter past 2. You do the maths.',
+            text: (ctx) => `It's ${ctx.ep6now} now. You do the maths.`,
           },
         ],
         problem: {
           id: 'e6-p1-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const gapHours = tierInt(rng, tier, [[1, 1], [1, 2], [2, 3], [3, 4]]);
             const startHour = rint(rng, 1, 12 - gapHours);
             const startMin = rint(rng, 1, 11) * 5; // :05–:55
             const mm = String(startMin).padStart(2, '0');
             const endHour = startHour + gapHours;
+            ctx.ep6kickoff = `${endHour} o'clock`;
+            ctx.ep6now = `${startHour}:${mm}`;
             return {
               question: `It is ${startHour}:${mm} now and the match kicks off at ${endHour}:00. How many minutes until kick-off?`,
               hint: `Count on from ${startHour}:${mm} to ${endHour}:00.`,
@@ -760,7 +773,7 @@ export const episodes = [
           {
             character: 'tiano',
             side: 'left',
-            text: 'The match is two halves, 40 minutes each.',
+            text: (ctx) => `The match is ${ctx.ep6periods} ${ctx.ep6word}, ${ctx.ep6mins} minutes each.`,
           },
           {
             character: 'kylo',
@@ -770,10 +783,13 @@ export const episodes = [
         ],
         problem: {
           id: 'e6-p2-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const periods = tierInt(rng, tier, [[2, 2], [2, 3], [3, 4], [4, 6]]);
             const mins = tierInt(rng, tier, [[20, 45], [30, 50], [35, 60], [40, 90]]);
             const word = periods === 2 ? 'halves' : periods === 4 ? 'quarters' : 'periods';
+            ctx.ep6periods = periods;
+            ctx.ep6word = word;
+            ctx.ep6mins = mins;
             return {
               question: `A match has ${periods} ${word} of ${mins} minutes each. How many minutes of play is that in total?`,
               hint: `${periods} periods of ${mins} minutes: ${mins} × ${periods}.`,
@@ -796,26 +812,28 @@ export const episodes = [
           {
             character: 'tiano',
             side: 'left',
-            text: 'Add the 15-minute half-time and the whole thing runs 95 minutes.',
+            text: (ctx) => `Add the half-time break and the whole thing runs ${ctx.ep6p3total} minutes.`,
           },
           {
             character: 'kylo',
             side: 'right',
-            text: "95 minutes… that's more than an hour!",
+            text: (ctx) => `${ctx.ep6p3total} minutes… that's more than an hour!`,
           },
           {
             character: 'tiano',
             side: 'left',
-            text: 'One hour and how many minutes? Last one, rookie.',
+            text: (ctx) => `That's ${ctx.ep6p3hourWord} and how many minutes? Last one, rookie.`,
           },
         ],
         problem: {
           id: 'e6-p3-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const hours = tierInt(rng, tier, [[1, 1], [1, 2], [2, 3], [2, 4]]);
             const extra = rint(rng, 1, 11) * 5; // 5–55
             const total = hours * 60 + extra;
             const hourWord = hours === 1 ? '1 hour' : `${hours} hours`;
+            ctx.ep6p3total = total;
+            ctx.ep6p3hourWord = hourWord;
             return {
               question: `The whole match, including half-time, lasts ${total} minutes. That is ${hourWord} and how many minutes?`,
               hint: `${hourWord} is ${hours * 60} minutes. Take ${hours * 60} away from ${total} to find the extra minutes.`,
@@ -902,7 +920,7 @@ export const episodes = [
           {
             character: 'kylo',
             side: 'right',
-            text: 'Twelve and nine…',
+            text: (ctx) => `${ctx.teams.lions} and ${ctx.teams.tigers}…`,
           },
         ],
         menuNote: 'League points — Lions 12 · Tigers 9 · Bears 15 · Eagles 6',
@@ -991,21 +1009,23 @@ export const episodes = [
           {
             character: 'talia',
             side: 'left',
-            text: "Pizza time! It's cut into 8 equal slices. We share fairly, agreed?",
+            text: (ctx) => `Pizza time! It's cut into ${ctx.ep8p1whole} equal slices. We share fairly, agreed?`,
           },
           {
             character: 'kylo',
             side: 'right',
-            text: 'Half for you, half for me. How many slices is half?',
+            text: (ctx) => `One ${ctx.ep8p1word} of the pizza — how many slices is that?`,
           },
         ],
         problem: {
           id: 'e8-p1-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const den = pick(rng, [2, 3, 4]);
             const k = tierInt(rng, tier, [[2, 4], [3, 8], [6, 14], [10, 25]]);
             const whole = den * k;
             const word = den === 2 ? 'half' : den === 3 ? 'third' : 'quarter';
+            ctx.ep8p1whole = whole;
+            ctx.ep8p1word = word;
             return {
               question: `A pizza is cut into ${whole} equal slices. How many slices make up 1/${den} of the pizza?`,
               hint: `One ${word} means splitting the ${whole} slices into ${den} equal groups: ${whole} ÷ ${den}.`,
@@ -1028,21 +1048,23 @@ export const episodes = [
           {
             character: 'talia',
             side: 'left',
-            text: 'This kaya cake has 6 equal pieces. You may take one third.',
+            text: (ctx) => `This kaya cake has ${ctx.ep8p2whole} equal pieces. You may take one ${ctx.ep8p2word}.`,
           },
           {
             character: 'kylo',
             side: 'right',
-            text: 'One third of six… let me work it out.',
+            text: (ctx) => `One ${ctx.ep8p2word} of ${ctx.ep8p2whole}… let me work it out.`,
           },
         ],
         problem: {
           id: 'e8-p2-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const den = pick(rng, [3, 4, 6]);
             const k = tierInt(rng, tier, [[1, 3], [2, 6], [4, 10], [6, 18]]);
             const whole = den * k;
             const word = den === 3 ? 'third' : den === 4 ? 'quarter' : 'sixth';
+            ctx.ep8p2whole = whole;
+            ctx.ep8p2word = word;
             return {
               question: `A cake is cut into ${whole} equal pieces. How many pieces make up 1/${den} of the cake?`,
               hint: `One ${word} means splitting the ${whole} pieces into ${den} equal groups: ${whole} ÷ ${den}.`,
@@ -1065,12 +1087,12 @@ export const episodes = [
           {
             character: 'talia',
             side: 'left',
-            text: "Last one. I have 12 sweets, and I'll give away three quarters.",
+            text: (ctx) => `Last one. I have ${ctx.ep8p3whole} sweets, and I'll give away ${ctx.ep8p3frac} of them.`,
           },
           {
             character: 'kylo',
             side: 'right',
-            text: 'Three quarters of twelve — that is a lot of sweets!',
+            text: (ctx) => `${ctx.ep8p3frac} of ${ctx.ep8p3whole} — that is a lot of sweets!`,
           },
           {
             character: 'talia',
@@ -1080,11 +1102,13 @@ export const episodes = [
         ],
         problem: {
           id: 'e8-p3-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const den = pick(rng, [3, 4, 5]);
             const num = rint(rng, 2, den - 1);
             const k = tierInt(rng, tier, [[2, 4], [3, 8], [5, 12], [8, 20]]);
             const whole = den * k;
+            ctx.ep8p3whole = whole;
+            ctx.ep8p3frac = `${num}/${den}`;
             return {
               question: `Talia has ${whole} sweets and gives away ${num}/${den} of them. How many sweets does she give away?`,
               hint: `First find 1/${den} of ${whole} (that is ${whole} ÷ ${den} = ${k}). ${num} lots of that is ${num} × ${k}.`,
@@ -1124,19 +1148,20 @@ export const episodes = [
           {
             character: 'kaesy',
             side: 'left',
-            text: 'Welcome to Shape Squad! First up — this hexagon. Count its sides.',
+            text: (ctx) => `Welcome to Shape Squad! First up — this ${ctx.ep9p1shape}. Count its sides.`,
           },
           {
             character: 'kylo',
             side: 'right',
-            text: "Sides of a hexagon… I've got this.",
+            text: (ctx) => `Sides of a ${ctx.ep9p1shape}… I've got this.`,
           },
         ],
         problem: {
           id: 'e9-p1-q1',
-          generate: (rng) => {
+          generate: (rng, _tier, ctx) => {
             const words = { 3: 'three', 4: 'four', 5: 'five', 6: 'six', 7: 'seven', 8: 'eight' };
             const s = pick(rng, POLYGONS);
+            ctx.ep9p1shape = s.name;
             return {
               question: `How many sides does a ${s.name} have?`,
               hint: `A ${s.name} is the ${words[s.sides]}-sided shape.`,
@@ -1159,7 +1184,7 @@ export const episodes = [
           {
             character: 'kaesy',
             side: 'left',
-            text: 'Now a pentagon. How many corners does it have?',
+            text: (ctx) => `Now this ${ctx.ep9p2shape}. How many corners does it have?`,
           },
           {
             character: 'kylo',
@@ -1169,8 +1194,9 @@ export const episodes = [
         ],
         problem: {
           id: 'e9-p2-q1',
-          generate: (rng) => {
+          generate: (rng, _tier, ctx) => {
             const s = pick(rng, POLYGONS);
+            ctx.ep9p2shape = s.name;
             return {
               question: `How many corners (vertices) does a ${s.name} have?`,
               hint: `A ${s.name} has the same number of corners as sides — and a ${s.name} has ${s.sides} sides.`,
@@ -1193,12 +1219,12 @@ export const episodes = [
           {
             character: 'kaesy',
             side: 'left',
-            text: 'Final challenge — add up ALL the sides: a triangle, a square and a pentagon.',
+            text: (ctx) => `Final challenge — add up ALL the sides: a ${ctx.ep9p3a}, a ${ctx.ep9p3b} and a ${ctx.ep9p3c}.`,
           },
           {
             character: 'kylo',
             side: 'right',
-            text: 'Three, four and five sides…',
+            text: (ctx) => `${ctx.ep9p3sa}, ${ctx.ep9p3sb} and ${ctx.ep9p3sc} sides…`,
           },
           {
             character: 'kaesy',
@@ -1208,9 +1234,11 @@ export const episodes = [
         ],
         problem: {
           id: 'e9-p3-q1',
-          generate: (rng) => {
+          generate: (rng, _tier, ctx) => {
             const pool = [...POLYGONS];
             const [a, b, c] = [0, 0, 0].map(() => pool.splice(rint(rng, 0, pool.length - 1), 1)[0]);
+            ctx.ep9p3a = a.name; ctx.ep9p3b = b.name; ctx.ep9p3c = c.name;
+            ctx.ep9p3sa = a.sides; ctx.ep9p3sb = b.sides; ctx.ep9p3sc = c.sides;
             return {
               question: `A ${a.name} has ${a.sides} sides, a ${b.name} has ${b.sides} sides and a ${c.name} has ${c.sides} sides. How many sides do they have altogether?`,
               hint: `Add the three amounts: ${a.sides} + ${b.sides} + ${c.sides}.`,
@@ -1250,7 +1278,7 @@ export const episodes = [
           {
             character: 'lejo',
             side: 'left',
-            text: 'Post duty! Two parcels to weigh — 250 g and 350 g.',
+            text: (ctx) => `Post duty! Two parcels to weigh — ${ctx.ep10p1a} g and ${ctx.ep10p1b} g.`,
           },
           {
             character: 'kylo',
@@ -1260,10 +1288,12 @@ export const episodes = [
         ],
         problem: {
           id: 'e10-p1-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const band = [[5, 20], [10, 40], [20, 90], [40, 180]];
             const a = tierInt(rng, tier, band) * 10; // grams, in tens
             const b = tierInt(rng, tier, band) * 10;
+            ctx.ep10p1a = a;
+            ctx.ep10p1b = b;
             return {
               question: `One parcel weighs ${a} g and another weighs ${b} g. What is their total mass?`,
               hint: `Add the two masses: ${a} g + ${b} g.`,
@@ -1286,7 +1316,7 @@ export const episodes = [
           {
             character: 'lejo',
             side: 'left',
-            text: 'This bag of flour says 1 kilogram. How many grams is that?',
+            text: (ctx) => `This bag of flour says ${ctx.ep10p2kg}. How many grams is that?`,
           },
           {
             character: 'kylo',
@@ -1296,8 +1326,9 @@ export const episodes = [
         ],
         problem: {
           id: 'e10-p2-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const kg = tierInt(rng, tier, [[1, 1], [1, 4], [3, 9], [5, 20]]);
+            ctx.ep10p2kg = kg === 1 ? '1 kilogram' : `${kg} kilograms`;
             if (kg === 1) {
               return { question: 'How many grams are there in 1 kilogram?', hint: 'Remember the rule: 1 kilogram = 1000 grams.', answer: 1000 };
             }
@@ -1323,7 +1354,7 @@ export const episodes = [
           {
             character: 'lejo',
             side: 'left',
-            text: 'A box and a book together weigh 1500 g. The book alone is 600 g.',
+            text: (ctx) => `A box and a book together weigh ${ctx.ep10p3total} g. The book alone is ${ctx.ep10p3book} g.`,
           },
           {
             character: 'kylo',
@@ -1338,10 +1369,12 @@ export const episodes = [
         ],
         problem: {
           id: 'e10-p3-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const book = tierInt(rng, tier, [[20, 60], [30, 90], [50, 150], [80, 300]]) * 10;
             const box = tierInt(rng, tier, [[20, 80], [40, 120], [60, 180], [100, 400]]) * 10;
             const total = book + box;
+            ctx.ep10p3total = total;
+            ctx.ep10p3book = book;
             return {
               question: `A box and a book together weigh ${total} g. The book weighs ${book} g. What is the mass of the box?`,
               hint: `Take the book away from the total: ${total} g − ${book} g.`,
@@ -1381,7 +1414,7 @@ export const episodes = [
           {
             character: 'chelya',
             side: 'left',
-            text: "Smoothie station! This jug holds 400 ml, and I'll pour in 350 ml more.",
+            text: (ctx) => `Smoothie station! This jug holds ${ctx.ep11p1a} ml, and I'll pour in ${ctx.ep11p1add} ml more.`,
           },
           {
             character: 'kylo',
@@ -1391,10 +1424,12 @@ export const episodes = [
         ],
         problem: {
           id: 'e11-p1-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const band = [[5, 20], [10, 40], [20, 90], [40, 180]];
             const a = tierInt(rng, tier, band) * 10;
             const add = tierInt(rng, tier, band) * 10;
+            ctx.ep11p1a = a;
+            ctx.ep11p1add = add;
             return {
               question: `A jug holds ${a} ml of juice. Chelya adds ${add} ml more. How much juice is in the jug now?`,
               hint: `Add the two amounts: ${a} ml + ${add} ml.`,
@@ -1417,7 +1452,7 @@ export const episodes = [
           {
             character: 'chelya',
             side: 'left',
-            text: 'This bottle says 1 litre. How many millilitres is that?',
+            text: (ctx) => `This bottle says ${ctx.ep11p2l}. How many millilitres is that?`,
           },
           {
             character: 'kylo',
@@ -1427,8 +1462,9 @@ export const episodes = [
         ],
         problem: {
           id: 'e11-p2-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const litres = tierInt(rng, tier, [[1, 1], [1, 4], [3, 9], [5, 20]]);
+            ctx.ep11p2l = litres === 1 ? '1 litre' : `${litres} litres`;
             if (litres === 1) {
               return { question: 'How many millilitres are there in 1 litre?', hint: 'Remember the rule: 1 litre = 1000 millilitres.', answer: 1000 };
             }
@@ -1454,12 +1490,12 @@ export const episodes = [
           {
             character: 'chelya',
             side: 'left',
-            text: 'Our 1000 ml flask is filled to 750 ml. How much more will fit?',
+            text: (ctx) => `Our ${ctx.ep11p3cap} ml flask is filled to ${ctx.ep11p3filled} ml. How much more will fit?`,
           },
           {
             character: 'kylo',
             side: 'right',
-            text: 'Take 750 away from 1000…',
+            text: (ctx) => `Take ${ctx.ep11p3filled} away from ${ctx.ep11p3cap}…`,
           },
           {
             character: 'chelya',
@@ -1469,10 +1505,12 @@ export const episodes = [
         ],
         problem: {
           id: 'e11-p3-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const filled = tierInt(rng, tier, [[20, 70], [40, 90], [60, 180], [100, 400]]) * 10;
             const more = tierInt(rng, tier, [[10, 40], [20, 60], [40, 120], [80, 300]]) * 10;
             const capacity = filled + more;
+            ctx.ep11p3cap = capacity;
+            ctx.ep11p3filled = filled;
             return {
               question: `A flask holds ${capacity} ml. It is filled to ${filled} ml. How many more millilitres are needed to fill it?`,
               hint: `Find the difference: ${capacity} ml − ${filled} ml.`,
@@ -1512,20 +1550,22 @@ export const episodes = [
           {
             character: 'lejo',
             side: 'right',
-            text: "Times-table drill, rookie. Quick — what's 7 times 6?",
+            text: (ctx) => `Times-table drill, rookie. Quick — what's ${ctx.ep12p1a} times ${ctx.ep12p1b}?`,
           },
           {
             character: 'kylo',
             side: 'left',
-            text: 'Seven sixes… give me a second!',
+            text: (ctx) => `${ctx.ep12p1a} times ${ctx.ep12p1b}… give me a second!`,
           },
         ],
         problem: {
           id: 'e12-p1-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const band = [[2, 6], [3, 9], [6, 12], [8, 20]];
             const a = tierInt(rng, tier, band);
             const b = tierInt(rng, tier, band);
+            ctx.ep12p1a = a;
+            ctx.ep12p1b = b;
             return {
               question: `What is ${a} × ${b}?`,
               hint: `${a} groups of ${b}. If you know ${a} × ${b - 1} = ${a * (b - 1)}, add one more ${a}.`,
@@ -1548,19 +1588,21 @@ export const episodes = [
           {
             character: 'lejo',
             side: 'right',
-            text: 'Word problem. A box holds 8 cupcakes. There are 4 boxes.',
+            text: (ctx) => `Word problem. A box holds ${ctx.ep12p2per} cupcakes. There are ${ctx.ep12p2boxes} boxes.`,
           },
           {
             character: 'kylo',
             side: 'left',
-            text: 'Four lots of eight!',
+            text: (ctx) => `${ctx.ep12p2boxes} lots of ${ctx.ep12p2per}!`,
           },
         ],
         problem: {
           id: 'e12-p2-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const per = tierInt(rng, tier, [[4, 8], [5, 10], [6, 12], [8, 20]]);
             const boxes = tierInt(rng, tier, [[2, 4], [3, 6], [5, 9], [6, 12]]);
+            ctx.ep12p2per = per;
+            ctx.ep12p2boxes = boxes;
             return {
               question: `A box holds ${per} cupcakes. How many cupcakes are there in ${boxes} boxes?`,
               hint: `${boxes} groups of ${per}: multiply ${boxes} × ${per}.`,
@@ -1583,7 +1625,7 @@ export const episodes = [
           {
             character: 'lejo',
             side: 'right',
-            text: 'Two steps now. Kylo buys 3 packs of 6 stickers, then gets 5 more free.',
+            text: (ctx) => `Two steps now. Kylo buys ${ctx.ep12p3packs} packs of ${ctx.ep12p3per} stickers, then gets ${ctx.ep12p3extra} more free.`,
           },
           {
             character: 'kylo',
@@ -1598,10 +1640,13 @@ export const episodes = [
         ],
         problem: {
           id: 'e12-p3-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const packs = tierInt(rng, tier, [[2, 4], [3, 6], [4, 8], [6, 12]]);
             const per = tierInt(rng, tier, [[4, 8], [5, 10], [6, 12], [8, 15]]);
             const extra = tierInt(rng, tier, [[2, 6], [3, 10], [5, 15], [8, 25]]);
+            ctx.ep12p3packs = packs;
+            ctx.ep12p3per = per;
+            ctx.ep12p3extra = extra;
             return {
               question: `Kylo buys ${packs} packs of ${per} stickers and is given ${extra} more. How many stickers does he have altogether?`,
               hint: `First multiply: ${packs} × ${per} = ${packs * per}. Then add the ${extra} free stickers.`,
@@ -1641,7 +1686,7 @@ export const episodes = [
           {
             character: 'tiano',
             side: 'left',
-            text: 'Marking the pitch, team. This square goal box has 5 m sides.',
+            text: (ctx) => `Marking the pitch, team. This square goal box has ${ctx.ep13p1side} m sides.`,
           },
           {
             character: 'kylo',
@@ -1651,8 +1696,9 @@ export const episodes = [
         ],
         problem: {
           id: 'e13-p1-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const side = tierInt(rng, tier, [[3, 9], [5, 15], [10, 30], [20, 80]]);
+            ctx.ep13p1side = side;
             return {
               question: `A square goal box has sides of ${side} m each. What is its perimeter?`,
               hint: `A square has 4 equal sides. Add them, or multiply: 4 × ${side}.`,
@@ -1675,7 +1721,7 @@ export const episodes = [
           {
             character: 'tiano',
             side: 'left',
-            text: 'The full pitch is 30 m long and 20 m wide.',
+            text: (ctx) => `The full pitch is ${ctx.ep13p2l} m long and ${ctx.ep13p2w} m wide.`,
           },
           {
             character: 'kylo',
@@ -1685,9 +1731,11 @@ export const episodes = [
         ],
         problem: {
           id: 'e13-p2-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const l = tierInt(rng, tier, [[5, 12], [10, 30], [20, 60], [40, 120]]);
             const w = tierInt(rng, tier, [[3, 10], [8, 25], [15, 50], [30, 100]]);
+            ctx.ep13p2l = l;
+            ctx.ep13p2w = w;
             return {
               question: `A rectangular pitch is ${l} m long and ${w} m wide. What is its perimeter?`,
               hint: `A rectangle has two long sides and two short sides: ${l} + ${w} + ${l} + ${w}.`,
@@ -1710,12 +1758,12 @@ export const episodes = [
           {
             character: 'tiano',
             side: 'left',
-            text: 'Trickier. A training rectangle has a perimeter of 24 m and a length of 8 m.',
+            text: (ctx) => `Trickier. A training rectangle has a perimeter of ${ctx.ep13p3perim} m and a length of ${ctx.ep13p3len} m.`,
           },
           {
             character: 'kylo',
             side: 'right',
-            text: 'So length plus width is half of 24…',
+            text: (ctx) => `So length plus width is half of ${ctx.ep13p3perim}…`,
           },
           {
             character: 'tiano',
@@ -1725,10 +1773,12 @@ export const episodes = [
         ],
         problem: {
           id: 'e13-p3-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const length = tierInt(rng, tier, [[5, 10], [8, 20], [15, 40], [30, 80]]);
             const width = tierInt(rng, tier, [[3, 9], [5, 18], [10, 35], [20, 70]]);
             const perimeter = 2 * (length + width);
+            ctx.ep13p3perim = perimeter;
+            ctx.ep13p3len = length;
             return {
               question: `A rectangle has a perimeter of ${perimeter} m. Its length is ${length} m. What is its width?`,
               hint: `Half the perimeter is one length + one width: ${perimeter} ÷ 2 = ${perimeter / 2}. Then take away the length: ${perimeter / 2} − ${length}.`,
@@ -1768,17 +1818,17 @@ export const episodes = [
           {
             character: 'lysa',
             side: 'left',
-            text: 'Place value puzzle! In the number 473, look closely at the digit 7.',
+            text: (ctx) => `Place value puzzle! In the number ${ctx.ep14p1num}, look closely at the digit ${ctx.ep14p1digit}.`,
           },
           {
             character: 'kylo',
             side: 'right',
-            text: "It's in the tens place…",
+            text: (ctx) => `It's in the ${ctx.ep14p1place} place…`,
           },
         ],
         problem: {
           id: 'e14-p1-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const digits = tierInt(rng, tier, [[2, 3], [3, 3], [3, 4], [4, 5]]);
             const pos = rint(rng, 0, digits - 1);
             const v = rint(rng, 1, 9); // the asked digit — kept unique so it's unambiguous
@@ -1789,6 +1839,9 @@ export const episodes = [
             });
             const place = Math.pow(10, digits - 1 - pos);
             const names = { 1: 'ones', 10: 'tens', 100: 'hundreds', 1000: 'thousands', 10000: 'ten-thousands' };
+            ctx.ep14p1num = Number(arr.join(''));
+            ctx.ep14p1digit = v;
+            ctx.ep14p1place = names[place];
             return {
               question: `In the number ${Number(arr.join(''))}, what is the value of the digit ${v}?`,
               hint: `The ${v} sits in the ${names[place]} column, so its value is ${v} ${names[place]}.`,
@@ -1811,20 +1864,21 @@ export const episodes = [
           {
             character: 'lysa',
             side: 'left',
-            text: 'Now round 68 to the nearest 10.',
+            text: (ctx) => `Now round ${ctx.ep14p2n} to the nearest 10.`,
           },
           {
             character: 'kylo',
             side: 'right',
-            text: '68 is closer to 70 than to 60.',
+            text: (ctx) => `${ctx.ep14p2n} — which ten is it closest to?`,
           },
         ],
         problem: {
           id: 'e14-p2-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const tens = tierInt(rng, tier, [[1, 8], [2, 19], [10, 89], [30, 299]]);
             const ones = rint(rng, 1, 9);
             const n = tens * 10 + ones;
+            ctx.ep14p2n = n;
             return {
               question: `Round ${n} to the nearest 10.`,
               hint: `The ones digit is ${ones}, which is ${ones >= 5 ? '5 or more, so round up' : 'less than 5, so round down'}.`,
@@ -1847,12 +1901,12 @@ export const episodes = [
           {
             character: 'lysa',
             side: 'left',
-            text: 'Last one — round 234 to the nearest 100.',
+            text: (ctx) => `Last one — round ${ctx.ep14p3n} to the nearest 100.`,
           },
           {
             character: 'kylo',
             side: 'right',
-            text: 'The tens digit is 3, so round down…',
+            text: (ctx) => `The tens digit is ${ctx.ep14p3tens}, so round ${ctx.ep14p3dir}…`,
           },
           {
             character: 'lysa',
@@ -1862,10 +1916,13 @@ export const episodes = [
         ],
         problem: {
           id: 'e14-p3-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const hund = tierInt(rng, tier, [[1, 8], [1, 19], [3, 89], [10, 299]]);
             const rem = rint(rng, 1, 99);
             const n = hund * 100 + rem;
+            ctx.ep14p3n = n;
+            ctx.ep14p3tens = Math.floor(rem / 10);
+            ctx.ep14p3dir = rem >= 50 ? 'up' : 'down';
             return {
               question: `Round ${n} to the nearest 100.`,
               hint: `Look at the tens digit (${Math.floor(rem / 10)}). It is ${rem >= 50 ? '5 or more, so round up' : 'less than 5, so round down'}.`,
@@ -1905,7 +1962,7 @@ export const episodes = [
           {
             character: 'lejo',
             side: 'left',
-            text: 'Welcome to the Grand Quiz! Round 1 — patterns. What comes next: 5, 10, 20, 40?',
+            text: (ctx) => `Welcome to the Grand Quiz! Round 1 — patterns. What comes next: ${ctx.ep15p1seq}?`,
           },
           {
             character: 'kylo',
@@ -1915,9 +1972,10 @@ export const episodes = [
         ],
         problem: {
           id: 'e15-p1-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const start = tierInt(rng, tier, [[2, 5], [3, 7], [4, 10], [5, 15]]);
             const t = [start, start * 2, start * 4, start * 8];
+            ctx.ep15p1seq = t.join(', ');
             return {
               question: `What number comes next in the pattern ${t.join(', ')}, …?`,
               hint: 'Each number is the one before it multiplied by 2.',
@@ -1940,20 +1998,22 @@ export const episodes = [
           {
             character: 'kaesy',
             side: 'left',
-            text: 'Round 2 — sharing! 32 stickers, 4 friends, split them equally.',
+            text: (ctx) => `Round 2 — sharing! ${ctx.ep15p2total} stickers, ${ctx.ep15p2friends} friends, split them equally.`,
           },
           {
             character: 'kylo',
             side: 'right',
-            text: 'Thirty-two divided by four…',
+            text: (ctx) => `${ctx.ep15p2total} divided by ${ctx.ep15p2friends}…`,
           },
         ],
         problem: {
           id: 'e15-p2-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const friends = tierInt(rng, tier, [[2, 4], [3, 5], [4, 7], [5, 9]]);
             const each = tierInt(rng, tier, [[4, 8], [5, 10], [7, 12], [9, 15]]);
             const total = friends * each;
+            ctx.ep15p2total = total;
+            ctx.ep15p2friends = friends;
             return {
               question: `${total} stickers are shared equally among ${friends} friends. How many stickers does each friend get?`,
               hint: `Split ${total} into ${friends} equal groups: ${total} ÷ ${friends}.`,
@@ -1976,21 +2036,23 @@ export const episodes = [
           {
             character: 'talia',
             side: 'left',
-            text: 'Round 3 — fractions. What is three quarters of 20?',
+            text: (ctx) => `Round 3 — fractions. What is ${ctx.ep15p3frac} of ${ctx.ep15p3whole}?`,
           },
           {
             character: 'kylo',
             side: 'right',
-            text: 'A quarter of 20 is 5, so three quarters…',
+            text: (ctx) => `${ctx.ep15p3frac} of ${ctx.ep15p3whole}… let me work it out!`,
           },
         ],
         problem: {
           id: 'e15-p3-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const den = pick(rng, [3, 4, 5]);
             const num = rint(rng, 2, den - 1);
             const k = tierInt(rng, tier, [[2, 5], [3, 8], [5, 12], [8, 20]]);
             const whole = den * k;
+            ctx.ep15p3frac = `${num}/${den}`;
+            ctx.ep15p3whole = whole;
             return {
               question: `What is ${num}/${den} of ${whole}?`,
               hint: `First find 1/${den} of ${whole} (${whole} ÷ ${den} = ${k}). ${num} lots of that is ${num} × ${k}.`,
@@ -2013,7 +2075,7 @@ export const episodes = [
           {
             character: 'chelya',
             side: 'left',
-            text: 'Final round — measurement! A ribbon is 2 m long. How many centimetres is that?',
+            text: (ctx) => `Final round — measurement! A ribbon is ${ctx.ep15p4m} m long. How many centimetres is that?`,
           },
           {
             character: 'kylo',
@@ -2028,8 +2090,9 @@ export const episodes = [
         ],
         problem: {
           id: 'e15-p4-q1',
-          generate: (rng, tier) => {
+          generate: (rng, tier, ctx) => {
             const m = tierInt(rng, tier, [[2, 5], [2, 9], [4, 15], [8, 30]]);
+            ctx.ep15p4m = m;
             return {
               question: `A ribbon is ${m} m long. How many centimetres is that?`,
               hint: `Remember: 1 metre = 100 centimetres, so multiply ${m} × 100.`,

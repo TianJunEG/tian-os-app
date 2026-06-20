@@ -4,6 +4,12 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import StudentDashboard from './StudentDashboard';
 
+// Freeze feature flags so this test isn't affected by FLUENCY_PILOT default changes.
+vi.mock('../../config/featureFlags', () => ({
+  default: { fluency: false, worksheets: true, science: false },
+  FEATURE_FLAGS: { fluency: false, worksheets: true, science: false },
+}));
+
 const getLatestDiagnostic = vi.fn();
 const studentAnalytics = vi.fn();
 const recordEvent = vi.fn();

@@ -1,8 +1,9 @@
 // Job handler for the `worksheet-generate` queue (Phase 1 WS3).
 //
-// The job carries the photo as base64 (bounded by the 8MB upload limit) rather
-// than a storage reference, so this offload is independent of where worksheet
-// photos are stored. The pending Worksheet doc already exists; this fills it in.
+// The job carries the photo by reference (storageKey/storageProvider) rather than
+// as an inline base64 blob, so the Redis payload stays tiny; runPhotoWorksheetGeneration
+// re-reads the persisted upload via the storage facade. The pending Worksheet doc
+// already exists; this fills it in.
 import { runPhotoWorksheetGeneration } from '../services/worksheets/photoWorksheet.js';
 
 export async function processWorksheetGenerate(job) {

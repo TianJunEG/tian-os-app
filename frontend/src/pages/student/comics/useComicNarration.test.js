@@ -23,14 +23,17 @@ describe('comic narration helpers', () => {
     expect(voiceForLine({ text: '...', side: 'left' }, [])).toEqual(getMascotVoice(undefined));
   });
 
-  it('buildNarrationSteps keeps authored order and each speaker pitch/rate', () => {
+  it('buildNarrationSteps keeps authored order and each speaker full voice profile', () => {
+    const lejo = getMascotVoice('lejo');
+    const kylo = getMascotVoice('kylo');
     const steps = buildNarrationSteps(PANEL);
     expect(steps).toEqual([
-      { text: PANEL.speech[0].text, pitch: getMascotVoice('lejo').pitch, rate: getMascotVoice('lejo').rate },
-      { text: PANEL.speech[1].text, pitch: getMascotVoice('kylo').pitch, rate: getMascotVoice('kylo').rate },
+      { text: PANEL.speech[0].text, kokoro: lejo.kokoro, gender: lejo.gender, pitch: lejo.pitch, rate: lejo.rate },
+      { text: PANEL.speech[1].text, kokoro: kylo.kokoro, gender: kylo.gender, pitch: kylo.pitch, rate: kylo.rate },
     ]);
-    // distinct mascots → distinct pitch (boys lower vs higher)
-    expect(steps[0].pitch).not.toBe(steps[1].pitch);
+    // each step carries its mascot's chosen Kokoro voice (the per-character fix)
+    expect(steps[0].kokoro).toBe(lejo.kokoro);
+    expect(steps[1].kokoro).toBe(kylo.kokoro);
   });
 
   it('returns no steps for a panel with no dialogue', () => {

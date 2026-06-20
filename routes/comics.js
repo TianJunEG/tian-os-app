@@ -95,7 +95,56 @@ const EPISODES_BY_SKILL = (() => {
 })();
 
 // POST /api/comics/:episodeId/complete
-// Body: { problems: [{ problemId, correct }] }
+// Body: { problems: [{ problemId, correct, workingStrokes? }] }
+// workingStrokes is the optional lightweight scratchpad (vector strokes only).
+const MAX_PROBLEMS = 64;               // an episode has a handful of panels; bound the array
+const MAX_WORKING_STROKES = 400;       // cap stroke count per problem
+const MAX_POINTS_PER_STROKE = 1500;    // cap points within a single stroke
+const MAX_WORKING_BYTES = 512 * 1024;  // hard ceiling on serialised working per problem
+
+const finiteNum = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : undefined);
+
+// Whitelist a single point to its known numeric coordinates, dropping anything
+// else a client might attach.
+const sanitizePoint = (pt) => {
+  if (!pt || typeof pt !== 'object') return null;
+  const out = {};
+  for (const k of ['x', 'y', 't', 'p', 'tx', 'ty']) {
+    const n = finiteNum(pt[k]);
+    if (n !== undefined) out[k] = n;
+  }
+  return out.x !== undefined && out.y !== undefined ? out : null;
+};
+
+// Whitelist one stroke to the known WorkingCanvas shape and cap its point count,
+// so a client can't smuggle arbitrary keys or an unbounded points array into the
+// Mixed field.
+const sanitizeStroke = (s) => {
+  if (!s || typeof s !== 'object' || !Array.isArray(s.points)) return null;
+  const points = s.points.slice(0, MAX_POINTS_PER_STROKE).map(sanitizePoint).filter(Boolean);
+  if (!points.length) return null;
+  const out = { points };
+  if (typeof s.tool === 'string') out.tool = s.tool.slice(0, 24);
+  if (typeof s.colour === 'string') out.colour = s.colour.slice(0, 32);
+  if (typeof s.text === 'string') out.text = s.text.slice(0, 80); // stamp glyph
+  if (typeof s.pointerType === 'string') out.pointerType = s.pointerType.slice(0, 16);
+  if (typeof s.timestamp === 'string') out.timestamp = s.timestamp.slice(0, 40);
+  const size = finiteNum(s.size);
+  if (size !== undefined) out.size = size;
+  return out;
+};
+
+// Sanitise + bound the scratchpad strokes for one problem. Returns undefined for
+// no / empty / oversized working so the field is simply omitted from storage.
+const sanitizeWorkingStrokes = (strokes) => {
+  if (!Array.isArray(strokes) || !strokes.length) return undefined;
+  const cleaned = strokes.slice(0, MAX_WORKING_STROKES).map(sanitizeStroke).filter(Boolean);
+  if (!cleaned.length) return undefined;
+  // Hard byte ceiling — drop the working rather than store an oversized blob.
+  if (JSON.stringify(cleaned).length > MAX_WORKING_BYTES) return undefined;
+  return cleaned;
+};
+
 router.post('/:episodeId/complete', async (req, res) => {
   try {
     const student = await resolveStudent(req, null, { write: true });
@@ -104,10 +153,22 @@ router.post('/:episodeId/complete', async (req, res) => {
     const { episodeId } = req.params;
     const { problems = [] } = req.body;
 
+    // Store only the fields we trust: problemId, correctness, and (optionally)
+    // the sanitised + capped scratchpad strokes. The rasterised image and any
+    // extra client keys are dropped, and stroke count / points-per-stroke / total
+    // bytes are all bounded — so one document holds at most a few hundred KB of
+    // working, well under the 16 MB BSON limit.
+    const storedProblems = problems.slice(0, MAX_PROBLEMS).map((p) => {
+      const out = { problemId: p.problemId, correct: !!p.correct };
+      const ws = sanitizeWorkingStrokes(p.workingStrokes);
+      if (ws) out.workingStrokes = ws;
+      return out;
+    });
+
     // Upsert progress record (the source of truth for "episode done").
     await ComicProgress.findOneAndUpdate(
       { studentId, episodeId },
-      { studentId, episodeId, workspaceId, problems, completedAt: new Date() },
+      { studentId, episodeId, workspaceId, problems: storedProblems, completedAt: new Date() },
       { upsert: true, new: true },
     );
 
@@ -205,7 +266,8 @@ router.get('/activity', async (req, res) => {
       { episodeId: 1, completedAt: 1, problems: 1 },
     ).sort({ completedAt: -1 }).lean();
 
-    const completed = records.map((r) => ({ episodeId: r.episodeId, completedAt: r.completedAt }));
+    const hasWorking = (r) => (r.problems || []).some((p) => Array.isArray(p.workingStrokes) && p.workingStrokes.length);
+    const completed = records.map((r) => ({ episodeId: r.episodeId, completedAt: r.completedAt, hasWorking: hasWorking(r) }));
     const slugs = [...new Set(
       records.flatMap((r) => (r.problems || []).map((p) => SKILL_SLUG[p.problemId]).filter(Boolean)),
     )];
@@ -218,6 +280,49 @@ router.get('/activity', async (req, res) => {
     if (err && err.status) return res.status(err.status).json({ error: err.message });
     console.error('comics activity error', err);
     res.status(500).json({ error: 'Failed to fetch activity' });
+  }
+});
+
+// GET /api/comics/working?studentId=…&episodeId=… — the saved scratchpad
+// working for one completed episode, for the parent/teacher review surface.
+// resolveStudent validates guardianship when studentId is supplied. Returns one
+// entry per problem that HAS working (vector strokes), each tagged with the
+// skill it practises and whether the answer was correct. Empty list when the
+// episode has no record or no working was drawn.
+router.get('/working', async (req, res) => {
+  try {
+    const student = await resolveStudent(req, req.query.studentId);
+    const episodeId = String(req.query.episodeId || '');
+    if (!episodeId) return res.status(400).json({ error: 'episodeId is required' });
+
+    const record = await ComicProgress.findOne(
+      { studentId: student._id, episodeId },
+      { problems: 1, completedAt: 1 },
+    ).lean();
+
+    const withWork = (record?.problems || []).filter(
+      (p) => Array.isArray(p.workingStrokes) && p.workingStrokes.length,
+    );
+
+    const slugs = [...new Set(withWork.map((p) => SKILL_SLUG[p.problemId]).filter(Boolean))];
+    const skillDocs = slugs.length ? await Skill.find({ slug: { $in: slugs } }, { slug: 1, name: 1 }).lean() : [];
+    const nameBySlug = new Map(skillDocs.map((s) => [s.slug, s.name]));
+
+    const problems = withWork.map((p) => {
+      const slug = SKILL_SLUG[p.problemId];
+      return {
+        problemId: p.problemId,
+        correct: !!p.correct,
+        skillName: slug ? (nameBySlug.get(slug) || slug) : null,
+        workingStrokes: p.workingStrokes,
+      };
+    });
+
+    res.json({ episodeId, completedAt: record?.completedAt || null, problems });
+  } catch (err) {
+    if (err && err.status) return res.status(err.status).json({ error: err.message });
+    console.error('comics working error', err);
+    res.status(500).json({ error: 'Failed to fetch working' });
   }
 });
 
