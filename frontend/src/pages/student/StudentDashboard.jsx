@@ -44,6 +44,8 @@ import {
   getFractionAssessmentBlueprintReadiness,
 } from '../../mathpath/fractions/fractionAssessmentReadinessGate';
 import FEATURE_FLAGS from '../../config/featureFlags';
+import { getDashboardMascot } from '../../config/mascots';
+import { MascotBubble } from '../../components/MascotAvatar';
 
 function actionMeta(nextAction = {}, assessmentReady = true) {
   const action = String(nextAction.action || '');

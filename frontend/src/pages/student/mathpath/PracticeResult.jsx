@@ -112,7 +112,7 @@ export default function PracticeResult() {
         <ProgressBar value={stats.correct} max={Math.max(stats.total, 1)} className="mt-4" />
       </Card>
 
-      <MascotBubble mascotKey={cheer.key} text={cheer.text} showName={false} className="mb-5 justify-center" />
+      <MascotBubble name={cheer.key} message={cheer.text} className="mb-5 justify-center" />
 
       <Card className="mb-5 p-5">
         <div className="flex items-center gap-6">
