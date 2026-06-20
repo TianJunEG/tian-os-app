@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, RefreshCw } from 'lucide-react';
-import { Button, Card, EmptyState, ErrorState, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
+import { ArrowRight, RefreshCw, BookOpen, CheckCircle2, Clock } from 'lucide-react';
+import { Button, Card, EmptyState, ErrorState, PageHeader, Spinner } from '../../../components/ui';
 import { getUniversalSkillByFrameworkId } from '../../../mathpath/curriculum';
 import { mathpathAPI } from '../../../services/api';
 
@@ -28,58 +28,96 @@ const STUDENT_SKILL_LABELS = {
   F020: 'Finding a fraction of a quantity',
   F021: 'Multiplying fractions',
   F022: 'Dividing fractions',
-  F023: 'Solving fraction word problems',
-  F024: 'Solving multi-step fraction problems',
-  F025: 'Solving exam-style fraction questions',
-  F026: 'Solving mixed fraction challenges',
 };
 
-function statusText(status = '') {
-  return String(status || 'assigned').replace(/_/g, ' ');
+const DOMAIN_EMOJI = {
+  fractions: '🍕',
+  decimals: '🔢',
+  percentage: '📊',
+  four_operations: '➕',
+  operations: '➕',
+  algebra: '🔣',
+  geometry: '📐',
+  measurement: '📏',
+  area_perimeter: '📐',
+  ratio: '⚖️',
+  statistics: '📈',
+  volume: '📦',
+  circles: '⭕',
+  money: '💰',
+  time: '🕐',
+  number_sense: '🔢',
+};
+
+function domainEmoji(title = '', skillIds = []) {
+  const t = title.toLowerCase();
+  for (const [key, emoji] of Object.entries(DOMAIN_EMOJI)) {
+    if (t.includes(key.replace('_', ' ')) || t.includes(key)) return emoji;
+  }
+  if (skillIds[0]?.startsWith('F')) return '🍕';
+  if (skillIds[0]?.startsWith('OP')) return '➕';
+  return '📚';
 }
 
-function sourceReason(assignment = {}) {
-  if (assignment.evidenceSource?.studentExplanation) return assignment.evidenceSource.studentExplanation;
-  const source = String(assignment.sourceType || '').toLowerCase();
-  if (source === 'diagnostic') return 'Your diagnostic found skills that need more practice.';
-  if (source === 'paper_analysis') return 'An uploaded paper found questions to strengthen.';
-  if (source === 'tutor_lesson' || source === 'tutor') return 'Your tutor assigned this from your lesson plan.';
-  if (source === 'student_care_intervention') return 'This was assigned from your student care support plan.';
-  if (source === 'parent_support') return 'This was assigned for home practice support.';
-  return 'This pack gives you targeted practice for skills that need more work.';
-}
-
-function learningSequenceText(assignment = {}) {
-  const steps = assignment.guidedPracticeFlow?.steps || [];
-  if (!steps.length) return 'Worked example -> Guided practice -> Independent practice -> Recheck';
-  const labels = {
-    worked_example: 'Worked example',
-    visual_explanation: 'Visual explanation',
-    guided_question: 'Guided practice',
-    independent_practice: 'Independent practice',
-    mastery_check: 'Mastery check',
-  };
-  return steps.map((step) => labels[step.type] || step.title || step.type).filter(Boolean).join(' -> ');
-}
-
-function nextStepText({ recheckReady, attempted, target, status } = {}) {
-  if (recheckReady) return 'You are ready to do a short recheck and see what improved.';
-  if (status === 'completed') return 'You finished this pack. Check whether your recheck is ready.';
-  if (attempted > 0) return 'Continue the pack until Tian OS unlocks your recheck.';
-  return 'Start with the first practice set. Tian OS will track your progress.';
-}
-
-function progressPercent(attempted, target) {
-  if (!target) return 0;
-  return Math.max(0, Math.min(100, Math.round((attempted / target) * 100)));
+function sourceReason(assignment) {
+  const src = assignment.source;
+  if (src === 'paper_review') return 'From paper review';
+  if (src === 'diagnostic') return 'From check-in';
+  if (assignment.description?.toLowerCase().includes('weak')) return 'Weak skills identified';
+  return 'Assigned practice';
 }
 
 function studentSkillLabel(skillId = '') {
   const normalized = String(skillId || '').toUpperCase();
-  if (!/^F\d{3}$/.test(normalized)) return 'Fractions practice';
+  if (!/^F\d{3}$/.test(normalized)) return 'Practice';
   return STUDENT_SKILL_LABELS[normalized]
     || getUniversalSkillByFrameworkId(normalized)?.title
     || 'Fractions practice';
+}
+
+function StatusChip({ status, recheckReady }) {
+  if (recheckReady) return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+      <CheckCircle2 className="h-3 w-3" /> Ready to recheck
+    </span>
+  );
+  if (status === 'completed') return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-semibold text-sky-700">
+      <CheckCircle2 className="h-3 w-3" /> Completed
+    </span>
+  );
+  if (status === 'in_progress') return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-gold-100 px-2.5 py-0.5 text-xs font-semibold text-yellow-700">
+      <Clock className="h-3 w-3" /> In progress
+    </span>
+  );
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-semibold text-violet-700">
+      <BookOpen className="h-3 w-3" /> New
+    </span>
+  );
+}
+
+function CircleProgress({ percent }) {
+  const r = 28;
+  const circ = 2 * Math.PI * r;
+  const dash = circ * (percent / 100);
+  return (
+    <svg width={72} height={72} viewBox="0 0 72 72" className="shrink-0" aria-label={`${percent}% complete`}>
+      <circle cx={36} cy={36} r={r} fill="none" stroke="#e5e7eb" strokeWidth={7} />
+      <circle
+        cx={36} cy={36} r={r} fill="none"
+        stroke={percent >= 100 ? '#10b981' : '#6d28d9'}
+        strokeWidth={7}
+        strokeDasharray={`${dash} ${circ}`}
+        strokeLinecap="round"
+        transform="rotate(-90 36 36)"
+      />
+      <text x={36} y={40} textAnchor="middle" fontSize={14} fontWeight={700} fill="#1f2937">
+        {percent}%
+      </text>
+    </svg>
+  );
 }
 
 export default function MathPathAssignments() {
@@ -127,64 +165,115 @@ export default function MathPathAssignments() {
   if (error) return <ErrorState message={error} />;
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="mx-auto max-w-2xl">
       <PageHeader
         title="Recovery Packs"
-        subtitle="Targeted practice that helps you strengthen weak skills before a recheck."
+        subtitle="Targeted practice to strengthen your weak skills."
       />
-      {message && <Card className="mb-4 p-3 text-sm font-semibold text-ink-700">{message}</Card>}
+      {message && (
+        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+          {message}
+        </div>
+      )}
       {!items.length ? (
         <EmptyState message="No Recovery Packs yet. Complete a diagnostic or paper review to unlock targeted practice." />
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {items.map((assignment) => {
             const completion = assignment.completion || {};
             const attempted = Number(completion.questionsAttempted || 0);
             const target = Number(assignment.targetQuestionCount || completion.questionsAssigned || 0);
             const recheckReady = Boolean(assignment.recheck?.recommended);
-            const percent = progressPercent(attempted, target);
+            const percent = target ? Math.max(0, Math.min(100, Math.round((attempted / target) * 100))) : 0;
+            const accuracy = Number(completion.accuracy || 0);
+            const skillIds = assignment.skillIds || [];
+            const emoji = domainEmoji(assignment.title || '', skillIds);
+            const reason = sourceReason(assignment);
+
             return (
-              <Card key={assignment.id} className="p-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{statusText(assignment.status)}</p>
-                    <h2 className="mt-1 font-display text-lg font-semibold text-emerald-deep">{assignment.title || 'Fractions Recovery Pack'}</h2>
-                    <p className="mt-1 text-sm text-ink-600">{assignment.description || 'Targeted practice for weak skills.'}</p>
-                    <p className="mt-2 rounded-xl bg-emerald-tint px-3 py-2 text-sm font-semibold text-emerald-deep">
-                      Why this pack: {sourceReason(assignment)}
-                    </p>
-                    <p className="mt-2 rounded-xl bg-surface-white px-3 py-2 text-sm text-ink-700">
-                      Learning path: {learningSequenceText(assignment)}
-                    </p>
-                    <p className="mt-2 text-sm text-ink-600">
-                      Skills: {(assignment.skillIds || []).map(studentSkillLabel).join(', ') || 'Fractions'}
-                    </p>
+              <Card key={assignment.id} className="overflow-hidden p-0">
+                {/* Colored top stripe */}
+                <div className={`h-1.5 w-full ${recheckReady ? 'bg-emerald-400' : assignment.status === 'completed' ? 'bg-sky-400' : 'bg-violet-500'}`} />
+
+                <div className="p-5">
+                  {/* Header row */}
+                  <div className="flex items-start gap-4">
+                    {/* Domain icon */}
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-violet-50 text-3xl shadow-sm">
+                      {emoji}
+                    </div>
+
+                    {/* Title + status */}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <StatusChip status={assignment.status} recheckReady={recheckReady} />
+                        <span className="text-xs text-ink-400">{reason}</span>
+                      </div>
+                      <h2 className="mt-1 font-display text-lg font-bold leading-snug text-ink-900">
+                        {assignment.title || 'Recovery Pack'}
+                      </h2>
+                    </div>
+
+                    {/* Circle progress */}
+                    <CircleProgress percent={percent} />
                   </div>
-                  <div className="rounded-xl bg-surface-white px-3 py-2 text-sm text-ink-700 sm:min-w-[170px]">
-                    <p className="font-semibold">{attempted}/{target || '-'} questions</p>
-                    <p>{Number(completion.accuracy || 0)}% accuracy</p>
-                    <ProgressBar value={percent} max={100} className="mt-2" />
+
+                  {/* Skill chips */}
+                  {skillIds.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-1.5">
+                      {skillIds.slice(0, 4).map((id) => (
+                        <span
+                          key={id}
+                          className="inline-block rounded-full bg-violet-50 px-3 py-1 text-xs font-medium text-violet-700"
+                        >
+                          {studentSkillLabel(id)}
+                        </span>
+                      ))}
+                      {skillIds.length > 4 && (
+                        <span className="inline-block rounded-full bg-ink-100 px-3 py-1 text-xs text-ink-500">
+                          +{skillIds.length - 4} more
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Stats row */}
+                  <div className="mt-4 flex items-center gap-4 rounded-xl bg-surface-white px-4 py-2.5 text-sm">
+                    <div className="text-center">
+                      <p className="text-lg font-bold text-ink-900">{attempted}<span className="text-ink-400">/{target || '—'}</span></p>
+                      <p className="text-xs text-ink-500">Questions</p>
+                    </div>
+                    <div className="h-8 w-px bg-line-soft" />
+                    <div className="text-center">
+                      <p className="text-lg font-bold text-ink-900">{accuracy}<span className="text-xs font-normal text-ink-400">%</span></p>
+                      <p className="text-xs text-ink-500">Accuracy</p>
+                    </div>
+                    {recheckReady && (
+                      <>
+                        <div className="h-8 w-px bg-line-soft" />
+                        <p className="text-sm font-semibold text-emerald-600">✓ You're ready for recheck!</p>
+                      </>
+                    )}
+                    {!recheckReady && target > 0 && attempted < target && (
+                      <>
+                        <div className="h-8 w-px bg-line-soft" />
+                        <p className="text-xs text-ink-500">{target - attempted} questions to unlock recheck</p>
+                      </>
+                    )}
                   </div>
-                </div>
-                <div className="mt-3 rounded-xl border border-line-soft bg-white px-3 py-2 text-sm text-ink-700">
-                  <span className="font-semibold">Next step:</span>{' '}
-                  {nextStepText({ recheckReady, attempted, target, status: assignment.status })}
-                  {!recheckReady && (
-                    <span className="mt-1 block text-xs text-ink-500">
-                      Recheck unlocks after enough targeted practice is completed.
-                    </span>
-                  )}
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {recheckReady || assignment.status === 'completed' ? (
-                    <Button icon={RefreshCw} onClick={() => runRecheck(assignment)}>
-                      {recheckReady ? 'Run Recheck' : 'Check Recheck Readiness'}
-                    </Button>
-                  ) : (
-                    <Button icon={ArrowRight} onClick={() => startPractice(assignment)}>
-                      {assignment.status === 'in_progress' ? 'Continue Recovery Pack' : 'Start Recovery Pack'}
-                    </Button>
-                  )}
+
+                  {/* CTA */}
+                  <div className="mt-4">
+                    {recheckReady || assignment.status === 'completed' ? (
+                      <Button icon={RefreshCw} className="w-full" onClick={() => runRecheck(assignment)}>
+                        {recheckReady ? 'Run Recheck' : 'Check Recheck Readiness'}
+                      </Button>
+                    ) : (
+                      <Button icon={ArrowRight} className="w-full" onClick={() => startPractice(assignment)}>
+                        {assignment.status === 'in_progress' ? 'Continue Recovery Pack' : 'Start Recovery Pack'}
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </Card>
             );
