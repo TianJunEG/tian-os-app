@@ -236,7 +236,10 @@ function TodaysMissionCard({ currentSkill, nextAction, hasPlacement, visual, ass
       <div className="grid gap-0 lg:grid-cols-[16rem_1fr]">
         {isLowerPrimary(visual.mode) ? (
           <div className="relative flex items-center justify-center overflow-hidden bg-gradient-to-br from-violet-100 via-sky-50 to-pink-50 p-4">
-            <img src="/illustrations/mission-fractions.png" alt="" aria-hidden="true" className="max-h-48 w-auto object-contain" />
+            {/* Neutral mascot art — the lower-primary hero is domain-agnostic
+                (K2/P1 start with Operations, not Fractions), so avoid the
+                fractions-pizza illustration here. */}
+            <img src="/illustrations/mascot-star-wave.png" alt="" aria-hidden="true" className="max-h-48 w-auto object-contain" />
           </div>
         ) : (
           <CourseArt icon={Calculator} symbol="=" theme="from-navy-50 via-paper to-gold-tint text-emerald-deep" />
