@@ -1,62 +1,54 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronRight } from 'lucide-react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { ArrowLeft, MoreHorizontal } from 'lucide-react';
 import { FEATURE_FLAGS } from '../../config/featureFlags';
 
 // Shared header + tabs for the teacher's per-class screens.
+//
+// The class workspace has up to 13 destinations, which used to live in one
+// horizontally-scrolling strip — trailing tabs silently scrolled off-screen on
+// iPad/phone. We now surface the five everyday tabs and tuck the rest under a
+// "More" overflow menu (mirroring the AppShell mobile-nav pattern), so the
+// whole workspace stays reachable without sideways scrolling.
 export default function ClassNav({ classId, name, level }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const base = `/teacher/classes/${classId}`;
-  const tabs = [
+
+  const primaryTabs = [
     ['Overview', base],
     ['MathPath', `${base}/mathpath`],
+    ['Students', `${base}/students`],
+    ['Assign work', `${base}/assign`],
+    ['Tests', `${base}/assessments`],
+  ];
+  const moreTabs = [
     FEATURE_FLAGS.psl && ['Problem Solving', `${base}/psl`],
     ['Mastery map', `${base}/mastery`],
-    ['Students', `${base}/students`],
     ['Groups', `${base}/groups`],
     ['Weak groups', `${base}/weak-groups`],
-    ['Assign', `${base}/assign`],
-    ['Assessments', `${base}/assessments`],
     ['Intervention', `${base}/interventions`],
     ['Worksheets', `${base}/worksheets`],
-    FEATURE_FLAGS.lifelab && ['LifeLab', `${base}/lifelab`],
     ['Reports', `${base}/reports`],
+    FEATURE_FLAGS.lifelab && ['LifeLab', `${base}/lifelab`],
   ].filter(Boolean);
 
-  // Overflow discoverability: the tab strip can hold up to 13 tabs, which
-  // overflows horizontally on narrow viewports (iPad/phone). Show a right-edge
-  // fade + chevron cue when there is more to scroll, and keep the active tab in
-  // view so the user can tell hidden tabs exist.
-  const scrollerRef = React.useRef(null);
-  const [canScrollRight, setCanScrollRight] = React.useState(false);
-
-  const updateOverflow = React.useCallback(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    // 1px tolerance to avoid sub-pixel rounding leaving the cue stuck on.
-    setCanScrollRight(el.scrollWidth - el.clientWidth - el.scrollLeft > 1);
-  }, []);
-
+  const [moreOpen, setMoreOpen] = React.useState(false);
+  const moreRef = React.useRef(null);
+  // Close the menu on navigation or an outside tap (same as AppShell's More).
+  React.useEffect(() => { setMoreOpen(false); }, [location.pathname]);
   React.useEffect(() => {
-    updateOverflow();
-    const el = scrollerRef.current;
-    if (!el) return undefined;
-    el.addEventListener('scroll', updateOverflow, { passive: true });
-    window.addEventListener('resize', updateOverflow);
-    return () => {
-      el.removeEventListener('scroll', updateOverflow);
-      window.removeEventListener('resize', updateOverflow);
-    };
-  }, [updateOverflow]);
+    if (!moreOpen) return undefined;
+    const onPointer = (e) => { if (moreRef.current && !moreRef.current.contains(e.target)) setMoreOpen(false); };
+    document.addEventListener('pointerdown', onPointer);
+    return () => document.removeEventListener('pointerdown', onPointer);
+  }, [moreOpen]);
 
-  // Scroll the active tab into view (and refresh the overflow cue) whenever the
-  // tab set changes or the route activates a different tab. NavLink sets
-  // aria-current="page" on the active link, which is a reliable selector.
-  React.useEffect(() => {
-    const active = scrollerRef.current?.querySelector('[aria-current="page"]');
-    active?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-    updateOverflow();
-  }, [tabs.length, updateOverflow]);
+  // Keep the More trigger highlighted while the active route lives inside it, so
+  // the selected-tab indicator never disappears on a demoted screen.
+  const moreActive = moreTabs.some(([, to]) => location.pathname === to || location.pathname.startsWith(`${to}/`));
+
+  const tabClass = (isActive) => `whitespace-nowrap border-b-2 px-3 py-2 text-sm font-semibold transition ${isActive ? 'border-emerald-deep text-emerald-deep' : 'border-transparent text-ink-500 hover:text-emerald-deep'}`;
 
   return (
     <div className="mb-5">
@@ -65,23 +57,43 @@ export default function ClassNav({ classId, name, level }) {
       </button>
       <h1 className="font-display text-2xl font-semibold tracking-[-0.02em] text-emerald-deep">{name}</h1>
       {level && <p className="mt-0.5 text-sm text-ink-500">{level}</p>}
-      <div className="relative mt-4 border-b border-line-soft">
-        <div ref={scrollerRef} className="flex gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {tabs.map(([label, to]) => (
-            <NavLink key={to} to={to} end
-              className={({ isActive }) => `whitespace-nowrap border-b-2 px-3 py-2 text-sm font-semibold transition ${isActive ? 'border-emerald-deep text-emerald-deep' : 'border-transparent text-ink-500 hover:text-emerald-deep'}`}>
+      <div className="mt-4 flex items-center gap-1 border-b border-line-soft">
+        {/* Primary tabs scroll only as a last resort (5 items rarely overflow);
+            the More menu sits outside this scroller so its dropdown is never clipped. */}
+        <div className="flex flex-1 gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {primaryTabs.map(([label, to]) => (
+            <NavLink key={to} to={to} end className={({ isActive }) => tabClass(isActive)}>
               {label}
             </NavLink>
           ))}
         </div>
-        {/* Discoverability cue: only shown while more tabs remain to the right,
-            so trailing tabs (Assessments, Intervention, Worksheets, Reports)
-            don't silently disappear on iPad/phone. Matches the ChildNav fade. */}
-        {canScrollRight && (
-          <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 flex w-12 items-center justify-end pr-0.5 bg-gradient-to-l from-white to-transparent">
-            <ChevronRight className="h-4 w-4 text-ink-500" />
-          </div>
-        )}
+        <div ref={moreRef} className="relative shrink-0">
+          <button
+            type="button"
+            onClick={() => setMoreOpen((v) => !v)}
+            aria-expanded={moreOpen}
+            aria-haspopup="menu"
+            className={`inline-flex items-center gap-1 ${tabClass(moreActive)}`}
+          >
+            More <MoreHorizontal className="h-4 w-4" />
+          </button>
+          {moreOpen && (
+            <div role="menu" className="absolute right-0 top-full z-40 mt-1 min-w-44 overflow-hidden rounded-dash border border-line-soft bg-white shadow-card">
+              {moreTabs.map(([label, to]) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  end
+                  role="menuitem"
+                  onClick={() => setMoreOpen(false)}
+                  className={({ isActive }) => `block px-4 py-2.5 text-sm font-semibold transition ${isActive ? 'bg-emerald-tint text-emerald-deep' : 'text-ink-500 hover:bg-line-soft hover:text-emerald-deep'}`}
+                >
+                  {label}
+                </NavLink>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
