@@ -27,10 +27,10 @@ function PSLOverviewCard({ data }) {
       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <div><p className="text-xs text-ink-500">Students</p><p className="font-mono text-xl text-emerald-deep">{data.totalStudents}</p></div>
         <div><p className="text-xs text-ink-500">Attempted</p><p className="font-mono text-xl text-emerald-deep">{data.studentsAttempted}</p></div>
-        <div><p className="text-xs text-ink-500">Mastered 1+</p><p className="font-mono text-xl text-emerald-600">{data.studentsMastered}</p></div>
+        <div><p className="text-xs text-ink-500">Mastered 1+</p><p className="font-mono text-xl text-emerald">{data.studentsMastered}</p></div>
         <div><p className="text-xs text-ink-500">Sessions</p><p className="font-mono text-xl text-emerald-deep">{data.totalSessions}</p></div>
         <div><p className="text-xs text-ink-500">Avg Accuracy</p><p className="font-mono text-xl text-emerald-deep">{data.averageAccuracy}%</p></div>
-        <div><p className="text-xs text-ink-500">Hint Usage</p><p className="font-mono text-xl text-orange-600">{data.hintUsageRate ?? 0}%</p></div>
+        <div><p className="text-xs text-ink-500">Hint Usage</p><p className="font-mono text-xl text-gold-deep">{data.hintUsageRate ?? 0}%</p></div>
       </div>
     </Card>
   );
@@ -59,9 +59,9 @@ function HeuristicCard({ rows = [] }) {
 
 function FlaggedStudentsCard({ rows = [], onOpenStudent }) {
   return (
-    <Card className="p-5 border-l-4 border-l-amber-400">
+    <Card className="p-5 border-l-4 border-l-gold">
       <div className="mb-3 flex items-center gap-2">
-        <AlertTriangle className="h-4 w-4 text-amber-500" />
+        <AlertTriangle className="h-4 w-4 text-gold" />
         <h3 className="text-sm font-semibold text-ink-700">Students needing support</h3>
         {rows.length ? <Badge tone="error">{rows.length}</Badge> : null}
       </div>
@@ -72,7 +72,7 @@ function FlaggedStudentsCard({ rows = [], onOpenStudent }) {
               key={s.studentId}
               type="button"
               onClick={() => onOpenStudent?.(s.studentId)}
-              className="w-full rounded-lg border border-line-soft p-3 text-left transition hover:border-navy-300 hover:bg-emerald-tint/40"
+              className="w-full rounded-lg border border-line-soft p-3 text-left transition hover:border-emerald-border hover:bg-emerald-tint/40"
             >
               <div className="flex items-center justify-between gap-2">
                 <p className="font-semibold text-ink-700">{s.name}</p>
@@ -132,7 +132,7 @@ function StepAnalyticsCard({ rows = [] }) {
               </div>
               <div className="mt-2 h-2 w-full rounded-full bg-ink-100">
                 <div
-                  className={`h-2 rounded-full transition-all ${step.errorRate >= 40 ? 'bg-red-400' : step.errorRate >= 20 ? 'bg-amber-400' : 'bg-emerald-400'}`}
+                  className={`h-2 rounded-full transition-all ${step.errorRate >= 40 ? 'bg-danger' : step.errorRate >= 20 ? 'bg-gold' : 'bg-emerald-bright'}`}
                   style={{ width: `${Math.round((step.errorRate / maxError) * 100)}%` }}
                 />
               </div>

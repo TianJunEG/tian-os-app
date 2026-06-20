@@ -71,7 +71,7 @@ export default function WeakGroups() {
         </Card>
       </div>
 
-      {message && <Card className="mb-4 border-l-4 border-navy-400 p-4 text-sm text-ink-700">{message}</Card>}
+      {message && <Card className="mb-4 border-l-4 border-emerald-bright p-4 text-sm text-ink-700">{message}</Card>}
 
       {(data.groups || []).length === 0 ? (
         <Card className="p-6 text-sm text-ink-500">No MathPath weak groups are ready yet. They will appear after diagnostics, practice mistakes, paper analysis, or recovery pack evidence.</Card>
