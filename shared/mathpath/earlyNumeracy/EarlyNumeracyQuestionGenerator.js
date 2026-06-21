@@ -48,6 +48,19 @@ const SHAPES = ['🔴', '🔵', '🟡', '🟢', '🟣', '🟠', '⭐', '❤️']
 const SIZE_PAIRS = [
   ['🐘', '🐁'], ['🌳', '🌷'], ['🚌', '🚲'], ['🐋', '🐠'], ['🏠', '⛺'], ['🍉', '🍓'],
 ];
+// Strand C (Shapes & Space). The four NEL basic shapes as glyphs + the four
+// direction arrows. (Rectangle has no colour emoji; ▭ is the clearest glyph.)
+const SHAPE_GLYPH = { circle: '🔵', square: '🟦', triangle: '🔺', rectangle: '▭' };
+const SHAPE_NAMES = Object.keys(SHAPE_GLYPH);
+const ALL_SHAPE_GLYPHS = Object.values(SHAPE_GLYPH);
+// [glyph, real-object] for "shapes around us".
+const SHAPE_OBJECTS = {
+  circle: ['🛞', '🍪', '⏰', '🪙'],
+  square: ['🪟', '🎁', '🧇', '🟫'],
+  triangle: ['🍕', '⛺', '🔺', '📐'],
+  rectangle: ['🚪', '📱', '📺', '🚌'],
+};
+const DIRECTIONS = { up: '⬆️', down: '⬇️', left: '⬅️', right: '➡️' };
 
 // Build MCQ number choices around a correct numeric answer (no negatives, deduped).
 function numberChoices(rng, correct, { min = 0, max = 20, span = 3 } = {}) {
@@ -268,6 +281,58 @@ function genPatternMissing(rng, skill) {
   });
 }
 
+// ── Strand C — Shapes & Space ────────────────────────────────────────────────
+function genShapeRecognise(rng, skill) {
+  const name = pick(rng, SHAPE_NAMES);
+  return mcq({
+    skill, familySuffix: '001',
+    prompt: `Tap the ${name}.`,
+    correct: SHAPE_GLYPH[name],
+    choices: shuffle(rng, ALL_SHAPE_GLYPHS),
+    misconceptionTag: 'en/shape-name-mismatch',
+  });
+}
+
+const SHAPE_ATTR_QUESTIONS = [
+  { prompt: 'Which shape has 3 sides?', name: 'triangle' },
+  { prompt: 'Which shape has 4 sides that are all the same?', name: 'square' },
+  { prompt: 'Which shape is round with no corners?', name: 'circle' },
+  { prompt: 'Which shape has 4 sides — two long and two short?', name: 'rectangle' },
+];
+function genShapeAttributes(rng, skill) {
+  const q = pick(rng, SHAPE_ATTR_QUESTIONS);
+  return mcq({
+    skill, familySuffix: '001',
+    prompt: q.prompt,
+    correct: SHAPE_GLYPH[q.name],
+    choices: shuffle(rng, ALL_SHAPE_GLYPHS),
+    misconceptionTag: 'en/miscounts-sides',
+  });
+}
+
+function genShapesAround(rng, skill) {
+  const name = pick(rng, SHAPE_NAMES);
+  const object = pick(rng, SHAPE_OBJECTS[name]);
+  return mcq({
+    skill, familySuffix: '001',
+    prompt: `What shape is this? ${object}`,
+    correct: SHAPE_GLYPH[name],
+    choices: shuffle(rng, ALL_SHAPE_GLYPHS),
+    misconceptionTag: 'en/shape-name-mismatch',
+  });
+}
+
+function genDirection(rng, skill) {
+  const dir = pick(rng, Object.keys(DIRECTIONS));
+  return mcq({
+    skill, familySuffix: '001',
+    prompt: `Tap the arrow that points ${dir}.`,
+    correct: DIRECTIONS[dir],
+    choices: shuffle(rng, Object.values(DIRECTIONS)),
+    misconceptionTag: 'en/confuses-left-right',
+  });
+}
+
 const BUILDERS = {
   EN001: (rng, skill) => genCount(rng, skill, { min: 2, max: 10 }),
   EN002: (rng, skill) => genCount(rng, skill, { min: 1, max: 10 }),
@@ -281,6 +346,10 @@ const BUILDERS = {
   EN010: (rng, skill) => genCompareSize(rng, skill),
   EN011: (rng, skill) => genPatternNext(rng, skill),
   EN012: (rng, skill) => genPatternMissing(rng, skill),
+  EN013: (rng, skill) => genShapeRecognise(rng, skill),
+  EN014: (rng, skill) => genShapeAttributes(rng, skill),
+  EN015: (rng, skill) => genShapesAround(rng, skill),
+  EN016: (rng, skill) => genDirection(rng, skill),
 };
 
 export function generateEarlyNumeracyQuestionSet({ skillId, count = 6, sessionSalt = '0' } = {}) {

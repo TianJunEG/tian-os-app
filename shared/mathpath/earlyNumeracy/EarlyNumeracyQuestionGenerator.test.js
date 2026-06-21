@@ -70,6 +70,21 @@ describe('generateEarlyNumeracyQuestionSet', () => {
     }
   });
 
+  it('shape questions offer the four basic shapes; direction offers four arrows', () => {
+    for (const skillId of ['EN013', 'EN014', 'EN015']) {
+      const set = generateEarlyNumeracyQuestionSet({ skillId, count: 8, sessionSalt: 'sh' });
+      for (const q of set) {
+        expect(q.choices).toHaveLength(4);
+        expect(q.choices).toContain(q.answer.display);
+      }
+    }
+    const dirs = generateEarlyNumeracyQuestionSet({ skillId: 'EN016', count: 8, sessionSalt: 'dir' });
+    for (const q of dirs) {
+      expect(new Set(q.choices)).toEqual(new Set(['⬆️', '⬇️', '⬅️', '➡️']));
+      expect(q.choices).toContain(q.answer.display);
+    }
+  });
+
   it('is deterministic for the same seed', () => {
     const a = generateEarlyNumeracyQuestionSet({ skillId: 'EN001', count: 4, sessionSalt: 'same' });
     const b = generateEarlyNumeracyQuestionSet({ skillId: 'EN001', count: 4, sessionSalt: 'same' });
