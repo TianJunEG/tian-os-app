@@ -42,6 +42,12 @@ function shuffle(rng, arr) {
 }
 
 const FRUITS = ['🍎', '🍓', '🍊', '🍇', '🍌'];
+// Strand B (Patterns) art. SHAPES are distinct colours/shapes for matching &
+// repeating-pattern questions; SIZE_PAIRS are [bigger, smaller] real objects.
+const SHAPES = ['🔴', '🔵', '🟡', '🟢', '🟣', '🟠', '⭐', '❤️'];
+const SIZE_PAIRS = [
+  ['🐘', '🐁'], ['🌳', '🌷'], ['🚌', '🚲'], ['🐋', '🐠'], ['🏠', '⛺'], ['🍉', '🍓'],
+];
 
 // Build MCQ number choices around a correct numeric answer (no negatives, deduped).
 function numberChoices(rng, correct, { min = 0, max = 20, span = 3 } = {}) {
@@ -189,6 +195,79 @@ function genSubWithin10(rng, skill) {
   });
 }
 
+// ── Strand B — Patterns ──────────────────────────────────────────────────────
+function genSortMatch(rng, skill) {
+  const [target, d1, d2] = shuffle(rng, SHAPES).slice(0, 3);
+  return mcq({
+    skill, familySuffix: '001',
+    prompt: `Tap the one that is the same as ${target}.`,
+    correct: target,
+    choices: shuffle(rng, [target, d1, d2]),
+    misconceptionTag: 'en/matches-wrong-attribute',
+  });
+}
+
+function genCompareSize(rng, skill) {
+  const [big, small] = pick(rng, SIZE_PAIRS);
+  const askBigger = rng() < 0.5;
+  return mcq({
+    skill, familySuffix: askBigger ? '001' : '002',
+    prompt: askBigger ? 'Which one is bigger?' : 'Which one is smaller?',
+    correct: askBigger ? big : small,
+    choices: shuffle(rng, [big, small]),
+    misconceptionTag: 'en/confuses-bigger-smaller',
+  });
+}
+
+// Build a repeating pattern from a 2–3 element unit (AB / ABC / AAB).
+function buildPattern(rng) {
+  const distinct = shuffle(rng, SHAPES).slice(0, rng() < 0.5 ? 2 : 3);
+  const shapeOf = (kind) => (kind === 'A' ? distinct[0] : kind === 'B' ? distinct[1] : distinct[2]);
+  const unitKinds = pick(rng, [['A', 'B'], ['A', 'B', 'C'], ['A', 'A', 'B']])
+    .filter((k) => k !== 'C' || distinct.length >= 3);
+  const unit = unitKinds.map(shapeOf);
+  const length = unit.length * (unit.length === 2 ? 3 : 2); // 6 items
+  const seq = Array.from({ length }, (_, i) => unit[i % unit.length]);
+  return { seq, distinct };
+}
+
+function genPatternNext(rng, skill) {
+  const { seq, distinct } = buildPattern(rng);
+  return mcq({
+    skill, familySuffix: '001',
+    prompt: 'What comes next?',
+    correct: seqNext(seq),
+    choices: shuffle(rng, distinct),
+    diagram: { kind: 'pattern', items: [...seq, null], missingIndex: seq.length },
+    misconceptionTag: 'en/pattern-picks-any',
+  });
+}
+
+// Next element continuing a repeating sequence (infers the unit length).
+function seqNext(seq) {
+  for (let u = 1; u <= seq.length / 2; u += 1) {
+    let repeats = true;
+    for (let i = u; i < seq.length; i += 1) { if (seq[i] !== seq[i % u]) { repeats = false; break; } }
+    if (repeats) return seq[seq.length % u];
+  }
+  return seq[0];
+}
+
+function genPatternMissing(rng, skill) {
+  const { seq, distinct } = buildPattern(rng);
+  const missingIndex = 1 + Math.floor(rng() * (seq.length - 2)); // a middle slot
+  const answer = seq[missingIndex];
+  const items = seq.map((s, i) => (i === missingIndex ? null : s));
+  return mcq({
+    skill, familySuffix: '001',
+    prompt: "What's missing?",
+    correct: answer,
+    choices: shuffle(rng, distinct),
+    diagram: { kind: 'pattern', items, missingIndex },
+    misconceptionTag: 'en/pattern-ignores-position',
+  });
+}
+
 const BUILDERS = {
   EN001: (rng, skill) => genCount(rng, skill, { min: 2, max: 10 }),
   EN002: (rng, skill) => genCount(rng, skill, { min: 1, max: 10 }),
@@ -198,6 +277,10 @@ const BUILDERS = {
   EN006: (rng, skill) => genBonds(rng, skill),
   EN007: (rng, skill) => genAddWithin10(rng, skill),
   EN008: (rng, skill) => genSubWithin10(rng, skill),
+  EN009: (rng, skill) => genSortMatch(rng, skill),
+  EN010: (rng, skill) => genCompareSize(rng, skill),
+  EN011: (rng, skill) => genPatternNext(rng, skill),
+  EN012: (rng, skill) => genPatternMissing(rng, skill),
 };
 
 export function generateEarlyNumeracyQuestionSet({ skillId, count = 6, sessionSalt = '0' } = {}) {

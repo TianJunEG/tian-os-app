@@ -12,7 +12,13 @@ describe('EarlyNumeracySkillGraph', () => {
     expect(result.isValid).toBe(true);
     expect(result.errors).toEqual([]);
     expect(earlyNumeracySkillGraph.domainId).toBe('early_numeracy');
-    expect(earlyNumeracySkillGraph.skillIds.length).toBe(8);
+    expect(earlyNumeracySkillGraph.skillIds.length).toBe(12);
+  });
+
+  it('groups skills into the Counting & Number and Patterns strands', () => {
+    const strands = new Set(earlyNumeracySkillGraph.skills.map((s) => s.strand));
+    expect(strands).toEqual(new Set(['Counting & Number', 'Patterns']));
+    expect(getPrerequisites('EN012')).toContain('EN011'); // "what's missing" needs "what comes next"
   });
 
   it('resolves skills by id and by slug', () => {

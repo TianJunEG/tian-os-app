@@ -464,3 +464,42 @@ export function ManipulativeCompareSets({ left, right }) {
     </div>
   );
 }
+
+// ── K2 Patterns: repeating-pattern strip (Strand B) ──────────────────────────
+// Generator emits diagram:{kind:'pattern', items:[...emoji, null...], missingIndex}
+// where the single null is the slot to work out (end = "what comes next",
+// middle = "what's missing").
+export function parsePatternDiagram(question) {
+  const d = question?.diagram;
+  if (!d || d.kind !== 'pattern' || !Array.isArray(d.items)) return null;
+  return { items: d.items };
+}
+
+export function ManipulativePatternStrip({ items = [] }) {
+  return (
+    <div className="rounded-2xl bg-violet-50 p-4 space-y-3">
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        {items.map((item, i) => (
+          <span
+            key={i}
+            className="flex items-center justify-center rounded-xl"
+            style={{
+              width: 48,
+              height: 48,
+              fontSize: item == null ? 26 : 32,
+              lineHeight: 1,
+              background: item == null ? '#fff' : 'transparent',
+              border: item == null ? '2px dashed #c4b5fd' : 'none',
+              color: '#7c3aed',
+              fontWeight: 700,
+            }}
+            aria-label={item == null ? 'missing' : `item ${i + 1}`}
+          >
+            {item == null ? '?' : item}
+          </span>
+        ))}
+      </div>
+      <p className="text-center text-xs text-ink-400">What goes in the box?</p>
+    </div>
+  );
+}

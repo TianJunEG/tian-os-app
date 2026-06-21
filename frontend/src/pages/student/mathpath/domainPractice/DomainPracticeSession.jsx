@@ -6,7 +6,7 @@ import { MascotBubble } from '../../../../components/MascotAvatar';
 import { MathText } from '../../../../components/ui/Fraction';
 import FullScreenWorkingMode from '../../../../components/learning/FullScreenWorkingMode';
 import WorkingPreviewCard from '../../../../components/learning/WorkingPreviewCard';
-import ManipulativeDotArray, { parseDotStem, numericLine, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram, parseCountDiagram, ManipulativeCountArray, parseCompareDiagram, ManipulativeCompareSets } from '../../../../components/learning/ManipulativeDotArray';
+import ManipulativeDotArray, { parseDotStem, numericLine, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram, parseCountDiagram, ManipulativeCountArray, parseCompareDiagram, ManipulativeCompareSets, parsePatternDiagram, ManipulativePatternStrip } from '../../../../components/learning/ManipulativeDotArray';
 import { speak, isVoiceEnabled, setVoiceEnabled } from '../../../../utils/sound';
 import { useAuth } from '../../../../context/AuthContext';
 import { getMascotForModule, getMascotVoice } from '../../../../config/mascots';
@@ -294,9 +294,10 @@ export default function DomainPracticeSession({ domain }) {
               // Shown at every level — it's the question's intended visual; the tap-to-
               // count hint just helps younger pupils.
               const coinTokens = domain === 'money' ? parseCoinsDiagram(current) : null;
-              // K2 Early Numeracy count/compare visuals (tap-to-count).
+              // K2 Early Numeracy visuals (tap-to-count / pattern strip).
               const countData = parseCountDiagram(current);
               const compareData = parseCompareDiagram(current);
+              const patternData = parsePatternDiagram(current);
               if (coinTokens) {
                 return (
                   <>
@@ -318,6 +319,14 @@ export default function DomainPracticeSession({ domain }) {
                       b={moneyData.b}
                       operator={moneyData.operator}
                     />
+                    <p className="text-xl font-bold text-ink-900">{prompt}</p>
+                  </>
+                );
+              }
+              if (isLPrimary && patternData) {
+                return (
+                  <>
+                    <ManipulativePatternStrip key={current?.questionId} items={patternData.items} />
                     <p className="text-xl font-bold text-ink-900">{prompt}</p>
                   </>
                 );

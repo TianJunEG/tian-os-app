@@ -47,6 +47,29 @@ describe('generateEarlyNumeracyQuestionSet', () => {
     expect(compares.every((q) => q.diagram.left.count >= 1 && q.diagram.right.count >= 1)).toBe(true);
   });
 
+  it('emits pattern diagrams with a single missing slot, and the answer continues the pattern', () => {
+    for (const skillId of ['EN011', 'EN012']) {
+      const set = generateEarlyNumeracyQuestionSet({ skillId, count: 12, sessionSalt: 'p' });
+      for (const q of set) {
+        expect(q.diagram?.kind).toBe('pattern');
+        const nulls = q.diagram.items.filter((x) => x === null);
+        expect(nulls).toHaveLength(1); // exactly one blank
+        expect(q.diagram.items[q.diagram.missingIndex]).toBeNull();
+        // The answer is one of the pattern's shown shapes (never an unrelated one).
+        const shown = new Set(q.diagram.items.filter(Boolean));
+        expect(shown.has(q.answer.display)).toBe(true);
+      }
+    }
+  });
+
+  it('compare-size questions offer exactly the two objects', () => {
+    const set = generateEarlyNumeracyQuestionSet({ skillId: 'EN010', count: 10, sessionSalt: 'sz' });
+    for (const q of set) {
+      expect(q.choices).toHaveLength(2);
+      expect(q.choices).toContain(q.answer.display);
+    }
+  });
+
   it('is deterministic for the same seed', () => {
     const a = generateEarlyNumeracyQuestionSet({ skillId: 'EN001', count: 4, sessionSalt: 'same' });
     const b = generateEarlyNumeracyQuestionSet({ skillId: 'EN001', count: 4, sessionSalt: 'same' });
