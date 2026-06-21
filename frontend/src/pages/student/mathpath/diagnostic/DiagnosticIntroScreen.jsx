@@ -39,7 +39,9 @@ export default function DiagnosticIntroScreen() {
   const domainId = new URLSearchParams(location.search).get('domain') || location.state?.domainId || 'fractions';
   const diagnosticPurpose = location.state?.diagnosticPurpose || 'baseline';
   const allowModeOverride = Boolean(location.state?.allowModeOverride);
-  const [studentLevel, setStudentLevel] = useState(inferred);
+  // Level comes from the student's profile (same as every other domain's
+  // diagnostic) — we no longer ask the student to pick it on the way in.
+  const [studentLevel] = useState(inferred);
   const [mode, setMode] = useState(modeForLevel(inferred));
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState('');
@@ -100,21 +102,7 @@ export default function DiagnosticIntroScreen() {
             This check-in helps MathPath find your best starting point for Fractions. It is not a school test.
             Try your best so we can recommend the right practice.
           </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <label className="text-sm text-ink-600">
-              Student Level
-              <select
-                value={studentLevel}
-                onChange={(e) => {
-                  const nextLevel = e.target.value;
-                  setStudentLevel(nextLevel);
-                  setMode(modeForLevel(nextLevel));
-                }}
-                className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm"
-              >
-                {['K2', 'P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'Secondary G1'].map((l) => <option key={l}>{l}</option>)}
-              </select>
-            </label>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {allowModeOverride ? (
               <label className="text-sm text-ink-600">
                 Diagnostic Mode
