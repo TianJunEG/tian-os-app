@@ -4,7 +4,7 @@ import { Users, Plus, X, Eye, EyeOff } from 'lucide-react';
 import { familyAPI } from '../../services/api';
 import { Card, ProgressBar, Badge, PageHeader, Spinner, EmptyState, ErrorState, Button } from '../../components/ui';
 
-const LEVELS = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'Sec1'];
+const LEVELS = ['K2', 'P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'Sec1'];
 
 function AddChildModal({ onClose, onCreated }) {
   const [form, setForm] = useState({ name: '', email: '', password: '', level: 'P3' });
