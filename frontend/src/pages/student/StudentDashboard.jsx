@@ -596,19 +596,28 @@ export default function StudentDashboard() {
             .filter((d) => d && d.domainId)
             .map((d) => ({ domainId: d.domainId, displayName: d.displayName || d.domainId }));
           if (domains.length) setDiagnosticDomains(domains);
-          // K2 (Early Numeracy) / P1 (Operations): headline mastery stat counted
-          // from that domain's records, not the fractions pipeline (which would
-          // otherwise read 0/26). The /mastery records carry a slug-derived
-          // `domainId`; the total is the domain's canonical curriculum size.
+          // K2 (Early Numeracy) / P1 (Operations): headline mastery stat. Domain
+          // practice progress lives in MathPathStudentSkillState — exposed via each
+          // domain's /skill-states endpoint — NOT in MasteryRecord (/mastery), which
+          // only the legacy fractions system writes. So read the spine domain's
+          // skill-states (fire-and-forget so it doesn't block the dashboard render);
+          // the total is the domain's canonical curriculum size.
           const spine = spineDomainForLevel(user?.studentLevel || '');
-          if (spine) {
-            const masteredInSpine = persistedRecords.filter((r) =>
-              r.domainId === spine.domainId
-              && ['mastered', 'accurate', 'fluent', 'retained'].includes(String(r.status || r.masteryState || '').toLowerCase())
-            ).length;
-            setOperationsStat({ mastered: masteredInSpine, total: spine.total });
+          if (spine && !useMock) {
+            const spineStatesFn = spine.domainId === 'early_numeracy'
+              ? mathpathAPI.earlyNumeracySkillStates
+              : mathpathAPI.operationsSkillStates;
+            spineStatesFn()
+              .then((r) => {
+                if (!active) return;
+                const done = (Array.isArray(r?.data?.records) ? r.data.records : []).filter((s) =>
+                  ['mastered', 'accurate', 'fluent', 'retained'].includes(String(s.status || '').toLowerCase())
+                ).length;
+                setOperationsStat({ mastered: done, total: spine.total });
+              })
+              .catch(() => { if (active) setOperationsStat({ mastered: 0, total: spine.total }); });
           } else {
-            setOperationsStat(null);
+            setOperationsStat(spine ? { mastered: 0, total: spine.total } : null);
           }
           setPayload(result);
           setAnalytics(analyticsResponse?.data || null);
