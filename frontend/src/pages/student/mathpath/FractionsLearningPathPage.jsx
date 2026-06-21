@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Lock, RotateCcw, Target } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
+import { visibleSkillLevel } from '../../../utils/skillLevel';
 import { mathpathAPI } from '../../../services/api';
 import { Badge, Button, Card, EmptyState, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
 import { fractionSkillGraph } from '../../../mathpath/fractions/fractionSkillGraph';
@@ -129,7 +130,11 @@ function SkillNodeCard({
   onAction,
 }) {
   const actionLabel = isLocked ? 'Locked' : needsReview ? 'Review' : isCurrent ? 'Continue' : statusLabel === 'Not Started' ? 'Start' : 'Practise';
-  const levelTag = skill.levelBand?.length ? skill.levelBand.join('/') : (skill.moeLevel || '');
+  const { user } = useAuth();
+  const studentLevel = user?.studentLevel || user?.moeLevel || user?.profile?.studentLevel || '';
+  // Hide the level badge on below-level (remedial) skills so a higher-level
+  // student isn't shown a demoralising lower "Primary N" tag.
+  const levelTag = visibleSkillLevel(skill.levelBand?.length ? skill.levelBand.join('/') : (skill.moeLevel || ''), studentLevel);
   const prerequisiteName = missingPrerequisiteNames[0] || '';
   return (
     <Card className={`p-4 ${isCurrent ? 'ring-2 ring-gold/60' : ''} ${isLocked ? 'bg-surface-white/80 opacity-75' : ''}`}>
