@@ -6,6 +6,9 @@ export function buildOperationsRetentionReview({ skillId, studentId = null, prev
   if (!skillId) throw new Error('skillId required');
   const skill = getSkill(skillId);
   if (!skill) throw new Error(`Unknown operations skill: ${skillId}`);
+  // Canonicalise slug → ID: getSkill accepts both, but the question-family lookup
+  // is keyed by ID only, so a slug here would silently yield a 0-question review.
+  skillId = skill.id;
   const review = generateRetentionReview({ skillId, previousQuestionFamilyIds, difficulty });
   const questions = generateOperationsQuestionSet({ skillId, count: review.recommendedQuestionCount, mode: 'retention', familyIds: review.questionFamilyIds });
   return { ...review, domainId: DOMAIN_ID, skillId, skillName: skill.name, studentId, mode: 'retention', questions, totalQuestions: questions.length, generatedAt: new Date().toISOString() };

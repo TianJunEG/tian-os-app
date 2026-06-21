@@ -1,5 +1,41 @@
 import { describe, it, expect } from 'vitest';
-import { parseCoinsDiagram } from './ManipulativeDotArray';
+import { parseCoinsDiagram, parseDotStem, parseMoneyPrompt } from './ManipulativeDotArray';
+
+describe('parseDotStem', () => {
+  it('parses an addition stem', () => {
+    expect(parseDotStem('3 + 4 = ?')).toEqual({ a: 3, b: 4, operator: '+' });
+  });
+
+  it('parses a subtraction stem (minus sign or hyphen)', () => {
+    expect(parseDotStem('7 − 2 = ?')).toEqual({ a: 7, b: 2, operator: '−' });
+    expect(parseDotStem('7 - 2 = ?')).toEqual({ a: 7, b: 2, operator: '−' });
+  });
+
+  it('rejects subtraction where b > a (would grey out every apple)', () => {
+    expect(parseDotStem('3 − 5 = ?')).toBeNull();
+  });
+
+  it('rejects numbers above the within-20 cap (avoids a wall of emoji)', () => {
+    expect(parseDotStem('25 + 4 = ?')).toBeNull();
+    expect(parseDotStem('30 − 2 = ?')).toBeNull();
+  });
+
+  it('returns null for non-dot prompts', () => {
+    expect(parseDotStem('What is 12 × 3?')).toBeNull();
+    expect(parseDotStem('')).toBeNull();
+  });
+});
+
+describe('parseMoneyPrompt', () => {
+  it('parses dollar addition and subtraction', () => {
+    expect(parseMoneyPrompt('$8.00 + $5.00')).toEqual({ a: 8, b: 5, operator: '+', unit: '$' });
+    expect(parseMoneyPrompt('$8 − $3')).toEqual({ a: 8, b: 3, operator: '−', unit: '$' });
+  });
+
+  it('rejects subtraction where b > a', () => {
+    expect(parseMoneyPrompt('$3 - $8')).toBeNull();
+  });
+});
 
 describe('parseCoinsDiagram', () => {
   it('parses the generator coins diagram (single denomination) into one token per coin', () => {

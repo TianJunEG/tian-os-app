@@ -30,6 +30,9 @@ export function buildOperationsFluencyDrill({ skillId, studentId = null, count =
   if (!skillId) throw new Error('skillId required');
   const skill = getSkill(skillId);
   if (!skill) throw new Error(`Unknown operations skill: ${skillId}`);
+  // Canonicalise slug → ID: getSkill accepts both, but generateOperationsQuestionSet's
+  // family lookup is keyed by ID only, so a slug here would silently yield 0 questions.
+  skillId = skill.id;
   const benchmarks = getFluencyBenchmarks(skillId);
   const questions = generateOperationsQuestionSet({ skillId, count, mode: 'fluency' });
   return { domainId: DOMAIN_ID, skillId, skillName: skill.name, studentId, benchmarks, mode: 'fluency', questions, totalQuestions: questions.length, generatedAt: new Date().toISOString() };

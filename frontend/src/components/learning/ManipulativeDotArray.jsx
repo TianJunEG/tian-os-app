@@ -24,13 +24,29 @@ export function toSpeakable(text = '') {
 // Parse a question prompt that contains dot arrays (⬤ characters) and return
 // {a, b, operator} for rendering the manipulative. Returns null if not a dot-array question.
 export function parseDotStem(prompt = '') {
+  // Apples are a K2/P1 within-20 counting aid. Bigger numbers fall back to the plain
+  // numeric prompt — both to keep the array pedagogically sane and to avoid rendering
+  // a DOM-bloating wall of emoji.
+  const MAX = 20;
   const lines = String(prompt).split('\n');
   for (const line of lines) {
     const add = line.match(/^\s*(\d+)\s*\+\s*(\d+)\s*=\s*\?/);
-    if (add) return { a: parseInt(add[1], 10), b: parseInt(add[2], 10), operator: '+' };
+    if (add) {
+      const a = parseInt(add[1], 10);
+      const b = parseInt(add[2], 10);
+      if (a > MAX || b > MAX) return null;
+      return { a, b, operator: '+' };
+    }
     // Match − (minus sign) or - (hyphen)
     const sub = line.match(/^\s*(\d+)\s*[−–\-]\s*(\d+)\s*=\s*\?/);
-    if (sub) return { a: parseInt(sub[1], 10), b: parseInt(sub[2], 10), operator: '−' };
+    if (sub) {
+      const a = parseInt(sub[1], 10);
+      const b = parseInt(sub[2], 10);
+      // Can't take away more than you have — a manipulative for b > a would grey out
+      // every apple. Skip it and let the numeric prompt stand.
+      if (a > MAX || b > a) return null;
+      return { a, b, operator: '−' };
+    }
   }
   return null;
 }
@@ -42,7 +58,12 @@ export function parseMoneyPrompt(prompt = '') {
   const add = text.match(/\$(\d+)(?:\.\d+)?\s*\+\s*\$(\d+)(?:\.\d+)?/);
   if (add) return { a: parseInt(add[1], 10), b: parseInt(add[2], 10), operator: '+', unit: '$' };
   const sub = text.match(/\$(\d+)(?:\.\d+)?\s*[−–-]\s*\$(\d+)(?:\.\d+)?/);
-  if (sub) return { a: parseInt(sub[1], 10), b: parseInt(sub[2], 10), operator: '−', unit: '$' };
+  if (sub) {
+    const a = parseInt(sub[1], 10);
+    const b = parseInt(sub[2], 10);
+    if (b > a) return null; // can't take away more than you have
+    return { a, b, operator: '−', unit: '$' };
+  }
   return null;
 }
 
@@ -133,7 +154,9 @@ export default function ManipulativeDotArray({ a, b, operator }) {
   }
 
   if (operator === '−' || operator === '-') {
-    const remaining = a - b;
+    // Defensive: never go negative even if called directly with bad data
+    // (parseDotStem already rejects b > a).
+    const remaining = Math.max(0, a - b);
     return (
       <div className="rounded-2xl bg-red-50 p-4 space-y-3">
         <div className="flex flex-wrap items-center justify-center gap-1">
