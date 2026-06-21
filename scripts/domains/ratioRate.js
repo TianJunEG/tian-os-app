@@ -119,7 +119,7 @@ export default {
       misconceptions: [{ tag: 'rr/flat-rate', label: 'Applies one rate to the whole amount instead of per tier' }],
       practiceModes: ['short_answer', 'worked_example', 'diagnostic'],
       remediation: { onRepeatedFail: 'worked-example', reinforce: ['rr.rate'], strategy: 'charge each tier at its own rate, then add' },
-      questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'hard', stem: 'First {n} units at ${a} each, the rest at ${b} each; total used {u}. Find the bill.', answerRule: 'n*a + (u-n)*b', misconceptionTag: 'rr/flat-rate' }] },
+      questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'hard', stem: 'First {n} units at ${a} each, the rest at ${b} each; total used {u}. Find the bill.', answerRule: 'n*a + (u-n)*b (a,n≤6, u∈{8,10,12,15})', misconceptionTag: 'rr/flat-rate' }] },
 
     // ── Speed foundations ──
     { slug: 'rr.speed', name: 'Speed, distance and time', level: 'Primary 6',

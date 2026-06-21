@@ -25,7 +25,7 @@ export default {
       misconceptions: [{ tag: 'alg/equals-means-answer', label: 'Reads = as "work it out" rather than "both sides balance"' }],
       practiceModes: ['mcq', 'short_answer', 'visual_model'],
       remediation: { onRepeatedFail: 'worked-example', reinforce: ['op.sub.facts'], strategy: 'balance model: what keeps both sides equal' },
-      questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'easy', stem: 'Find the missing number: {a} + ___ = {c}', answerRule: 'c-a', misconceptionTag: 'alg/equals-means-answer' }] },
+      questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'easy', stem: 'Find the missing number: {b} + ___ = {a}', answerRule: 'a-b (a,b≤20)', misconceptionTag: 'alg/equals-means-answer' }] },
     { slug: 'alg.unknown-letter', name: 'Using a letter for an unknown', level: 'Primary 6',
       prerequisites: ['alg.unknown-arith'], masteryType: 'conceptual', fluencyType: 'accuracy',
       render: 'katex', visualModels: ['bar'],
@@ -63,7 +63,7 @@ export default {
         { tag: 'alg/sub-ignore-precedence', label: 'Ignores order of operations after substituting' }],
       practiceModes: ['fluency_drill', 'short_answer', 'diagnostic'],
       remediation: { onRepeatedFail: 'worked-example', reinforce: ['alg.notation', 'op.order-of-ops'], strategy: 'replace the letter with brackets, then apply BODMAS' },
-      questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'medium', stem: 'Find the value of {a}m - {b} + {c}m when m = {v}.', answerRule: '(a+c)*v - b', misconceptionTag: 'alg/sub-no-times' }] },
+      questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'medium', stem: 'Find the value of {a}m + {b} + {c}m when m = {v}.', answerRule: '(a+c)*v + b (a,b,c,v≤9)', misconceptionTag: 'alg/sub-no-times' }] },
 
     // ── Simplifying ──
     { slug: 'alg.simplify-add', name: 'Simplifying by collecting like terms', level: 'Primary 6',
