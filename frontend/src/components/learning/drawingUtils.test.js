@@ -66,3 +66,19 @@ describe('drawStroke — pressure rendering (dotted-line regression)', () => {
     expect(segments.length).toBe(1);
   });
 });
+
+describe('drawStroke — operator stamps', () => {
+  it.each([
+    ['plus', '+'],
+    ['minus', '−'],
+    ['times', '×'],
+    ['divide', '÷'],
+    ['equals', '='],
+  ])('renders the %s operator stamp via fillText', (template, symbol) => {
+    const texts = [];
+    const ctx = mockCtx();
+    ctx.fillText = (t) => texts.push(t);
+    drawStroke(ctx, { tool: 'stamp', template, colour: '#000', points: [{ x: 10, y: 10 }] });
+    expect(texts).toContain(symbol);
+  });
+});

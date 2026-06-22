@@ -324,6 +324,16 @@ export function drawMathStamp(ctx, stroke, options = {}) {
     ctx.fillText('π', x, y + r(10));
   } else if (stroke.template === 'theta') {
     ctx.fillText('θ', x, y + r(10));
+  } else if (stroke.template === 'plus') {
+    ctx.fillText('+', x, y + r(10));
+  } else if (stroke.template === 'minus') {
+    ctx.fillText('−', x, y + r(10));
+  } else if (stroke.template === 'times') {
+    ctx.fillText('×', x, y + r(10));
+  } else if (stroke.template === 'divide') {
+    ctx.fillText('÷', x, y + r(10));
+  } else if (stroke.template === 'equals') {
+    ctx.fillText('=', x, y + r(10));
   }
 
   ctx.restore();

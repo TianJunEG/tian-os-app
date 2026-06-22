@@ -404,7 +404,6 @@ export default function PSLSession() {
                   required={false}
                   allowNoWorking={false}
                   compact
-                  showMathStamps={false}
                 />
               </div>
             )}

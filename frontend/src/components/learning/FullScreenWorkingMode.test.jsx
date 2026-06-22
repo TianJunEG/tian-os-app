@@ -86,7 +86,7 @@ describe('FullScreenWorkingMode', () => {
     expect(screen.getByText('Save Working')).toBeDisabled();
   });
 
-  it('hides math insert tools by default for pilot stability', () => {
+  it('shows math insert tools by default (pilot gate lifted)', () => {
     render(
       <FullScreenWorkingMode
         open
@@ -96,7 +96,7 @@ describe('FullScreenWorkingMode', () => {
       />
     );
 
-    expect(screen.queryByLabelText('Math insert tools')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Math insert tools')).toBeInTheDocument();
   });
 
   it('keeps drawing while re-rendering with equivalent empty initial arrays', () => {

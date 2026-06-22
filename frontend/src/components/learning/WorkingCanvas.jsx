@@ -23,6 +23,11 @@ const WORKING_MODES = [
 
 const EMPTY_STROKES = [];
 const MATH_STAMPS = [
+  { id: 'plus', label: '+' },
+  { id: 'minus', label: '−' },
+  { id: 'times', label: '×' },
+  { id: 'divide', label: '÷' },
+  { id: 'equals', label: '=' },
   { id: 'fraction', label: 'x/y' },
   { id: 'subscript', label: 'xₐ' },
   { id: 'power', label: 'xᵇ' },
