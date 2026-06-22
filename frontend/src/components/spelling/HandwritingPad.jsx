@@ -63,6 +63,14 @@ export default function HandwritingPad({ height = 240 }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Block text selection while a stroke is active so writing never highlights
+  // nearby text or steals focus into an input.
+  useEffect(() => {
+    const blockSelection = (e) => { if (drawingRef.current) e.preventDefault(); };
+    document.addEventListener('selectstart', blockSelection);
+    return () => document.removeEventListener('selectstart', blockSelection);
+  }, []);
+
   const pos = (e) => {
     const rect = canvasRef.current.getBoundingClientRect();
     return { x: e.clientX - rect.left, y: e.clientY - rect.top };
@@ -70,6 +78,7 @@ export default function HandwritingPad({ height = 240 }) {
 
   const start = (e) => {
     e.preventDefault();
+    if (typeof window !== 'undefined') window.getSelection?.()?.removeAllRanges?.();
     drawingRef.current = true;
     strokesRef.current.push([pos(e)]);
     canvasRef.current.setPointerCapture?.(e.pointerId);
@@ -91,8 +100,9 @@ export default function HandwritingPad({ height = 240 }) {
     <div>
       <canvas
         ref={canvasRef}
-        style={{ height, touchAction: 'none' }}
-        className="w-full rounded-xl border-2 border-gray-300 bg-white cursor-crosshair"
+        style={{ height, touchAction: 'none', WebkitTouchCallout: 'none' }}
+        className="w-full select-none rounded-xl border-2 border-gray-300 bg-white cursor-crosshair"
+        onContextMenu={(e) => e.preventDefault()}
         onPointerDown={start}
         onPointerMove={move}
         onPointerUp={end}
