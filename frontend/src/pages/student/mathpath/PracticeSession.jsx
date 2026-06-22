@@ -1168,7 +1168,7 @@ function LegacyPracticeSession() {
         title="Review this submission"
         reflection={reflection}
         reflectionOptions={REFLECTION_OPTIONS}
-        onReflectionChange={(value) => { setReflection(value); setHelpRequested(value === 'i_need_help'); }}
+        onReflectionChange={(value) => setReflection(value)}
         working={currentFullscreenWorking}
         workingRequirementLevel={workingRequirementLevel}
         onDeclareNotNeeded={(checked) => setFullscreenWorkingState((prev) => ({
@@ -2225,7 +2225,7 @@ export default function PracticeSession() {
                 </>
               ) : (
                 <Button className="sm:col-span-2" icon={ArrowRight} disabled={busy} onClick={nextOrFinish}>
-                  {isLast ? sessionMeta.finishLabel : 'Next question'}
+                  {isLast ? (busy ? 'Submitting…' : sessionMeta.finishLabel) : 'Next question'}
                 </Button>
               )}
             </div>

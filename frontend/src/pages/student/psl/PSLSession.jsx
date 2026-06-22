@@ -81,10 +81,12 @@ export default function PSLSession() {
   const [hints, setHints] = useState([]);
   const [hintLoading, setHintLoading] = useState(false);
   const [hintExhausted, setHintExhausted] = useState(false);
+  const [hintError, setHintError] = useState(false);
   const [showHintLadder, setShowHintLadder] = useState(false);
   const [voice, setVoice] = useState(isVoiceEnabled);
   const [solution, setSolution] = useState(null);
   const [solutionLoading, setSolutionLoading] = useState(false);
+  const [solutionError, setSolutionError] = useState(false);
   const stepStartRef = useRef(Date.now());
 
   useEffect(() => {
@@ -229,6 +231,7 @@ export default function PSLSession() {
   const handleRequestHint = async () => {
     if (hintLoading || !currentProblem) return;
     if (hints.length > 0) { setShowHintLadder(true); return; }
+    setHintError(false);
     setHintLoading(true);
     try {
       const collected = [];
@@ -243,7 +246,9 @@ export default function PSLSession() {
       }
       if (collected.length > 0) { setHints(collected); setShowHintLadder(true); }
       if (exhausted) setHintExhausted(true);
-    } catch {}
+    } catch {
+      setHintError(true);
+    }
     setHintLoading(false);
   };
 
@@ -253,12 +258,14 @@ export default function PSLSession() {
 
   const handleShowSolution = async () => {
     if (solutionLoading || solution || !currentProblem) return;
+    setSolutionError(false);
     setSolutionLoading(true);
     try {
       const res = await pslAPI.getSolution(sessionId, currentProblem.problemId);
       setSolution(res.data);
     } catch {
       setSolution(null);
+      setSolutionError(true);
     } finally {
       setSolutionLoading(false);
     }
@@ -623,6 +630,11 @@ export default function PSLSession() {
                     {hintLoading ? '...' : hints.length > 0 ? 'Show Hints' : 'Hint'}
                   </button>
                 )}
+                {hintError && (
+                  <span className="text-xs font-medium" style={{ color: '#d64545' }}>
+                    Couldn't load a hint. Try again.
+                  </span>
+                )}
               </div>
 
               {/* Step label */}
@@ -703,6 +715,12 @@ export default function PSLSession() {
                   <BookOpen className="h-4 w-4" />
                   {solutionLoading ? 'Loading...' : 'Show me how'}
                 </button>
+              )}
+
+              {solutionError && (
+                <p className="text-center text-xs font-medium" style={{ color: '#d64545' }}>
+                  Couldn't load the solution. Try again.
+                </p>
               )}
 
               {/* Primary CTA */}

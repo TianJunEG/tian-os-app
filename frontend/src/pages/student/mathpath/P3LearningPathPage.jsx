@@ -166,7 +166,6 @@ function P3SkillCard({ skill, onStart, skillState }) {
       </div>
       <p className="mt-1 line-clamp-2 text-sm text-ink-500">{skill.description}</p>
       <div className="mt-3 flex flex-wrap gap-2">
-        <Badge tone="neutral">{skill.id}</Badge>
         {skill.prerequisites?.length > 0 && (
           <Badge tone="neutral">{skill.prerequisites.length} prerequisite{skill.prerequisites.length > 1 ? 's' : ''}</Badge>
         )}
@@ -293,7 +292,7 @@ export default function P3LearningPathPage() {
       <Card className="p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase text-emerald-deep">P3 Maths</p>
+            <p className="text-sm font-semibold uppercase text-emerald-deep">Learning path</p>
             <h2 className="font-display text-2xl sm:text-3xl font-semibold text-ink-900">P3 Maths</h2>
             <p className="mt-1 text-sm text-ink-500">
               Browse all Primary 3 skills and start practising any topic.

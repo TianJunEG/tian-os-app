@@ -390,8 +390,10 @@ export default function StudentProfile() {
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState('');
   const [nameSaving, setNameSaving] = useState(false);
+  const [nameError, setNameError] = useState('');
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [skinSaving, setSkinSaving] = useState(false);
+  const [skinError, setSkinError] = useState('');
   const nameInputRef = useRef(null);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -399,6 +401,7 @@ export default function StudentProfile() {
   const saveVisualMode = async (mode) => {
     if (skinSaving) return;
     setSkinSaving(true);
+    setSkinError('');
     try {
       await studentProfileAPI.updateVisualMode(mode);
       setState((prev) => ({
@@ -410,6 +413,7 @@ export default function StudentProfile() {
       }));
     } catch (err) {
       console.error('Failed to update visual mode:', err);
+      setSkinError('Could not save your theme. Please try again.');
     } finally {
       setSkinSaving(false);
     }
@@ -417,14 +421,16 @@ export default function StudentProfile() {
 
   const startEditName = () => {
     setNameValue(state.data?.summary?.student?.name || '');
+    setNameError('');
     setEditingName(true);
     setTimeout(() => nameInputRef.current?.focus(), 50);
   };
-  const cancelEditName = () => { setEditingName(false); setNameValue(''); };
+  const cancelEditName = () => { setEditingName(false); setNameValue(''); setNameError(''); };
   const saveName = async () => {
     const trimmed = nameValue.trim();
     if (!trimmed || trimmed === state.data?.summary?.student?.name) { cancelEditName(); return; }
     setNameSaving(true);
+    setNameError('');
     try {
       await studentProfileAPI.updateName(trimmed);
       setState((prev) => ({
@@ -437,6 +443,7 @@ export default function StudentProfile() {
       setEditingName(false);
     } catch (err) {
       console.error('Failed to update name:', err);
+      setNameError('Could not save your name. Please try again.');
     } finally {
       setNameSaving(false);
     }
@@ -548,6 +555,7 @@ export default function StudentProfile() {
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-ink-500">{copy.profileTitle}</p>
                 {editingName ? (
+                  <>
                   <div className="mt-1 flex items-center gap-2">
                     <input
                       ref={nameInputRef}
@@ -559,9 +567,11 @@ export default function StudentProfile() {
                       maxLength={100}
                       disabled={nameSaving}
                     />
-                    <button onClick={saveName} disabled={nameSaving} className="rounded-lg bg-emerald p-1.5 text-white hover:bg-emerald disabled:opacity-50"><Check className="h-4 w-4" /></button>
-                    <button onClick={cancelEditName} className="rounded-lg bg-bone p-1.5 text-ink-500 hover:bg-line-soft"><X className="h-4 w-4" /></button>
+                    <button onClick={saveName} disabled={nameSaving} title="Save name" aria-label="Save name" className="rounded-lg bg-emerald p-1.5 text-white hover:bg-emerald disabled:opacity-50"><Check className="h-4 w-4" /></button>
+                    <button onClick={cancelEditName} title="Cancel" aria-label="Cancel" className="rounded-lg bg-bone p-1.5 text-ink-500 hover:bg-line-soft"><X className="h-4 w-4" /></button>
                   </div>
+                  {nameError && <p className="mt-1 text-sm font-medium text-red-500" role="alert">{nameError}</p>}
+                  </>
                 ) : (
                   <div className="mt-1 flex items-center gap-2">
                     <h1 className={`truncate font-display ${isSecondary(visual.mode) ? 'text-2xl' : 'text-3xl'} font-semibold text-ink-900`}>{student.name || 'Student'}</h1>
@@ -708,6 +718,7 @@ export default function StudentProfile() {
             );
           })}
         </div>
+        {skinError && <p className="mt-2 text-sm font-medium text-red-500" role="alert">{skinError}</p>}
       </section>
 
       {showAvatarPicker && (

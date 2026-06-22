@@ -26,6 +26,7 @@ export default function PracticeResult() {
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState('');
   const [guidedStarting, setGuidedStarting] = useState(false);
+  const [guidedError, setGuidedError] = useState('');
 
   useEffect(() => {
     (async () => {
@@ -69,6 +70,7 @@ export default function PracticeResult() {
     const skillId = data?.gatedSkillId;
     if (!skillId || guidedStarting) return;
     setGuidedStarting(true);
+    setGuidedError('');
     try {
       const { data: s } = await mathpathAPI.startSession({
         feature: 'Guided Recovery', skillId, questionCount: 5, mode: 'guided',
@@ -76,7 +78,8 @@ export default function PracticeResult() {
       navigate(`/student/mathpath/practice/${s.session_id}`, {
         state: { items: s.items, resultsBase: '/student/mathpath', backTo: '/student/mathpath', homeBase: '/student/mathpath' },
       });
-    } catch {
+    } catch (e) {
+      setGuidedError(e.response?.data?.error || 'Could not start the guided session. Try again.');
       setGuidedStarting(false);
     }
   }
@@ -137,9 +140,13 @@ export default function PracticeResult() {
         summary={`${skills.length} skill${skills.length === 1 ? '' : 's'} covered in this session`}
         className="mb-5"
       >
-        <div className="flex flex-wrap gap-2">
-          {skills.map((s) => <Badge key={s.id} tone="navy">{s.name}</Badge>)}
-        </div>
+        {skills.length === 0 ? (
+          <p className="text-sm text-ink-500">No specific skills were tagged for this session.</p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {skills.map((s) => <Badge key={s.id} tone="navy">{s.name}</Badge>)}
+          </div>
+        )}
       </CollapsibleSection>
 
       {mistakes.length > 0 && (
@@ -203,6 +210,7 @@ export default function PracticeResult() {
             Before trying again on your own, work through a guided session.
             It will walk you through each step so the next attempt sticks.
           </p>
+          {guidedError && <p className="mt-2 text-xs font-semibold text-error-700">{guidedError}</p>}
           <Button
             icon={BookOpen}
             disabled={guidedStarting}

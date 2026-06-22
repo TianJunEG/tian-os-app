@@ -149,7 +149,6 @@ function P1SkillCard({ skill, onStart, skillState }) {
       </div>
       <p className="mt-1 line-clamp-2 text-sm text-ink-500">{skill.description}</p>
       <div className="mt-3 flex flex-wrap gap-2">
-        <Badge tone="neutral">{skill.id}</Badge>
         {skill.prerequisites?.length > 0 && (
           <Badge tone="neutral">{skill.prerequisites.length} prerequisite{skill.prerequisites.length > 1 ? 's' : ''}</Badge>
         )}

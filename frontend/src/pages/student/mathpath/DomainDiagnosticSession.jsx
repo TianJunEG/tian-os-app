@@ -311,7 +311,7 @@ export default function DomainDiagnosticSession() {
           return <p className="text-lg font-semibold text-ink-900">{prompt}</p>;
         })()}
 
-        {question?.type === 'mcq' ? (
+        {question?.type === 'mcq' && (question.choices || []).length > 0 ? (
           isLowerPrimary ? (
             <div className="grid grid-cols-2 gap-3 pt-1">
               {(question.choices || []).map((choice) => (
@@ -358,7 +358,7 @@ export default function DomainDiagnosticSession() {
         )}
       </Card>
 
-      {(!isLowerPrimary || question?.type !== 'mcq') && (
+      {(!isLowerPrimary || question?.type !== 'mcq' || (question.choices || []).length === 0) && (
         <div className="flex justify-end">
           <Button icon={CheckCircle2} disabled={!draft.trim() || submitting} onClick={() => submitAnswer()}>
             {submitting ? 'Checking…' : 'Submit'}

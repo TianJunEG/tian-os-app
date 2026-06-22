@@ -162,29 +162,33 @@ export default function MistakesHome() {
         />
       )}
 
-      <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Weak skills from mistakes</h3>
-      <div className="space-y-2">
-        {weak.length === 0 && hasMistakes && <Card className={`p-4 text-sm text-ink-500 ${visualStyles.accentCard}`}>No weak-skill clusters yet.</Card>}
-        {weak.map((w) => (
-          <Card key={w.skillId} interactive className={`flex items-center justify-between p-4 ${visualStyles.accentCard}`} role="button" onClick={() => navigate('/student/mathpath/mistakes/review')}>
-            <div>
-              <div className="font-semibold text-ink-700">{w.skillName}</div>
-              <div className="mt-1 flex flex-wrap gap-2 text-xs text-ink-500">
-                <span>Latest {formatMistakeDate(w.latestMistakeDate)}</span>
-                {w.confidenceRiskCount > 0 && <span>{w.confidenceRiskCount} confident slip{w.confidenceRiskCount > 1 ? 's' : ''}</span>}
-              </div>
-            </div>
-            <div className="flex items-center gap-2"><Badge tone="error">{w.count} mistake{w.count > 1 ? 's' : ''}</Badge><ChevronRight className="h-4 w-4 text-ink-300" /></div>
-          </Card>
-        ))}
-      </div>
+      {hasMistakes && (
+        <>
+          <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Weak skills from mistakes</h3>
+          <div className="space-y-2">
+            {weak.length === 0 && <Card className={`p-4 text-sm text-ink-500 ${visualStyles.accentCard}`}>No weak-skill clusters yet.</Card>}
+            {weak.map((w) => (
+              <Card key={w.skillId} interactive tabIndex={0} className={`flex items-center justify-between p-4 ${visualStyles.accentCard}`} role="button" onClick={() => navigate('/student/mathpath/mistakes/review')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/student/mathpath/mistakes/review'); } }}>
+                <div>
+                  <div className="font-semibold text-ink-700">{w.skillName}</div>
+                  <div className="mt-1 flex flex-wrap gap-2 text-xs text-ink-500">
+                    <span>Latest {formatMistakeDate(w.latestMistakeDate)}</span>
+                    {w.confidenceRiskCount > 0 && <span>{w.confidenceRiskCount} confident slip{w.confidenceRiskCount > 1 ? 's' : ''}</span>}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2"><Badge tone="error">{w.count} mistake{w.count > 1 ? 's' : ''}</Badge><ChevronRight className="h-4 w-4 text-ink-300" /></div>
+              </Card>
+            ))}
+          </div>
+        </>
+      )}
 
       {recent.length > 0 && (
         <>
           <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Recent mistakes</h3>
           <div className="space-y-2">
             {recent.map((m) => (
-              <Card key={m.id} interactive className={`p-4 ${visualStyles.accentCard}`} role="button" onClick={() => navigate(`/student/mathpath/mistakes/${m.id}`)}>
+              <Card key={m.id} interactive tabIndex={0} className={`p-4 ${visualStyles.accentCard}`} role="button" onClick={() => navigate(`/student/mathpath/mistakes/${m.id}`)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/student/mathpath/mistakes/${m.id}`); } }}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-ink-500">

@@ -387,12 +387,12 @@ export default function MathPathHome() {
                   ? 'Continue from your saved diagnostic placement.'
                   : 'A short check-in finds your best starting point.'}
             </p>
-            <Button className={`mt-5 w-full sm:w-auto ${visualStyles.primaryCta}`} size="l" icon={ArrowRight} disabled={(!hasPlacement && startingDiagnostic) || showLockedMasteryCheck} onClick={() => {
+            <Button className={`mt-5 w-full sm:w-auto ${visualStyles.primaryCta}`} size="l" icon={ArrowRight} disabled={starting || (!hasPlacement && startingDiagnostic) || showLockedMasteryCheck} onClick={() => {
               if (!hasPlacement) return startDiagnostic('baseline');
               if (assessmentPilotEnabled && showMasteryCheck) return navigate('/student/mathpath/assessment', { state: { assessmentType: 'mastery' } });
               return startLearningSession({ skillId: practiceFallbackSkillId, sessionType: 'practice', questionCount: 10 });
             }}>
-              {!hasPlacement ? 'Start Fractions Check-In' : showMasteryCheck ? 'Start Mastery Check' : showLockedMasteryCheck ? 'Mastery Check Locked' : 'Continue Learning'}
+              {!hasPlacement ? 'Start Fractions Check-In' : showMasteryCheck ? 'Start Mastery Check' : showLockedMasteryCheck ? 'Mastery Check Locked' : starting ? 'Starting…' : 'Continue Learning'}
             </Button>
             {showLockedMasteryCheck && <p className="mt-3 text-sm font-semibold text-ink-600">{ASSESSMENT_LOCK_MESSAGE}</p>}
           </div>
