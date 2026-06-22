@@ -18,6 +18,21 @@ export function starsFor(pct) {
   return 0;
 }
 
+const MASTERED_STATUSES = ['mastered', 'accurate', 'fluent', 'retained'];
+const IN_PROGRESS_STATUSES = ['learning', 'needsReview', 'needs_review', 'weak', 'forgotten', 'started'];
+
+// Resolve an effective mastery percentage from a learning-path skill state
+// (a status string + optional accuracy). Mastered statuses always earn the full
+// three stars + medal; otherwise use the real accuracy when known, else a single
+// star for any in-progress skill and nothing for a not-yet-started one.
+export function effectiveMasteryPct(status = '', accuracy = null) {
+  if (MASTERED_STATUSES.includes(status)) return 100;
+  const acc = Number(accuracy);
+  if (Number.isFinite(acc) && acc > 0) return acc;
+  if (IN_PROGRESS_STATUSES.includes(status)) return 40;
+  return 0;
+}
+
 const SIZES = {
   sm: { star: 'h-4 w-4', gap: 'gap-0.5', label: 'text-xs' },
   md: { star: 'h-5 w-5', gap: 'gap-1', label: 'text-sm' },

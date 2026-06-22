@@ -12,6 +12,7 @@ import { p1MeasurementSkillGraph } from '../../../mathpath/primary/p1Measurement
 import { p1GeometrySkillGraph } from '../../../mathpath/primary/p1GeometrySkillGraph';
 import { p1EqualGroupsSkillGraph } from '../../../mathpath/primary/p1EqualGroupsSkillGraph';
 import { p1DataSkillGraph } from '../../../mathpath/primary/p1DataSkillGraph';
+import MasteryStars, { effectiveMasteryPct } from '../../../components/mathpath/learning/MasteryStars';
 
 // ---------------------------------------------------------------------------
 // Domain configuration — order matters (progression sequence)
@@ -143,6 +144,7 @@ function P1SkillCard({ skill, onStart, skillState }) {
               {accuracy != null ? ` ${accuracy}%` : ''}
             </Badge>
           )}
+          <MasteryStars percentage={effectiveMasteryPct(status, accuracy)} size="sm" className="mt-1" />
         </div>
       </div>
       <p className="mt-1 line-clamp-2 text-sm text-ink-500">{skill.description}</p>

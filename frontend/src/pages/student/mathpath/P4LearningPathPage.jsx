@@ -11,6 +11,7 @@ import p4FractionsSkillGraph from '../../../mathpath/primary/p4FractionsSkillGra
 import p4DecimalsSkillGraph from '../../../mathpath/primary/p4DecimalsSkillGraph';
 import p4WordProbSkillGraph from '../../../mathpath/primary/p4WordProbSkillGraph';
 import p4StatSkillGraph from '../../../mathpath/primary/p4StatSkillGraph';
+import MasteryStars, { effectiveMasteryPct } from '../../../components/mathpath/learning/MasteryStars';
 
 // ---------------------------------------------------------------------------
 // Domain configuration — order matters (progression sequence)
@@ -143,6 +144,7 @@ function P4SkillCard({ skill, onStart, skillState }) {
               {accuracy != null ? ` ${accuracy}%` : ''}
             </Badge>
           )}
+          <MasteryStars percentage={effectiveMasteryPct(status, accuracy)} size="sm" className="mt-1" />
         </div>
       </div>
       <p className="mt-1 line-clamp-2 text-sm text-ink-500">{skill.description}</p>

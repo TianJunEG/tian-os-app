@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Variable, Box, Trophy, AlertCircle } from 'lucide-react';
 import { Badge, Button, Card, PageHeader } from '../../../components/ui';
+import MasteryStars, { effectiveMasteryPct } from '../../../components/mathpath/learning/MasteryStars';
 import { mathpathAPI } from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 import p6AlgebraSkillGraph from '../../../mathpath/primary/p6AlgebraSkillGraph';
@@ -148,6 +149,7 @@ function P6SkillCard({ skill, onStart, skillState }) {
               {accuracy != null ? ` ${accuracy}%` : ''}
             </Badge>
           )}
+          <MasteryStars percentage={effectiveMasteryPct(status, accuracy)} size="sm" className="mt-1" />
         </div>
       </div>
       <p className="mt-1 line-clamp-2 text-sm text-ink-500">{skill.description}</p>
