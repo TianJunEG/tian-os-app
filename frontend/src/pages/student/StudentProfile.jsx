@@ -284,18 +284,36 @@ function WeeklyComparison({ thisWeek, lastWeek, visual }) {
 function PersonalBestsSection({ visual }) {
   const [bests, setBests] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [bestsError, setBestsError] = useState(false);
 
-  useEffect(() => {
+  const fetchBests = useCallback(() => {
     let active = true;
+    setLoading(true);
+    setBestsError(false);
     studentProfileAPI.personalBests()
       .then((res) => { if (active) setBests(res.data); })
-      .catch((e) => console.warn("StudentProfile: fetch failed", e))
+      .catch((e) => { console.warn("StudentProfile: fetch failed", e); if (active) setBestsError(true); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);
 
+  useEffect(() => fetchBests(), [fetchBests]);
+
   if (loading) return <div className="mt-6 flex justify-center"><Spinner label="Loading personal bests…" /></div>;
-  if (!bests) return null;
+  if (!bests) {
+    if (!bestsError) return null;
+    return (
+      <div className="mt-6 flex justify-center">
+        <button
+          type="button"
+          onClick={fetchBests}
+          className="rounded-lg px-3 py-1.5 text-sm font-medium text-ink-500 transition-colors hover:bg-white/60 hover:text-ink-800"
+        >
+          Couldn't load your records — tap to try again
+        </button>
+      </div>
+    );
+  }
 
   const lp = isLowerPrimary(visual.mode);
 

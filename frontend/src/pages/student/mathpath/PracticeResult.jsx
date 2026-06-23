@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowRight, Wrench, BookOpen } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
-import { Card, Button, Badge, StatTile, ProgressBar, PageHeader, Spinner, EmptyState, CollapsibleSection } from '../../../components/ui';
+import { Card, Button, Badge, StatTile, ProgressBar, PageHeader, Spinner, EmptyState, ErrorState, CollapsibleSection } from '../../../components/ui';
 import { MascotBubble } from '../../../components/MascotAvatar';
 import { MathText } from '../../../components/ui/Fraction';
 import MasteryStars from '../../../components/mathpath/learning/MasteryStars';
@@ -23,19 +23,26 @@ export default function PracticeResult() {
   const [data, setData] = useState(null);
   const [recommended, setRecommended] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState('');
   const [guidedStarting, setGuidedStarting] = useState(false);
   const [guidedError, setGuidedError] = useState('');
 
+  async function loadResults() {
+    setLoading(true);
+    setLoadError(false);
+    try {
+      const [s, m] = await Promise.all([mathpathAPI.getSession(sessionId), mathpathAPI.mastery()]);
+      setData(s.data);
+      setRecommended(m.data.recommended);
+    } catch (e) {
+      setLoadError(true);
+    } finally { setLoading(false); }
+  }
+
   useEffect(() => {
-    (async () => {
-      try {
-        const [s, m] = await Promise.all([mathpathAPI.getSession(sessionId), mathpathAPI.mastery()]);
-        setData(s.data);
-        setRecommended(m.data.recommended);
-      } finally { setLoading(false); }
-    })();
+    loadResults();
   }, [sessionId]);
 
   async function practiseRecommended() {
@@ -85,6 +92,7 @@ export default function PracticeResult() {
   }
 
   if (loading) return <Spinner label="Scoring\u2026" />;
+  if (loadError) return <ErrorState message="Couldn't load these results." onRetry={loadResults} />;
   if (!data) return <EmptyState message="Could not load these results." />;
 
   const { stats, skills, mistakes, remediationGated } = data;
