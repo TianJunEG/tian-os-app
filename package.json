@@ -29,6 +29,7 @@
     "seed:tutor": "node scripts/seedTutor.js",
     "seed:teacher": "node scripts/seedTeacher.js",
     "seed:test-accounts": "node scripts/seedTestAccounts.js",
+    "seed:valerie": "node scripts/seedValerieStudent.js",
     "seed:pilot-students": "node scripts/seedPilotStudents.js",
     "seed:caden-p5-weak": "node scripts/seedCadenP5WeakStudent.js",
     "seed:spelling": "node scripts/seedSpelling.js",
