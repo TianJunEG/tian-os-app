@@ -245,13 +245,25 @@ export async function recommendNextSkill(studentId) {
     return cur;
   };
 
+  // Practiceability: legacy ad-hoc skill records (created before the
+  // canonical domain seeds) have slug='' and no questionStructures, so they
+  // dead-end the practice route with "No questions available." Prefer skills
+  // with a slug (every canonical domain skill, including fractions, has one).
+  // We only PREFER — not strictly filter — so we still pick a non-practiceable
+  // skill if it's the only thing left, matching the previous behaviour.
+  const isPracticeable = (skill) => Boolean(skill?.slug);
+
   // Target: weakest in-progress skill, else next un-mastered in curriculum order.
+  // Within each group, prefer a practiceable skill so brand-new students don't
+  // get pointed at a dead-end legacy record (see scripts/reconcileDomains.js).
   const weak = allRecords
     .filter((r) => ['needs_review', 'learning', 'not_started'].includes(r.status))
     .sort((a, b) => a.score - b.score);
-  let targetId = weak[0] ? String(weak[0].skillId) : null;
+  const weakPick = weak.find((r) => isPracticeable(skillById.get(String(r.skillId)))) || weak[0];
+  let targetId = weakPick ? String(weakPick.skillId) : null;
   if (!targetId) {
-    const next = [...allSkills].sort(byCurriculum).find((s) => !masteredIds.has(String(s._id)));
+    const candidates = [...allSkills].sort(byCurriculum).filter((s) => !masteredIds.has(String(s._id)));
+    const next = candidates.find(isPracticeable) || candidates[0];
     targetId = next ? String(next._id) : null;
   }
   if (!targetId) return null;          // everything mastered

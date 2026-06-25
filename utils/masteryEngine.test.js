@@ -189,6 +189,33 @@ describe('recommendNextSkill — fractions from MathPathStudentSkillState', () =
     }
   });
 
+  it('skips a slug-less (legacy) skill in curriculum order and prefers the next practiceable one', async () => {
+    // The bug this guards: a brand-new student gets pointed at a legacy ad-hoc
+    // skill (slug='') that has no questionStructures, so /practice/sessions 400s
+    // "No questions available." Engine should now prefer the slug'd skill.
+    defaultMocks();
+    const LEGACY_SKILL = {
+      _id: new mongoose.Types.ObjectId(),
+      name: 'Place value to 100 000',
+      slug: '',                         // legacy un-seeded — the dead-end case
+      metadata: {},
+      topicId: TOPIC,
+      order: 1,                         // first in curriculum order
+      prerequisiteSkillIds: [],
+    };
+    // A practiceable skill that comes LATER in curriculum order — engine should
+    // still prefer it over the slug-less legacy one for a brand-new student.
+    const PRACTICEABLE = { ...SKILL_F001, order: 2 };
+    skillFind
+      .mockResolvedValueOnce([LEGACY_SKILL, PRACTICEABLE]) // allSkills lookup
+      .mockResolvedValue([]);                              // fractions lookup
+
+    const result = await engine.recommendNextSkill('stu_1');
+    expect(result).not.toBeNull();
+    expect(result.skill.slug).toBeTruthy();
+    expect(result.skill.name).not.toBe('Place value to 100 000');
+  });
+
   it('returns null when all curriculum skills are mastered via skill state', async () => {
     defaultMocks();
     const allMastered = [SKILL_F001, SKILL_F003, SKILL_F015].map((sk) => ({
