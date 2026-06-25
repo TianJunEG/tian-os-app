@@ -652,8 +652,13 @@ export default function StudentDashboard() {
   const displayStreak = Math.max(0, currentStreak);
   const displayXp = Math.max(0, Math.round(learningXp));
   const dashboardAnalytics = analytics || {};
+  // The Fractions Mastery Check gate must check ACTUAL fraction skill codes
+  // (F001…F026), not a count fabricated from "the first N F-codes." Filter the
+  // real mastered IDs to fraction codes only, so non-fractions mastery doesn't
+  // wrongly unlock the gate and a fractions student is gated on the right set.
+  const masteredFractionCodes = (masteredSkillIds || []).filter((id) => /^F\d{3}$/i.test(String(id))).map((id) => String(id).toUpperCase());
   const assessmentGate = getFractionAssessmentBlueprintReadiness({
-    completedSkillIds: Array.from({ length: safeMasteredCount }, (_, index) => `F${String(index + 1).padStart(3, '0')}`),
+    completedSkillIds: masteredFractionCodes,
   });
   const currentSkillName = vm.currentSkill?.skillName || (vm.hasPlacement ? 'Continue Practice' : 'Fractions Diagnostic');
   const canResetStudentState = Boolean(user?.is_test_account || /^test\.student\d+@tianos\.test$/i.test(user?.email || ''));
