@@ -14,11 +14,13 @@ import { getMascotVoice } from '../../../config/mascots';
 
 const STORAGE_KEY = 'comicsAutoNarrate';
 
-// The mascot speaking a given line, resolved via the line's side → the panel
-// character standing on that side. Falls back to the default voice.
+// The mascot speaking a given line. Resolved by the line's explicit `character`
+// (every authored speech line has one), falling back to the panel character
+// standing on the line's side for older/test data without a character field.
+// Falls back to the default voice when neither resolves.
 export function voiceForLine(line, characters = []) {
-  const char = characters.find((c) => c.side === line.side);
-  return getMascotVoice(char?.key);
+  const key = line.character || characters.find((c) => c.side === line.side)?.key;
+  return getMascotVoice(key);
 }
 
 // Ordered speech steps for a panel, in authored (reading) order, each carrying

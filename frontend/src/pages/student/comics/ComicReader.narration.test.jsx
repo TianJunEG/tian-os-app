@@ -1,5 +1,6 @@
+import { StrictMode } from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import ComicReader from './ComicReader';
 
@@ -51,17 +52,40 @@ describe('ComicReader narration UI', () => {
     expect(typeof steps[0].kokoro).toBe('string');
   });
 
-  it('auto-narrates the whole panel only after the toggle is switched on', () => {
+  it('auto-narrates the whole panel only after the toggle is switched on', async () => {
     renderReader();
     // Off by default → nothing auto-played on mount.
     expect(play).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole('button', { name: /Narrate/ }));
-    // Toggling on narrates the current panel (multiple lines).
-    expect(play).toHaveBeenCalled();
+    // Toggling on narrates the current panel (multiple lines) — narration is
+    // deferred a tick (StrictMode-safe), so wait for it.
+    await waitFor(() => expect(play).toHaveBeenCalled());
     const [steps] = play.mock.calls[play.mock.calls.length - 1];
     expect(steps.length).toBeGreaterThan(1);
     // Preference persisted.
     expect(JSON.parse(localStorage.getItem('comicsAutoNarrate'))).toBe(true);
+  });
+
+  it('auto-narrates a panel exactly ONCE under StrictMode (no double "first line")', async () => {
+    // Pre-enable auto-narrate so the mount effect fires. React StrictMode runs
+    // each effect setup→cleanup→setup on mount; narration must still start only
+    // once (otherwise line 0 is spoken twice).
+    localStorage.setItem('comicsAutoNarrate', 'true');
+    render(
+      <StrictMode>
+        <MemoryRouter initialEntries={['/student/comics/hawker-heroes']}>
+          <Routes>
+            <Route path="/student/comics/:slug" element={<ComicReader />} />
+          </Routes>
+        </MemoryRouter>
+      </StrictMode>
+    );
+    await waitFor(() => expect(play).toHaveBeenCalled());
+    // Let any further (superseded) scheduled narration settle.
+    await new Promise((r) => setTimeout(r, 20));
+    expect(play).toHaveBeenCalledTimes(1);
+    const [steps] = play.mock.calls[0];
+    expect(steps.length).toBeGreaterThan(1); // the whole panel, in order
   });
 });
