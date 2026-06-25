@@ -503,3 +503,24 @@ export function ManipulativePatternStrip({ items = [] }) {
     </div>
   );
 }
+
+// ── K2 Shapes: crisp SVG shape choices (Strand C) ────────────────────────────
+// The four NEL basic shapes have no consistent colour-emoji set (rectangle in
+// particular), so shape-question MCQ choices are emitted as 'shape:<kind>'
+// tokens and rendered here as same-style SVG glyphs.
+const SHAPE_KINDS = new Set(['circle', 'square', 'rectangle', 'triangle']);
+
+// Returns the shape kind for a 'shape:<kind>' choice token, else null.
+export function parseShapeChoice(choice) {
+  const m = /^shape:(circle|square|rectangle|triangle)$/.exec(String(choice || ''));
+  return m ? m[1] : null;
+}
+
+export function ShapeGlyph({ kind, size = 44, color = '#7c3aed' }) {
+  if (!SHAPE_KINDS.has(kind)) return null;
+  const common = { width: size, height: size, viewBox: '0 0 40 40', role: 'img', 'aria-label': kind };
+  if (kind === 'circle') return (<svg {...common}><circle cx="20" cy="20" r="15" fill={color} /></svg>);
+  if (kind === 'square') return (<svg {...common}><rect x="6" y="6" width="28" height="28" rx="3" fill={color} /></svg>);
+  if (kind === 'rectangle') return (<svg {...common}><rect x="3" y="11" width="34" height="18" rx="3" fill={color} /></svg>);
+  return (<svg {...common}><polygon points="20,5 35,33 5,33" fill={color} /></svg>); // triangle
+}

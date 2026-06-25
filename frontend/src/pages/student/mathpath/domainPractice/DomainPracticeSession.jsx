@@ -6,7 +6,7 @@ import { MascotBubble } from '../../../../components/MascotAvatar';
 import { MathText } from '../../../../components/ui/Fraction';
 import FullScreenWorkingMode from '../../../../components/learning/FullScreenWorkingMode';
 import WorkingPreviewCard from '../../../../components/learning/WorkingPreviewCard';
-import ManipulativeDotArray, { parseDotStem, numericLine, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram, parseCountDiagram, ManipulativeCountArray, parseCompareDiagram, ManipulativeCompareSets, parsePatternDiagram, ManipulativePatternStrip } from '../../../../components/learning/ManipulativeDotArray';
+import ManipulativeDotArray, { parseDotStem, numericLine, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram, parseCountDiagram, ManipulativeCountArray, parseCompareDiagram, ManipulativeCompareSets, parsePatternDiagram, ManipulativePatternStrip, parseShapeChoice, ShapeGlyph } from '../../../../components/learning/ManipulativeDotArray';
 import { speak, isVoiceEnabled, setVoiceEnabled } from '../../../../utils/sound';
 import { useAuth } from '../../../../context/AuthContext';
 import { getMascotForModule, getMascotVoice } from '../../../../config/mascots';
@@ -378,20 +378,24 @@ export default function DomainPracticeSession({ domain }) {
         {current?.type === 'mcq' ? (
           isLPrimary ? (
             <div className="grid grid-cols-2 gap-3 pt-1">
-              {(current.choices || []).map((choice) => (
-                <button
-                  key={choice}
-                  type="button"
-                  disabled={showReflection || submitting}
-                  onClick={() => {
-                    speak(choice, { rate: 0.85, gender: 'female' });
-                    submitAnswer(choice);
-                  }}
-                  className="rounded-2xl border-2 border-line-soft bg-white py-5 text-center text-3xl font-bold text-ink-900 shadow-sm transition hover:border-emerald hover:bg-emerald-tint active:scale-95 disabled:opacity-40"
-                >
-                  {choice}
-                </button>
-              ))}
+              {(current.choices || []).map((choice) => {
+                const shapeKind = parseShapeChoice(choice);
+                return (
+                  <button
+                    key={choice}
+                    type="button"
+                    aria-label={shapeKind || String(choice)}
+                    disabled={showReflection || submitting}
+                    onClick={() => {
+                      speak(shapeKind || choice, { rate: 0.85, gender: 'female' });
+                      submitAnswer(choice);
+                    }}
+                    className="flex items-center justify-center rounded-2xl border-2 border-line-soft bg-white py-5 text-center text-3xl font-bold text-ink-900 shadow-sm transition hover:border-emerald hover:bg-emerald-tint active:scale-95 disabled:opacity-40"
+                  >
+                    {shapeKind ? <ShapeGlyph kind={shapeKind} /> : choice}
+                  </button>
+                );
+              })}
             </div>
           ) : (
             <div className="mt-5 grid gap-3">

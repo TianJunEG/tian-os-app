@@ -48,11 +48,12 @@ const SHAPES = ['🔴', '🔵', '🟡', '🟢', '🟣', '🟠', '⭐', '❤️']
 const SIZE_PAIRS = [
   ['🐘', '🐁'], ['🌳', '🌷'], ['🚌', '🚲'], ['🐋', '🐠'], ['🏠', '⛺'], ['🍉', '🍓'],
 ];
-// Strand C (Shapes & Space). The four NEL basic shapes as glyphs + the four
-// direction arrows. (Rectangle has no colour emoji; ▭ is the clearest glyph.)
-const SHAPE_GLYPH = { circle: '🔵', square: '🟦', triangle: '🔺', rectangle: '▭' };
-const SHAPE_NAMES = Object.keys(SHAPE_GLYPH);
-const ALL_SHAPE_GLYPHS = Object.values(SHAPE_GLYPH);
+// Strand C (Shapes & Space). The four NEL basic shapes + the four direction
+// arrows. Shapes are emitted as 'shape:<kind>' tokens (no colour-emoji rectangle
+// exists) and rendered as crisp SVG glyphs by ShapeGlyph in the client.
+const SHAPE_NAMES = ['circle', 'square', 'rectangle', 'triangle'];
+const shapeToken = (name) => `shape:${name}`;
+const ALL_SHAPE_TOKENS = SHAPE_NAMES.map(shapeToken);
 // [glyph, real-object] for "shapes around us".
 const SHAPE_OBJECTS = {
   circle: ['🛞', '🍪', '⏰', '🪙'],
@@ -293,8 +294,8 @@ function genShapeRecognise(rng, skill) {
   return mcq({
     skill, familySuffix: '001',
     prompt: `Tap the ${name}.`,
-    correct: SHAPE_GLYPH[name],
-    choices: shuffle(rng, ALL_SHAPE_GLYPHS),
+    correct: shapeToken(name),
+    choices: shuffle(rng, ALL_SHAPE_TOKENS),
     misconceptionTag: 'en/shape-name-mismatch',
   });
 }
@@ -310,8 +311,8 @@ function genShapeAttributes(rng, skill) {
   return mcq({
     skill, familySuffix: '001',
     prompt: q.prompt,
-    correct: SHAPE_GLYPH[q.name],
-    choices: shuffle(rng, ALL_SHAPE_GLYPHS),
+    correct: shapeToken(q.name),
+    choices: shuffle(rng, ALL_SHAPE_TOKENS),
     misconceptionTag: 'en/miscounts-sides',
   });
 }
@@ -322,8 +323,8 @@ function genShapesAround(rng, skill) {
   return mcq({
     skill, familySuffix: '001',
     prompt: `What shape is this? ${object}`,
-    correct: SHAPE_GLYPH[name],
-    choices: shuffle(rng, ALL_SHAPE_GLYPHS),
+    correct: shapeToken(name),
+    choices: shuffle(rng, ALL_SHAPE_TOKENS),
     misconceptionTag: 'en/shape-name-mismatch',
   });
 }
