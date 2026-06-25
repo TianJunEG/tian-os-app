@@ -10,6 +10,7 @@ import StudentXP from '../../models/studentProfile/StudentXP.js';
 import StudentAchievement from '../../models/studentProfile/StudentAchievement.js';
 import StudentLearningEvent from '../../models/studentProfile/StudentLearningEvent.js';
 import { slugPrefixForDomain, domainIdFromSlug } from '../../utils/skillSlugDomain.js';
+import { getDomainSkillGraph } from '../mathpath/domainSkillGraphServer.js';
 
 export const XP_VALUES = Object.freeze({
   diagnosticCompleted: 25,
@@ -313,7 +314,14 @@ async function deriveMetrics(student) {
     const domainSkillCount = prefix
       ? await Skill.countDocuments({ slug: new RegExp(`^${prefix}\\.`, 'i') })
       : 0;
-    totalSkills = domainSkillCount > 0 ? domainSkillCount : Math.max(uniqueCount(masteredCodes), 1);
+    // Some domains (e.g. early_numeracy) live only as an in-memory skill graph and
+    // are NOT seeded into the Skill collection, so the DB count is 0. Fall back to
+    // the graph's own size before the degenerate max(mastered, 1) — otherwise the
+    // K2 profile bar would read X/X, the very thing this denominator fix removes.
+    const graphTotal = getDomainSkillGraph(currentDomain).totalSkills || 0;
+    totalSkills = domainSkillCount > 0
+      ? domainSkillCount
+      : (graphTotal > 0 ? graphTotal : Math.max(uniqueCount(masteredCodes), 1));
   }
 
   // Mastered skills scoped to the current domain — drives the domain-labelled
