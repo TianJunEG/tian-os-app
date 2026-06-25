@@ -1,6 +1,29 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { PenLine, Eraser, RotateCcw, Trash2, X } from 'lucide-react';
+import { PenLine, Eraser, RotateCcw, Sigma, Trash2, X } from 'lucide-react';
 import { drawStroke, pointFromEvent as extractPoint, beginStrokeData, finalizeStroke } from './drawingUtils';
+
+// Math symbol stamps. Simple ones (operators, π, θ, ∠) insert immediately;
+// the rest open a small builder popover so the student can fill in the parts.
+const MATH_STAMPS = [
+  { id: 'plus', label: '+' },
+  { id: 'minus', label: '−' },
+  { id: 'times', label: '×' },
+  { id: 'divide', label: '÷' },
+  { id: 'equals', label: '=' },
+  { id: 'fraction', label: 'x/y' },
+  { id: 'power', label: 'xᵇ' },
+  { id: 'root', label: 'ⁿ√x' },
+  { id: 'mixed', label: 'xᵇ/a' },
+  { id: 'pi', label: 'π' },
+  { id: 'theta', label: 'θ' },
+  { id: 'angle', label: '∠' },
+];
+const MATH_BUILDERS = {
+  fraction: { fields: [{ key: 'numerator', placeholder: 'x' }, { key: 'denominator', placeholder: 'y' }] },
+  power:    { fields: [{ key: 'base', placeholder: 'x' }, { key: 'exponent', placeholder: 'b' }] },
+  root:     { fields: [{ key: 'index', placeholder: 'n' }, { key: 'radicand', placeholder: 'x' }] },
+  mixed:    { fields: [{ key: 'base', placeholder: 'x' }, { key: 'numerator', placeholder: 'b' }, { key: 'denominator', placeholder: 'a' }] },
+};
 
 // Lightweight "draw on the screen" scratchpad. Unlike FullScreenWorkingMode
 // (which is a paper-style modal that takes over the page), this is a
@@ -31,6 +54,10 @@ export default function ScratchpadOverlay({ open = false, initialStrokes = [], o
   const [tool, setTool] = useState('pen');
   const [colour, setColour] = useState(COLOURS[0].value);
   const [size, setSize] = useState(4);
+  // Math-symbol toolbar: open/closed + the in-progress builder draft when a
+  // complex stamp (fraction, power, root, mixed) needs field input.
+  const [showMath, setShowMath] = useState(false);
+  const [mathDraft, setMathDraft] = useState(null);
 
   // Reset strokes from props when the overlay (re-)opens for a new question.
   useEffect(() => {
@@ -135,6 +162,44 @@ export default function ScratchpadOverlay({ open = false, initialStrokes = [], o
     onChange?.([]);
   }
 
+  // Drop a math stamp at a roughly-central spot, offset per stamp so successive
+  // inserts don't pile up exactly. drawStroke() routes tool:'stamp' through
+  // drawMathStamp(), so the rendering is identical to every other canvas.
+  function insertMathStamp(template, values = {}) {
+    const stampCount = strokes.filter((s) => s.tool === 'stamp').length;
+    const cx = (typeof window !== 'undefined' ? window.innerWidth : 800) / 2 - 60;
+    const cy = (typeof window !== 'undefined' ? window.innerHeight : 600) / 2 - 60;
+    const next = [...strokes, {
+      tool: 'stamp',
+      template,
+      colour: '#f97316',
+      size: 4,
+      ...values,
+      points: [{ x: cx + ((stampCount % 5) * 110), y: cy + (Math.floor(stampCount / 5) * 80) }],
+    }];
+    setStrokes(next);
+    onChange?.(next);
+    setMathDraft(null);
+  }
+
+  function handleMathTool(template) {
+    const builder = MATH_BUILDERS[template];
+    if (builder) {
+      const blank = builder.fields.reduce((acc, f) => ({ ...acc, [f.key]: '' }), {});
+      setMathDraft((d) => d?.template === template ? null : { template, ...blank });
+      return;
+    }
+    insertMathStamp(template);
+  }
+
+  const draftReady = Boolean(mathDraft?.template && MATH_BUILDERS[mathDraft.template]?.fields.every((f) => String(mathDraft?.[f.key] || '').trim()));
+  function insertDraft() {
+    if (!mathDraft?.template) return;
+    const builder = MATH_BUILDERS[mathDraft.template];
+    const values = builder.fields.reduce((acc, f) => ({ ...acc, [f.key]: String(mathDraft[f.key] || '').trim() }), {});
+    insertMathStamp(mathDraft.template, values);
+  }
+
   if (!open) return null;
 
   // Toolbar buttons share the same compact styling.
@@ -165,6 +230,15 @@ export default function ScratchpadOverlay({ open = false, initialStrokes = [], o
         </button>
         <button type="button" onClick={() => setTool('eraser')} className={toolBtn(tool === 'eraser')} title="Eraser" aria-label="Eraser">
           <Eraser className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => { setShowMath((v) => !v); setMathDraft(null); }}
+          className={toolBtn(showMath)}
+          title="Math symbols"
+          aria-label="Math symbols"
+        >
+          <Sigma className="h-4 w-4" />
         </button>
         <div className="my-1 border-t border-line-soft" />
         {/* Colours — only when pen is active so the eraser doesn't look colourful. */}
@@ -205,6 +279,67 @@ export default function ScratchpadOverlay({ open = false, initialStrokes = [], o
           <X className="h-4 w-4" />
         </button>
       </div>
+
+      {/* Math symbols toolbar — appears to the LEFT of the main palette when
+          enabled, so it doesn't crowd the right-side controls. */}
+      {showMath && (
+        <div className="fixed right-20 top-1/2 z-50 -translate-y-1/2 grid grid-cols-3 gap-1 rounded-2xl border border-line-soft bg-white/95 p-2 shadow-card backdrop-blur" aria-label="Math insert tools">
+          {MATH_STAMPS.map((stamp) => (
+            <button
+              key={stamp.id}
+              type="button"
+              onClick={() => handleMathTool(stamp.id)}
+              className={`grid h-10 w-12 place-items-center rounded-lg border font-display text-sm transition ${
+                mathDraft?.template === stamp.id
+                  ? 'border-emerald bg-emerald text-white'
+                  : 'border-line-soft bg-white text-ink-700 hover:border-emerald hover:text-emerald-deep'
+              }`}
+              style={{ fontFamily: 'Georgia, serif' }}
+              title={`Insert ${stamp.label}`}
+              aria-label={`Insert ${stamp.label}`}
+            >
+              {stamp.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Builder popover — centred — for stamps that need field input
+          (fraction, power, root, mixed). Drops a fully-built stamp at viewport
+          centre on Insert. */}
+      {mathDraft?.template && MATH_BUILDERS[mathDraft.template] && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-ink-700/20" onClick={() => setMathDraft(null)}>
+          <div className="min-w-[280px] rounded-2xl border border-line-soft bg-white p-5 shadow-card" onClick={(e) => e.stopPropagation()}>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">
+              Build a {MATH_STAMPS.find((s) => s.id === mathDraft.template)?.label}
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              {MATH_BUILDERS[mathDraft.template].fields.map((field, i) => (
+                <input
+                  key={field.key}
+                  autoFocus={i === 0}
+                  value={mathDraft[field.key] || ''}
+                  onChange={(e) => setMathDraft((d) => ({ ...d, [field.key]: e.target.value }))}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && draftReady) insertDraft(); }}
+                  placeholder={field.placeholder}
+                  className="w-20 rounded-lg border-2 border-ink-200 bg-surface-raised px-3 py-2 text-center text-lg focus:border-emerald focus:outline-none"
+                />
+              ))}
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <button type="button" onClick={() => setMathDraft(null)} className="rounded-lg px-3 py-2 text-sm font-semibold text-ink-500 hover:bg-line-soft">Cancel</button>
+              <button
+                type="button"
+                disabled={!draftReady}
+                onClick={insertDraft}
+                className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${draftReady ? 'bg-emerald text-white hover:bg-emerald-deep' : 'bg-line-soft text-ink-400'}`}
+              >
+                Insert
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
