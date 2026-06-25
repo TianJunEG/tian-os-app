@@ -100,7 +100,7 @@ export function getMascot(key) {
 // boys use brighter/higher Kokoro IDs (am_puck/am_liam) instead of the deeper
 // am_eric / bm_fable, which sounded too low in the pilot (BUG 6).
 const KOKORO_VOICE = {
-  tiano: 'am_liam',   // age 18 — bright young-male tone (unchanged)
+  tiano: 'am_onyx',   // age 18 — distinct older male, different from lejo
   lysa: 'af_sky',
   lejo: 'am_liam',    // age 14 — was bm_fable (deep British); brighter am_liam
   chelya: 'af_sarah',
