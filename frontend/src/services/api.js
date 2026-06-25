@@ -251,6 +251,10 @@ export const mathpathAPI = {
   moneySkillStates: () => api.get('/mathpath/money/skill-states'),
   startMoneyPractice: (data = {}) => api.post('/mathpath/money/practice/start', data),
   submitMoneyPractice: (practiceSessionId, data = {}) => api.post(`/mathpath/money/practice/${practiceSessionId}/submit`, data),
+  // Early Numeracy (K2) domain — gentle Explore mode (no fluency/retention/diagnostic)
+  earlyNumeracySkillStates: () => api.get('/mathpath/early-numeracy/skill-states'),
+  startEarlyNumeracyPractice: (data = {}) => api.post('/mathpath/early-numeracy/practice/start', data),
+  submitEarlyNumeracyPractice: (practiceSessionId, data = {}) => api.post(`/mathpath/early-numeracy/practice/${practiceSessionId}/submit`, data),
   // Number Sense domain
   numberSenseSkillStates: () => api.get('/mathpath/number-sense/skill-states'),
   startNumberSensePractice: (data = {}) => api.post('/mathpath/number-sense/practice/start', data),

@@ -14,7 +14,7 @@ import { getDomainConfig } from './core';
 // DomainSkillMap. Domains with extra features (Decimals/Percentages/Ratio keep
 // their own page passing a footerSlot).
 export default function DomainLearningPathPage({ domain }) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const config = getDomainConfig(domain);
   const [loading, setLoading] = useState(true);
@@ -23,6 +23,10 @@ export default function DomainLearningPathPage({ domain }) {
   const startPractice = (skillId) => navigate(`/student/mathpath/${domain}/practice?skill=${skillId}`);
 
   useEffect(() => {
+    // Wait for auth to finish before fetching — otherwise the first call fires
+    // with no token (user still null), gets a 401, and the page briefly shows
+    // an empty skill map before the second call (with the real token) succeeds.
+    if (authLoading) return;
     let active = true;
     (async () => {
       try {
@@ -37,7 +41,7 @@ export default function DomainLearningPathPage({ domain }) {
       }
     })();
     return () => { active = false; };
-  }, [domain, user]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [domain, user, authLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const view = useMemo(() => config?.buildView?.({ masteryRecords: records }) || { strands: [], progress: { mastered: 0, total: 0, inProgress: 0, percentageMastered: 0 }, recommendedNext: { skillId: '', skillName: '' } }, [config, records]);
 
@@ -46,7 +50,15 @@ export default function DomainLearningPathPage({ domain }) {
   // Diagnostic check-in entry point (generic /:domainId/diagnostic route). Keeps
   // the per-domain "quick check-in" that the fluency PRs added to every simple
   // learning-path page, now surfaced through the shared footer slot.
-  const footerSlot = (
+  // Gentle domains (K2 Early Numeracy) have no high-stakes diagnostic — the
+  // student just starts practising the recommended skill. See k2-numeracy-scope.
+  const footerSlot = config?.gentle ? (
+    <div className="flex flex-wrap items-center gap-3">
+      <Button onClick={() => view.recommendedNext?.skillId && startPractice(view.recommendedNext.skillId)}>
+        Let's Practise
+      </Button>
+    </div>
+  ) : (
     <div className="flex flex-wrap items-center gap-3">
       <Button
         onClick={() => navigate(`/student/mathpath/${domain}/diagnostic`)}

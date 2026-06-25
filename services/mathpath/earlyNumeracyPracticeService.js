@@ -1,36 +1,37 @@
 import {
-  generateOperationsQuestionSet,
-  checkOperationsAnswer,
-} from '../../shared/mathpath/operations/OperationsQuestionGenerator.js';
-import { selectNextOperationsPracticeTarget } from '../../shared/mathpath/operations/OperationsPracticeEngine.js';
-import { getSkill } from '../../shared/mathpath/operations/OperationsSkillGraph.js';
+  generateEarlyNumeracyQuestionSet,
+  checkEarlyNumeracyAnswer,
+} from '../../shared/mathpath/earlyNumeracy/EarlyNumeracyQuestionGenerator.js';
+import { selectNextEarlyNumeracyPracticeTarget } from '../../shared/mathpath/earlyNumeracy/EarlyNumeracyPracticeEngine.js';
+import { getSkill } from '../../shared/mathpath/earlyNumeracy/EarlyNumeracySkillGraph.js';
 import { assertDomainServable } from './stubDomainGate.js';
-import { copyWorkingEvidenceFields } from './workingEvidenceFields.js';
 
-export const DOMAIN_ID = 'four_operations';
+export const DOMAIN_ID = 'early_numeracy';
 
+// Gentle K2 thresholds: a short, encouraging set "counts" once the child gets
+// most right. No "needsReview" shaming below a hard floor — just "keep trying".
 function statusFromAccuracy(accuracy) {
-  if (accuracy >= 90) return 'mastered';
-  if (accuracy >= 60) return 'learning';
+  if (accuracy >= 70) return 'accurate';
+  if (accuracy >= 40) return 'learning';
   return 'needsReview';
 }
 
-export function buildOperationsPracticeSession({
-  targetSkillId = null, masteredSkillIds = [], weakSkillIds = [], questionCount = 6, mode = 'practice',
+export function buildEarlyNumeracyPracticeSession({
+  targetSkillId = null, masteredSkillIds = [], weakSkillIds = [], questionCount = 6,
 } = {}) {
   assertDomainServable(DOMAIN_ID);
   let skillId = targetSkillId;
-  if (!skillId || !getSkill(skillId)) {
-    skillId = selectNextOperationsPracticeTarget({ masteredSkillIds, weakSkillIds }).skillId;
+  if (skillId && getSkill(skillId)) {
+    skillId = getSkill(skillId).id; // normalise slug → canonical id
+  } else {
+    skillId = selectNextEarlyNumeracyPracticeTarget({ masteredSkillIds, weakSkillIds }).skillId;
   }
-  // Resolve slug (op.add.facts) to canonical ID (OP001) — families and generator use ID-format keys.
-  skillId = getSkill(skillId)?.id ?? skillId;
   if (!getSkill(skillId)) {
-    const err = new Error(`Unknown operations skill: ${targetSkillId}`);
+    const err = new Error(`Unknown early-numeracy skill: ${targetSkillId}`);
     err.status = 400;
     throw err;
   }
-  const raw = generateOperationsQuestionSet({ skillId, count: questionCount, mode, sessionSalt: Date.now().toString() });
+  const raw = generateEarlyNumeracyQuestionSet({ skillId, count: questionCount, sessionSalt: Date.now().toString() });
   const questions = raw.map((q, index) => ({
     questionId: `${q.questionFamilyId}_${index}`,
     skillId: q.skillId,
@@ -43,7 +44,7 @@ export function buildOperationsPracticeSession({
     solutionSteps: q.solutionSteps || [],
     misconceptionTag: q.misconceptionTag || '',
     difficulty: q.difficulty,
-    workingRequired: Boolean(q.workingRequired),
+    workingRequired: false,
     ...(q.diagram ? { diagram: q.diagram } : {}),
   }));
   return {
@@ -54,25 +55,27 @@ export function buildOperationsPracticeSession({
   };
 }
 
+// Strip answer keys before sending to the client.
 export function toClientQuestions(questions = []) {
   return questions.map(({ answer, acceptedAnswers, solutionSteps, ...rest }) => rest);
 }
 
-export function scoreOperationsSubmission({ questions = [], responses = [] } = {}) {
+export function scoreEarlyNumeracySubmission({ questions = [], responses = [] } = {}) {
   const byId = new Map(questions.map((q) => [String(q.questionId), q]));
   const results = responses.filter((r) => r && r.questionId != null).map((r) => {
     const question = byId.get(String(r.questionId));
     if (!question) return { questionId: r.questionId, error: 'unknown_question', correct: false };
-    const verdict = checkOperationsAnswer({ question, studentResponse: r.studentAnswer ?? r.answer });
+    const verdict = checkEarlyNumeracyAnswer({ question, studentResponse: r.studentAnswer ?? r.answer });
     return {
-      questionId: question.questionId, skillId: question.skillId,
+      questionId: question.questionId,
+      skillId: question.skillId,
       questionFamilyId: question.questionFamilyId,
       studentAnswer: String(r.studentAnswer ?? r.answer ?? ''),
       correctAnswer: question.answer?.display ?? '',
       correct: verdict.correct,
       misconceptionTag: verdict.correct ? '' : (question.misconceptionTag || ''),
-      confidence: r.confidence || '', timeTaken: Number(r.timeTaken || 0),
-      ...copyWorkingEvidenceFields(r),
+      confidence: r.confidence || '',
+      timeTaken: Number(r.timeTaken || 0),
     };
   });
   const graded = results.filter((r) => !r.error);
@@ -90,7 +93,12 @@ export function scoreOperationsSubmission({ questions = [], responses = [] } = {
   }
   const total = graded.length;
   const correct = graded.filter((r) => r.correct).length;
-  return { results, perSkill, mistakes: graded.filter((r) => !r.correct), accuracySummary: { total, correct, accuracyPercentage: total ? Math.round((correct / total) * 100) : 0 } };
+  return {
+    results,
+    perSkill,
+    mistakes: graded.filter((r) => !r.correct),
+    accuracySummary: { total, correct, accuracyPercentage: total ? Math.round((correct / total) * 100) : 0 },
+  };
 }
 
-export default { buildOperationsPracticeSession, toClientQuestions, scoreOperationsSubmission, DOMAIN_ID };
+export default { buildEarlyNumeracyPracticeSession, toClientQuestions, scoreEarlyNumeracySubmission, DOMAIN_ID };

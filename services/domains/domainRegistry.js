@@ -269,6 +269,7 @@ const CORE_MATH_DOMAINS = [
   { domainId: 'geometry',        displayName: 'Geometry' },
   { domainId: 'statistics',      displayName: 'Statistics' },
   { domainId: 'algebra',         displayName: 'Algebra' },
+  { domainId: 'early_numeracy',  displayName: 'Numeracy (K2)' },
 ];
 
 for (const { domainId, displayName } of CORE_MATH_DOMAINS) {

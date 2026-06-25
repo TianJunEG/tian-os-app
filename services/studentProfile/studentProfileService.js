@@ -10,6 +10,8 @@ import MathPathWorkingSession from '../../models/mathpath/MathPathWorkingSession
 import StudentXP from '../../models/studentProfile/StudentXP.js';
 import StudentAchievement from '../../models/studentProfile/StudentAchievement.js';
 import StudentLearningEvent from '../../models/studentProfile/StudentLearningEvent.js';
+import { domainIdFromSlug } from '../../utils/skillSlugDomain.js';
+import { getDomainSkillGraph } from '../mathpath/domainSkillGraphServer.js';
 
 export const XP_VALUES = Object.freeze({
   diagnosticCompleted: 25,
@@ -260,7 +262,7 @@ async function deriveMetrics(student) {
     MasteryRecord.find({
       studentId: studentObjectId,
       $or: [{ status: 'mastered' }, { masteryState: { $in: ['secure', 'mastered', 'retained'] } }],
-    }).lean(),
+    }).populate({ path: 'skillId', select: 'slug' }).lean(),
     MathPathAssessmentSession.countDocuments({
       studentId,
       assessmentType: 'mastery',
@@ -274,9 +276,13 @@ async function deriveMetrics(student) {
     Skill.countDocuments({ slug: /^fr\./i }),
   ]);
 
+  // skillId is now populated to {_id, slug}; String(_id) keeps masteredCodes
+  // identical to the pre-populate value (ObjectId hex), so the cross-domain
+  // skillsMastered/XP/achievements counts are unchanged.
+  const recordSkillCode = (row) => String(row.skillId?._id || row.skillId);
   const masteredCodes = [
     ...masteredSkillStates.map((row) => row.skillId),
-    ...masteredRecords.map((row) => String(row.skillId)),
+    ...masteredRecords.map(recordSkillCode),
   ];
   const workingSubmissions = Math.max(workingAttempts, uploadedWorkings);
   const activityDates = [
@@ -296,21 +302,31 @@ async function deriveMetrics(student) {
   // for the profile "days active" counter.
   const activityStreak = calculateActivityStreak(activityDates);
   const streak = activityStreak;
-  // Denominator: use the real per-domain active-skill count for the student's
-  // current domain. Previously non-fractions fell through to max(mastered, 1)
-  // which produced mastered/total = N/N = 100% for any non-fractions student
-  // with any progress (and 0/1 = 0% for a fresh one). For fractions, keep the
-  // pre-fetched Skill count (slug-based) so behaviour is unchanged there.
+  // Denominator: the real per-domain active-skill count for the student's current
+  // domain, so non-fractions students never fall through to max(mastered, 1)
+  // (which produced a degenerate N/N = 100%). Fractions keeps its pre-fetched
+  // slug-based count. Some domains (e.g. early_numeracy) live only as an in-memory
+  // skill graph and are not seeded into MathPathSkill, so fall back to the graph
+  // size before the legacy degenerate value.
   let domainTotalSkills = 0;
   if (currentDomain === 'fractions') {
     domainTotalSkills = Math.max(totalFractionsSkills || 0, 26);
   } else if (currentDomain) {
     try { domainTotalSkills = await MathPathSkill.countDocuments({ domainId: currentDomain, isActive: true }); }
     catch { domainTotalSkills = 0; }
+    if (domainTotalSkills === 0) domainTotalSkills = getDomainSkillGraph(currentDomain).totalSkills || 0;
   }
-  // Fall through to the legacy max-of-mastered only if we genuinely couldn't
-  // resolve a real domain size, so we never show a degenerate "100%".
   const totalSkills = domainTotalSkills > 0 ? domainTotalSkills : Math.max(uniqueCount(masteredCodes), 1);
+
+  // Mastered skills scoped to the current domain — drives the domain-labelled
+  // "X / Y Skills Mastered" progress bar. (Top-level skillsMastered stays
+  // cross-domain because XP and the "mastered N skills" achievements count a
+  // student's lifetime mastery across every domain.) Skill states carry a
+  // domainId; mastery records derive theirs from the populated skill slug.
+  const masteredInCurrentDomain = uniqueCount([
+    ...masteredSkillStates.filter((row) => row.domainId === currentDomain).map((row) => row.skillId),
+    ...masteredRecords.filter((row) => domainIdFromSlug(row.skillId?.slug) === currentDomain).map(recordSkillCode),
+  ]);
 
   return {
     studentId,
@@ -320,6 +336,7 @@ async function deriveMetrics(student) {
     fluencySessions: uniqueCount(fluencySessionIds),
     workingSubmissions,
     skillsMastered: uniqueCount(masteredCodes),
+    masteredInCurrentDomain,
     masteryTestsPassed,
     streak,
     currentDomain,
@@ -409,6 +426,13 @@ export async function getStudentProfileSummary(student) {
   const metrics = await deriveMetrics(student);
   const xp = await syncXP(student._id, metrics);
   const mastered = Math.min(metrics.skillsMastered, metrics.totalSkills);
+  // The progress bar is labelled by currentDomain, so its numerator must be
+  // domain-scoped — otherwise a multi-domain student's other-domain masteries
+  // inflate (and can max out) the current domain's bar.
+  const domainMastered = Math.min(
+    metrics.masteredInCurrentDomain ?? metrics.skillsMastered,
+    metrics.totalSkills,
+  );
 
   return {
     student: {
@@ -428,10 +452,10 @@ export async function getStudentProfileSummary(student) {
     currentSkill: metrics.currentSkill,
     currentSkillId: metrics.currentSkillId,
     progress: {
-      mastered,
+      mastered: domainMastered,
       total: metrics.totalSkills,
-      label: `${mastered} / ${metrics.totalSkills} Skills Mastered`,
-      percentage: metrics.totalSkills ? Math.round((mastered / metrics.totalSkills) * 100) : 0,
+      label: `${domainMastered} / ${metrics.totalSkills} Skills Mastered`,
+      percentage: metrics.totalSkills ? Math.round((domainMastered / metrics.totalSkills) * 100) : 0,
     },
     recommendedAction: {
       label: metrics.currentSkill ? `Continue ${metrics.currentSkill}` : 'Continue Learning',

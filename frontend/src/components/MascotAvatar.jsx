@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { getMascot, getMascotVoice, MASCOTS, MASCOT_ORDER } from '../config/mascots';
 import { useAuth } from '../context/AuthContext';
 import { speak } from '../utils/sound';
@@ -143,6 +143,17 @@ export function AvatarPicker({ currentAvatar, onSelect, onClose }) {
   );
 }
 
+// Module-level guard so an identical mascot line is not auto-spoken again when
+// the bubble REMOUNTS — e.g. a student opens a skill from the Operations skill
+// map, then taps "Back to Operations": the skill-map greeting bubble remounts
+// and a per-instance ref (which resets on mount) would speak the same greeting
+// a second time. This Map persists for the page session, so each unique
+// name|message line auto-speaks at most once per cooldown window. A genuinely
+// new visit much later (or a changed greeting, e.g. mastered count went up)
+// still speaks. Manual replay buttons call speak() directly and bypass this.
+const lastAutoSpokenAt = new Map(); // `${name}|${message}` -> epoch ms
+const AUTO_SPEAK_COOLDOWN_MS = 5 * 60 * 1000;
+
 export function MascotGreeting({ mascotKey, studentName, className = '' }) {
   const mascot = getMascot(mascotKey);
   if (!mascot) return null;
@@ -155,12 +166,13 @@ export function MascotBubble({ name, message, size = 'md', className = '', voice
   // Opt-in TTS: read the message aloud in this mascot's voice (Kokoro when
   // ready, Web Speech fallback). speak() itself respects the voiceEnabled/muted
   // gate, so nothing plays unless the user has turned voice on.
-  const spokenRef = useRef('');
   useEffect(() => {
-    if (voiced && message && message !== spokenRef.current) {
-      spokenRef.current = message;
-      speak(message, getMascotVoice(name));
-    }
+    if (!voiced || !message) return;
+    const key = `${name}|${message}`;
+    const now = Date.now();
+    if (now - (lastAutoSpokenAt.get(key) || 0) < AUTO_SPEAK_COOLDOWN_MS) return;
+    lastAutoSpokenAt.set(key, now);
+    speak(message, getMascotVoice(name));
   }, [voiced, message, name]);
 
   if (!mascot) return null;

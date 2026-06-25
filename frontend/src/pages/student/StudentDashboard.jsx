@@ -33,6 +33,8 @@ import { useAuth } from '../../context/AuthContext';
 import { runMathPathDomainPipeline } from '../../mathpath/orchestration/mathPathDomainOrchestrator';
 import { validateStudentDashboardPayload } from '../../mathpath/orchestration/pipelineContract';
 import { fractionSkillGraph, getSkill } from '../../mathpath/fractions/fractionSkillGraph';
+import { operationsSkillGraph } from '../../../../shared/mathpath/operations/OperationsSkillGraph';
+import { earlyNumeracySkillGraph } from '../../../../shared/mathpath/earlyNumeracy/EarlyNumeracySkillGraph';
 import { diagnosticsAPI, learningTelemetryAPI, mathpathAPI, studentProfileAPI } from '../../services/api';
 import { Card, Button, Spinner, ErrorState, Badge } from '../../components/ui';
 import { getVisualModeStyles, isLowerPrimary, isSecondary, resolveStudentVisualMode } from '../../design-os/studentVisualMode';
@@ -210,9 +212,16 @@ function DecorativeMotifs({ enabled }) {
   );
 }
 
-function TodaysMissionCard({ currentSkill, nextAction, hasPlacement, visual, assessmentReady = true }) {
+function TodaysMissionCard({ currentSkill, nextAction, hasPlacement, visual, assessmentReady = true, studentLevel }) {
   const action = actionMeta(nextAction, assessmentReady);
-  const primaryTo = hasPlacement ? action.to : '/student/mathpath/diagnostic';
+  const sl = String(studentLevel || '').toLowerCase().trim();
+  const isK2 = /k2|kindy|preschool|kindergarten/.test(sl);
+  const isP1 = sl === 'primary 1' || sl === 'p1';
+  // K2 → gentle Numeracy Explore (no diagnostic); P1 → Operations check-in; else Fractions.
+  const noPlacementRoute = isK2
+    ? '/student/mathpath/early-numeracy'
+    : isP1 ? '/student/mathpath/operations/diagnostic' : '/student/mathpath/diagnostic';
+  const primaryTo = hasPlacement ? action.to : noPlacementRoute;
   const primaryState = hasPlacement && primaryTo.startsWith('/student/mathpath/practice/')
     ? {
         skillId: currentSkill?.skillId || null,
@@ -234,7 +243,10 @@ function TodaysMissionCard({ currentSkill, nextAction, hasPlacement, visual, ass
       <div className="grid gap-0 lg:grid-cols-[16rem_1fr]">
         {isLowerPrimary(visual.mode) ? (
           <div className="relative flex items-center justify-center overflow-hidden bg-gradient-to-br from-violet-100 via-sky-50 to-pink-50 p-4">
-            <img src="/illustrations/mission-fractions.png" alt="" aria-hidden="true" className="max-h-48 w-auto object-contain" />
+            {/* Neutral mascot art — the lower-primary hero is domain-agnostic
+                (K2/P1 start with Operations, not Fractions), so avoid the
+                fractions-pizza illustration here. */}
+            <img src="/illustrations/mascot-star-wave.png" alt="" aria-hidden="true" className="max-h-48 w-auto object-contain" />
           </div>
         ) : (
           <CourseArt icon={Calculator} symbol="=" theme="from-navy-50 via-paper to-gold-tint text-emerald-deep" />
@@ -452,6 +464,23 @@ function defaultDomainForLevel(level = '') {
   return { domainId: 'fractions', displayName: 'Fractions' };
 }
 
+// The headline "Skills Mastered X/Y" stat counts the student's level-appropriate
+// "spine" domain rather than Fractions. K2 learners live in Early Numeracy, P1 in
+// Operations — a fractions-derived stat reads a misleading 0/26 for them. The
+// numerator comes from the /mastery records' slug-derived `domainId`; the
+// denominator is that domain's canonical curriculum size. Returns null for
+// fractions-spine levels (the existing fractions logic drives their stat).
+function spineDomainForLevel(level = '') {
+  const sl = String(level || '').toLowerCase().trim();
+  if (/k2|kindy|preschool|kindergarten/.test(sl)) {
+    return { domainId: 'early_numeracy', total: earlyNumeracySkillGraph.skillIds.length };
+  }
+  if (sl === 'primary 1' || sl === 'p1') {
+    return { domainId: 'four_operations', total: operationsSkillGraph.skillIds.length };
+  }
+  return null;
+}
+
 function DiagnosticPrompts({ domains, level, containerClassName = '', containerStyle }) {
   const list = (domains && domains.length) ? domains : [defaultDomainForLevel(level)];
   return (
@@ -493,6 +522,10 @@ export default function StudentDashboard() {
   // domain), not hardcoded to Fractions. Seeded with Fractions so the card never
   // regresses if the registry call fails.
   const [diagnosticDomains, setDiagnosticDomains] = useState(() => [defaultDomainForLevel(user?.studentLevel || '')]);
+  // For operations-spine students (K2/P1): the headline mastery stat counted
+  // against the OP0xx operations graph, not the fractions pipeline. Null for
+  // fractions-spine students (the existing fractions logic drives their stat).
+  const [operationsStat, setOperationsStat] = useState(null);
 
   // Dev-only mock mode: explicit opt-in. Internal alpha/default users should
   // see real pipeline output, not synthetic dashboard data.
@@ -566,6 +599,29 @@ export default function StudentDashboard() {
             .filter((d) => d && d.domainId)
             .map((d) => ({ domainId: d.domainId, displayName: d.displayName || d.domainId }));
           if (domains.length) setDiagnosticDomains(domains);
+          // K2 (Early Numeracy) / P1 (Operations): headline mastery stat. Domain
+          // practice progress lives in MathPathStudentSkillState — exposed via each
+          // domain's /skill-states endpoint — NOT in MasteryRecord (/mastery), which
+          // only the legacy fractions system writes. So read the spine domain's
+          // skill-states (fire-and-forget so it doesn't block the dashboard render);
+          // the total is the domain's canonical curriculum size.
+          const spine = spineDomainForLevel(user?.studentLevel || '');
+          if (spine && !useMock) {
+            const spineStatesFn = spine.domainId === 'early_numeracy'
+              ? mathpathAPI.earlyNumeracySkillStates
+              : mathpathAPI.operationsSkillStates;
+            spineStatesFn()
+              .then((r) => {
+                if (!active) return;
+                const done = (Array.isArray(r?.data?.records) ? r.data.records : []).filter((s) =>
+                  ['mastered', 'accurate', 'fluent', 'retained'].includes(String(s.status || '').toLowerCase())
+                ).length;
+                setOperationsStat({ mastered: done, total: spine.total });
+              })
+              .catch(() => { if (active) setOperationsStat({ mastered: 0, total: spine.total }); });
+          } else {
+            setOperationsStat(spine ? { mastered: 0, total: spine.total } : null);
+          }
           setPayload(result);
           setAnalytics(analyticsResponse?.data || null);
           setProfileSummary(profile || null);
@@ -638,11 +694,15 @@ export default function StudentDashboard() {
   const retainedProgress = Math.max(0, Math.min(100, Math.round(vm.masteryProgress?.percentageRetained || 0)));
   const hasActivity = (learningTimeline || []).length > 0 || Number(profileSummary?.practiceSessions || 0) > 0 || Number(profileSummary?.questionsSolved || 0) > 0;
   const profileProgress = profileSummary?.progress || {};
-  const totalSkills = Math.max(1, Number(profileProgress.total || vm.masteryProgress?.totalSkills || fractionSkillGraph.skillIds.length || 26));
+  const totalSkills = Math.max(1, operationsStat
+    ? operationsStat.total
+    : Number(profileProgress.total || vm.masteryProgress?.totalSkills || fractionSkillGraph.skillIds.length || 26));
   const masteredCount = Array.isArray(vm.masteryProgress?.masteredSkills)
     ? vm.masteryProgress.masteredSkills.length
     : Math.round((courseProgress / 100) * totalSkills);
-  const safeMasteredCount = Math.max(0, Math.min(totalSkills, Number.isFinite(Number(profileProgress.mastered)) ? Number(profileProgress.mastered) : masteredCount));
+  const safeMasteredCount = operationsStat
+    ? Math.max(0, Math.min(totalSkills, operationsStat.mastered))
+    : Math.max(0, Math.min(totalSkills, Number.isFinite(Number(profileProgress.mastered)) ? Number(profileProgress.mastered) : masteredCount));
   const profilePercentage = Number(profileProgress.percentage);
   const displayProgress = Number.isFinite(profilePercentage) ? Math.max(0, Math.min(100, Math.round(profilePercentage))) : courseProgress;
   const currentStreak = Number(profileSummary?.streak ?? 0);

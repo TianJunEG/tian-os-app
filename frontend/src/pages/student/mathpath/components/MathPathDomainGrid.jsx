@@ -10,6 +10,7 @@ import {
 // had routes but no entry point. Colour + icon per card keeps it lively for
 // lower-primary learners rather than the old grey utility strip.
 export const MATHPATH_DOMAINS = [
+  { slug: 'early-numeracy', label: 'Numeracy', blurb: 'Counting, comparing & number bonds', icon: ListOrdered, theme: 'from-pink-50 via-white to-rose-50 border-pink-100', chip: 'bg-pink-100 text-pink-700' },
   { slug: 'fractions', label: 'Fractions', blurb: 'Parts, equivalence & operations', icon: PieChart, theme: 'from-violet-50 via-white to-sky-50 border-violet-100', chip: 'bg-violet-100 text-violet-700' },
   { slug: 'decimals', label: 'Decimals', blurb: 'Place value & conversions', icon: Hash, theme: 'from-amber-50 via-white to-orange-50 border-amber-100', chip: 'bg-amber-100 text-amber-700' },
   { slug: 'percentages', label: 'Percentage', blurb: 'Of amounts, change & discount', icon: Percent, theme: 'from-rose-50 via-white to-pink-50 border-rose-100', chip: 'bg-rose-100 text-rose-700' },

@@ -674,7 +674,8 @@ function templateForSkill(skillId, variant, ctx) {
       // Circles and triangles cap at 8 and 6 parts respectively for clarity.
       const shapeChoice = Math.abs(s + variant) % 3;
       const useCircle = shapeChoice === 1 && d <= 8;
-      const useTriangle = shapeChoice === 2 && d <= 6;
+      // Only use triangle for d=4 or d=9 — those divide cleanly into equal sub-triangles (n²).
+      const useTriangle = shapeChoice === 2 && (d === 4 || d === 9);
       const shapeType = useCircle ? 'fraction_circle' : useTriangle ? 'fraction_triangle' : 'fraction_bar';
       const F001_BAR_PROMPTS = [
         'Look at the bar model below. What fraction is shaded?',

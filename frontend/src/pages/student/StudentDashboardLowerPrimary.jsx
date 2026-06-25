@@ -116,8 +116,12 @@ function LowerPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, m
       }
     : undefined;
   const sl = String(studentLevel || '').toLowerCase().trim();
-  const isK2orP1 = /k2|kindy|preschool/.test(sl) || sl === 'primary 1' || sl === 'p1';
-  const noPlacementRoute = isK2orP1 ? '/student/mathpath/operations/diagnostic' : '/student/mathpath/diagnostic';
+  const isK2 = /k2|kindy|preschool|kindergarten/.test(sl);
+  const isP1 = sl === 'primary 1' || sl === 'p1';
+  // K2 → gentle Numeracy Explore (no diagnostic); P1 → Operations check-in; else Fractions.
+  const noPlacementRoute = isK2
+    ? '/student/mathpath/early-numeracy'
+    : isP1 ? '/student/mathpath/operations/diagnostic' : '/student/mathpath/diagnostic';
   const cards = [
     {
       icon: BookOpen,
@@ -228,11 +232,15 @@ function levelToYear(level = '') {
 
 const LEVEL_LABELS = ['K2', 'P1', 'P2', 'P3', 'P4', 'P5', 'P6'];
 
+// The two halves of the gentle K2 Early Numeracy track (counting/numbers vs
+// part-whole & within-10 +/−). Both deep-link into the same early-numeracy
+// Explore track at a representative starting skill — NOT the P1-level
+// number-sense/operations domains (which K2 is no longer pushed into).
 const K2_TILES = [
   {
     label: 'Count & Numbers',
-    desc: 'Count to 20, bigger & smaller',
-    to: '/student/mathpath/number-sense',
+    desc: 'Count to 10, more or fewer',
+    to: '/student/mathpath/early-numeracy/practice?skill=EN001',
     Icon: Hash,
     colorClass: 'bg-indigo-50 border-indigo-100',
     iconBg: 'bg-indigo-100',
@@ -242,8 +250,8 @@ const K2_TILES = [
   },
   {
     label: 'Add & Take Away',
-    desc: 'Sums within 10, then 20',
-    to: '/student/mathpath/operations',
+    desc: 'Put together & take away, within 10',
+    to: '/student/mathpath/early-numeracy/practice?skill=EN007',
     Icon: Calculator,
     colorClass: 'bg-orange-50 border-orange-100',
     iconBg: 'bg-orange-100',
@@ -309,8 +317,9 @@ function K2TopicsView({ visibleDomains }) {
 }
 
 const DOMAIN_LIST = [
-  { flag: 'operations',    minYear: 0, maxYear: 6, label: 'Operations',        desc: 'Add, subtract, multiply & divide',        to: '/student/mathpath/operations',     bg: 'bg-orange-100',    iconColor: 'text-orange-600',   Icon: Calculator },
-  { flag: 'numberSense',   minYear: 0, maxYear: 4, label: 'Number Sense',      desc: 'Place value, counting & patterns',         to: '/student/mathpath/number-sense',   bg: 'bg-indigo-100',    iconColor: 'text-indigo-600',   Icon: Hash },
+  { flag: 'earlyNumeracy', minYear: 0, maxYear: 1, label: 'Numeracy',          desc: 'Counting, comparing & number bonds',       to: '/student/mathpath/early-numeracy', bg: 'bg-pink-100',      iconColor: 'text-pink-600',     Icon: Sparkles },
+  { flag: 'operations',    minYear: 1, maxYear: 6, label: 'Operations',        desc: 'Add, subtract, multiply & divide',        to: '/student/mathpath/operations',     bg: 'bg-orange-100',    iconColor: 'text-orange-600',   Icon: Calculator },
+  { flag: 'numberSense',   minYear: 1, maxYear: 4, label: 'Number Sense',      desc: 'Place value, counting & patterns',         to: '/student/mathpath/number-sense',   bg: 'bg-indigo-100',    iconColor: 'text-indigo-600',   Icon: Hash },
   { flag: 'mathpath',      minYear: 2, maxYear: 6, label: 'Fractions',         desc: 'Equivalent fractions, +−×÷ (P2–P6)',      to: '/student/mathpath/fractions',      bg: 'bg-emerald-tint',  iconColor: 'text-emerald',      Icon: BookOpen },
   { flag: 'money',         minYear: 1, maxYear: 4, label: 'Money',             desc: 'Dollars, cents & everyday calculations',   to: '/student/mathpath/money',          bg: 'bg-green-100',     iconColor: 'text-green-600',    Icon: DollarSign },
   { flag: 'time',          minYear: 1, maxYear: 5, label: 'Time',              desc: 'Clock, calendar & duration',               to: '/student/mathpath/time',           bg: 'bg-sky-100',       iconColor: 'text-sky-600',      Icon: Clock },
@@ -389,6 +398,7 @@ export default function StudentDashboardLowerPrimary({
         hasPlacement={vm.hasPlacement}
         visual={visual}
         assessmentReady={assessmentGate.ready}
+        studentLevel={studentLevel}
       />
 
       <section className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">

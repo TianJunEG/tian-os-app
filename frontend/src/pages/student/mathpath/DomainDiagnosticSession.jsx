@@ -5,7 +5,7 @@ import { diagnosticsAPI } from '../../../services/api';
 import { Alert, Badge, Button, Card, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
 import { MascotBubble } from '../../../components/MascotAvatar';
 import { useAuth } from '../../../context/AuthContext';
-import ManipulativeDotArray, { parseDotStem, numericLine } from '../../../components/learning/ManipulativeDotArray';
+import ManipulativeDotArray, { parseDotStem, numericLine, toSpeakable, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram } from '../../../components/learning/ManipulativeDotArray';
 import { speak, setVoiceEnabled } from '../../../utils/sound';
 import { getMascotVoice } from '../../../config/mascots';
 
@@ -72,22 +72,6 @@ function bandTone(band) {
   if (band === 'ready') return 'success';
   if (band === 'progressing') return 'gold';
   return 'navy';
-}
-
-function toSpeakable(text = '') {
-  return String(text)
-    .split('\n')
-    .filter((line) => !/^[\s⬤●○+\-×÷=?]+$/.test(line.trim()))
-    .join(' ')
-    .replace(/[⬤●○]/g, '')
-    .replace(/\+/g, ' plus ')
-    .replace(/[−–-]/g, ' minus ')
-    .replace(/[×]/g, ' times ')
-    .replace(/[÷]/g, ' divided by ')
-    .replace(/=/g, ' equals ')
-    .replace(/\?/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
 }
 
 export default function DomainDiagnosticSession() {
@@ -292,6 +276,50 @@ export default function DomainDiagnosticSession() {
         {(() => {
           const prompt = question?.prompt || '';
           const dotData = parseDotStem(prompt);
+          const moneyData = domain.segment === 'money' ? parseMoneyPrompt(prompt) : null;
+          // Prefer the GENERATED coin/note diagram over fragile prompt parsing.
+          const coinTokens = domain.segment === 'money' ? parseCoinsDiagram(question) : null;
+          if (coinTokens) {
+            return (
+              <>
+                <ManipulativeMoneyDiagram key={question?.questionId} tokens={coinTokens} />
+                <div className="flex items-center gap-2">
+                  <p className={isLowerPrimary ? 'text-xl font-bold text-ink-900' : 'text-lg font-semibold text-ink-900 whitespace-pre-wrap'}>{prompt}</p>
+                  <button
+                    type="button"
+                    aria-label="Read question"
+                    onClick={() => speak(toSpeakable(prompt), { rate: 0.8, gender: 'female' })}
+                    className="rounded-full p-1 text-ink-400 hover:text-emerald active:scale-90"
+                  >
+                    <Volume2 className="h-5 w-5" />
+                  </button>
+                </div>
+              </>
+            );
+          }
+          if (isLowerPrimary && moneyData && moneyData.a <= 20 && moneyData.b <= 20) {
+            return (
+              <>
+                <ManipulativeCoinArray
+                  key={question?.questionId}
+                  a={moneyData.a}
+                  b={moneyData.b}
+                  operator={moneyData.operator}
+                />
+                <div className="flex items-center gap-2">
+                  <p className="text-xl font-bold text-ink-900">{prompt}</p>
+                  <button
+                    type="button"
+                    aria-label="Read question"
+                    onClick={() => speak(toSpeakable(prompt), { rate: 0.8, gender: 'female' })}
+                    className="rounded-full p-1 text-ink-400 hover:text-emerald active:scale-90"
+                  >
+                    <Volume2 className="h-5 w-5" />
+                  </button>
+                </div>
+              </>
+            );
+          }
           if (isLowerPrimary && dotData) {
             return (
               <>
@@ -315,7 +343,7 @@ export default function DomainDiagnosticSession() {
               </>
             );
           }
-          return <p className="text-lg font-semibold text-ink-900">{prompt}</p>;
+          return <p className="text-lg font-semibold text-ink-900 whitespace-pre-wrap">{prompt}</p>;
         })()}
 
         {question?.type === 'mcq' && (question.choices || []).length > 0 ? (
