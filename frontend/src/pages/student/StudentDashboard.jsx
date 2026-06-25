@@ -520,15 +520,18 @@ export default function StudentDashboard() {
         const persistedMastery = masteryResponse?.data || {};
         const diagnosticResult = shapeLatestDiagnostic(latest);
         const persistedRecords = Array.isArray(persistedMastery.records) ? persistedMastery.records : [];
+        // Prefer the framework code (F012-style) over the raw ObjectId so these
+        // ids match the fractions skill graph the dashboard compares against.
+        const masteryCodeFor = (record) => record.skillCode || record.frameworkSkillId || record.skillId;
         const persistedMasteredSkillIds = persistedRecords
           .filter((record) => ['mastered', 'accurate', 'fluent', 'retained'].includes(String(record.status || record.masteryState || '').toLowerCase()))
-          .map((record) => record.skillCode || record.skillId)
+          .map(masteryCodeFor)
           .filter(Boolean);
         const persistedWeakSkillIds = [
           ...persistedRecords
             .filter((record) => ['needs_review', 'needsreview', 'weak', 'forgotten'].includes(String(record.status || record.masteryState || '').toLowerCase()))
-            .map((record) => record.skillCode || record.skillId),
-          ...(persistedMastery.weakSkills || []).map((row) => row?.skillCode || row?.skillId),
+            .map(masteryCodeFor),
+          ...(persistedMastery.weakSkills || []).map((row) => row?.skillCode || row?.frameworkSkillId || row?.skillId),
         ].filter(Boolean);
         const masteredSkillIds = [
           ...(diagnosticResult.masteredSkillIds || []),

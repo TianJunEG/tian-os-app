@@ -1848,7 +1848,12 @@ router.get('/', protect, asyncHandler(async (req, res) => {
     const shaped = records.map((r) => {
       const masteryState = deriveMastery(r);
       return {
-        skillId: r.skillId?._id, skillName: r.skillId?.name || '', topicName: r.skillId?.topicId?.name || '',
+        skillId: r.skillId?._id,
+        // Stable curriculum code (e.g. F012) so the learning-path pages can match
+        // mastery records against their skill graphs (which key by framework
+        // code, not ObjectId). Additive; skillId stays the ObjectId.
+        frameworkSkillId: r.skillId?.metadata?.mathPathSkillId || r.skillId?.metadata?.frameworkCode || '',
+        skillName: r.skillId?.name || '', topicName: r.skillId?.topicId?.name || '',
         // Canonical domainId derived from the skill slug prefix, so adult
         // dashboards can filter mastery by domain (additive; may be null for
         // skills whose slug prefix is unrecognised).
@@ -1876,7 +1881,9 @@ router.get('/', protect, asyncHandler(async (req, res) => {
     const rec = await recommendNextSkill(student._id);
     const recStatus = rec?.record?.status || 'not_started';
     const recommended = rec ? {
-      skillId: rec.skill._id, skillName: rec.skill.name, topicName: rec.skill.topicId?.name || '',
+      skillId: rec.skill._id,
+      frameworkSkillId: rec.skill.metadata?.mathPathSkillId || rec.skill.metadata?.frameworkCode || '',
+      skillName: rec.skill.name, topicName: rec.skill.topicId?.name || '',
       score: rec.record?.score ?? 0, status: recStatus, statusLabel: STATUS_LABEL[recStatus] || recStatus,
       reason: rec.reason, target: rec.target, mode: rec.mode, masteryState: rec.masteryState,
       masteryLabel: MASTERY_LABEL[rec.masteryState], confidence: rec.confidence,
