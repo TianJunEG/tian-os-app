@@ -265,6 +265,7 @@ export default function SimilarQuestionPractice() {
           allowNoWorking={workingRequirement.allowNoWorking}
           submittedImage={currentWorking.workingImage || ''}
           submittedStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
+          initialMathObjects={currentWorking.workingMathObjects || EMPTY_STROKES}
           initialColumnGrid={currentWorking.workingColumnGrid || null}
           initialMathSteps={currentWorking.workingSteps || null}
           initialSubmitted={Boolean(currentWorking.workingSubmitted)}
