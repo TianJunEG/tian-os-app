@@ -716,7 +716,8 @@ export default function StudentDashboard() {
   // (F001…F026), not a count fabricated from "the first N F-codes." Filter the
   // real mastered IDs to fraction codes only, so non-fractions mastery doesn't
   // wrongly unlock the gate and a fractions student is gated on the right set.
-  const masteredFractionCodes = (masteredSkillIds || []).filter((id) => /^F\d{3}$/i.test(String(id))).map((id) => String(id).toUpperCase());
+  const masteredSkillIds = skillIds(vm.masteryProgress?.masteredSkills);
+  const masteredFractionCodes = masteredSkillIds.filter((id) => /^F\d{3}$/i.test(String(id))).map((id) => String(id).toUpperCase());
   const assessmentGate = getFractionAssessmentBlueprintReadiness({
     completedSkillIds: masteredFractionCodes,
   });
