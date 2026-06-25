@@ -61,6 +61,12 @@ const SHAPE_OBJECTS = {
   rectangle: ['🚪', '📱', '📺', '🚌'],
 };
 const DIRECTIONS = { up: '⬆️', down: '⬇️', left: '⬅️', right: '➡️' };
+// Strand D (Measuring). Each pair is [more, less] for the attribute: the first
+// is longer / taller / heavier / holds-more.
+const LENGTH_PAIRS = [['🐍', '🐛'], ['🚂', '🚗'], ['🥖', '🍪'], ['📏', '📎'], ['🪱', '🐞']];
+const HEIGHT_PAIRS = [['🦒', '🐈'], ['🌳', '🌷'], ['🏢', '🏠'], ['🗼', '🚗'], ['🧍', '👶']];
+const WEIGHT_PAIRS = [['🐘', '🐭'], ['🪨', '🪶'], ['🚗', '🎈'], ['🐋', '🐠'], ['📚', '🍃']];
+const CAPACITY_PAIRS = [['🛁', '🥤'], ['🪣', '🥛'], ['🍶', '🥄'], ['🫙', '🧪']];
 
 // Build MCQ number choices around a correct numeric answer (no negatives, deduped).
 function numberChoices(rng, correct, { min = 0, max = 20, span = 3 } = {}) {
@@ -333,6 +339,18 @@ function genDirection(rng, skill) {
   });
 }
 
+// ── Strand D — Measuring (compare by one attribute) ──────────────────────────
+function measureCompare(rng, skill, { pairs, moreWord, lessWord, morePrompt, lessPrompt }) {
+  const [more, less] = pick(rng, pairs);
+  const askMore = rng() < 0.5;
+  return mcq({
+    skill, familySuffix: askMore ? '001' : '002',
+    prompt: askMore ? (morePrompt || `Which one is ${moreWord}?`) : (lessPrompt || `Which one is ${lessWord}?`),
+    correct: askMore ? more : less,
+    choices: shuffle(rng, [more, less]),
+  });
+}
+
 const BUILDERS = {
   EN001: (rng, skill) => genCount(rng, skill, { min: 2, max: 10 }),
   EN002: (rng, skill) => genCount(rng, skill, { min: 1, max: 10 }),
@@ -350,6 +368,10 @@ const BUILDERS = {
   EN014: (rng, skill) => genShapeAttributes(rng, skill),
   EN015: (rng, skill) => genShapesAround(rng, skill),
   EN016: (rng, skill) => genDirection(rng, skill),
+  EN017: (rng, skill) => measureCompare(rng, skill, { pairs: LENGTH_PAIRS, moreWord: 'longer', lessWord: 'shorter' }),
+  EN018: (rng, skill) => measureCompare(rng, skill, { pairs: HEIGHT_PAIRS, moreWord: 'taller', lessWord: 'shorter' }),
+  EN019: (rng, skill) => measureCompare(rng, skill, { pairs: WEIGHT_PAIRS, moreWord: 'heavier', lessWord: 'lighter' }),
+  EN020: (rng, skill) => measureCompare(rng, skill, { pairs: CAPACITY_PAIRS, morePrompt: 'Which one holds more?', lessPrompt: 'Which one holds less?' }),
 };
 
 export function generateEarlyNumeracyQuestionSet({ skillId, count = 6, sessionSalt = '0' } = {}) {

@@ -85,6 +85,17 @@ describe('generateEarlyNumeracyQuestionSet', () => {
     }
   });
 
+  it('measuring questions compare exactly two objects on the right attribute', () => {
+    for (const skillId of ['EN017', 'EN018', 'EN019', 'EN020']) {
+      const set = generateEarlyNumeracyQuestionSet({ skillId, count: 10, sessionSalt: 'm' });
+      for (const q of set) {
+        expect(q.choices).toHaveLength(2);
+        expect(q.choices).toContain(q.answer.display);
+        expect(/longer|shorter|taller|heavier|lighter|holds more|holds less/.test(q.prompt)).toBe(true);
+      }
+    }
+  });
+
   it('is deterministic for the same seed', () => {
     const a = generateEarlyNumeracyQuestionSet({ skillId: 'EN001', count: 4, sessionSalt: 'same' });
     const b = generateEarlyNumeracyQuestionSet({ skillId: 'EN001', count: 4, sessionSalt: 'same' });
