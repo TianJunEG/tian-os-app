@@ -423,11 +423,14 @@ export function RecommendedNextSection({ currentSkill, nextAction, hasPlacement,
   const items = [
     {
       icon: ArrowRight,
-      title: isReturning ? 'Continue Learning' : 'Take Your Check-In',
-      body: isReturning ? currentSkill.skillName : 'We will find your best starting point.',
-      to: isReturning ? action.to : '/student/mathpath/diagnostic',
+      // For brand-new students we route to the MathPath home (domain grid)
+      // rather than the fractions-only check-in intro — non-fractions pilot
+      // students shouldn't be force-fed fractions.
+      title: isReturning ? 'Continue Learning' : 'Start MathPath',
+      body: isReturning ? currentSkill.skillName : 'Pick a topic to begin.',
+      to: isReturning ? action.to : '/student/mathpath',
       state: isReturning && action.to?.startsWith('/student/mathpath/practice/') ? continueState : undefined,
-      cta: isReturning ? action.label : 'Start Check-In',
+      cta: isReturning ? action.label : 'Start',
       primary: true,
     },
     {

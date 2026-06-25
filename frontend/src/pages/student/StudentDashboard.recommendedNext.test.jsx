@@ -22,15 +22,17 @@ function r(node) {
 }
 
 describe('RecommendedNextSection — brand-new student', () => {
-  it('shows check-in copy when there is no current skill', () => {
+  it('shows "Start MathPath" / domain-picker copy when there is no current skill', () => {
     r(<RecommendedNextSection
       currentSkill={null}
       nextAction={nextAction}
       hasPlacement={false}
       visual={visual}
     />);
-    expect(screen.getByText('Take Your Check-In')).toBeInTheDocument();
-    expect(screen.getByText(/find your best starting point/i)).toBeInTheDocument();
+    // Updated copy: brand-new students go to the MathPath domain picker
+    // (not the fractions-only intro screen). Copy promises that.
+    expect(screen.getByText('Start MathPath')).toBeInTheDocument();
+    expect(screen.getByText(/Pick a topic to begin/i)).toBeInTheDocument();
     // The misleading "Pick up where you left off" must NOT appear.
     expect(screen.queryByText(/Pick up where you left off/i)).toBeNull();
     expect(screen.queryByText('Continue Learning')).toBeNull();
@@ -43,7 +45,7 @@ describe('RecommendedNextSection — brand-new student', () => {
       hasPlacement
       visual={visual}
     />);
-    expect(screen.getByText('Take Your Check-In')).toBeInTheDocument();
+    expect(screen.getByText('Start MathPath')).toBeInTheDocument();
     expect(screen.queryByText('Continue Learning')).toBeNull();
     expect(screen.queryByText(/Pick up where you left off/i)).toBeNull();
   });

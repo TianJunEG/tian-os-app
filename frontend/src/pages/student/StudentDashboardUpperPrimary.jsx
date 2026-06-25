@@ -134,9 +134,11 @@ function UpperPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, m
   const cards = [
     {
       icon: BookOpen,
-      title: isReturning ? 'Continue Learning' : 'Take Your Check-In',
-      body: isReturning ? currentSkill.skillName : 'We will find your best starting point.',
-      to: isReturning ? action.to : '/student/mathpath/diagnostic',
+      // Route brand-new students to the MathPath home (domain grid) so they
+      // pick a topic — never auto-funnel them into the fractions check-in.
+      title: isReturning ? 'Continue Learning' : 'Start MathPath',
+      body: isReturning ? currentSkill.skillName : 'Pick a topic to begin.',
+      to: isReturning ? action.to : '/student/mathpath',
       state: isReturning && action.to?.startsWith('/student/mathpath/practice/') ? continueState : undefined,
       tone: 'from-emerald-50 to-white text-emerald-700',
       disabled: isReturning ? action.disabled : false,

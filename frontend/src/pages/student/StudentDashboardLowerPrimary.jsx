@@ -122,9 +122,12 @@ function LowerPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, m
   const isK2 = /k2|kindy|preschool|kindergarten/.test(sl);
   const isP1 = sl === 'primary 1' || sl === 'p1';
   // K2 → gentle Numeracy Explore (no diagnostic); P1 → Operations check-in; else Fractions.
+  // K2 → gentle Numeracy Explore (no diagnostic), P1 → Operations check-in
+  // (deliberate level-appropriate defaults). Older lower-primary students go
+  // to MathPath home (domain grid) so they pick — never force fractions.
   const noPlacementRoute = isK2
     ? '/student/mathpath/early-numeracy'
-    : isP1 ? '/student/mathpath/operations/diagnostic' : '/student/mathpath/diagnostic';
+    : isP1 ? '/student/mathpath/operations/diagnostic' : '/student/mathpath';
   const cards = [
     {
       icon: BookOpen,
