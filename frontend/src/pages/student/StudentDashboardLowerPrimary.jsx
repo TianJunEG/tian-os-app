@@ -101,6 +101,9 @@ function LowerPrimaryStatCard({ icon: Icon, img, label, value, subtitle, caption
 }
 
 function LowerPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, masteredSkillCount = 0, visual, studentLevel, isKindergarten }) {
+  // Brand-new students shouldn't see "Pick up where you left off" — only treat
+  // them as returning when there's a real skill name to point at.
+  const isReturning = hasPlacement && Boolean(currentSkill?.skillName);
   const assessmentGate = getFractionAssessmentBlueprintReadiness({
     completedSkillIds: Array.from({ length: masteredSkillCount }, (_, index) => `F${String(index + 1).padStart(3, '0')}`),
   });
@@ -126,12 +129,14 @@ function LowerPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, m
     {
       icon: BookOpen,
       img: '/illustrations/icon-book.png',
-      title: 'Continue Learning',
-      body: 'Pick up where you left off',
-      to: hasPlacement ? action.to : noPlacementRoute,
-      state: action.to?.startsWith('/student/mathpath/practice/') ? continueState : undefined,
+      // For lower-primary students keep the language gentle: a younger learner
+      // is more reassured by "Start" than "Take Your Check-In".
+      title: isReturning ? 'Continue Learning' : 'Start Maths',
+      body: isReturning ? currentSkill.skillName : "We'll find a fun place to start.",
+      to: isReturning ? action.to : noPlacementRoute,
+      state: isReturning && action.to?.startsWith('/student/mathpath/practice/') ? continueState : undefined,
       tone: 'border-emerald-100 from-emerald-50 to-white text-emerald-600',
-      disabled: action.disabled,
+      disabled: isReturning ? action.disabled : false,
     },
     { icon: Search, img: '/illustrations/icon-magnifier.png', title: 'Review Mistakes', body: 'Learn from your recent mistakes', to: '/student/mathpath/mistakes', tone: 'border-rose-100 from-rose-50 to-white text-rose-500' },
     ...(FEATURE_FLAGS.fluency ? [{ icon: Timer, img: '/illustrations/icon-stopwatch.png', title: 'Fluency Challenge', body: 'Get faster and more sure', to: '/student/mathpath/fluency', tone: 'border-sky-100 from-sky-50 to-white text-sky-600' }] : []),

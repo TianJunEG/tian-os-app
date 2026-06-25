@@ -113,6 +113,10 @@ function buildUpperPrimaryMetricCards(analytics = {}) {
 }
 
 function UpperPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, masteredSkillCount = 0 }) {
+  // A student is only "returning" when there's a real skill name to point at.
+  // Without this, brand-new students saw the misleading "Pick up where you
+  // left off" body even though they had nothing to continue.
+  const isReturning = hasPlacement && Boolean(currentSkill?.skillName);
   const assessmentGate = getFractionAssessmentBlueprintReadiness({
     completedSkillIds: Array.from({ length: masteredSkillCount }, (_, index) => `F${String(index + 1).padStart(3, '0')}`),
   });
@@ -130,12 +134,12 @@ function UpperPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, m
   const cards = [
     {
       icon: BookOpen,
-      title: 'Continue Learning',
-      body: 'Pick up where you left off',
-      to: hasPlacement ? action.to : '/student/mathpath/diagnostic',
-      state: action.to?.startsWith('/student/mathpath/practice/') ? continueState : undefined,
+      title: isReturning ? 'Continue Learning' : 'Take Your Check-In',
+      body: isReturning ? currentSkill.skillName : 'We will find your best starting point.',
+      to: isReturning ? action.to : '/student/mathpath/diagnostic',
+      state: isReturning && action.to?.startsWith('/student/mathpath/practice/') ? continueState : undefined,
       tone: 'from-emerald-50 to-white text-emerald-700',
-      disabled: action.disabled,
+      disabled: isReturning ? action.disabled : false,
     },
     { icon: Search, title: 'Review Mistakes', body: 'Learn from your recent mistakes', to: '/student/mathpath/mistakes', tone: 'from-amber-50 to-white text-amber-700' },
     ...(FEATURE_FLAGS.fluency ? [{ icon: Timer, title: 'Fluency Challenge', body: 'Improve speed and accuracy', to: '/student/mathpath/fluency', tone: 'from-blue-50 to-white text-blue-700' }] : []),
