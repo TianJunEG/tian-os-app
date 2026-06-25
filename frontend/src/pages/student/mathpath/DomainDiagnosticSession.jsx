@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, Sparkles, Volume2, X } from 'lucide-react';
+import { ArrowRight, CheckCircle2, ChevronDown, ChevronUp, Pencil, Sparkles, Volume2, X } from 'lucide-react';
+import WorkingCanvas from '../../../components/learning/WorkingCanvas';
 import { diagnosticsAPI } from '../../../services/api';
 import { Alert, Badge, Button, Card, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
 import { MascotBubble } from '../../../components/MascotAvatar';
@@ -89,6 +90,7 @@ export default function DomainDiagnosticSession() {
   const [question, setQuestion] = useState(null);
   const [progress, setProgress] = useState({ answeredCount: 0, estimatedQuestionCount: 8 });
   const [draft, setDraft] = useState('');
+  const [showScratchpad, setShowScratchpad] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [encouragement, setEncouragement] = useState('');
@@ -155,6 +157,7 @@ export default function DomainDiagnosticSession() {
         setProgress(data.progress || progress);
         setEncouragement(data.supportiveCopy || '');
         setDraft('');
+        setShowScratchpad(false);
         startedAt.current = Date.now();
       }
     } catch (e) {
@@ -392,6 +395,30 @@ export default function DomainDiagnosticSession() {
           />
         )}
       </Card>
+
+      {/* Optional scratchpad — diagnostics now offer the same working canvas
+          students get in practice, so multi-step problems (volume, money,
+          measurement…) have somewhere to think instead of forcing mental math. */}
+      <button
+        type="button"
+        onClick={() => setShowScratchpad((v) => !v)}
+        className="mt-3 flex w-full items-center gap-2 rounded-lg border border-dashed border-ink-200 px-3 py-2 text-xs font-medium text-ink-500 transition-colors hover:border-ink-300 hover:bg-ink-50 hover:text-ink-600"
+      >
+        <Pencil className="h-3.5 w-3.5" />
+        <span className="flex-1 text-left">Scratchpad</span>
+        {showScratchpad ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+      </button>
+      {showScratchpad && (
+        <div className="mt-2">
+          <WorkingCanvas
+            questionId={`${sessionId}-${question?.questionId || progress.answeredCount}`}
+            label="Scratchpad"
+            required={false}
+            allowNoWorking={false}
+            compact
+          />
+        </div>
+      )}
 
       {submitError && (
         <div className="flex items-start gap-2">
