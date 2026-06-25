@@ -226,17 +226,21 @@ export default function FractionsLearningPathPage() {
         const masteryRes = await mathpathAPI.mastery();
         const mastery = masteryRes?.data || {};
         const records = Array.isArray(mastery.records) ? mastery.records : [];
+        // The fractions skill graph keys by framework code (F001…F026), so match
+        // mastery records by record.frameworkSkillId first; record.skillId is a
+        // Mongo ObjectId and would never match, leaving progress stuck at 0%.
+        const codeFor = (record) => record.frameworkSkillId || record.skillId;
         const masteredSkillIds = records
           .filter((record) => ['mastered', 'accurate', 'fluent', 'retained'].includes(String(record.status || '').toLowerCase()))
-          .map((record) => record.skillId)
+          .map(codeFor)
           .filter(Boolean);
         const weakSkillIds = records
           .filter((record) => ['needs_review', 'needsreview', 'weak'].includes(String(record.status || '').toLowerCase()))
-          .map((record) => record.skillId)
+          .map(codeFor)
           .filter(Boolean);
         const fluentSkillIds = records
           .filter((record) => ['fluent', 'retained'].includes(String(record.status || '').toLowerCase()))
-          .map((record) => record.skillId)
+          .map(codeFor)
           .filter(Boolean);
 
         const pipelineResult = runMathPathDomainPipeline({
@@ -386,11 +390,27 @@ export default function FractionsLearningPathPage() {
     navigate(to);
   };
 
+  // Scope the header progress to the student's visible (level-appropriate) skills
+  // rather than the full 26-skill P6 catalogue, so a P3 student isn't measured
+  // against secondary-tier fractions skills.
+  const visibleProgress = useMemo(() => {
+    const visibleArr = [...visibleSkillIds];
+    const totalVisible = visibleArr.length;
+    const within = (ids = []) => ids.filter((id) => visibleSkillIds.has(id));
+    return {
+      ...masteryProgress,
+      totalSkills: totalVisible || masteryProgress.totalSkills,
+      masteredSkills: within(masteryProgress.masteredSkills || []),
+      fluentSkills: within(masteryProgress.fluentSkills || []),
+      retainedSkills: within(masteryProgress.retainedSkills || []),
+    };
+  }, [visibleSkillIds, masteryProgress]);
+
   return (
     <div className="mx-auto max-w-5xl space-y-5">
       <PageHeader title="Fractions Learning Path" />
       <LearningPathHeader
-        progress={masteryProgress}
+        progress={visibleProgress}
         currentSkillName={currentSkillName}
         nextCta={nextCta}
         onPrimary={launchPrimary}

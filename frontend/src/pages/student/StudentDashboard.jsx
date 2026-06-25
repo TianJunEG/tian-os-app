@@ -553,15 +553,18 @@ export default function StudentDashboard() {
         const persistedMastery = masteryResponse?.data || {};
         const diagnosticResult = shapeLatestDiagnostic(latest);
         const persistedRecords = Array.isArray(persistedMastery.records) ? persistedMastery.records : [];
+        // Prefer the framework code (F012-style) over the raw ObjectId so these
+        // ids match the fractions skill graph the dashboard compares against.
+        const masteryCodeFor = (record) => record.skillCode || record.frameworkSkillId || record.skillId;
         const persistedMasteredSkillIds = persistedRecords
           .filter((record) => ['mastered', 'accurate', 'fluent', 'retained'].includes(String(record.status || record.masteryState || '').toLowerCase()))
-          .map((record) => record.skillCode || record.skillId)
+          .map(masteryCodeFor)
           .filter(Boolean);
         const persistedWeakSkillIds = [
           ...persistedRecords
             .filter((record) => ['needs_review', 'needsreview', 'weak', 'forgotten'].includes(String(record.status || record.masteryState || '').toLowerCase()))
-            .map((record) => record.skillCode || record.skillId),
-          ...(persistedMastery.weakSkills || []).map((row) => row?.skillCode || row?.skillId),
+            .map(masteryCodeFor),
+          ...(persistedMastery.weakSkills || []).map((row) => row?.skillCode || row?.frameworkSkillId || row?.skillId),
         ].filter(Boolean);
         const masteredSkillIds = [
           ...(diagnosticResult.masteredSkillIds || []),
@@ -709,8 +712,13 @@ export default function StudentDashboard() {
   const displayStreak = Math.max(0, currentStreak);
   const displayXp = Math.max(0, Math.round(learningXp));
   const dashboardAnalytics = analytics || {};
+  // The Fractions Mastery Check gate must check ACTUAL fraction skill codes
+  // (F001…F026), not a count fabricated from "the first N F-codes." Filter the
+  // real mastered IDs to fraction codes only, so non-fractions mastery doesn't
+  // wrongly unlock the gate and a fractions student is gated on the right set.
+  const masteredFractionCodes = (masteredSkillIds || []).filter((id) => /^F\d{3}$/i.test(String(id))).map((id) => String(id).toUpperCase());
   const assessmentGate = getFractionAssessmentBlueprintReadiness({
-    completedSkillIds: Array.from({ length: safeMasteredCount }, (_, index) => `F${String(index + 1).padStart(3, '0')}`),
+    completedSkillIds: masteredFractionCodes,
   });
   const currentSkillName = vm.currentSkill?.skillName || (vm.hasPlacement ? 'Continue Practice' : 'Fractions Diagnostic');
   const canResetStudentState = Boolean(user?.is_test_account || /^test\.student\d+@tianos\.test$/i.test(user?.email || ''));

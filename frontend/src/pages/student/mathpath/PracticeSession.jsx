@@ -420,6 +420,7 @@ function resolvePracticeIntent({ routeSessionId, locationState, progress }) {
     if (/^P2-(WN|AS|MD|MON|FR|ST|TM|GEO|WP)-\d{2}$/.test(skillId)) return skillId;
     if (/^P3-(WN|AS|MD|MON|MT|AP|ST|WP)-\d{2}$/.test(skillId)) return skillId;
     if (/^P4-(WN|FM|FO|FR|DEC|WP|ST)-\d{2}$/.test(skillId)) return skillId;
+    if (skillId === 'P4-DIAGNOSTIC') return skillId;
     if (/^P5-(WN|FR|DEC|PCT|RAT|GEO|AV|ST|WP)-\d{2}$/.test(skillId)) return skillId;
     if (/^P6-(ALG|AV)-\d{2}$/.test(skillId)) return skillId;
     return null;

@@ -5,11 +5,12 @@ import MathPathAssessmentSession from '../../models/mathpath/MathPathAssessmentS
 import MathPathDiagnosticSession from '../../models/mathpath/MathPathDiagnosticSession.js';
 import MathPathPracticeSession from '../../models/mathpath/MathPathPracticeSession.js';
 import MathPathStudentSkillState from '../../models/mathpath/MathPathStudentSkillState.js';
+import MathPathSkill from '../../models/mathpath/MathPathSkill.js';
 import MathPathWorkingSession from '../../models/mathpath/MathPathWorkingSession.js';
 import StudentXP from '../../models/studentProfile/StudentXP.js';
 import StudentAchievement from '../../models/studentProfile/StudentAchievement.js';
 import StudentLearningEvent from '../../models/studentProfile/StudentLearningEvent.js';
-import { slugPrefixForDomain, domainIdFromSlug } from '../../utils/skillSlugDomain.js';
+import { domainIdFromSlug } from '../../utils/skillSlugDomain.js';
 import { getDomainSkillGraph } from '../mathpath/domainSkillGraphServer.js';
 
 export const XP_VALUES = Object.freeze({
@@ -301,28 +302,21 @@ async function deriveMetrics(student) {
   // for the profile "days active" counter.
   const activityStreak = calculateActivityStreak(activityDates);
   const streak = activityStreak;
-  // Domain-aware skill total: count the curriculum skills in the student's
-  // current domain by slug prefix (mirrors domainIdFromSlug), so non-fractions
-  // students no longer get the degenerate max(masteredCount, 1) denominator
-  // (which made every non-fractions learner read X/X). Fractions keeps its
-  // existing count; unrecognised/empty domains fall back to the old value.
-  let totalSkills;
+  // Denominator: the real per-domain active-skill count for the student's current
+  // domain, so non-fractions students never fall through to max(mastered, 1)
+  // (which produced a degenerate N/N = 100%). Fractions keeps its pre-fetched
+  // slug-based count. Some domains (e.g. early_numeracy) live only as an in-memory
+  // skill graph and are not seeded into MathPathSkill, so fall back to the graph
+  // size before the legacy degenerate value.
+  let domainTotalSkills = 0;
   if (currentDomain === 'fractions') {
-    totalSkills = Math.max(totalFractionsSkills || 0, 26);
-  } else {
-    const prefix = slugPrefixForDomain(currentDomain);
-    const domainSkillCount = prefix
-      ? await Skill.countDocuments({ slug: new RegExp(`^${prefix}\\.`, 'i') })
-      : 0;
-    // Some domains (e.g. early_numeracy) live only as an in-memory skill graph and
-    // are NOT seeded into the Skill collection, so the DB count is 0. Fall back to
-    // the graph's own size before the degenerate max(mastered, 1) — otherwise the
-    // K2 profile bar would read X/X, the very thing this denominator fix removes.
-    const graphTotal = getDomainSkillGraph(currentDomain).totalSkills || 0;
-    totalSkills = domainSkillCount > 0
-      ? domainSkillCount
-      : (graphTotal > 0 ? graphTotal : Math.max(uniqueCount(masteredCodes), 1));
+    domainTotalSkills = Math.max(totalFractionsSkills || 0, 26);
+  } else if (currentDomain) {
+    try { domainTotalSkills = await MathPathSkill.countDocuments({ domainId: currentDomain, isActive: true }); }
+    catch { domainTotalSkills = 0; }
+    if (domainTotalSkills === 0) domainTotalSkills = getDomainSkillGraph(currentDomain).totalSkills || 0;
   }
+  const totalSkills = domainTotalSkills > 0 ? domainTotalSkills : Math.max(uniqueCount(masteredCodes), 1);
 
   // Mastered skills scoped to the current domain — drives the domain-labelled
   // "X / Y Skills Mastered" progress bar. (Top-level skillsMastered stays
