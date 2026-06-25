@@ -70,12 +70,13 @@ describe('MathPathAssignments student recovery pack UX', () => {
     renderPage();
 
     expect(await screen.findByText('Equivalent Fractions Recovery Pack')).toBeInTheDocument();
-    expect(screen.getByText(/We noticed difficulty generating equivalent fractions/i)).toBeInTheDocument();
-    expect(screen.getByText(/Worked example -> Visual explanation -> Guided practice -> Independent practice -> Mastery check/i)).toBeInTheDocument();
-    expect(screen.getByText(/Skills: Making equivalent fractions/i)).toBeInTheDocument();
+    // Why the pack exists is shown as a short source reason (sourceType: 'diagnostic').
+    expect(screen.getByText(/From check-in/i)).toBeInTheDocument();
+    // Skills render as friendly names, never raw F-codes.
+    expect(screen.getByText('Making equivalent fractions')).toBeInTheDocument();
     expect(screen.queryByText(/\bF011\b/)).not.toBeInTheDocument();
-    expect(screen.getByText(/Continue the pack until Tian OS unlocks your recheck/i)).toBeInTheDocument();
-    expect(screen.getByText(/Recheck unlocks after enough targeted practice/i)).toBeInTheDocument();
+    // Recheck gating is surfaced as a remaining-questions hint (3 of 12 done).
+    expect(screen.getByText(/9 questions to unlock recheck/i)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /Start Recovery Pack/i }));
 
@@ -101,10 +102,13 @@ describe('MathPathAssignments student recovery pack UX', () => {
 
     renderPage();
 
-    expect(await screen.findByText(/An uploaded paper found questions to strengthen/i)).toBeInTheDocument();
-    expect(screen.getByText(/Skills: Adding fractions with different denominators/i)).toBeInTheDocument();
+    expect(await screen.findByText('Paper Review Recovery Pack')).toBeInTheDocument();
+    // Paper-sourced packs show a "From paper review" reason (sourceType: 'paper_analysis').
+    expect(screen.getByText(/From paper review/i)).toBeInTheDocument();
+    expect(screen.getByText('Adding fractions with different denominators')).toBeInTheDocument();
     expect(screen.queryByText(/\bF018\b/)).not.toBeInTheDocument();
-    expect(screen.getByText(/ready to do a short recheck/i)).toBeInTheDocument();
+    // recheck.recommended === true surfaces the ready-to-recheck state.
+    expect(screen.getByText(/ready for recheck/i)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /Run Recheck/i }));
 
@@ -135,7 +139,7 @@ describe('MathPathAssignments student recovery pack UX', () => {
 
     renderPage();
 
-    expect(await screen.findByText(/You finished this pack/i)).toBeInTheDocument();
+    expect(await screen.findByText('Completed Recovery Pack')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Check Recheck Readiness/i }));
 
     await waitFor(() => {

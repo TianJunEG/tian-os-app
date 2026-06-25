@@ -60,8 +60,10 @@ function domainEmoji(title = '', skillIds = []) {
 }
 
 function sourceReason(assignment) {
-  const src = assignment.source;
-  if (src === 'paper_review') return 'From paper review';
+  // The API field is `sourceType` (e.g. 'diagnostic', 'paper_analysis'); fall
+  // back to a legacy `source` value if present.
+  const src = String(assignment.sourceType || assignment.source || '').toLowerCase();
+  if (src === 'paper_analysis' || src === 'paper_review') return 'From paper review';
   if (src === 'diagnostic') return 'From check-in';
   if (assignment.description?.toLowerCase().includes('weak')) return 'Weak skills identified';
   return 'Assigned practice';
