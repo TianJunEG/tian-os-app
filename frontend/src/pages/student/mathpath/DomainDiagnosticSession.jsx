@@ -450,6 +450,12 @@ export default function DomainDiagnosticSession() {
           if (qid) setStrokesByQuestion((prev) => ({ ...prev, [qid]: next }));
         }}
         onClose={() => setScratchpadOpen(false)}
+        // Answer capture: type the answer right where you did the working.
+        // Two-way bound to the page's main draft state so closing the overlay
+        // leaves the typed value in the underlying "Type your answer" input.
+        answerValue={draft}
+        onAnswerChange={setDraft}
+        onSubmitAnswer={() => { setScratchpadOpen(false); submitAnswer(); }}
       />
 
       {submitError && (

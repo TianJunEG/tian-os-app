@@ -45,7 +45,20 @@ const SIZES = [
   { label: 'Large',  value: 8 },
 ];
 
-export default function ScratchpadOverlay({ open = false, initialStrokes = [], onChange, onClose }) {
+export default function ScratchpadOverlay({
+  open = false,
+  initialStrokes = [],
+  onChange,
+  onClose,
+  // Optional answer-capture box: when both are provided, a floating "Your
+  // answer" input sits at the bottom of the screen so the student can do the
+  // working AND drop the answer in the same place. The value is two-way bound
+  // to the parent's draft state, so closing the overlay leaves the answer
+  // already in the page's main input.
+  answerValue,
+  onAnswerChange,
+  onSubmitAnswer,
+}) {
   const canvasRef = useRef(null);
   const drawingRef = useRef(false);
   const currentStrokeRef = useRef(null);
@@ -301,6 +314,43 @@ export default function ScratchpadOverlay({ open = false, initialStrokes = [], o
               {stamp.label}
             </button>
           ))}
+        </div>
+      )}
+
+      {/* Floating answer-capture box — pinned to the bottom of the viewport so
+          the student can type their answer right where they did the working.
+          Two-way bound: closing the overlay leaves the value in the parent's
+          main answer input. Only renders when the parent wires it. */}
+      {typeof onAnswerChange === 'function' && (
+        <div className="fixed inset-x-0 bottom-6 z-50 flex justify-center px-4 pointer-events-none">
+          <div className="pointer-events-auto flex items-center gap-2 rounded-2xl border border-line-soft bg-white/95 px-3 py-2 shadow-card backdrop-blur" style={{ minWidth: 280 }}>
+            <span className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Your answer</span>
+            <input
+              type="text"
+              inputMode="text"
+              value={answerValue ?? ''}
+              onChange={(e) => onAnswerChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && String(answerValue ?? '').trim() && typeof onSubmitAnswer === 'function') {
+                  e.preventDefault();
+                  onSubmitAnswer();
+                }
+              }}
+              placeholder="Type here"
+              aria-label="Your answer"
+              className="w-40 rounded-lg border border-ink-200 px-3 py-1.5 text-base focus:border-emerald focus:outline-none focus:ring-1 focus:ring-emerald"
+            />
+            {typeof onSubmitAnswer === 'function' && (
+              <button
+                type="button"
+                disabled={!String(answerValue ?? '').trim()}
+                onClick={() => onSubmitAnswer()}
+                className="rounded-lg bg-emerald px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-emerald-deep disabled:bg-line-soft disabled:text-ink-400"
+              >
+                Submit
+              </button>
+            )}
+          </div>
         </div>
       )}
 
