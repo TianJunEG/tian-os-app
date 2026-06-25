@@ -62,6 +62,9 @@ const SHAPE_OBJECTS = {
   rectangle: ['🚪', '📱', '📺', '🚌'],
 };
 const DIRECTIONS = { up: '⬆️', down: '⬇️', left: '⬅️', right: '➡️' };
+// Position (top/bottom) uses any two distinct friendly objects — the position is
+// what is being tested, not the objects.
+const POSITION_OBJECTS = ['🐱', '🐶', '🐦', '🐟', '🎈', '🧸', '⚽', '🍎', '🚗', '🌟'];
 // Strand D (Measuring). Each pair is [more, less] for the attribute: the first
 // is longer / taller / heavier / holds-more.
 const LENGTH_PAIRS = [['🐍', '🐛'], ['🚂', '🚗'], ['🥖', '🍪'], ['📏', '📎'], ['🪱', '🐞']];
@@ -329,6 +332,19 @@ function genShapesAround(rng, skill) {
   });
 }
 
+function genPosition(rng, skill) {
+  const [top, bottom] = shuffle(rng, POSITION_OBJECTS).slice(0, 2);
+  const askTop = rng() < 0.5;
+  return mcq({
+    skill, familySuffix: askTop ? '001' : '002',
+    prompt: askTop ? 'Which one is on top?' : 'Which one is at the bottom?',
+    correct: askTop ? top : bottom,
+    choices: shuffle(rng, [top, bottom]),
+    diagram: { kind: 'position', top, bottom },
+    misconceptionTag: 'en/confuses-top-bottom',
+  });
+}
+
 function genDirection(rng, skill) {
   const dir = pick(rng, Object.keys(DIRECTIONS));
   return mcq({
@@ -369,6 +385,7 @@ const BUILDERS = {
   EN014: (rng, skill) => genShapeAttributes(rng, skill),
   EN015: (rng, skill) => genShapesAround(rng, skill),
   EN016: (rng, skill) => genDirection(rng, skill),
+  EN021: (rng, skill) => genPosition(rng, skill),
   EN017: (rng, skill) => measureCompare(rng, skill, { pairs: LENGTH_PAIRS, moreWord: 'longer', lessWord: 'shorter' }),
   EN018: (rng, skill) => measureCompare(rng, skill, { pairs: HEIGHT_PAIRS, moreWord: 'taller', lessWord: 'shorter' }),
   EN019: (rng, skill) => measureCompare(rng, skill, { pairs: WEIGHT_PAIRS, moreWord: 'heavier', lessWord: 'lighter' }),

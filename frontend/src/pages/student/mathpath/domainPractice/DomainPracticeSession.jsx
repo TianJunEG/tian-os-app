@@ -6,7 +6,7 @@ import { MascotBubble } from '../../../../components/MascotAvatar';
 import { MathText } from '../../../../components/ui/Fraction';
 import FullScreenWorkingMode from '../../../../components/learning/FullScreenWorkingMode';
 import WorkingPreviewCard from '../../../../components/learning/WorkingPreviewCard';
-import ManipulativeDotArray, { parseDotStem, numericLine, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram, parseCountDiagram, ManipulativeCountArray, parseCompareDiagram, ManipulativeCompareSets, parsePatternDiagram, ManipulativePatternStrip, parseShapeChoice, ShapeGlyph } from '../../../../components/learning/ManipulativeDotArray';
+import ManipulativeDotArray, { parseDotStem, numericLine, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram, parseCountDiagram, ManipulativeCountArray, parseCompareDiagram, ManipulativeCompareSets, parsePatternDiagram, ManipulativePatternStrip, parseShapeChoice, ShapeGlyph, parsePositionDiagram, ManipulativePositionStack } from '../../../../components/learning/ManipulativeDotArray';
 import { speak, isVoiceEnabled, setVoiceEnabled } from '../../../../utils/sound';
 import { useAuth } from '../../../../context/AuthContext';
 import { getMascotForModule, getMascotVoice } from '../../../../config/mascots';
@@ -294,10 +294,11 @@ export default function DomainPracticeSession({ domain }) {
               // Shown at every level — it's the question's intended visual; the tap-to-
               // count hint just helps younger pupils.
               const coinTokens = domain === 'money' ? parseCoinsDiagram(current) : null;
-              // K2 Early Numeracy visuals (tap-to-count / pattern strip).
+              // K2 Early Numeracy visuals (tap-to-count / pattern / position).
               const countData = parseCountDiagram(current);
               const compareData = parseCompareDiagram(current);
               const patternData = parsePatternDiagram(current);
+              const positionData = parsePositionDiagram(current);
               if (coinTokens) {
                 return (
                   <>
@@ -327,6 +328,14 @@ export default function DomainPracticeSession({ domain }) {
                 return (
                   <>
                     <ManipulativePatternStrip key={current?.questionId} items={patternData.items} />
+                    <p className="text-xl font-bold text-ink-900">{prompt}</p>
+                  </>
+                );
+              }
+              if (isLPrimary && positionData) {
+                return (
+                  <>
+                    <ManipulativePositionStack key={current?.questionId} top={positionData.top} bottom={positionData.bottom} />
                     <p className="text-xl font-bold text-ink-900">{prompt}</p>
                   </>
                 );

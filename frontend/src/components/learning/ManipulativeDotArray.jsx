@@ -524,3 +524,26 @@ export function ShapeGlyph({ kind, size = 44, color = '#7c3aed' }) {
   if (kind === 'rectangle') return (<svg {...common}><rect x="3" y="11" width="34" height="18" rx="3" fill={color} /></svg>);
   return (<svg {...common}><polygon points="20,5 35,33 5,33" fill={color} /></svg>); // triangle
 }
+
+// ── K2 position: top/bottom stack (Strand C, NEL LG4.4) ──────────────────────
+// Generator emits diagram:{kind:'position', top, bottom}.
+export function parsePositionDiagram(question) {
+  const d = question?.diagram;
+  if (!d || d.kind !== 'position' || !d.top || !d.bottom) return null;
+  return { top: d.top, bottom: d.bottom };
+}
+
+export function ManipulativePositionStack({ top, bottom }) {
+  const Cell = (emoji, label) => (
+    <div className="flex items-center justify-between rounded-xl bg-white/70 px-4 py-2">
+      <span style={{ fontSize: 36, lineHeight: 1 }}>{emoji}</span>
+      <span className="text-xs font-semibold uppercase tracking-wide text-violet-400">{label}</span>
+    </div>
+  );
+  return (
+    <div className="mx-auto max-w-xs rounded-2xl bg-violet-50 p-4 space-y-2">
+      {Cell(top, 'top')}
+      {Cell(bottom, 'bottom')}
+    </div>
+  );
+}
