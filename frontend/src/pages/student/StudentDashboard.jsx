@@ -402,9 +402,15 @@ export function StudentLearningInsightCard({ analytics = {}, currentSkill = {}, 
 }
 
 
-function RecommendedNextSection({ currentSkill, nextAction, hasPlacement, visual, assessmentReady = true }) {
+export function RecommendedNextSection({ currentSkill, nextAction, hasPlacement, visual, assessmentReady = true }) {
   const action = actionMeta(nextAction, assessmentReady);
-  const continueState = hasPlacement
+  // A student is only effectively "returning" when there's a real skill to
+  // point them at. hasPlacement alone can be true via a stale/automatic
+  // recommendation, leaving currentSkill?.skillName empty — which used to
+  // render "Continue Learning / Pick up where you left off" to a brand-new
+  // student. Treat that as new-student-first-time and route to the check-in.
+  const isReturning = hasPlacement && Boolean(currentSkill?.skillName);
+  const continueState = isReturning
     ? {
         skillId: currentSkill?.skillId || null,
         questionCount: 8,
@@ -417,11 +423,11 @@ function RecommendedNextSection({ currentSkill, nextAction, hasPlacement, visual
   const items = [
     {
       icon: ArrowRight,
-      title: 'Continue Learning',
-      body: hasPlacement ? currentSkill?.skillName || 'Pick up where you left off.' : 'Find your best starting point.',
-      to: hasPlacement ? action.to : '/student/mathpath/diagnostic',
-      state: action.to?.startsWith('/student/mathpath/practice/') ? continueState : undefined,
-      cta: hasPlacement ? action.label : 'Start Diagnostic',
+      title: isReturning ? 'Continue Learning' : 'Take Your Check-In',
+      body: isReturning ? currentSkill.skillName : 'We will find your best starting point.',
+      to: isReturning ? action.to : '/student/mathpath/diagnostic',
+      state: isReturning && action.to?.startsWith('/student/mathpath/practice/') ? continueState : undefined,
+      cta: isReturning ? action.label : 'Start Check-In',
       primary: true,
     },
     {
