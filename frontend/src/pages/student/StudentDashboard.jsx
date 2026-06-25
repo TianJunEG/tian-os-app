@@ -348,16 +348,32 @@ function confidenceInsightFromBuckets(buckets = {}) {
   };
 }
 
-function StudentLearningInsightCard({ analytics = {}, currentSkill = {}, nextAction = {} }) {
+export function StudentLearningInsightCard({ analytics = {}, currentSkill = {}, nextAction = {} }) {
   const buckets = analytics.confidenceBuckets || {};
   const confidentIncorrect = Number(buckets.confidentIncorrect || 0);
   const unsureCorrect = Number(buckets.unsureCorrect || 0);
+  // Without any confidence-rated answers the engine has no real signal —
+  // building an "insight" from a bare questionsAnswered count fabricates
+  // patterns. Render an honest empty/encouragement state instead.
+  const confidenceSampleSize = Number(analytics.confidenceSampleSize ?? 0)
+    || Object.values(buckets).reduce((sum, v) => sum + Number(v || 0), 0);
+  if (!confidenceSampleSize) {
+    return (
+      <Card className="rounded-[18px] border-blue-100 bg-blue-50/60 p-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-blue-700">Learning Insight</p>
+        <p className="mt-2 text-sm leading-5 text-ink-600">
+          Complete a few questions to unlock your first insight — it will show patterns in how confident you are and where to focus next.
+        </p>
+      </Card>
+    );
+  }
+
   const correct = confidentIncorrect ? false : true;
   const confidence = confidentIncorrect ? 'high' : unsureCorrect ? 'low' : 'high';
   const insight = buildStudentInsight({
     correct,
     confidence,
-    occurrences: confidentIncorrect || unsureCorrect || Number(analytics.questionsAnswered || 0),
+    occurrences: confidentIncorrect || unsureCorrect || confidenceSampleSize,
     skillName: currentSkill?.skillName || 'your current skill',
     recommendedSkillName: currentSkill?.skillName || 'your current skill',
     nextStep: nextAction?.explanation || 'Continue with the recommended activity.',

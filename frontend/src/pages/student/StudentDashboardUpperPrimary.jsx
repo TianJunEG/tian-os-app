@@ -247,20 +247,27 @@ export default function StudentDashboardUpperPrimary({
   const cBuckets = dashboardAnalytics.confidenceBuckets || {};
   const cIncorrect = Number(cBuckets.confidentIncorrect || 0);
   const cUnsureCorrect = Number(cBuckets.unsureCorrect || 0);
-  const dashInsight = buildStudentInsight({
+  // Without any confidence-rated answers the engine has no signal — building
+  // an "insight" from bare questionsAnswered fabricates patterns. Gate so the
+  // insight is only used when there's real data; the card render checks this.
+  const cSampleSize = Number(dashboardAnalytics.confidenceSampleSize ?? 0)
+    || Object.values(cBuckets).reduce((sum, v) => sum + Number(v || 0), 0);
+  const dashInsight = cSampleSize ? buildStudentInsight({
     correct: !cIncorrect,
     confidence: cIncorrect ? 'high' : cUnsureCorrect ? 'low' : 'high',
-    occurrences: cIncorrect || cUnsureCorrect || Number(dashboardAnalytics.questionsAnswered || 0),
+    occurrences: cIncorrect || cUnsureCorrect || cSampleSize,
     skillName: vm.currentSkill?.skillName || 'your current skill',
     recommendedSkillName: vm.currentSkill?.skillName || 'your current skill',
     nextStep: vm.nextAction?.explanation || 'Continue with the recommended activity.',
     strongImprovement: Number(dashboardAnalytics.accuracyRate || 0) >= 80,
-  });
-  const insightSummary = cIncorrect > 0
-    ? 'confident but answered incorrectly'
-    : cUnsureCorrect > 0
-      ? 'unsure but answered correctly'
-      : 'confidence aligned with performance';
+  }) : null;
+  const insightSummary = !cSampleSize
+    ? 'building your confidence picture'
+    : cIncorrect > 0
+      ? 'confident but answered incorrectly'
+      : cUnsureCorrect > 0
+        ? 'unsure but answered correctly'
+        : 'confidence aligned with performance';
   const confidenceSubtitle = cIncorrect > 0 ? 'sure-but-slipped moments' : cUnsureCorrect > 0 ? 'unsure-but-correct moments' : null;
 
   const cardBase = {
@@ -406,7 +413,7 @@ export default function StudentDashboardUpperPrimary({
               <ChevronRight size={20} />
             </div>
           </div>
-          {expandedCards.li && (
+          {expandedCards.li && (dashInsight ? (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3" style={{ marginTop: 22 }}>
               <div>
                 <div style={{ fontSize: 16, fontWeight: 700, color: '#1c2433', marginBottom: 7 }}>Observation</div>
@@ -421,7 +428,11 @@ export default function StudentDashboardUpperPrimary({
                 <div style={{ fontSize: 15, color: '#5a6675', lineHeight: 1.6 }}>{dashInsight.nextStep}</div>
               </div>
             </div>
-          )}
+          ) : (
+            <div style={{ marginTop: 22, fontSize: 15, color: '#5a6675', lineHeight: 1.6 }}>
+              Complete a few questions to unlock your first insight — it’ll show where you’re confident and where to focus next.
+            </div>
+          ))}
         </div>
 
         {/* Recommended Next */}
