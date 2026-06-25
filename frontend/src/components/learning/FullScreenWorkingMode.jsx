@@ -365,6 +365,14 @@ export default function FullScreenWorkingMode({
   const scrollRef = useRef(null);
   const drawingRef = useRef(false);
   const currentStrokeRef = useRef(null);
+
+  // Block text selection while a stroke is active (prevents the pen from
+  // highlighting text or stealing focus into an input).
+  useEffect(() => {
+    const blockSelection = (event) => { if (drawingRef.current) event.preventDefault(); };
+    document.addEventListener('selectstart', blockSelection);
+    return () => document.removeEventListener('selectstart', blockSelection);
+  }, []);
   const strokesRef = useRef(Array.isArray(initialStrokes) ? initialStrokes : []);
   const mathObjectsRef = useRef([]);
   const objectDragRef = useRef(null);
@@ -432,6 +440,7 @@ export default function FullScreenWorkingMode({
 
   const beginStroke = (event) => {
     event.preventDefault();
+    if (typeof window !== 'undefined') window.getSelection?.()?.removeAllRanges?.();
     if (toolRef.current === 'text') {
       event.stopPropagation();
       const point = pointFromEvent(event);
@@ -981,9 +990,10 @@ export default function FullScreenWorkingMode({
               ref={canvasRef}
               width={CANVAS_WIDTH}
               height={CANVAS_HEIGHT}
-              className="absolute inset-0 block touch-none rounded-xl"
-              style={{ width: `${CANVAS_WIDTH}px`, height: `${CANVAS_HEIGHT}px` }}
+              className="absolute inset-0 block touch-none select-none rounded-xl"
+              style={{ width: `${CANVAS_WIDTH}px`, height: `${CANVAS_HEIGHT}px`, WebkitTouchCallout: 'none' }}
               aria-label="Full-screen working canvas"
+              onContextMenu={(event) => event.preventDefault()}
               onPointerDown={beginPointerStroke}
               onPointerMove={movePointerStroke}
               onPointerUp={endPointerStroke}

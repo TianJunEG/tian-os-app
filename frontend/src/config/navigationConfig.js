@@ -26,10 +26,9 @@ export const NAV_ITEMS = [
   // Parent (v0.3+)
   { key: 'parent.home', label: 'Home', path: '/parent', icon: Home, roles: ['parent'], minVersion: 'v0.3', featureFlag: 'parent' },
   { key: 'parent.children', label: 'Children', path: '/parent/children', icon: Users, roles: ['parent'], minVersion: 'v0.3', featureFlag: 'parent' },
-  { key: 'parent.progress', label: 'Child Progress', path: '/parent/children/:studentId/progress', icon: GitBranch, roles: ['parent'], minVersion: 'v0.3', featureFlag: 'parent' },
-  { key: 'parent.weak', label: 'Weak Areas', path: '/parent/children/:studentId/weak-topics', icon: BookOpen, roles: ['parent'], minVersion: 'v0.3', featureFlag: 'parent' },
-  { key: 'parent.recommend', label: 'Recommendations', path: '/parent/children/:studentId/actions', icon: CalendarDays, roles: ['parent'], minVersion: 'v0.3', featureFlag: 'parent' },
-  { key: 'parent.worksheets', label: 'Worksheets', path: '/parent/children/:studentId/worksheets', icon: FileText, roles: ['parent'], minVersion: 'v0.3', featureFlag: 'worksheets' },
+  // Per-child screens (Progress, Weak Areas, Recommendations, Worksheets) require a
+  // :studentId and are reached by picking a child from Children — omitted from the
+  // persistent (child-agnostic) parent nav to avoid dead-end ':studentId' links.
   { key: 'parent.tutoraccess', label: 'Tutor Access', path: '/parent/link-requests', icon: Link2, roles: ['parent'], minVersion: 'v0.3', featureFlag: 'parent' },
   { key: 'parent.notifications', label: 'Notifications', path: '/parent/notifications', icon: Bell, roles: ['parent'], minVersion: 'v0.3', featureFlag: 'parent' },
 
@@ -45,10 +44,9 @@ export const NAV_ITEMS = [
   // Teacher (v0.5+)
   { key: 'teacher.home', label: 'Home', path: '/teacher', icon: Home, roles: ['teacher'], minVersion: 'v0.5', featureFlag: 'teacher' },
   { key: 'teacher.classes', label: 'Classes', path: '/teacher/classes', icon: LayoutGrid, roles: ['teacher'], minVersion: 'v0.5', featureFlag: 'teacher' },
-  { key: 'teacher.weakgroups', label: 'Weak Groups', path: '/teacher/classes/:id/groups', icon: BookOpen, roles: ['teacher'], minVersion: 'v0.5', featureFlag: 'teacher' },
-  { key: 'teacher.assignments', label: 'Assign', path: '/teacher/classes/:id/assign', icon: ClipboardList, roles: ['teacher'], minVersion: 'v0.5', featureFlag: 'teacher' },
-  { key: 'teacher.results', label: 'Results', path: '/teacher/classes/:id/reports', icon: Book, roles: ['teacher'], minVersion: 'v0.5', featureFlag: 'teacher' },
-  { key: 'teacher.remediation', label: 'Remediation', path: '/teacher/classes/:id/interventions', icon: CheckSquare, roles: ['teacher'], minVersion: 'v0.5', featureFlag: 'teacher' },
+  // Per-class screens (Weak Groups, Assign, Results, Remediation) require a :id and
+  // are reached via ClassNav after picking a class from Classes — omitted from the
+  // persistent (class-agnostic) teacher nav to avoid dead-end ':id' links.
 
   // Student Care MVP
   { key: 'studentcare.dashboard', label: 'Dashboard', path: '/student-care/dashboard', icon: Home, roles: ['student_care'], minVersion: 'v0.1' },

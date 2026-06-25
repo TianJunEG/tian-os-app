@@ -101,22 +101,38 @@ const openai = {
 
 const PROVIDERS = { anthropic, openai };
 
+// User-safe message for any AI-not-configured failure. The detailed server-config
+// reason (which env key is missing) stays on Error.message for the logs; routes map
+// the AI_NOT_CONFIGURED code to this string so the raw key-name reason never reaches
+// end users.
+export const AI_NOT_CONFIGURED_USER_MESSAGE =
+  "AI analysis isn't available right now — please try again later.";
+
+// Build a 503 config error that carries the detailed reason for logs plus a
+// code + user-safe message the route surfaces to clients.
+function configError(detail) {
+  const e = new Error(detail);
+  e.status = 503;
+  e.code = 'AI_NOT_CONFIGURED';
+  e.userMessage = AI_NOT_CONFIGURED_USER_MESSAGE;
+  return e;
+}
+
 // Pick the provider: an explicit WORKSHEET_AI_PROVIDER override wins; otherwise
 // prefer Anthropic and fall back to OpenAI when only its key is present. Throws
-// a 503-tagged error when neither is configured (callers surface it safely).
+// a 503-tagged error when neither is configured (callers surface it safely — the
+// raw env-key reason is kept for logs, not returned to users).
 export function getActiveProvider() {
   const forced = (process.env.WORKSHEET_AI_PROVIDER || '').trim().toLowerCase();
   if (forced) {
     const p = PROVIDERS[forced];
     if (!p) { const e = new Error(`Unknown WORKSHEET_AI_PROVIDER "${forced}" (use "anthropic" or "openai").`); e.status = 500; throw e; }
-    if (!p.isConfigured()) { const e = new Error(`AI is not configured: the ${forced} API key is missing on the server.`); e.status = 503; throw e; }
+    if (!p.isConfigured()) throw configError(`AI is not configured: the ${forced} API key is missing on the server.`);
     return p;
   }
   if (anthropic.isConfigured()) return anthropic;
   if (openai.isConfigured()) return openai;
-  const e = new Error('AI is not configured: set ANTHROPIC_API_KEY or OPENAI_API_KEY on the server.');
-  e.status = 503;
-  throw e;
+  throw configError('AI is not configured: set ANTHROPIC_API_KEY or OPENAI_API_KEY on the server.');
 }
 
 export { PROVIDERS };

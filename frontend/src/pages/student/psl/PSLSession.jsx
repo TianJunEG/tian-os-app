@@ -7,7 +7,27 @@ import StoryPanel from './components/StoryPanel';
 import QuestionIdentifier from './components/QuestionIdentifier';
 import PlanDispatcher from './components/PlanDispatcher';
 import SolveDispatcher from './components/SolveDispatcher';
+import BarModelViewer from './components/BarModelViewer';
 import CheckPanel from './components/CheckPanel';
+
+// Adapt the bar model the student built in the Plan step (parts:[{label,value}])
+// into the flat shape BarModelViewer reads, so the Solve step can show it as a
+// read-only reference while they work.
+function barViewerValues(plan = {}) {
+  const parts = Array.isArray(plan.parts) ? plan.parts : [];
+  const num = (v) => (v === undefined || v === null || v === '' ? undefined : Number(v));
+  if (plan.modelType === 'comparison') {
+    const larger = num(parts[0]?.value);
+    const smaller = num(parts[1]?.value);
+    return {
+      larger, smaller,
+      difference: Number.isFinite(larger) && Number.isFinite(smaller) ? Math.abs(larger - smaller) : undefined,
+    };
+  }
+  const v = {};
+  ['partA', 'partB', 'partC'].forEach((key, i) => { const n = num(parts[i]?.value); if (n !== undefined) v[key] = n; });
+  return v;
+}
 import StepFeedbackCard from './components/StepFeedbackCard';
 import MascotBubble from './components/MascotBubble';
 import HintLadder from './components/HintLadder';
@@ -61,10 +81,12 @@ export default function PSLSession() {
   const [hints, setHints] = useState([]);
   const [hintLoading, setHintLoading] = useState(false);
   const [hintExhausted, setHintExhausted] = useState(false);
+  const [hintError, setHintError] = useState(false);
   const [showHintLadder, setShowHintLadder] = useState(false);
   const [voice, setVoice] = useState(isVoiceEnabled);
   const [solution, setSolution] = useState(null);
   const [solutionLoading, setSolutionLoading] = useState(false);
+  const [solutionError, setSolutionError] = useState(false);
   const stepStartRef = useRef(Date.now());
 
   useEffect(() => {
@@ -209,6 +231,7 @@ export default function PSLSession() {
   const handleRequestHint = async () => {
     if (hintLoading || !currentProblem) return;
     if (hints.length > 0) { setShowHintLadder(true); return; }
+    setHintError(false);
     setHintLoading(true);
     try {
       const collected = [];
@@ -223,7 +246,9 @@ export default function PSLSession() {
       }
       if (collected.length > 0) { setHints(collected); setShowHintLadder(true); }
       if (exhausted) setHintExhausted(true);
-    } catch {}
+    } catch {
+      setHintError(true);
+    }
     setHintLoading(false);
   };
 
@@ -233,12 +258,14 @@ export default function PSLSession() {
 
   const handleShowSolution = async () => {
     if (solutionLoading || solution || !currentProblem) return;
+    setSolutionError(false);
     setSolutionLoading(true);
     try {
       const res = await pslAPI.getSolution(sessionId, currentProblem.problemId);
       setSolution(res.data);
     } catch {
       setSolution(null);
+      setSolutionError(true);
     } finally {
       setSolutionLoading(false);
     }
@@ -273,6 +300,7 @@ export default function PSLSession() {
         const planStep = currentProblem?.scaffoldSteps?.find((s) => s.stepId === 'plan');
         const planType = planStep?.type || 'model';
         if (planType === 'model') return resp?.modelType && resp?.unknownPosition;
+        if (planType === 'ratioBar') return Number.isFinite(Number(resp?.ratioBar?.valuePerPart));
         return resp && Object.keys(resp).length > 0;
       }
       case 'solve': return resp?.answer !== undefined && resp?.answer !== '';
@@ -351,6 +379,16 @@ export default function PSLSession() {
             <div className="mb-4 rounded-xl border border-[#edf0f4] bg-[#fafbfc] p-3">
               <p className="text-sm leading-relaxed" style={{ color: '#5a6675' }}>{currentProblem.storyText}</p>
             </div>
+            {(currentProblem.scaffoldSteps?.find((s) => s.stepId === 'plan')?.type || 'model') === 'model' && stepResponses.plan?.modelType && (
+              <div className="mb-4">
+                <p className="mb-1.5 text-xs font-medium text-ink-400">Your bar model</p>
+                <BarModelViewer
+                  modelType={stepResponses.plan.modelType}
+                  unknownPosition={stepResponses.plan.unknownPosition}
+                  values={barViewerValues(stepResponses.plan)}
+                />
+              </div>
+            )}
             <SolveDispatcher
               scaffoldStep={currentProblem.scaffoldSteps?.find((s) => s.stepId === 'solve')}
               response={stepResponses.solve || {}}
@@ -373,7 +411,6 @@ export default function PSLSession() {
                   required={false}
                   allowNoWorking={false}
                   compact
-                  showMathStamps={false}
                 />
               </div>
             )}
@@ -593,6 +630,11 @@ export default function PSLSession() {
                     {hintLoading ? '...' : hints.length > 0 ? 'Show Hints' : 'Hint'}
                   </button>
                 )}
+                {hintError && (
+                  <span className="text-xs font-medium" style={{ color: '#d64545' }}>
+                    Couldn't load a hint. Try again.
+                  </span>
+                )}
               </div>
 
               {/* Step label */}
@@ -673,6 +715,12 @@ export default function PSLSession() {
                   <BookOpen className="h-4 w-4" />
                   {solutionLoading ? 'Loading...' : 'Show me how'}
                 </button>
+              )}
+
+              {solutionError && (
+                <p className="text-center text-xs font-medium" style={{ color: '#d64545' }}>
+                  Couldn't load the solution. Try again.
+                </p>
               )}
 
               {/* Primary CTA */}

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Variable, Box, Trophy, AlertCircle } from 'lucide-react';
 import { Badge, Button, Card, PageHeader } from '../../../components/ui';
+import MasteryStars, { effectiveMasteryPct } from '../../../components/mathpath/learning/MasteryStars';
 import { mathpathAPI } from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 import p6AlgebraSkillGraph from '../../../mathpath/primary/p6AlgebraSkillGraph';
@@ -148,11 +149,11 @@ function P6SkillCard({ skill, onStart, skillState }) {
               {accuracy != null ? ` ${accuracy}%` : ''}
             </Badge>
           )}
+          <MasteryStars percentage={effectiveMasteryPct(status, accuracy)} size="sm" className="mt-1" />
         </div>
       </div>
       <p className="mt-1 line-clamp-2 text-sm text-ink-500">{skill.description}</p>
       <div className="mt-3 flex flex-wrap gap-2">
-        <Badge tone="neutral">{skill.id}</Badge>
         {skill.prerequisites?.length > 0 && (
           <Badge tone="neutral">{skill.prerequisites.length} prerequisite{skill.prerequisites.length > 1 ? 's' : ''}</Badge>
         )}
@@ -271,7 +272,7 @@ export default function P6LearningPathPage() {
       <Card className="p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase text-emerald-deep">P6 Maths</p>
+            <p className="text-sm font-semibold uppercase text-emerald-deep">Learning path</p>
             <h2 className="font-display text-2xl sm:text-3xl font-semibold text-ink-900">P6 Maths</h2>
             <p className="mt-1 text-sm text-ink-500">
               Browse all Primary 6 skills and start practising any topic.

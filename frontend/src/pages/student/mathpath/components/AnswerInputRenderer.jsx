@@ -88,7 +88,12 @@ function normalizeType(question = {}) {
   if (question.answer?.type === 'decimal') return 'decimal';
   if (question.answer?.type === 'list') return 'ordering';
   const answerDisplay = String(question.answer?.display || question.answer?.value || question.answer || '');
-  if (answerDisplay.includes(',') && /\d+\s*\/\s*\d+/.test(answerDisplay)) return 'ordering';
+  if (answerDisplay.includes(',')) {
+    const parts = answerDisplay.split(',').map((p) => p.trim());
+    if (parts.length >= 3 && parts.every((p) => /^\s*-?\d+(\.\d+)?\s*$/.test(p) || /^\s*\d+\s*\/\s*\d+\s*$/.test(p))) {
+      return 'ordering';
+    }
+  }
   if (/^-?\d+\s+\d+\s*\/\s*\d+$/.test(answerDisplay)) return 'mixed_number';
   if (shouldUseFractionAnswerInput(question)) return 'fraction';
   if (/^-?\d+\.\d+$/.test(answerDisplay)) return 'decimal';

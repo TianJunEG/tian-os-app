@@ -68,7 +68,7 @@ async function requireLinkedStudent(req, res) {
   const partnerAllowed = !link
     ? await userCanAccessPartnerStudent({ userId: req.user.id, studentId: req.params.id })
     : false;
-  if (!link && !partnerAllowed && !(process.env.NODE_ENV !== 'production' && process.env.QA_DISABLE_RATE_LIMIT === '1')) { res.status(403).json({ error: 'Student not assigned to you.' }); return null; }
+  if (!link && !partnerAllowed && !(process.env.NODE_ENV === 'test' && process.env.QA_DISABLE_RATE_LIMIT === '1')) { res.status(403).json({ error: 'Student not assigned to you.' }); return null; }
   const student = await Student.findById(req.params.id);
   if (!student) { res.status(404).json({ error: 'Student not found.' }); return null; }
   return student;
@@ -112,7 +112,13 @@ router.get('/home', asyncHandler(async (req, res) => {
     LessonNote.find({ tutorUserId: req.user.id, workspaceId: req.workspaceId }).sort({ createdAt: -1 }).limit(5),
     TutorCertification.findOne({ tutorUserId: req.user.id }),
   ]);
-  const overdue = await Assignment.countDocuments({ studentId: { $in: studentIds }, status: 'overdue' });
+  // No code path ever writes status:'overdue', so derive it at read time:
+  // an assignment is overdue when its dueDate is in the past and it isn't done.
+  const overdue = await Assignment.countDocuments({
+    studentId: { $in: studentIds },
+    dueDate: { $ne: null, $lt: new Date() },
+    status: { $ne: 'completed' },
+  });
 
   // Fetch all students + their mastery in parallel (avoids N+1 serial loop).
   const studentDocs = await Student.find({ _id: { $in: studentIds } }).lean();
@@ -380,7 +386,7 @@ router.get('/lesson-notes', asyncHandler(async (req, res) => {
   if (!studentId) return res.status(400).json({ error: 'studentId query param is required.' });
   const link = await findActiveTutorLink({ workspaceId: req.workspaceId, tutorUserId: req.user.id, studentId });
   const partnerAllowed = !link ? await userCanAccessPartnerStudent({ userId: req.user.id, studentId }) : false;
-  if (!link && !partnerAllowed && !(process.env.NODE_ENV !== 'production' && process.env.QA_DISABLE_RATE_LIMIT === '1')) {
+  if (!link && !partnerAllowed && !(process.env.NODE_ENV === 'test' && process.env.QA_DISABLE_RATE_LIMIT === '1')) {
     return res.status(403).json({ error: 'Student not assigned to you.' });
   }
   const student = await Student.findById(studentId);
@@ -400,7 +406,7 @@ router.post('/lesson-notes', asyncHandler(async (req, res) => {
   if (!studentId) return res.status(400).json({ error: 'studentId is required.' });
   const link = await findActiveTutorLink({ workspaceId: req.workspaceId, tutorUserId: req.user.id, studentId });
   const partnerAllowed = !link ? await userCanAccessPartnerStudent({ userId: req.user.id, studentId }) : false;
-  if (!link && !partnerAllowed && !(process.env.NODE_ENV !== 'production' && process.env.QA_DISABLE_RATE_LIMIT === '1')) {
+  if (!link && !partnerAllowed && !(process.env.NODE_ENV === 'test' && process.env.QA_DISABLE_RATE_LIMIT === '1')) {
     return res.status(403).json({ error: 'Student not assigned to you.' });
   }
   const student = await Student.findById(studentId);

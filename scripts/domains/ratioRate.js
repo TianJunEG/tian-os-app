@@ -63,7 +63,7 @@ export default {
       misconceptions: [{ tag: 'rr/part-part-as-fraction', label: 'Uses \\frac{a}{b} instead of \\frac{a}{a+b} for the part-of-whole fraction' }],
       practiceModes: ['visual_model', 'short_answer', 'diagnostic'],
       remediation: { onRepeatedFail: 'worked-example', reinforce: ['rr.meaning', 'fr.of-quantity'], strategy: 'total units = a+b; each part is that many out of the total' },
-      questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'medium', stem: 'Red to blue is {a} : {b}. What fraction of the counters are red?', answerRule: 'a/(a+b) (a,b≤9)', misconceptionTag: 'rr/part-part-as-fraction' }] },
+      questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'medium', stem: 'Red to blue is {a} : {b}. What proportion of the counters are red? Give your answer as a decimal.', answerRule: 'a/(a+b) (a,b≤9)', misconceptionTag: 'rr/part-part-as-fraction' }] },
     { slug: 'rr.ratio-percent', name: 'Relating ratio to percentage', level: 'Primary 6',
       prerequisites: ['rr.ratio-fraction', 'pct.convert'], masteryType: 'procedural', fluencyType: 'accuracy',
       render: 'katex', visualModels: ['bar', 'hundred-grid'],
@@ -119,7 +119,7 @@ export default {
       misconceptions: [{ tag: 'rr/flat-rate', label: 'Applies one rate to the whole amount instead of per tier' }],
       practiceModes: ['short_answer', 'worked_example', 'diagnostic'],
       remediation: { onRepeatedFail: 'worked-example', reinforce: ['rr.rate'], strategy: 'charge each tier at its own rate, then add' },
-      questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'hard', stem: 'First {n} units at ${a} each, the rest at ${b} each; total used {u}. Find the bill.', answerRule: 'n*a + (u-n)*b', misconceptionTag: 'rr/flat-rate' }] },
+      questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'hard', stem: 'First {n} units at ${a} each, the rest at ${b} each; total used {u}. Find the bill.', answerRule: 'n*a + (u-n)*b (a,n≤6, u∈{8,10,12,15})', misconceptionTag: 'rr/flat-rate' }] },
 
     // ── Speed foundations ──
     { slug: 'rr.speed', name: 'Speed, distance and time', level: 'Primary 6',

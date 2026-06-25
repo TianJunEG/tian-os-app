@@ -1168,7 +1168,7 @@ function LegacyPracticeSession() {
         title="Review this submission"
         reflection={reflection}
         reflectionOptions={REFLECTION_OPTIONS}
-        onReflectionChange={(value) => { setReflection(value); setHelpRequested(value === 'i_need_help'); }}
+        onReflectionChange={(value) => setReflection(value)}
         working={currentFullscreenWorking}
         workingRequirementLevel={workingRequirementLevel}
         onDeclareNotNeeded={(checked) => setFullscreenWorkingState((prev) => ({
@@ -1243,6 +1243,9 @@ export default function PracticeSession() {
   const studentId = authenticatedStudentId;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  // Final-submit failures use their own inline state so a transient network blip
+  // never blanks a completed session behind the full-page `error` screen.
+  const [submitError, setSubmitError] = useState('');
   const [flowSession, setFlowSession] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [idx, setIdx] = useState(0);
@@ -1786,6 +1789,7 @@ export default function PracticeSession() {
 
   const nextOrFinish = async () => {
     if (!answered) return;
+    setSubmitError('');
     if (!isLast) {
       setIdx((i) => i + 1);
       setAnswer('');
@@ -1953,7 +1957,9 @@ export default function PracticeSession() {
       });
       setSummary(submitted);
     } catch (e) {
-      setError(e?.response?.data?.error || e.message || 'Failed to submit session.');
+      // Keep the completed session on screen and let the student retry via the
+      // Finish button, instead of routing to the full-page error (which loses it).
+      setSubmitError(e?.response?.data?.error || e.message || "Couldn't submit — tap Finish to try again.");
     } finally {
       setBusy(false);
     }
@@ -2225,10 +2231,13 @@ export default function PracticeSession() {
                 </>
               ) : (
                 <Button className="sm:col-span-2" icon={ArrowRight} disabled={busy} onClick={nextOrFinish}>
-                  {isLast ? sessionMeta.finishLabel : 'Next question'}
+                  {isLast ? (busy ? 'Submitting…' : sessionMeta.finishLabel) : 'Next question'}
                 </Button>
               )}
             </div>
+            {submitError && (
+              <p className="mt-2 text-center text-sm font-semibold text-error-700" role="alert">{submitError}</p>
+            )}
 
             <div className="mt-2">
               <WorkingPreviewCard

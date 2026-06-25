@@ -791,7 +791,7 @@ export default function StudentDashboard() {
           </Button>
           <div className="inline-flex items-center gap-2 rounded-full border border-line-soft bg-surface-white px-4 py-2 text-sm font-semibold text-ink-700">
             <Flame className="h-4 w-4 text-gold" />
-            {hasActivity ? 1 : 0}
+            {displayStreak}
           </div>
         </div>
       </div>

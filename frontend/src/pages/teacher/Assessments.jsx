@@ -4,7 +4,7 @@ import { ClipboardList, Plus, Users, Clock } from 'lucide-react';
 import { teacherAPI } from '../../services/api';
 import { useClass } from './useClass';
 import ClassNav from './ClassNav';
-import { Card, Button, Badge, Spinner, EmptyState } from '../../components/ui';
+import { Card, Button, Badge, Spinner, EmptyState, ErrorState } from '../../components/ui';
 
 function statusTone(s) {
   if (s === 'draft') return 'neutral';
@@ -18,13 +18,17 @@ export default function Assessments() {
   const meta = useClass(id);
   const [items, setItems] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
-  useEffect(() => {
+  const load = () => {
+    setLoading(true);
+    setLoadError(false);
     teacherAPI.assessments(id)
       .then((r) => setItems(r.data.assessments || []))
-      .catch(() => setItems([]))
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
-  }, [id]);
+  };
+  useEffect(() => { load(); }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="mx-auto max-w-3xl p-4 sm:p-6">
@@ -38,11 +42,15 @@ export default function Assessments() {
 
       {loading && <Spinner />}
 
-      {!loading && (!items || items.length === 0) && (
+      {!loading && loadError && (
+        <ErrorState message="Couldn't load assessments." onRetry={load} />
+      )}
+
+      {!loading && !loadError && (!items || items.length === 0) && (
         <EmptyState icon={ClipboardList} message="No assessments yet. Create a quick quiz to check your class's understanding." />
       )}
 
-      {!loading && items?.length > 0 && (
+      {!loading && !loadError && items?.length > 0 && (
         <div className="space-y-3">
           {items.map((a) => (
             <Card

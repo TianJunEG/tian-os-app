@@ -4,7 +4,7 @@ import { CheckCircle2, XCircle, Clock, Users } from 'lucide-react';
 import { teacherAPI } from '../../services/api';
 import { useClass } from './useClass';
 import ClassNav from './ClassNav';
-import { Card, Badge, ProgressBar, Spinner } from '../../components/ui';
+import { Card, Badge, ProgressBar, Spinner, ErrorState } from '../../components/ui';
 
 function ScoreBadge({ score }) {
   if (score == null) return <span className="text-xs text-ink-400">-</span>;
@@ -17,17 +17,27 @@ export default function AssessmentResults() {
   const meta = useClass(id);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [expanded, setExpanded] = useState(null);
 
-  useEffect(() => {
+  const load = () => {
+    setLoading(true);
+    setLoadError(false);
     teacherAPI.assessmentResults(assessmentId)
       .then((r) => setData(r.data))
-      .catch((e) => console.warn("AssessmentResults: fetch failed", e))
+      .catch((e) => { console.warn("AssessmentResults: fetch failed", e); setLoadError(true); })
       .finally(() => setLoading(false));
-  }, [assessmentId]);
+  };
+  useEffect(() => { load(); }, [assessmentId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) return <div className="flex min-h-[40vh] items-center justify-center"><Spinner /></div>;
-  if (!data) return <div className="p-6 text-center text-red-600">Failed to load results.</div>;
+  if (loadError || !data) {
+    return (
+      <div className="mx-auto max-w-3xl p-4 sm:p-6">
+        <ErrorState message="Couldn't load assessment results." onRetry={load} />
+      </div>
+    );
+  }
 
   const { assessment, summary, perStudent, perQuestion } = data;
 
@@ -68,7 +78,7 @@ export default function AssessmentResults() {
         </div>
         {summary.averageScore != null && (
           <ProgressBar value={summary.averageScore} max={100}
-            barClassName={summary.averageScore >= 80 ? 'bg-emerald-500' : summary.averageScore >= 50 ? 'bg-gold' : 'bg-red-400'} className="mt-3" />
+            barClassName={summary.averageScore >= 80 ? 'bg-emerald' : summary.averageScore >= 50 ? 'bg-gold' : 'bg-danger'} className="mt-3" />
         )}
       </Card>
 
@@ -92,13 +102,13 @@ export default function AssessmentResults() {
                 )}
               </button>
               {expanded === s.studentId && s.wrongQuestions?.length > 0 && (
-                <div className="mb-3 ml-4 space-y-1 rounded-lg bg-red-50/50 p-3">
-                  <p className="text-xs font-semibold text-red-600">Wrong answers:</p>
+                <div className="mb-3 ml-4 space-y-1 rounded-lg bg-danger-tint/50 p-3">
+                  <p className="text-xs font-semibold text-danger-deep">Wrong answers:</p>
                   {s.wrongQuestions.map((wq) => (
                     <div key={wq.questionId} className="text-xs text-ink-600">
                       <span className="text-ink-500">{wq.display?.slice(0, 80)}</span>
-                      <span className="ml-2 text-red-500">Got: {String(wq.studentAnswer)}</span>
-                      <span className="ml-2 text-emerald-600">Correct: {String(wq.correctAnswer)}</span>
+                      <span className="ml-2 text-danger">Got: {String(wq.studentAnswer)}</span>
+                      <span className="ml-2 text-emerald">Correct: {String(wq.correctAnswer)}</span>
                     </div>
                   ))}
                 </div>
@@ -121,25 +131,25 @@ export default function AssessmentResults() {
                 </p>
                 <div className="flex items-center gap-1 whitespace-nowrap">
                   {q.correctPct != null && (
-                    <span className={`text-sm font-semibold ${q.correctPct >= 80 ? 'text-emerald-600' : q.correctPct >= 50 ? 'text-gold-deep' : 'text-red-500'}`}>
+                    <span className={`text-sm font-semibold ${q.correctPct >= 80 ? 'text-emerald' : q.correctPct >= 50 ? 'text-gold-deep' : 'text-danger'}`}>
                       {q.correctPct}%
                     </span>
                   )}
                   {q.correctPct != null && q.correctPct >= 80 ? (
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                    <CheckCircle2 className="h-4 w-4 text-emerald" />
                   ) : (
-                    <XCircle className="h-4 w-4 text-red-400" />
+                    <XCircle className="h-4 w-4 text-danger" />
                   )}
                 </div>
               </div>
               {q.correctPct != null && (
                 <ProgressBar value={q.correctPct} max={100}
-                  barClassName={q.correctPct >= 80 ? 'bg-emerald-500' : q.correctPct >= 50 ? 'bg-gold' : 'bg-red-400'} className="mt-2" />
+                  barClassName={q.correctPct >= 80 ? 'bg-emerald' : q.correctPct >= 50 ? 'bg-gold' : 'bg-danger'} className="mt-2" />
               )}
               {q.commonWrongAnswers?.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2">
                   {q.commonWrongAnswers.map((wa) => (
-                    <span key={wa.answer} className="rounded bg-red-50 px-2 py-0.5 text-xs text-red-600">
+                    <span key={wa.answer} className="rounded bg-danger-tint px-2 py-0.5 text-xs text-danger-deep">
                       "{wa.answer}" ({wa.count}x)
                     </span>
                   ))}

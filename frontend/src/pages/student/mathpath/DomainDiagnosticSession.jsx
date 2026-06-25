@@ -90,6 +90,7 @@ export default function DomainDiagnosticSession() {
   const [progress, setProgress] = useState({ answeredCount: 0, estimatedQuestionCount: 8 });
   const [draft, setDraft] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [encouragement, setEncouragement] = useState('');
   const [result, setResult] = useState(null);
   const startedAt = useRef(Date.now());
@@ -141,6 +142,7 @@ export default function DomainDiagnosticSession() {
     const answer = choiceOverride ?? draft;
     if (!question || submitting || !String(answer).trim()) return;
     if (choiceOverride) setDraft(choiceOverride);
+    setSubmitError('');
     setSubmitting(true);
     try {
       const body = buildAnswerBody({ question, draft: String(answer), startedAtMs: startedAt.current, nowMs: Date.now() });
@@ -156,7 +158,9 @@ export default function DomainDiagnosticSession() {
         startedAt.current = Date.now();
       }
     } catch (e) {
-      setError(e?.response?.data?.error || e.message || 'Could not submit your answer.');
+      // Keep the question and all in-progress answers on screen — surface a
+      // dismissible inline error and let the Submit button serve as retry.
+      setSubmitError(e?.response?.data?.error || e.message || 'Could not submit your answer.');
     } finally {
       setSubmitting(false);
     }
@@ -182,7 +186,10 @@ export default function DomainDiagnosticSession() {
 
   if (loading) return <div className="grid place-items-center py-20"><Spinner label="Setting up your check-in…" /></div>;
 
-  if (error && !result) {
+  // Full-screen failure is reserved for the START/LOAD phase — before there is a
+  // live session/question to preserve. Mid-session submit failures are surfaced
+  // inline (see submitError below) so the question and answers stay on screen.
+  if (error && !result && (!sessionId || !question)) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-8">
         <Alert tone="error">{error}</Alert>
@@ -339,7 +346,7 @@ export default function DomainDiagnosticSession() {
           return <p className="text-lg font-semibold text-ink-900 whitespace-pre-wrap">{prompt}</p>;
         })()}
 
-        {question?.type === 'mcq' ? (
+        {question?.type === 'mcq' && (question.choices || []).length > 0 ? (
           isLowerPrimary ? (
             <div className="grid grid-cols-2 gap-3 pt-1">
               {(question.choices || []).map((choice) => (
@@ -386,7 +393,23 @@ export default function DomainDiagnosticSession() {
         )}
       </Card>
 
-      {(!isLowerPrimary || question?.type !== 'mcq') && (
+      {submitError && (
+        <div className="flex items-start gap-2">
+          <div className="flex-1">
+            <Alert tone="error">{submitError} Your answer is still here — tap Submit to try again.</Alert>
+          </div>
+          <button
+            type="button"
+            aria-label="Dismiss error"
+            onClick={() => setSubmitError('')}
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-500 transition hover:bg-error-100 hover:text-error-700 active:scale-95"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
+      )}
+
+      {(!isLowerPrimary || question?.type !== 'mcq' || (question.choices || []).length === 0) && (
         <div className="flex justify-end">
           <Button icon={CheckCircle2} disabled={!draft.trim() || submitting} onClick={() => submitAnswer()}>
             {submitting ? 'Checking…' : 'Submit'}

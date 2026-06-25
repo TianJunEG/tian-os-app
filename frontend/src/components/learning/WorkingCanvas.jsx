@@ -23,6 +23,11 @@ const WORKING_MODES = [
 
 const EMPTY_STROKES = [];
 const MATH_STAMPS = [
+  { id: 'plus', label: '+' },
+  { id: 'minus', label: '−' },
+  { id: 'times', label: '×' },
+  { id: 'divide', label: '÷' },
+  { id: 'equals', label: '=' },
   { id: 'fraction', label: 'x/y' },
   { id: 'subscript', label: 'xₐ' },
   { id: 'power', label: 'xᵇ' },
@@ -344,6 +349,15 @@ export default function WorkingCanvas({
     redraw(strokes, submittedImage);
   }, [strokes, submittedImage, background]);
 
+  // While a stroke is in progress, block text selection so dragging the pen
+  // never highlights nearby text or steals focus into an input. Scoped to active
+  // strokes, so normal selection (e.g. in the steps editor) still works.
+  useEffect(() => {
+    const blockSelection = (event) => { if (drawingRef.current) event.preventDefault(); };
+    document.addEventListener('selectstart', blockSelection);
+    return () => document.removeEventListener('selectstart', blockSelection);
+  }, []);
+
   useEffect(() => {
     const nextStrokes = Array.isArray(submittedStrokes) ? submittedStrokes : [];
     const nextSubmitted = initialSubmitted ?? Boolean(submittedImage || nextStrokes.length);
@@ -384,6 +398,9 @@ export default function WorkingCanvas({
     // pointerdown (e.g. a palm landing while the pen draws).
     if (drawingRef.current) return;
     event.preventDefault();
+    // Clear any selection the press may have started so writing never leaves
+    // highlighted text or a caret stranded in a nearby input.
+    if (typeof window !== 'undefined') window.getSelection?.()?.removeAllRanges?.();
     drawingRef.current = true;
     if (event.pointerId !== undefined) {
       activePointerRef.current = event.pointerId;
@@ -826,6 +843,9 @@ export default function WorkingCanvas({
             style={{
               display: 'block',
               touchAction: 'none',
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              WebkitTouchCallout: 'none',
               width: `${zoom * 100}%`,
               minWidth: '100%',
               // Display height is decoupled from `compact` (which only controls
@@ -835,6 +855,7 @@ export default function WorkingCanvas({
               height: CANVAS_HEIGHT,
               minHeight: CANVAS_HEIGHT,
             }}
+            onContextMenu={(event) => event.preventDefault()}
             onPointerDown={beginStroke}
             onPointerMove={moveStroke}
             onPointerUp={endStroke}

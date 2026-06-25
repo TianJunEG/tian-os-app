@@ -11,6 +11,7 @@ import p4FractionsSkillGraph from '../../../mathpath/primary/p4FractionsSkillGra
 import p4DecimalsSkillGraph from '../../../mathpath/primary/p4DecimalsSkillGraph';
 import p4WordProbSkillGraph from '../../../mathpath/primary/p4WordProbSkillGraph';
 import p4StatSkillGraph from '../../../mathpath/primary/p4StatSkillGraph';
+import MasteryStars, { effectiveMasteryPct } from '../../../components/mathpath/learning/MasteryStars';
 
 // ---------------------------------------------------------------------------
 // Domain configuration — order matters (progression sequence)
@@ -143,11 +144,11 @@ function P4SkillCard({ skill, onStart, skillState }) {
               {accuracy != null ? ` ${accuracy}%` : ''}
             </Badge>
           )}
+          <MasteryStars percentage={effectiveMasteryPct(status, accuracy)} size="sm" className="mt-1" />
         </div>
       </div>
       <p className="mt-1 line-clamp-2 text-sm text-ink-500">{skill.description}</p>
       <div className="mt-3 flex flex-wrap gap-2">
-        <Badge tone="neutral">{skill.id}</Badge>
         {skill.prerequisites?.length > 0 && (
           <Badge tone="neutral">{skill.prerequisites.length} prerequisite{skill.prerequisites.length > 1 ? 's' : ''}</Badge>
         )}
@@ -272,7 +273,7 @@ export default function P4LearningPathPage() {
       <Card className="p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase text-emerald-700">P4 Maths</p>
+            <p className="text-sm font-semibold uppercase text-emerald-700">Learning path</p>
             <h2 className="font-display text-2xl sm:text-3xl font-semibold text-ink-900">P4 Maths</h2>
             <p className="mt-1 text-sm text-ink-500">
               Browse all Primary 4 skills and start practising any topic.

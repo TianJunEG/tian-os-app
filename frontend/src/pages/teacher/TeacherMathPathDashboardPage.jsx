@@ -25,9 +25,9 @@ function masteryTone(pct) {
 // sorted by severity, each with the exact skill to target and why.
 function NeedsAttentionCard({ rows = [], onOpenStudent }) {
   return (
-    <Card className="p-5 border-l-4 border-l-amber-400">
+    <Card className="p-5 border-l-4 border-l-gold">
       <div className="mb-3 flex items-center gap-2">
-        <AlertTriangle className="h-4 w-4 text-amber-500" />
+        <AlertTriangle className="h-4 w-4 text-gold" />
         <h3 className="text-sm font-semibold text-ink-700">Needs you this week</h3>
         {rows.length ? <Badge tone="error">{rows.length}</Badge> : null}
       </div>
@@ -38,7 +38,7 @@ function NeedsAttentionCard({ rows = [], onOpenStudent }) {
               key={s.studentId}
               type="button"
               onClick={() => onOpenStudent?.(s.studentId)}
-              className="w-full rounded-lg border border-line-soft p-3 text-left transition hover:border-navy-300 hover:bg-emerald-tint/40"
+              className="w-full rounded-lg border border-line-soft p-3 text-left transition hover:border-emerald-border hover:bg-emerald-tint/40"
             >
               <div className="flex items-center justify-between gap-2">
                 <p className="font-semibold text-ink-700">{s.name}</p>
@@ -71,8 +71,8 @@ function ClassOverviewCard({ data }) {
       <h3 className="text-sm font-semibold text-ink-700">Class Readiness</h3>
       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div><p className="text-xs text-ink-500">Students</p><p className="font-mono text-xl text-emerald-deep">{data.totalStudents}</p></div>
-        <div><p className="text-xs text-ink-500">On Track</p><p className="font-mono text-xl text-emerald-600">{data.studentsOnTrack}</p></div>
-        <div><p className="text-xs text-ink-500">Need Support</p><p className="font-mono text-xl text-amber-600">{data.studentsNeedingSupport}</p></div>
+        <div><p className="text-xs text-ink-500">On Track</p><p className="font-mono text-xl text-emerald">{data.studentsOnTrack}</p></div>
+        <div><p className="text-xs text-ink-500">Need Support</p><p className="font-mono text-xl text-gold-deep">{data.studentsNeedingSupport}</p></div>
         <div><p className="text-xs text-ink-500">Extension</p><p className="font-mono text-xl text-emerald-deep">{data.studentsReadyForExtension}</p></div>
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-ink-600 sm:grid-cols-3">
@@ -132,7 +132,7 @@ function SkillMasteryHeatmapCard({ rows = [], onOpenStudent }) {
                   <td className="px-2 py-2">{row.masteredCount}</td>
                   <td className="px-2 py-2">{row.fluentCount}</td>
                   <td className="px-2 py-2">{row.retainedCount}</td>
-                  <td className="px-2 py-2 text-amber-600">{row.weakCount}</td>
+                  <td className="px-2 py-2 text-gold-deep">{row.weakCount}</td>
                   <td className="px-2 py-2"><Badge tone={masteryTone(row.classMasteryPercentage)}>{row.classMasteryPercentage}%</Badge></td>
                 </tr>
               ))}
@@ -236,7 +236,7 @@ function ClassSwitcher({ classes = [], currentId, onChange }) {
       <select
         value={currentId}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded-lg border border-line-soft bg-surface-white px-3 py-1.5 text-sm font-semibold text-ink-700 outline-none focus:border-navy-300"
+        className="rounded-lg border border-line-soft bg-surface-white px-3 py-1.5 text-sm font-semibold text-ink-700 outline-none focus:border-emerald-border"
       >
         {classes.map((c) => (
           <option key={c.classId} value={c.classId}>

@@ -7,6 +7,7 @@ import PlanGuessSetup from './PlanGuessSetup';
 import PlanListCandidates from './PlanListCandidates';
 import PlanEquationSetup from './PlanEquationSetup';
 import PlanStrategySelect from './PlanStrategySelect';
+import PlanRatioBar from './PlanRatioBar';
 
 function PlaceholderPlan({ type, response, onChange }) {
   return (
@@ -69,6 +70,10 @@ export default function PlanDispatcher({ type, response, onChange, scaffoldStep 
 
   if (planType === 'strategySelect') {
     return <PlanStrategySelect scaffoldStep={scaffoldStep} response={response} onChange={onChange} />;
+  }
+
+  if (planType === 'ratioBar') {
+    return <PlanRatioBar scaffoldStep={scaffoldStep} response={response} onChange={onChange} />;
   }
 
   return <PlaceholderPlan type={planType} response={response} onChange={onChange} />;

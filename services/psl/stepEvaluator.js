@@ -128,6 +128,22 @@ function evaluatePlanStrategy(response, expected) {
   return { correct, partial: false, score: correct ? 1 : 0, misconceptionTag: correct ? '' : 'psl/wrong-strategy' };
 }
 
+// Interactive ratio bar (classic ratio-share problems): the student sets the
+// value of one unit on a bar split into ratioA:ratioB units. Correct when their
+// value-per-unit matches the expected decomposition. Tolerance handles the
+// fractional value-per-unit that arises when total isn't evenly divisible.
+function evaluatePlanRatioBar(response, expected) {
+  const submitted = Number(response?.ratioBar?.valuePerPart);
+  const target = Number(expected?.valuePerPart);
+  if (!Number.isFinite(submitted)) {
+    return { correct: false, partial: false, score: 0, misconceptionTag: 'psl/forgot-total-parts' };
+  }
+  if (Number.isFinite(target) && Math.abs(submitted - target) < 1e-6) {
+    return { correct: true, partial: false, score: 1, misconceptionTag: '' };
+  }
+  return { correct: false, partial: false, score: 0, misconceptionTag: 'psl/forgot-total-parts' };
+}
+
 const PLAN_EVALUATORS = {
   model: evaluatePlanModel,
   reverse_steps: evaluatePlanReverseSteps,
@@ -136,6 +152,7 @@ const PLAN_EVALUATORS = {
   list_candidates: evaluatePlanList,
   guess_setup: evaluatePlanGuess,
   strategySelect: evaluatePlanStrategy,
+  ratioBar: evaluatePlanRatioBar,
 };
 
 function evaluatePlan(response, expected) {

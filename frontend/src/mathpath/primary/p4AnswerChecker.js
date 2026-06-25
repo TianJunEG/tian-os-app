@@ -26,9 +26,9 @@ function normaliseText(value) {
  * @param {string|number} studentAnswer - The student's raw answer.
  * @returns {{ correct: boolean, expected: string, given: string }}
  */
-export function checkP4Answer(question, studentAnswer) {
+export function checkP4Answer({ studentAnswer, question = {} } = {}) {
   const rawAnswer = question._rawAnswer ?? question.answer?.value ?? question.answer;
-  const answerType = question._rawAnswerType ?? question.answer?.type ?? 'text';
+  const answerType = question._rawAnswerType ?? question.answerType ?? question.answer?.type ?? 'text';
 
   // --- Numeric answers (including decimals) ---
   if (answerType === 'number' || typeof rawAnswer === 'number') {

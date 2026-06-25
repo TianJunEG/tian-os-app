@@ -41,6 +41,7 @@ export default function MathPathHome() {
   const [startingWarmup, setStartingWarmup] = useState(false);
   const [startingDiagnostic, setStartingDiagnostic] = useState(false);
   const [error, setError] = useState(null);
+  const [sessionError, setSessionError] = useState(null);
   const [latestPlacement, setLatestPlacement] = useState(null);
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [skillPreview, setSkillPreview] = useState(null);
@@ -107,6 +108,7 @@ export default function MathPathHome() {
   const startLearningSession = async ({ skillId, sessionType = 'practice', questionCount = 10, feature = null } = {}) => {
     if (!skillId || starting || startingWarmup) return;
     const warmup = sessionType === 'warmup';
+    setSessionError(null);
     if (warmup) setStartingWarmup(true);
     else setStarting(true);
     try {
@@ -140,7 +142,7 @@ export default function MathPathHome() {
         },
       });
     } catch (e) {
-      setError(e.response?.data?.error || `Could not start ${sessionType} session.`);
+      setSessionError(e.response?.data?.error || `Could not start ${sessionType} session.`);
     } finally {
       if (warmup) setStartingWarmup(false);
       else setStarting(false);
@@ -149,6 +151,7 @@ export default function MathPathHome() {
 
   const startDiagnostic = async (diagnosticPurpose = 'baseline') => {
     if (startingDiagnostic) return;
+    setSessionError(null);
     setStartingDiagnostic(true);
     navigate('/student/mathpath/diagnostic', {
       state: {
@@ -387,14 +390,20 @@ export default function MathPathHome() {
                   ? 'Continue from your saved diagnostic placement.'
                   : 'A short check-in finds your best starting point.'}
             </p>
-            <Button className={`mt-5 w-full sm:w-auto ${visualStyles.primaryCta}`} size="l" icon={ArrowRight} disabled={(!hasPlacement && startingDiagnostic) || showLockedMasteryCheck} onClick={() => {
+            <Button className={`mt-5 w-full sm:w-auto ${visualStyles.primaryCta}`} size="l" icon={ArrowRight} disabled={starting || (!hasPlacement && startingDiagnostic) || showLockedMasteryCheck} onClick={() => {
               if (!hasPlacement) return startDiagnostic('baseline');
               if (assessmentPilotEnabled && showMasteryCheck) return navigate('/student/mathpath/assessment', { state: { assessmentType: 'mastery' } });
               return startLearningSession({ skillId: practiceFallbackSkillId, sessionType: 'practice', questionCount: 10 });
             }}>
-              {!hasPlacement ? 'Start Fractions Check-In' : showMasteryCheck ? 'Start Mastery Check' : showLockedMasteryCheck ? 'Mastery Check Locked' : 'Continue Learning'}
+              {!hasPlacement ? 'Start Fractions Check-In' : showMasteryCheck ? 'Start Mastery Check' : showLockedMasteryCheck ? 'Mastery Check Locked' : starting ? 'Starting…' : 'Continue Learning'}
             </Button>
             {showLockedMasteryCheck && <p className="mt-3 text-sm font-semibold text-ink-600">{ASSESSMENT_LOCK_MESSAGE}</p>}
+            {sessionError && (
+              <p className="mt-3 flex items-center gap-1.5 text-sm font-semibold text-error-500">
+                <AlertTriangle className="h-4 w-4 shrink-0" />
+                {sessionError}
+              </p>
+            )}
           </div>
         </div>
         <div className="mt-5">

@@ -12,8 +12,8 @@ const DiagramDemo = lazy(() => import('./pages/DiagramDemo'));
 const OurStoryPage = lazy(() => import('./pages/OurStoryPage'));
 const FounderStoryPage = lazy(() => import('./pages/FounderStoryPage'));
 const MethodologyPage = lazy(() => import('./pages/MethodologyPage'));
-const TutoringLandingPage = lazy(() => import('./pages/TutoringLandingPage'));
-const EduAppsLandingPage = lazy(() => import('./pages/EduAppsLandingPage'));
+// Tutoring + Edu Apps landing pages are consolidated into the single canonical
+// "/" landing; their routes redirect there (page sources kept for content reuse).
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
@@ -467,8 +467,8 @@ function App() {
           <Route path="/founder" element={<FounderStoryPage />} />
           <Route path="/methodology" element={<MethodologyPage />} />
           <Route path="/our-story" element={<OurStoryPage />} />
-          <Route path="/tutoring" element={<TutoringLandingPage />} />
-          <Route path="/edu-apps" element={<EduAppsLandingPage />} />
+          <Route path="/tutoring" element={<Navigate to="/" replace />} />
+          <Route path="/edu-apps" element={<Navigate to="/" replace />} />
           <Route path="/resources" element={<ResourcesHubPage />} />
           <Route path="/resources/:slug" element={<ResourceDetailPage />} />
           <Route path="/student/mathpath/cheatsheet/:sheetId" element={<CheatSheet />} />

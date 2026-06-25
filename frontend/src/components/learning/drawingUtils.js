@@ -205,18 +205,23 @@ export function drawStroke(ctx, stroke, options = {}) {
     && points.some((p) => p.p != null);
 
   if (hasPressure) {
-    // Pressure-sensitive: draw segment-by-segment with varying width and smooth curves
-    for (let i = 1; i < points.length; i++) {
+    // Pressure-sensitive: vary line width per segment. Each segment runs between
+    // consecutive midpoints (with the shared point as the quadratic control), so
+    // adjacent segments join exactly. The previous version stroked only the first
+    // half of every segment, leaving gaps that made the whole stroke look dotted.
+    const last = points.length - 1;
+    for (let i = 1; i <= last; i++) {
       const pressure = points[i].p ?? 0.5;
       ctx.lineWidth = lineWidth * (0.3 + pressure * 0.7);
+      const start = i === 1
+        ? points[0]
+        : { x: (points[i - 1].x + points[i].x) / 2, y: (points[i - 1].y + points[i].y) / 2 };
+      const end = i === last
+        ? points[last]
+        : { x: (points[i].x + points[i + 1].x) / 2, y: (points[i].y + points[i + 1].y) / 2 };
       ctx.beginPath();
-      ctx.moveTo(points[i - 1].x, points[i - 1].y);
-      if (i >= 2) {
-        const mid = { x: (points[i - 1].x + points[i].x) / 2, y: (points[i - 1].y + points[i].y) / 2 };
-        ctx.quadraticCurveTo(points[i - 1].x, points[i - 1].y, mid.x, mid.y);
-      } else {
-        ctx.lineTo(points[i].x, points[i].y);
-      }
+      ctx.moveTo(start.x, start.y);
+      ctx.quadraticCurveTo(points[i].x, points[i].y, end.x, end.y);
       ctx.stroke();
     }
   } else {
@@ -319,6 +324,16 @@ export function drawMathStamp(ctx, stroke, options = {}) {
     ctx.fillText('π', x, y + r(10));
   } else if (stroke.template === 'theta') {
     ctx.fillText('θ', x, y + r(10));
+  } else if (stroke.template === 'plus') {
+    ctx.fillText('+', x, y + r(10));
+  } else if (stroke.template === 'minus') {
+    ctx.fillText('−', x, y + r(10));
+  } else if (stroke.template === 'times') {
+    ctx.fillText('×', x, y + r(10));
+  } else if (stroke.template === 'divide') {
+    ctx.fillText('÷', x, y + r(10));
+  } else if (stroke.template === 'equals') {
+    ctx.fillText('=', x, y + r(10));
   }
 
   ctx.restore();
