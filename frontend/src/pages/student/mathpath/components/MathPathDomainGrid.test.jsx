@@ -4,11 +4,11 @@ import { MemoryRouter } from 'react-router-dom';
 import MathPathDomainGrid, { MATHPATH_DOMAINS } from './MathPathDomainGrid';
 
 describe('MathPathDomainGrid', () => {
-  it('covers all 15 MathPath domains', () => {
-    expect(MATHPATH_DOMAINS.length).toBe(15);
+  it('covers all 16 MathPath domains', () => {
+    expect(MATHPATH_DOMAINS.length).toBe(16);
     const slugs = MATHPATH_DOMAINS.map((d) => d.slug);
-    for (const slug of ['fractions', 'decimals', 'percentages', 'ratio-rate', 'number-sense',
-      'operations', 'money', 'time', 'measurement', 'area-perimeter', 'volume',
+    for (const slug of ['early-numeracy', 'fractions', 'decimals', 'percentages', 'ratio-rate',
+      'number-sense', 'operations', 'money', 'time', 'measurement', 'area-perimeter', 'volume',
       'geometry', 'circles', 'statistics', 'algebra']) {
       expect(slugs, slug).toContain(slug);
     }
