@@ -570,17 +570,20 @@ export default function ComicReader() {
   useEffect(() => {
     narration.stop();
     const current = episode?.panels?.[currentPanel];
-    if (narration.autoNarrate && current) {
-      // Resolve any function-based speech text before handing to narration.
-      const resolved = {
-        ...current,
-        speech: (current.speech || []).map((s) => ({
-          ...s,
-          text: typeof s.text === 'function' ? s.text(episodeCtx, problems[currentPanel]) : s.text,
-        })),
-      };
-      narration.playPanel(resolved);
-    }
+    if (!narration.autoNarrate || !current) return undefined;
+    // Resolve any function-based speech text before handing to narration.
+    const resolved = {
+      ...current,
+      speech: (current.speech || []).map((s) => ({
+        ...s,
+        text: typeof s.text === 'function' ? s.text(episodeCtx, problems[currentPanel]) : s.text,
+      })),
+    };
+    // Defer one tick so React StrictMode's mount setup→cleanup→setup settles
+    // before audio starts; the cleanup cancels a superseded schedule, so a panel
+    // is narrated exactly once (no double "first line").
+    const timer = setTimeout(() => narration.playPanel(resolved), 0);
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPanel, narration.autoNarrate, episode]);
 
