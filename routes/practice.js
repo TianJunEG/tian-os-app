@@ -13,6 +13,7 @@ import { recordAttempt } from '../utils/masteryEngine.js';
 import { isCorrectWithContext, checkKeyPoints } from '../utils/answerCheck.js';
 import { markOpenEnded } from '../utils/aiMarking.js';
 import { selectSimilarQuestions } from '../utils/worksheetGen.js';
+import { generateQuestionsForSkill } from '../shared/mathpath/genericQuestionGenerator.js';
 import { normalizeConfidence, recordLearningEvents } from '../services/telemetry/learningTelemetryService.js';
 import { updateFluencyCompletionForSession } from '../services/fluency/fluencyCompletionService.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
@@ -47,6 +48,55 @@ async function resolveSkillRefToIds(refs = []) {
     out.push(ref);
   }
   return [...new Set(out)];
+}
+
+// The generator emits a numeric difficulty (1/2/3); map back to the Question enum.
+const DIFFICULTY_BY_NUM = { 1: 'easy', 2: 'medium', 3: 'hard' };
+
+// Fallback question generation. Non-fractions domains GENERATE questions on the
+// fly rather than seeding the Question collection, so the generic DB lookup
+// finds nothing for them and practice dead-ends with a 400. When a skill has no
+// seeded questions, generate a small bank from the skill's own
+// metadata.questionStructures (the same engine the diagnostic uses for every
+// domain) and PERSIST it — so grading (Question.findById) works and the skill
+// self-seeds for next time. Returns the freshly-created, populated questions.
+export async function ensureQuestionsForSkills(skillIds, perSkill = 6) {
+  const skills = await Skill.find({ _id: { $in: skillIds } }).populate({ path: 'topicId', select: 'subjectId' });
+  const docs = [];
+  for (const skill of skills) {
+    const structures = skill.metadata?.questionStructures;
+    const subjectId = skill.topicId?.subjectId;
+    const topicId = skill.topicId?._id;
+    if (!Array.isArray(structures) || !structures.length || !subjectId || !topicId) continue;
+    const generated = generateQuestionsForSkill({
+      slug: skill.slug || String(skill._id),
+      level: skill.moeLevel || '',
+      questionStructures: structures,
+      domainId: skill.domain || '',
+    }, perSkill);
+    for (const g of generated) {
+      const stem = String(g.stem || g.prompt || '').trim();
+      const answer = g.answer === undefined || g.answer === null ? '' : String(g.answer);
+      if (!stem || answer === '') continue;
+      docs.push({
+        subjectId, topicId, skillId: skill._id,
+        frameworkSkillId: skill.metadata?.mathPathSkillId || skill.metadata?.frameworkCode || '',
+        universalSkillSlug: skill.slug || '',
+        moeLevel: skill.moeLevel || '',
+        questionCategory: 'practice',
+        difficulty: DIFFICULTY_BY_NUM[g.difficulty] || 'medium',
+        type: g.questionType === 'mcq' ? 'mcq' : 'short_answer',
+        stem,
+        choices: Array.isArray(g.choices) ? g.choices.map(String) : [],
+        answer,
+        misconceptionTag: g.misconceptionTag || '',
+        source: 'generated',
+      });
+    }
+  }
+  if (!docs.length) return [];
+  const inserted = await Question.insertMany(docs);
+  return Question.find({ _id: { $in: inserted.map((d) => d._id) } }).populate({ path: 'skillId', populate: { path: 'topicId' } });
 }
 
 // Shape a question for the client (never leak the answer mid-session).
@@ -134,6 +184,13 @@ router.post('/sessions', protect, asyncHandler(async (req, res) => {
         studentId: student._id, skillIds: targetSkillIds, difficulty: 'medium',
         count: questionCount, excludeQuestionIds: excludeQuestionId ? [excludeQuestionId] : [],
       });
+    }
+    // No seeded DB questions (common for non-fractions domains, which generate
+    // rather than store). Generate + persist a bank on the fly so the student can
+    // actually practise instead of dead-ending on a 400.
+    if (!questions.length && targetSkillIds.length) {
+      const generated = await ensureQuestionsForSkills(targetSkillIds, Math.max(questionCount, 6));
+      questions = generated.slice(0, questionCount);
     }
     if (!questions.length) return res.status(400).json({ error: 'No questions available for this skill yet.' });
 
