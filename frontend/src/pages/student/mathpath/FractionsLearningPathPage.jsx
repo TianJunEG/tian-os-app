@@ -390,11 +390,27 @@ export default function FractionsLearningPathPage() {
     navigate(to);
   };
 
+  // Scope the header progress to the student's visible (level-appropriate) skills
+  // rather than the full 26-skill P6 catalogue, so a P3 student isn't measured
+  // against secondary-tier fractions skills.
+  const visibleProgress = useMemo(() => {
+    const visibleArr = [...visibleSkillIds];
+    const totalVisible = visibleArr.length;
+    const within = (ids = []) => ids.filter((id) => visibleSkillIds.has(id));
+    return {
+      ...masteryProgress,
+      totalSkills: totalVisible || masteryProgress.totalSkills,
+      masteredSkills: within(masteryProgress.masteredSkills || []),
+      fluentSkills: within(masteryProgress.fluentSkills || []),
+      retainedSkills: within(masteryProgress.retainedSkills || []),
+    };
+  }, [visibleSkillIds, masteryProgress]);
+
   return (
     <div className="mx-auto max-w-5xl space-y-5">
       <PageHeader title="Fractions Learning Path" />
       <LearningPathHeader
-        progress={masteryProgress}
+        progress={visibleProgress}
         currentSkillName={currentSkillName}
         nextCta={nextCta}
         onPrimary={launchPrimary}

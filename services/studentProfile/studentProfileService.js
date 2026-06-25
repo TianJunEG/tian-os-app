@@ -5,6 +5,7 @@ import MathPathAssessmentSession from '../../models/mathpath/MathPathAssessmentS
 import MathPathDiagnosticSession from '../../models/mathpath/MathPathDiagnosticSession.js';
 import MathPathPracticeSession from '../../models/mathpath/MathPathPracticeSession.js';
 import MathPathStudentSkillState from '../../models/mathpath/MathPathStudentSkillState.js';
+import MathPathSkill from '../../models/mathpath/MathPathSkill.js';
 import MathPathWorkingSession from '../../models/mathpath/MathPathWorkingSession.js';
 import StudentXP from '../../models/studentProfile/StudentXP.js';
 import StudentAchievement from '../../models/studentProfile/StudentAchievement.js';
@@ -295,7 +296,21 @@ async function deriveMetrics(student) {
   // for the profile "days active" counter.
   const activityStreak = calculateActivityStreak(activityDates);
   const streak = activityStreak;
-  const totalSkills = currentDomain === 'fractions' ? Math.max(totalFractionsSkills || 0, 26) : Math.max(uniqueCount(masteredCodes), 1);
+  // Denominator: use the real per-domain active-skill count for the student's
+  // current domain. Previously non-fractions fell through to max(mastered, 1)
+  // which produced mastered/total = N/N = 100% for any non-fractions student
+  // with any progress (and 0/1 = 0% for a fresh one). For fractions, keep the
+  // pre-fetched Skill count (slug-based) so behaviour is unchanged there.
+  let domainTotalSkills = 0;
+  if (currentDomain === 'fractions') {
+    domainTotalSkills = Math.max(totalFractionsSkills || 0, 26);
+  } else if (currentDomain) {
+    try { domainTotalSkills = await MathPathSkill.countDocuments({ domainId: currentDomain, isActive: true }); }
+    catch { domainTotalSkills = 0; }
+  }
+  // Fall through to the legacy max-of-mastered only if we genuinely couldn't
+  // resolve a real domain size, so we never show a degenerate "100%".
+  const totalSkills = domainTotalSkills > 0 ? domainTotalSkills : Math.max(uniqueCount(masteredCodes), 1);
 
   return {
     studentId,
