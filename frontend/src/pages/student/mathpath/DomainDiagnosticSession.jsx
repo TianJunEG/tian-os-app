@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Pencil, Sparkles, Volume2, X } from 'lucide-react';
-import FullScreenWorkingMode from '../../../components/learning/FullScreenWorkingMode';
+import ScratchpadOverlay from '../../../components/learning/ScratchpadOverlay';
 import { diagnosticsAPI } from '../../../services/api';
 import { Alert, Badge, Button, Card, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
 import { MascotBubble } from '../../../components/MascotAvatar';
@@ -90,12 +90,13 @@ export default function DomainDiagnosticSession() {
   const [question, setQuestion] = useState(null);
   const [progress, setProgress] = useState({ answeredCount: 0, estimatedQuestionCount: 8 });
   const [draft, setDraft] = useState('');
-  // Full-screen scratchpad: open/closed + a per-question store so a student can
-  // open, draw, close, and re-open without losing their work mid-question.
-  // Working is OPTIONAL for the diagnostic — never submitted to the server,
-  // just a place to think for multi-step problems (volume, money, etc.).
-  const [fullscreenOpen, setFullscreenOpen] = useState(false);
-  const [workingByQuestion, setWorkingByQuestion] = useState({});
+  // Scratchpad overlay: a transparent ink layer over the diagnostic UI so the
+  // student can write anywhere on screen while the question stays visible
+  // underneath. Per-question store keeps strokes when they close/reopen, but
+  // working is OPTIONAL and never submitted to the server — pure thinking
+  // space for multi-step problems (volume, money, …).
+  const [scratchpadOpen, setScratchpadOpen] = useState(false);
+  const [strokesByQuestion, setStrokesByQuestion] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [encouragement, setEncouragement] = useState('');
@@ -162,7 +163,7 @@ export default function DomainDiagnosticSession() {
         setProgress(data.progress || progress);
         setEncouragement(data.supportiveCopy || '');
         setDraft('');
-        setFullscreenOpen(false);
+        setScratchpadOpen(false);
         startedAt.current = Date.now();
       }
     } catch (e) {
@@ -401,38 +402,26 @@ export default function DomainDiagnosticSession() {
         )}
       </Card>
 
-      {/* Optional scratchpad — full-screen overlay with tools (same canvas as
-          practice). Multi-step diagnostic questions (volume, money, …) need
-          somewhere to think instead of forcing mental math. */}
+      {/* Optional scratchpad — a transparent ink layer over the page so the
+          student can write anywhere on screen while the question stays
+          visible underneath. */}
       <button
         type="button"
-        onClick={() => setFullscreenOpen(true)}
+        onClick={() => setScratchpadOpen(true)}
         className="mt-3 flex w-full items-center gap-2 rounded-lg border border-dashed border-ink-200 px-3 py-2 text-xs font-medium text-ink-500 transition-colors hover:border-ink-300 hover:bg-ink-50 hover:text-ink-600"
       >
         <Pencil className="h-3.5 w-3.5" />
         <span className="flex-1 text-left">Open scratchpad</span>
         <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-ink-400">Optional</span>
       </button>
-      <FullScreenWorkingMode
-        open={fullscreenOpen}
-        questionText={question?.prompt || question?.stem || ''}
-        questionId={question?.questionId || `q-${progress.answeredCount}`}
-        initialStrokes={workingByQuestion[question?.questionId]?.workingStrokes || []}
-        initialMathObjects={workingByQuestion[question?.questionId]?.workingMathObjects || []}
-        onClose={() => setFullscreenOpen(false)}
-        onSave={(payload) => {
+      <ScratchpadOverlay
+        open={scratchpadOpen}
+        initialStrokes={strokesByQuestion[question?.questionId] || []}
+        onChange={(next) => {
           const qid = question?.questionId;
-          if (qid) {
-            setWorkingByQuestion((prev) => ({
-              ...prev,
-              [qid]: {
-                workingStrokes: payload.workingStrokes || [],
-                workingMathObjects: payload.workingMathObjects || [],
-              },
-            }));
-          }
-          setFullscreenOpen(false);
+          if (qid) setStrokesByQuestion((prev) => ({ ...prev, [qid]: next }));
         }}
+        onClose={() => setScratchpadOpen(false)}
       />
 
       {submitError && (
