@@ -7,7 +7,8 @@
 // removed and topic order is reset so the canonical domains lead (deterministic
 // recommendations).
 //
-//   node scripts/reconcileDomains.js      (or: npm run reconcile:domains)
+//   node scripts/reconcileDomains.js              (or: npm run reconcile:domains)
+//   node scripts/reconcileDomains.js --dry-run    (preview only — no writes)
 //
 // Idempotent & re-runnable. Extend CANONICAL_ORDER / LEGACY_MAP as each new
 // domain is added; re-run to fold its legacy equivalents in.
@@ -20,7 +21,9 @@ import Question from '../models/Question.js';
 import MasteryRecord from '../models/MasteryRecord.js';
 
 dotenv.config();
-const URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/tutor-match';
+// Resolved at call time (not module-load) so tests can override MONGODB_URI in
+// their setup hooks after this module is imported.
+const resolveUri = () => process.env.MONGODB_URI || 'mongodb://localhost:27017/tutor-match';
 
 // Canonical domain topics → curriculum order. Only built domains belong here.
 const CANONICAL_ORDER = {
@@ -127,8 +130,12 @@ const SLUG_REMAP = {
   'ns.round.decimals': 'dec.round',
 };
 
-async function main() {
-  await mongoose.connect(URI);
+async function main({ dryRun = false } = {}) {
+  // Only own the connection if we opened it — so a caller (tests) that already
+  // has a live connection won't have the rug pulled at the end.
+  const ownsConnection = mongoose.connection.readyState !== 1;
+  if (ownsConnection) await mongoose.connect(resolveUri());
+  if (dryRun) console.log('🟡 DRY-RUN: previewing only — no writes will be made.');
   const math = await Subject.findOne({ key: 'math' });
   if (!math) { console.error('No Math subject — run `npm run seed:foundation` first.'); process.exit(1); }
   const topicIds = (await Topic.find({ subjectId: math._id })).map((t) => t._id);
@@ -137,6 +144,14 @@ async function main() {
   // Repoint every reference from `source` onto `canonical`, then delete `source`.
   const migrate = async (source, canonical) => {
     if (!source || !canonical || String(source._id) === String(canonical._id)) return;
+    if (dryRun) {
+      const qCount = await Question.countDocuments({ skillId: source._id });
+      const mrCount = await MasteryRecord.countDocuments({ skillId: source._id });
+      const preCount = await Skill.countDocuments({ prerequisiteSkillIds: source._id });
+      counts.q += qCount; counts.mrMoved += mrCount; counts.pre += preCount; counts.migrated++;
+      console.log(`   would migrate "${source.name}" → "${canonical.slug}" (questions ${qCount}, mastery ${mrCount}, prereq ${preCount})`);
+      return;
+    }
     const q = await Question.updateMany({ skillId: source._id }, { $set: { skillId: canonical._id, topicId: canonical.topicId } });
     counts.q += q.modifiedCount || 0;
     for (const mr of await MasteryRecord.find({ skillId: source._id })) {            // de-dupe per student
@@ -170,22 +185,32 @@ async function main() {
   // Remove legacy topics that are now empty.
   let topicsDropped = 0;
   for (const t of await Topic.find({ subjectId: math._id })) {
-    if (await Skill.countDocuments({ topicId: t._id }) === 0) { await t.deleteOne(); topicsDropped++; }
+    if (await Skill.countDocuments({ topicId: t._id }) === 0) {
+      if (!dryRun) await t.deleteOne();
+      topicsDropped++;
+    }
   }
 
   // Re-order: canonical domains take their fixed positions; everything else is
   // pushed after them (relative order preserved) so the order is deterministic.
-  const topics = await Topic.find({ subjectId: math._id });
-  const legacy = topics.filter((t) => !(t.name in CANONICAL_ORDER)).sort((a, b) => a.order - b.order);
-  for (const t of topics) if (t.name in CANONICAL_ORDER) { t.order = CANONICAL_ORDER[t.name]; await t.save(); }
-  for (let i = 0; i < legacy.length; i++) { legacy[i].order = 20 + i; await legacy[i].save(); }
+  if (!dryRun) {
+    const topics = await Topic.find({ subjectId: math._id });
+    const legacy = topics.filter((t) => !(t.name in CANONICAL_ORDER)).sort((a, b) => a.order - b.order);
+    for (const t of topics) if (t.name in CANONICAL_ORDER) { t.order = CANONICAL_ORDER[t.name]; await t.save(); }
+    for (let i = 0; i < legacy.length; i++) { legacy[i].order = 20 + i; await legacy[i].save(); }
+  }
 
-  console.log('✅ Domain reconciliation complete');
+  console.log(dryRun ? '🟡 Dry-run preview complete (no writes made)' : '✅ Domain reconciliation complete');
   console.log(`   Skills migrated: ${counts.migrated} (questions ${counts.q}, mastery moved ${counts.mrMoved}/dropped ${counts.mrDropped}, prereq links ${counts.pre})`);
   console.log(`   Empty topics removed: ${topicsDropped}`);
   console.log(`   Canonical domains lead: ${Object.keys(CANONICAL_ORDER).join(', ')}`);
-  await mongoose.disconnect();
+  if (ownsConnection) await mongoose.disconnect();
 }
 
 const isMain = process.argv[1] && import.meta.url === `file://${process.argv[1]}`;
-if (isMain) main().catch((e) => { console.error(e); process.exit(1); });
+if (isMain) {
+  const dryRun = process.argv.includes('--dry-run');
+  main({ dryRun }).catch((e) => { console.error(e); process.exit(1); });
+}
+
+export { main };
