@@ -349,7 +349,7 @@ export default function FractionsLearningPathPage() {
     || (studentProgress?.diagnosticResult?.weakSkillIds || []).length
   );
 
-  if (!hasDiagnosticSignal && !(masteryProgress.totalSkills > 0)) {
+  if (!hasDiagnosticSignal && (masteryProgress.masteredSkills?.length || 0) === 0 && Object.keys(skillStatuses).length === 0) {
     return (
       <div className="mx-auto max-w-4xl">
         <PageHeader title="Fractions Learning Path" subtitle="Structured progression across all 26 Fractions skills." />

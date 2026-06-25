@@ -107,6 +107,7 @@ export default function TopicDetail() {
 
   const startPractice = async (payload) => {
     if (starting) return;
+    setError(null);
     setStarting(true);
     try {
       const skillId = payload?.skillId || '';
@@ -128,7 +129,6 @@ export default function TopicDetail() {
   };
 
   if (loading) return <Spinner label="Loading topic…" />;
-  if (error) return <EmptyState icon={AlertTriangle} message={error} />;
   if (!topic) return <EmptyState icon={AlertTriangle} message="Topic not found." />;
 
   return (
@@ -148,6 +148,13 @@ export default function TopicDetail() {
           </div>
         }
       />
+
+      {error && (
+        <div className="mb-3 flex items-start justify-between gap-3 rounded-lg border border-error-200 bg-error-50 px-4 py-3">
+          <p className="text-sm font-medium text-error-700">{error}</p>
+          <button onClick={() => setError(null)} className="shrink-0 text-sm font-semibold text-error-700 hover:opacity-70">Dismiss</button>
+        </div>
+      )}
 
       <div className="space-y-3">
         {topic.skills.map((s) => (
