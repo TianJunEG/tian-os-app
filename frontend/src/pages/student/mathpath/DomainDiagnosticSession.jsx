@@ -288,6 +288,34 @@ export default function DomainDiagnosticSession() {
           const moneyData = domain.segment === 'money' ? parseMoneyPrompt(prompt) : null;
           // Prefer the GENERATED coin/note diagram over fragile prompt parsing.
           const coinTokens = domain.segment === 'money' ? parseCoinsDiagram(question) : null;
+          // Early-numeracy "Count them. How many?" emits diagram:{kind:'count',
+          // emoji, count}. The diagnostic had no renderer for it, so the
+          // student saw the question with nothing to count. Render the emoji
+          // N times in a friendly grid.
+          const countDiagram = question?.diagram?.kind === 'count' ? question.diagram : null;
+          if (countDiagram) {
+            const items = Array.from({ length: Number(countDiagram.count) || 0 });
+            return (
+              <>
+                <div className="mb-4 flex flex-wrap justify-center gap-3 rounded-2xl bg-emerald-tint/40 p-5" aria-label={`${items.length} ${countDiagram.emoji || 'objects'} to count`}>
+                  {items.map((_, i) => (
+                    <span key={i} className="text-5xl leading-none" role="img" aria-hidden="true">{countDiagram.emoji || '⬤'}</span>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <p className={isLowerPrimary ? 'text-xl font-bold text-ink-900' : 'text-lg font-semibold text-ink-900 whitespace-pre-wrap'}>{prompt}</p>
+                  <button
+                    type="button"
+                    aria-label="Read question"
+                    onClick={() => speak(toSpeakable(prompt), { rate: 0.8, gender: 'female' })}
+                    className="rounded-full p-1 text-ink-400 hover:text-emerald active:scale-90"
+                  >
+                    <Volume2 className="h-5 w-5" />
+                  </button>
+                </div>
+              </>
+            );
+          }
           if (coinTokens) {
             return (
               <>
