@@ -138,6 +138,11 @@ function extractOrderingItems(question = {}) {
 
 function OrderingAnswerInput({ question, value, onChange, disabled, onEnter }) {
   const items = useMemo(() => extractOrderingItems(question), [question]);
+  // Detect if this is a FRACTION ordering question (items are fraction-shaped).
+  // extractOrderingItems already filters to /\d+\/\d+/ shapes, so any non-empty
+  // items array means fractions. Whole/decimal ordering keeps the plain input.
+  const isFractionOrdering = items.length > 0
+    && items.every((item) => /^\s*-?\d+(\s+\d+\s*\/\s*\d+|\s*\/\s*\d+)?\s*$/.test(item));
   const parts = String(value || '').split(',').map((item) => item.trim());
   const setPart = (index, nextValue) => {
     const next = Array.from({ length: Math.max(items.length, parts.length, index + 1) }, (_, i) => parts[i] || '');
@@ -148,20 +153,30 @@ function OrderingAnswerInput({ question, value, onChange, disabled, onEnter }) {
   return (
     <div className="rounded-xl border border-line-soft bg-white p-4">
       <p className="mb-3 text-sm font-semibold text-ink-700">Enter the order from smallest to largest.</p>
-      <div className="grid gap-2 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-3">
         {Array.from({ length: Math.max(2, items.length || 3) }, (_, index) => (
-          <label key={index} className="min-w-0">
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Position {index + 1}</span>
-            <input
-              value={parts[index] || ''}
-              onChange={(event) => setPart(index, event.target.value)}
-              disabled={disabled}
-              aria-label={`Your answer for position ${index + 1}`}
-              placeholder={items[index] ? 'Type here' : 'Fraction'}
-              className="h-12 w-full rounded-xl border border-line-soft px-3 text-center font-mono text-base text-ink-900 focus:border-emerald focus:outline-none focus:ring-2 focus:ring-emerald/20"
-              onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
-            />
-          </label>
+          <div key={index} className="min-w-0">
+            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Position {index + 1}</p>
+            {isFractionOrdering ? (
+              <FractionAnswerInput
+                value={parts[index] || ''}
+                onChange={(next) => setPart(index, next)}
+                disabled={disabled}
+                onEnter={onEnter}
+                allowWhole
+              />
+            ) : (
+              <input
+                value={parts[index] || ''}
+                onChange={(event) => setPart(index, event.target.value)}
+                disabled={disabled}
+                aria-label={`Your answer for position ${index + 1}`}
+                placeholder="Type here"
+                className="h-12 w-full rounded-xl border border-line-soft px-3 text-center font-mono text-base text-ink-900 focus:border-emerald focus:outline-none focus:ring-2 focus:ring-emerald/20"
+                onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
+              />
+            )}
+          </div>
         ))}
       </div>
     </div>
