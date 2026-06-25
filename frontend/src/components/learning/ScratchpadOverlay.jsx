@@ -58,6 +58,12 @@ export default function ScratchpadOverlay({
   answerValue,
   onAnswerChange,
   onSubmitAnswer,
+  // Optional working-evidence submission. When provided, a Submit press
+  // renders the strokes to a PNG and calls onSaveWorking with the same
+  // payload shape as FullScreenWorkingMode's onSave — so surfaces that send
+  // working evidence to the backend (practice/diagnostic) can use this
+  // overlay as a drop-in replacement without losing the evidence pipeline.
+  onSaveWorking,
 }) {
   const canvasRef = useRef(null);
   const drawingRef = useRef(false);
@@ -175,6 +181,53 @@ export default function ScratchpadOverlay({
     onChange?.([]);
   }
 
+  // Render the current strokes onto an offscreen canvas of the viewport size
+  // and return a PNG data URL. Matches FullScreenWorkingMode's paper-style
+  // export so consumers of the working-evidence pipeline can swap this overlay
+  // in without backend changes.
+  function exportWorkingImage() {
+    if (typeof document === 'undefined') return '';
+    const off = document.createElement('canvas');
+    off.width = Math.max(1, window.innerWidth);
+    off.height = Math.max(1, window.innerHeight);
+    const ctx = off.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, off.width, off.height);
+    for (const stroke of strokes) drawStroke(ctx, stroke);
+    return off.toDataURL('image/png');
+  }
+
+  // Build the payload that mirrors FullScreenWorkingMode's onSave shape, so
+  // consumers (PracticeSession, DiagnosticQuestionScreen, …) get the same
+  // contract whether the student uses the modal canvas or this overlay.
+  function buildWorkingPayload() {
+    return {
+      workingImage: strokes.length ? exportWorkingImage() : '',
+      workingStrokes: strokes,
+      // Stamps live INSIDE strokes (tool:'stamp') in this overlay, so there
+      // are no separate math-object items — but keep the field for shape parity.
+      workingMathObjects: [],
+      workingSubmitted: strokes.length > 0,
+      workingSubmittedAt: new Date().toISOString(),
+    };
+  }
+
+  // Capture working evidence (if the parent wired it) BEFORE Submit/Close fires.
+  // The image is rendered synchronously on the offscreen canvas so the parent's
+  // state is updated before any async submission downstream.
+  function captureWorking() {
+    if (typeof onSaveWorking !== 'function') return;
+    onSaveWorking(buildWorkingPayload());
+  }
+  function handleSubmit() {
+    captureWorking();
+    onSubmitAnswer?.();
+  }
+  function handleClose() {
+    captureWorking();
+    onClose?.();
+  }
+
   // Drop a math stamp at a roughly-central spot, offset per stamp so successive
   // inserts don't pile up exactly. drawStroke() routes tool:'stamp' through
   // drawMathStamp(), so the rendering is identical to every other canvas.
@@ -288,7 +341,7 @@ export default function ScratchpadOverlay({
           <Trash2 className="h-4 w-4" />
         </button>
         <div className="my-1 border-t border-line-soft" />
-        <button type="button" onClick={onClose} className={toolBtn(false)} title="Close scratchpad" aria-label="Close scratchpad">
+        <button type="button" onClick={handleClose} className={toolBtn(false)} title="Close scratchpad" aria-label="Close scratchpad">
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -333,7 +386,7 @@ export default function ScratchpadOverlay({
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && String(answerValue ?? '').trim() && typeof onSubmitAnswer === 'function') {
                   e.preventDefault();
-                  onSubmitAnswer();
+                  handleSubmit();
                 }
               }}
               placeholder="Type here"
@@ -344,7 +397,7 @@ export default function ScratchpadOverlay({
               <button
                 type="button"
                 disabled={!String(answerValue ?? '').trim()}
-                onClick={() => onSubmitAnswer()}
+                onClick={() => handleSubmit()}
                 className="rounded-lg bg-emerald px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-emerald-deep disabled:bg-line-soft disabled:text-ink-400"
               >
                 Submit
