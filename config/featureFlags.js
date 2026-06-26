@@ -31,6 +31,7 @@ export const FLAGS = {
   science: process.env.FEAT_SCIENCE === '1',
   mechanisms: process.env.FEAT_MECHANISMS === '1',
   spelling: process.env.FEAT_SPELLING !== '0',
+  englishpath: process.env.FEAT_ENGLISHPATH !== '0',
   comics: process.env.FEAT_COMICS !== '0',
   psl: process.env.FEAT_PSL !== '0',
   // Test Papers (exam-style timed papers) — OFF by default during Phase 1

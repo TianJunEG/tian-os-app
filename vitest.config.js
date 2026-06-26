@@ -13,6 +13,7 @@ export default defineConfig({
       'shared/diagramEngine/tests/**/*.test.js',
       'shared/mathpath/**/*.test.js',
       'scripts/**/*.test.js',
+      'shared/englishpath/**/*.test.js',
     ],
   },
 });
