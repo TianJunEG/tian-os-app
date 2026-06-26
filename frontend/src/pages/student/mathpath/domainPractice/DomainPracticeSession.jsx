@@ -6,7 +6,7 @@ import { MascotBubble } from '../../../../components/MascotAvatar';
 import { MathText } from '../../../../components/ui/Fraction';
 import FullScreenWorkingMode from '../../../../components/learning/FullScreenWorkingMode';
 import WorkingPreviewCard from '../../../../components/learning/WorkingPreviewCard';
-import ManipulativeDotArray, { parseDotStem, numericLine, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram, parseCountDiagram, ManipulativeCountArray, parseCompareDiagram, ManipulativeCompareSets, parsePatternDiagram, ManipulativePatternStrip, parseShapeChoice, ShapeGlyph, parsePositionDiagram, ManipulativePositionStack } from '../../../../components/learning/ManipulativeDotArray';
+import ManipulativeDotArray, { parseDotStem, numericLine, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram, parseCountDiagram, ManipulativeCountArray, parseCompareDiagram, ManipulativeCompareSets, parsePatternDiagram, ManipulativePatternStrip, parseShapeChoice, ShapeGlyph, parsePositionDiagram, ManipulativePositionStack, DragAnswerChips } from '../../../../components/learning/ManipulativeDotArray';
 import { speak, isVoiceEnabled, setVoiceEnabled } from '../../../../utils/sound';
 import { useAuth } from '../../../../context/AuthContext';
 import { getMascotForModule, getMascotVoice } from '../../../../config/mascots';
@@ -148,6 +148,9 @@ export default function DomainPracticeSession({ domain }) {
 
   const questions = session?.questions || [];
   const current = questions[index] || null;
+  // K2 pattern questions become a drag-or-tap activity: drag the missing piece
+  // into the box on the pattern strip (tap still works as the a11y fallback).
+  const lpPatternMcq = isLPrimary && current?.type === 'mcq' ? parsePatternDiagram(current) : null;
   const isLast = index >= questions.length - 1;
   const currentWorking = current?.questionId ? (workingByQuestion[current.questionId] || {}) : {};
 
@@ -385,7 +388,14 @@ export default function DomainPracticeSession({ domain }) {
         </div>
 
         {current?.type === 'mcq' ? (
-          isLPrimary ? (
+          lpPatternMcq ? (
+            <DragAnswerChips
+              key={current?.questionId}
+              choices={current.choices || []}
+              onAnswer={(value) => { speak(value, { rate: 0.85, gender: 'female' }); submitAnswer(value); }}
+              disabled={showReflection || submitting}
+            />
+          ) : isLPrimary ? (
             <div className="grid grid-cols-2 gap-3 pt-1">
               {(current.choices || []).map((choice) => {
                 const shapeKind = parseShapeChoice(choice);
