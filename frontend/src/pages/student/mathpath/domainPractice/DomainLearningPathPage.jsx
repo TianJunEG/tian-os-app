@@ -50,12 +50,15 @@ export default function DomainLearningPathPage({ domain }) {
   // Diagnostic check-in entry point (generic /:domainId/diagnostic route). Keeps
   // the per-domain "quick check-in" that the fluency PRs added to every simple
   // learning-path page, now surfaced through the shared footer slot.
-  // Gentle domains (K2 Early Numeracy) have no diagnostic adapter wired yet
-  // (EarlyNumeracy skills use questionFamilies, not the questionStructures
-  // shape the generic factory consumes). Pass null so we don't double up the
-  // inline "Practise" button on the recommended-next card with a redundant
-  // footer "Let's Practise" button.
-  const footerSlot = config?.gentle ? null : (
+  // Gentle domains (K2 Early Numeracy) now have a diagnostic adapter too, but
+  // with softer "Quick Check-In" framing rather than the high-stakes wording.
+  const footerSlot = config?.gentle ? (
+    <div className="flex flex-wrap items-center gap-3">
+      <Button variant="secondary" onClick={() => navigate(`/student/mathpath/${domain}/diagnostic`)}>
+        Quick Check-In
+      </Button>
+    </div>
+  ) : (
     <div className="flex flex-wrap items-center gap-3">
       <Button
         onClick={() => navigate(`/student/mathpath/${domain}/diagnostic`)}

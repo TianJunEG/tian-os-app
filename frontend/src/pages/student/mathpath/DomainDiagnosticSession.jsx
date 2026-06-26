@@ -37,6 +37,7 @@ const DOMAIN_CONFIG = {
   money: { domainId: 'money', label: 'Money' },
   time: { domainId: 'time', label: 'Time' },
   statistics: { domainId: 'statistics', label: 'Statistics' },
+  'early-numeracy': { domainId: 'early_numeracy', label: 'Numeracy' },
 };
 
 function resolveDomain(segment) {
