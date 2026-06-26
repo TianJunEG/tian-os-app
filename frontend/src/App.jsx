@@ -116,6 +116,10 @@ const SpellingLearn = lazy(() => import('./pages/student/spelling/LearnMode'));
 const SpellingSelfTest = lazy(() => import('./pages/student/spelling/SelfTest'));
 const SpellingPracticeResults = lazy(() => import('./pages/student/spelling/SpellingResults'));
 const SpellingPracticeMistakes = lazy(() => import('./pages/student/spelling/SpellingMistakes'));
+// EnglishPath · Vocabulary Builder (secondary module, English · Vocabulary) — client engine
+const VocabHome = lazy(() => import('./pages/student/englishpath/VocabHome'));
+const VocabSession = lazy(() => import('./pages/student/englishpath/VocabSession'));
+const VocabResults = lazy(() => import('./pages/student/englishpath/VocabResults'));
 const StudentLifeLab = lazy(() => import('./pages/student/StudentLifeLab'));
 const SkillGraph = lazy(() => import('./pages/student/SkillGraph'));
 const StudentWorksheets = lazy(() => import('./pages/student/StudentWorksheets'));
@@ -724,6 +728,11 @@ function App() {
             <Route path="/student/spelling/practice/:sessionId" element={<FeatureGuard feature="spelling"><SpellingSelfTest /></FeatureGuard>} />
             <Route path="/student/spelling/results/:sessionId" element={<FeatureGuard feature="spelling"><SpellingPracticeResults /></FeatureGuard>} />
             <Route path="/student/spelling/mistakes" element={<FeatureGuard feature="spelling"><SpellingPracticeMistakes /></FeatureGuard>} />
+
+            {/* EnglishPath · Vocabulary Builder (English · Vocabulary) — client-side adaptive engine */}
+            <Route path="/student/english/vocab" element={<FeatureGuard feature="englishpath"><VocabHome /></FeatureGuard>} />
+            <Route path="/student/english/vocab/practice" element={<FeatureGuard feature="englishpath"><VocabSession /></FeatureGuard>} />
+            <Route path="/student/english/vocab/results" element={<FeatureGuard feature="englishpath"><VocabResults /></FeatureGuard>} />
 
             {/* Tian 7 Chronicles — comic word problems */}
             <Route path="/student/comics" element={<FeatureGuard feature="comics"><ComicsHome /></FeatureGuard>} />
