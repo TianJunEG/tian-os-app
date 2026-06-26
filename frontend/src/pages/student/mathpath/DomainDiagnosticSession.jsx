@@ -49,6 +49,24 @@ function resolveDomain(segment) {
   return { segment: key, domainId, label };
 }
 
+// Question prompt + read-aloud button. Shared by every manipulative renderer
+// (count / compare / pattern) so the markup stays consistent.
+function PromptRow({ prompt, isLowerPrimary }) {
+  return (
+    <div className="flex items-center gap-2">
+      <p className={isLowerPrimary ? 'text-xl font-bold text-ink-900' : 'text-lg font-semibold text-ink-900 whitespace-pre-wrap'}>{prompt}</p>
+      <button
+        type="button"
+        aria-label="Read question"
+        onClick={() => speak(toSpeakable(prompt), { rate: 0.8, gender: 'female' })}
+        className="rounded-full p-1 text-ink-400 hover:text-emerald active:scale-90"
+      >
+        <Volume2 className="h-5 w-5" />
+      </button>
+    </div>
+  );
+}
+
 export function summariseDiagnosticResult(result = {}) {
   return {
     readinessBand: result.readinessBand || 'developing',
@@ -303,17 +321,52 @@ export default function DomainDiagnosticSession() {
                     <span key={i} className="text-5xl leading-none" role="img" aria-hidden="true">{countDiagram.emoji || '⬤'}</span>
                   ))}
                 </div>
-                <div className="flex items-center gap-2">
-                  <p className={isLowerPrimary ? 'text-xl font-bold text-ink-900' : 'text-lg font-semibold text-ink-900 whitespace-pre-wrap'}>{prompt}</p>
-                  <button
-                    type="button"
-                    aria-label="Read question"
-                    onClick={() => speak(toSpeakable(prompt), { rate: 0.8, gender: 'female' })}
-                    className="rounded-full p-1 text-ink-400 hover:text-emerald active:scale-90"
-                  >
-                    <Volume2 className="h-5 w-5" />
-                  </button>
+                <PromptRow prompt={prompt} isLowerPrimary={isLowerPrimary} />
+              </>
+            );
+          }
+          // Early-numeracy "More, fewer or the same?" emits diagram:{kind:'compare',
+          // left:{emoji,count}, right:{emoji,count}} — two groups to compare.
+          const compareDiagram = question?.diagram?.kind === 'compare' ? question.diagram : null;
+          if (compareDiagram) {
+            const group = (g, label) => (
+              <div className="flex flex-col items-center gap-2 rounded-2xl bg-white/70 p-4">
+                <div className="flex flex-wrap justify-center gap-2" aria-label={`${g?.count || 0} ${g?.emoji || 'objects'}`}>
+                  {Array.from({ length: Number(g?.count) || 0 }).map((_, i) => (
+                    <span key={i} className="text-4xl leading-none" role="img" aria-hidden="true">{g?.emoji || '⬤'}</span>
+                  ))}
                 </div>
+                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-400">{label}</span>
+              </div>
+            );
+            return (
+              <>
+                <div className="mb-4 grid grid-cols-2 items-center gap-4 rounded-2xl bg-emerald-tint/40 p-5">
+                  {group(compareDiagram.left, 'Group A')}
+                  {group(compareDiagram.right, 'Group B')}
+                </div>
+                <PromptRow prompt={prompt} isLowerPrimary={isLowerPrimary} />
+              </>
+            );
+          }
+          // Early-numeracy "What comes next? / What's missing?" emits
+          // diagram:{kind:'pattern', items:[...], missingIndex}. Render the
+          // sequence with a highlighted "?" box at the missing position.
+          const patternDiagram = question?.diagram?.kind === 'pattern' ? question.diagram : null;
+          if (patternDiagram) {
+            const items = Array.isArray(patternDiagram.items) ? patternDiagram.items : [];
+            return (
+              <>
+                <div className="mb-4 flex flex-wrap items-center justify-center gap-3 rounded-2xl bg-emerald-tint/40 p-5" aria-label="Pattern sequence">
+                  {items.map((item, i) => (
+                    item == null || i === patternDiagram.missingIndex ? (
+                      <span key={i} className="grid h-14 w-14 place-items-center rounded-xl border-2 border-dashed border-emerald text-3xl font-bold text-emerald-deep">?</span>
+                    ) : (
+                      <span key={i} className="text-4xl leading-none" role="img" aria-hidden="true">{item}</span>
+                    )
+                  ))}
+                </div>
+                <PromptRow prompt={prompt} isLowerPrimary={isLowerPrimary} />
               </>
             );
           }
