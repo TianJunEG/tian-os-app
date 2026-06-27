@@ -208,7 +208,7 @@ const SGD_DENOM_META = {
   500:   { label: '$5',   shape: 'note', bg: '#16a34a', ring: '#15803d', fg: '#fff' },
   1000:  { label: '$10',  shape: 'note', bg: '#dc2626', ring: '#b91c1c', fg: '#fff' },
   5000:  { label: '$50',  shape: 'note', bg: '#2563eb', ring: '#1d4ed8', fg: '#fff' },
-  10000: { label: '$100', shape: 'note', bg: '#ea580c', ring: '#c2410c', fg: '#fff' },
+  // $100 note intentionally omitted — not used to teach money at this level.
 };
 
 // Extract the generated coin/note diagram from a question into a flat token list.
@@ -275,7 +275,7 @@ function MoneyPiece({ value, counted, onClick }) {
 
 // Interactive coin/note display for money questions, driven by the question's
 // GENERATED diagram (not a fragile prompt-text parse). Handles every SGD
-// denomination the generator emits (5¢…$100), mixed in one question. Pass
+// denomination the generator emits (5¢…$50), mixed in one question. Pass
 // key={questionId} from the parent so the counted-state resets per question.
 export function ManipulativeMoneyDiagram({ tokens = [] }) {
   const [counted, setCounted] = useState(new Set());

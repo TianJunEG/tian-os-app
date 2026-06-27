@@ -18,7 +18,7 @@ Filename = `coin-{cents}.png` for coins, `note-{cents}.png` for notes, where
 | 50¢          | `coin-50.png`  |
 | $1           | `coin-100.png` |
 
-## Notes (optional — not yet provided)
+## Notes
 
 | Denomination | Filename        |
 |--------------|-----------------|
@@ -26,4 +26,5 @@ Filename = `coin-{cents}.png` for coins, `note-{cents}.png` for notes, where
 | $5           | `note-500.png`  |
 | $10          | `note-1000.png` |
 | $50          | `note-5000.png` |
-| $100         | `note-10000.png`|
+
+The $100 note is intentionally not used (the generator never produces it).
