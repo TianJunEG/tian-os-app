@@ -1,5 +1,6 @@
 import Mistake from '../../models/Mistake.js';
 import MathPathMistakeRecord from '../../models/mathpath/MathPathMistakeRecord.js';
+import { recordLearningEvents } from '../telemetry/learningTelemetryService.js';
 
 // Shared mistake persistence for every non-fractions MathPath domain practice
 // submission. Replaces the inline MathPathMistakeRecord loop that was
@@ -19,6 +20,31 @@ import MathPathMistakeRecord from '../../models/mathpath/MathPathMistakeRecord.j
 // than flooding the review with duplicates.
 export async function persistDomainPracticeMistakes({ student, domainId, sessionId = '', scored = {}, questions = [] }) {
   const studentId = String(student._id);
+
+  // Telemetry FIRST (before any early return): emit a question_answered event
+  // for EVERY answered question so the global dashboard ("Questions answered",
+  // weekly accuracy, confidence) reflects domain practice. Domain submits used
+  // to update only per-skill mastery and never these events, so a student who
+  // practised a lot of non-fractions questions saw the dashboard counters stay
+  // flat (the reported "I answered a lot but it's not updated"). Best-effort:
+  // never fail a submit on telemetry. NOTE: must run before the mistake
+  // early-return below, or a 100%-correct session would emit nothing.
+  const results = Array.isArray(scored.results) ? scored.results : [];
+  const answered = results.filter((r) => r && r.questionId != null && !r.error);
+  if (answered.length) {
+    try {
+      await recordLearningEvents(answered.map((r) => ({
+        studentId,
+        eventType: 'question_answered',
+        domain: 'mathpath',
+        skillCode: String(r.skillId || ''),
+        questionId: String(r.questionId || ''),
+        sessionId,
+        metadata: { answerCorrect: Boolean(r.correct), domainId },
+      })));
+    } catch { /* telemetry is best-effort */ }
+  }
+
   const mistakes = Array.isArray(scored.mistakes) ? scored.mistakes : [];
   if (!mistakes.length) return { aggregateCount: 0, mistakeCount: 0 };
 
