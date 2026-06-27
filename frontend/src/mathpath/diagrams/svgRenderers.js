@@ -667,6 +667,51 @@ function trapezium(spec) {
   return svgShell(spec, body, 'trapezium');
 }
 
+// Analogue clock face. data: { hour, minute }. Numbers 1–12, hour ticks, and
+// hour + minute hands pointing to the time so "what time does the clock show?"
+// is actually readable.
+function clockFace(spec) {
+  const { hour = 12, minute = 0 } = spec.data;
+  const w = spec.width; const h = spec.height;
+  const cx = w / 2; const cy = h / 2; const r = Math.min(w, h) / 2 - 26;
+  let body = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#fff" stroke="#111" stroke-width="3"/>`;
+  for (let i = 1; i <= 12; i += 1) {
+    const a = (i / 12) * 2 * Math.PI - Math.PI / 2;
+    const x1 = cx + Math.cos(a) * (r - 7); const y1 = cy + Math.sin(a) * (r - 7);
+    const x2 = cx + Math.cos(a) * r; const y2 = cy + Math.sin(a) * r;
+    body += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#111" stroke-width="${i % 3 === 0 ? 3 : 1.5}"/>`;
+    const nx = cx + Math.cos(a) * (r - 24); const ny = cy + Math.sin(a) * (r - 24) + 6;
+    body += `<text x="${nx}" y="${ny}" text-anchor="middle" font-size="17" font-weight="600" fill="#1e293b">${i}</text>`;
+  }
+  const minA = (minute / 60) * 2 * Math.PI - Math.PI / 2;
+  const hrA = (((hour % 12) + minute / 60) / 12) * 2 * Math.PI - Math.PI / 2;
+  body += `<line x1="${cx}" y1="${cy}" x2="${cx + Math.cos(hrA) * r * 0.52}" y2="${cy + Math.sin(hrA) * r * 0.52}" stroke="#111" stroke-width="5" stroke-linecap="round"/>`;
+  body += `<line x1="${cx}" y1="${cy}" x2="${cx + Math.cos(minA) * r * 0.8}" y2="${cy + Math.sin(minA) * r * 0.8}" stroke="#1d4ed8" stroke-width="3" stroke-linecap="round"/>`;
+  body += `<circle cx="${cx}" cy="${cy}" r="5" fill="#111"/>`;
+  return svgShell(spec, body, `clock showing ${hour}:${String(minute).padStart(2, '0')}`);
+}
+
+// Linear measuring scale (weighing scale / gauge). data:
+// { start, interval, marks, unit }. Evenly-spaced ticks labelled in the unit,
+// with a red pointer at the `marks`-th tick past start so the student reads it.
+function measuringScale(spec) {
+  const { start = 0, interval = 10, marks = 1, unit = 'g' } = spec.data;
+  const w = spec.width; const h = spec.height;
+  const pad = 46; const trackY = h - 64; const x0 = pad; const x1 = w - pad;
+  const totalTicks = Math.max(Number(marks) + 4, 6);
+  const step = (x1 - x0) / totalTicks;
+  let body = `<line x1="${x0}" y1="${trackY}" x2="${x1}" y2="${trackY}" stroke="#111" stroke-width="2"/>`;
+  for (let i = 0; i <= totalTicks; i += 1) {
+    const x = x0 + i * step;
+    body += `<line x1="${x}" y1="${trackY}" x2="${x}" y2="${trackY - 14}" stroke="#111" stroke-width="1.5"/>`;
+    body += `<text x="${x}" y="${trackY + 22}" text-anchor="middle" font-size="12" fill="#475569">${start + i * interval}</text>`;
+  }
+  const px = x0 + Number(marks) * step;
+  body += `<polygon points="${px - 9},${trackY - 38} ${px + 9},${trackY - 38} ${px},${trackY - 17}" fill="#dc2626"/>`;
+  body += `<text x="${w / 2}" y="24" text-anchor="middle" font-size="13" fill="#1e293b">Each mark = ${interval} ${unit}</text>`;
+  return svgShell(spec, body, 'measuring scale');
+}
+
 export const renderers = {
   ...sharedRenderers,
   circle,
@@ -686,6 +731,8 @@ export const renderers = {
   l_shape: lShape,
   parallelogram,
   trapezium,
+  clock_face: clockFace,
+  measuring_scale: measuringScale,
   cuboid: cuboid,
   angle_on_line: angleOnLine,
   table,

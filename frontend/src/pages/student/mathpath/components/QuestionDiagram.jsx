@@ -83,9 +83,9 @@ function inferShadedFractionDiagramFromAnswer(question = {}) {
 // Kinds that have no renderer — questions with these will show without a diagram
 // rather than being silently skipped.
 const UNMAPPABLE_DIAGRAM_KINDS = new Set([
-  // l-shape / parallelogram / trapezium now have renderers (svgRenderers.js).
+  // l-shape / parallelogram / trapezium / clock / scale / cuboid now render.
   'polygon', 'symmetry', 'reflection', 'solid', 'net',
-  'pictograph', 'value-list', 'pie', 'scale', 'coins',
+  'pictograph', 'value-list', 'pie', 'coins',
 ]);
 
 // Convert generators' legacy `diagram: { kind, ...data }` shape into the
@@ -126,6 +126,15 @@ function normalizeDiagramKind(diagram) {
     case 'trapezium':
       if (!diagram.a || !diagram.b || !diagram.height) return null;
       return { type: 'trapezium', width: 440, height: 300, data: { a: diagram.a, b: diagram.b, height: diagram.height } };
+    case 'clock':
+      return { type: 'clock_face', width: 300, height: 300, data: { hour: Number(diagram.hour) || 12, minute: Number(diagram.minute) || 0 } };
+    case 'scale':
+      if (diagram.interval == null) return null;
+      return { type: 'measuring_scale', width: 480, height: 170, data: { start: Number(diagram.start) || 0, interval: Number(diagram.interval), marks: Number(diagram.marks) || 0, unit: diagram.unit || 'g' } };
+    case 'cuboid':
+      if (!diagram.length || !diagram.width || !diagram.height) return null;
+      // 470 wide so the "width …" label (placed past the back face) isn't clipped.
+      return { type: 'cuboid', width: 470, height: 300, data: { length: diagram.length, width: diagram.width, height: diagram.height } };
     case 'angle':
       return { type: 'angle_on_line', width: 400, height: 240, data: { angleDegrees: diagram.degrees } };
     case 'bar':
