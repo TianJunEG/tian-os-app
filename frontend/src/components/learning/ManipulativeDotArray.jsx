@@ -238,8 +238,8 @@ function MoneyPiece({ value, counted, onClick }) {
   const isCoin = meta.shape === 'coin';
   const imgSrc = `/money/${isCoin ? 'coin' : 'note'}-${value}.png`;
   // Coin images render slightly larger than the drawn circles so the artwork
-  // is legible; notes stay wide.
-  const dim = isCoin ? { width: 58, height: 58 } : { width: 96, height: 56 };
+  // is legible; notes are landscape (~1.9:1, matching real SGD notes).
+  const dim = isCoin ? { width: 58, height: 58 } : { width: 112, height: 60 };
   return (
     <button
       type="button"
