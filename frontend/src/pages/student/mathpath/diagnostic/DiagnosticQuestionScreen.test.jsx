@@ -122,28 +122,17 @@ describe('DiagnosticQuestionScreen adaptive flow', () => {
     renderDiagnostic({ questions: [firstQuestion], session: { sessionId: 'session-1' } });
 
     await screen.findByText(/What is 3 \+ 4/i, {}, { timeout: 5000 });
+    // Fast check-in: pick an answer then submit directly — no confidence modal,
+    // no working declaration.
     fireEvent.click(await screen.findByRole('button', { name: '7' }));
-    fireEvent.click((await screen.findAllByRole('button', { name: /Next Question/i }))[0]);
-    fireEvent.click(screen.getByRole('button', { name: /I know this!/i }));
-    fireEvent.click(screen.getByLabelText(/I really didn't need working for this one/i));
-    fireEvent.click((await screen.findAllByRole('button', { name: /Next Question/i }))[1]);
+    fireEvent.click(await screen.findByRole('button', { name: /Next Question/i }));
 
     await waitFor(() => expect(answerDiagnostic).toHaveBeenCalledTimes(1));
     expect(answerDiagnostic.mock.calls[0][0]).toBe('session-1');
     expect(answerDiagnostic.mock.calls[0][1]).toMatchObject({
       questionId: 'q1',
       answer: '7',
-      confidence: 'i_know_this',
       skipped: false,
-      workingImage: '',
-      workingStrokes: [],
-      workingMathObjects: [],
-      workingNotNeeded: true,
-      workingRequirementLevel: 'LOW',
-      fullscreenWorkingImage: '',
-      fullscreenWorkingStrokes: [],
-      fullscreenWorkingMathObjects: [],
-      workingEvidence: [],
     });
     expect(await screen.findByText(/What is 2 \+ 2/i)).toBeInTheDocument();
   });
@@ -171,7 +160,7 @@ describe('DiagnosticQuestionScreen adaptive flow', () => {
     });
   });
 
-  it('offers I need help as a confidence option and ends early when backend completes', async () => {
+  it('ends the check-in early when the backend reports the session is complete', async () => {
     answerDiagnostic.mockResolvedValueOnce({
       data: {
         isCorrect: false,
@@ -185,11 +174,9 @@ describe('DiagnosticQuestionScreen adaptive flow', () => {
     });
     renderDiagnostic({ questions: [firstQuestion], session: { sessionId: 'session-1' } });
 
+    // Fast check-in: answer + submit directly; backend completes → results.
     fireEvent.click(await screen.findByRole('button', { name: '6' }));
-    fireEvent.click((await screen.findAllByRole('button', { name: /Next Question/i }))[0]);
-    fireEvent.click(screen.getByRole('button', { name: /Need help/i }));
-    fireEvent.click(screen.getByLabelText(/I really didn't need working for this one/i));
-    fireEvent.click((await screen.findAllByRole('button', { name: /Next Question/i }))[1]);
+    fireEvent.click(await screen.findByRole('button', { name: /Next Question/i }));
 
     await waitFor(() => expect(screen.getByText('Diagnostic results')).toBeInTheDocument());
   });

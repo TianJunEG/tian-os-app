@@ -166,13 +166,16 @@ export default function DiagnosticQuestionScreen() {
     return correct ? 'low_confidence_correct' : 'needs_review';
   };
 
-  const saveCurrentAnd = (skipped, reflectionOverride) => {
+  const saveCurrentAnd = (skipped, reflectionOverride, answerOverride) => {
     const effectiveReflection = reflectionOverride ?? reflection;
+    // answerOverride lets a tapped MCQ choice submit its value directly without
+    // waiting on the async `answer` state to settle (avoids a stale-closure bug).
+    const effectiveAnswer = answerOverride ?? answer;
     const timeTaken = Math.max(1, Math.floor((Date.now() - startedAt) / 1000));
     const correctness = skipped
       ? { correct: false }
       : checkFractionAnswer({
-          studentAnswer: answer,
+          studentAnswer: effectiveAnswer,
           correctAnswer: q.answer,
           acceptedAnswers: q.acceptedAnswers || [],
         });
@@ -180,9 +183,9 @@ export default function DiagnosticQuestionScreen() {
       questionId: q.questionId,
       skillId: q.skillId,
       questionFamilyId: q.questionFamilyId,
-      answer: skipped ? '' : answer,
+      answer: skipped ? '' : effectiveAnswer,
       answerCorrect: correctness.correct,
-      studentAnswer: skipped ? '' : answer,
+      studentAnswer: skipped ? '' : effectiveAnswer,
       correct: correctness.correct,
       timeTaken,
       questionStartedAt: new Date(startedAt).toISOString(),
@@ -215,12 +218,15 @@ export default function DiagnosticQuestionScreen() {
     return [...responses, next];
   };
 
-  const nextQuestion = async (skipped = false, reflectionOverride) => {
+  const nextQuestion = async (skipped = false, reflectionOverride, answerOverride) => {
     const effectiveReflection = reflectionOverride ?? reflection;
-    const workingReadyForSubmit = isLowerPrimary ? true : workingReady;
+    const effectiveAnswer = answerOverride ?? answer;
     if (busy) return;
-    if (!skipped && (!answer || !effectiveReflection || !workingReadyForSubmit)) return;
-    const nextResponses = saveCurrentAnd(skipped, reflectionOverride);
+    // Check-ins are fast placement: only a non-empty answer is required to
+    // submit. The confidence prompt and the mandatory working declaration were
+    // removed (working stays available via the canvas, just not required).
+    if (!skipped && !String(effectiveAnswer).trim()) return;
+    const nextResponses = saveCurrentAnd(skipped, reflectionOverride, answerOverride);
     setResponses(nextResponses);
     setBusy(true);
     setError('');
@@ -291,8 +297,11 @@ export default function DiagnosticQuestionScreen() {
   };
 
   const openSubmissionReview = () => {
-    if (!answer.trim()) return;
-    setReviewModalOpen(true);
+    if (!answer.trim() || busy) return;
+    // Confidence check removed from check-ins (kept in practice). Submit
+    // directly with no reflection — '' is treated as "unrated" by
+    // normalizeConfidence so confidence analytics aren't skewed.
+    nextQuestion(false, '');
   };
 
   const confirmSubmissionReview = (reflectionOverride) => {
@@ -376,7 +385,9 @@ export default function DiagnosticQuestionScreen() {
                       onClick={() => {
                         if (isLowerPrimary) speak(toSpeakable(c), { rate: 0.85, gender: 'female' });
                         setAnswer(c);
-                        if (isLowerPrimary) setTimeout(() => setReviewModalOpen(true), 400);
+                        // Fast check-in: a tapped MCQ choice submits directly
+                        // after the read-aloud, no confidence modal.
+                        if (isLowerPrimary) setTimeout(() => nextQuestion(false, '', c), 450);
                       }}
                       className={`rounded-xl border text-left ${isLowerPrimary ? 'px-4 py-5 text-2xl font-bold text-center' : 'px-3 py-2'} ${answer === c ? 'border-emerald bg-emerald-tint' : 'border-line-soft hover:bg-emerald-tint'}`}
                     >
