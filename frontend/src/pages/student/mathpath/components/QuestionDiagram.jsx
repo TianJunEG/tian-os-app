@@ -107,9 +107,13 @@ function normalizeDiagramKind(diagram) {
         return { type: 'semicircle', width: 360, height: 220, data: { diameter: (diagram.radius || 0) * 2, label: `${(diagram.radius || 0) * 2} cm` } };
       return null;
     case 'rectangle':
-      return { type: 'rectangle_area', width: 400, height: 280, data: { widthUnits: diagram.l, heightUnits: diagram.w } };
+      if (!diagram.l || !diagram.w) return null;
+      // Plain cm/m dimension rectangle — NOT the unit-square grid (these are
+      // perimeter/area questions stated in real units, e.g. "6 cm long").
+      return { type: 'rectangle_dim', width: 380, height: 300, data: { l: diagram.l, w: diagram.w, unit: diagram.unit || 'cm' } };
     case 'square':
-      return { type: 'rectangle_area', width: 320, height: 280, data: { widthUnits: diagram.side, heightUnits: diagram.side } };
+      if (!diagram.side) return null;
+      return { type: 'rectangle_dim', width: 320, height: 300, data: { l: diagram.side, w: diagram.side, unit: diagram.unit || 'cm' } };
     case 'triangle':
       if (diagram.base && diagram.height)
         return { type: 'triangle_area', width: 400, height: 280, data: { base: `${diagram.base} cm`, height: `${diagram.height} cm` } };

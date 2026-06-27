@@ -167,18 +167,18 @@ describe('geometry and chart diagram animations', () => {
     expect(svg).toContain('45');
   });
 
-  it('bar_chart axes draw then bars grow upward with staggered timing', () => {
+  it('bar_chart shows a value label on each bar, a y-scale, and category labels', () => {
     const svg = renderers.bar_chart({
       width: 400, height: 300,
       data: { bars: [{ value: 10, label: 'A' }, { value: 7, label: 'B' }, { value: 4, label: 'C' }] },
     });
 
-    // 2 axis dash + 3 bars (height+y each = 6) + 3 label opacity = 11 animate elements
-    const animates = [...svg.matchAll(/<animate /g)];
-    expect(animates.length).toBe(11);
-    // Bars grow from y0 (bottom)
-    expect(svg).toContain('attributeName="height"');
-    expect(svg).toContain('attributeName="y"');
+    // 3 bars (by fill colour; svgShell adds a background rect too)
+    expect([...svg.matchAll(/fill="#93c5fd"/g)].length).toBe(3);
+    // Each bar's value is labelled (so a student can read it) + category labels.
+    for (const v of ['>10<', '>7<', '>4<', '>A<', '>B<', '>C<']) expect(svg).toContain(v);
+    // A y-axis scale exists.
+    expect(svg).toContain('#94a3b8');
   });
 
   it('circle renderer draws a circle with a labeled radius line', () => {

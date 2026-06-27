@@ -435,31 +435,31 @@ function table(spec) {
 
 function barChart(spec) {
   const { bars = [] } = spec.data;
-  const w = spec.width; const h = spec.height; const x0 = 50; const y0 = h - 45; const cw = w - 90; const ch = h - 80;
+  const w = spec.width; const h = spec.height;
+  const x0 = 44; const y0 = h - 44; const cw = w - x0 - 20; const ch = y0 - 30;
   const max = Math.max(...bars.map((b) => Number(b.value || 0)), 1);
-  const bw = cw / bars.length;
-  if (REDUCE_MOTION) {
-    let body = `<line x1="${x0}" y1="${y0}" x2="${w - 20}" y2="${y0}" stroke="#111"/><line x1="${x0}" y1="${y0}" x2="${x0}" y2="20" stroke="#111"/>`;
-    bars.forEach((b, i) => {
-      const bh = (Number(b.value || 0) / max) * ch;
-      const bx = x0 + i * bw + 8;
-      body += `<rect x="${bx}" y="${y0 - bh}" width="${bw - 16}" height="${bh}" fill="#93c5fd" stroke="#111"/><text x="${bx + (bw - 16) / 2}" y="${y0 + 16}" text-anchor="middle" font-size="12">${esc(b.label || '')}</text>`;
-    });
-    return svgShell(spec, body, 'bar chart');
-  }
-  const xAxisLen = w - 20 - x0;
-  const yAxisLen = y0 - 20;
+  const bw = cw / Math.max(1, bars.length);
   let body = '';
-  body += `<line x1="${x0}" y1="${y0}" x2="${w - 20}" y2="${y0}" stroke="#111" stroke-dasharray="${xAxisLen}" stroke-dashoffset="${xAxisLen}"><animate attributeName="stroke-dashoffset" from="${xAxisLen}" to="0" dur="0.3s" fill="freeze"/></line>`;
-  body += `<line x1="${x0}" y1="${y0}" x2="${x0}" y2="20" stroke="#111" stroke-dasharray="${yAxisLen}" stroke-dashoffset="${yAxisLen}"><animate attributeName="stroke-dashoffset" from="${yAxisLen}" to="0" dur="0.3s" fill="freeze"/></line>`;
-  const perBar = Math.min(0.18, 1.0 / (bars.length || 1));
+  // y-axis scale + faint gridlines so the bars are readable as values
+  const steps = 4;
+  for (let s = 1; s <= steps; s += 1) {
+    const val = Math.round((max * s) / steps);
+    const gy = y0 - (ch * s) / steps;
+    body += `<line x1="${x0}" y1="${gy}" x2="${w - 20}" y2="${gy}" stroke="#eef2f7"/>`;
+    body += `<text x="${x0 - 6}" y="${gy + 4}" text-anchor="end" font-size="11" fill="#94a3b8">${val}</text>`;
+  }
+  // axes
+  body += `<line x1="${x0}" y1="${y0}" x2="${w - 20}" y2="${y0}" stroke="#111" stroke-width="1.5"/>`;
+  body += `<line x1="${x0}" y1="${y0}" x2="${x0}" y2="22" stroke="#111" stroke-width="1.5"/>`;
+  // bars with a VALUE label on top + category label below
   bars.forEach((b, i) => {
-    const bh = (Number(b.value || 0) / max) * ch;
-    const bx = x0 + i * bw + 8;
-    const delay = (0.3 + i * perBar).toFixed(2);
-    const labelDelay = (0.3 + i * perBar + 0.2).toFixed(2);
-    body += `<rect x="${bx}" y="${y0}" width="${bw - 16}" height="0" fill="#93c5fd" stroke="#111"><animate attributeName="height" from="0" to="${bh}" dur="0.3s" begin="${delay}s" fill="freeze"/><animate attributeName="y" from="${y0}" to="${y0 - bh}" dur="0.3s" begin="${delay}s" fill="freeze"/></rect>`;
-    body += `<text x="${bx + (bw - 16) / 2}" y="${y0 + 16}" text-anchor="middle" font-size="12" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.2s" begin="${labelDelay}s" fill="freeze"/>${esc(b.label || '')}</text>`;
+    const v = Number(b.value || 0);
+    const bh = (v / max) * ch;
+    const bx = x0 + i * bw + 10;
+    const bWidth = Math.max(8, bw - 20);
+    body += `<rect x="${bx}" y="${y0 - bh}" width="${bWidth}" height="${bh}" fill="#93c5fd" stroke="#2563eb"/>`;
+    body += `<text x="${bx + bWidth / 2}" y="${y0 - bh - 6}" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">${v}</text>`;
+    body += `<text x="${bx + bWidth / 2}" y="${y0 + 18}" text-anchor="middle" font-size="12" fill="#475569">${esc(b.label || '')}</text>`;
   });
   return svgShell(spec, body, 'bar chart');
 }
@@ -732,6 +732,23 @@ function pictograph(spec) {
   return svgShell(spec, body, 'picture graph');
 }
 
+// Plain dimension rectangle for perimeter/area questions stated in real units
+// (cm/m) — NO unit grid (the grid implies "count the squares", wrong for a
+// formula question and misleading when the side is e.g. 15 cm). data:
+// { l, w, unit }. Length labelled below, width labelled on the left.
+function rectangleDim(spec) {
+  const { l = 1, w: ww = 1, unit = 'cm' } = spec.data;
+  const W = spec.width; const H = spec.height; const pad = 64;
+  const big = Math.max(l, ww) || 1;
+  const s = Math.min((W - pad * 2) / big, (H - pad * 2) / big);
+  const rw = Math.max(20, l * s); const rh = Math.max(20, ww * s);
+  const x = (W - rw) / 2; const y = (H - rh) / 2;
+  let body = `<rect x="${x}" y="${y}" width="${rw}" height="${rh}" fill="#eff6ff" stroke="#111" stroke-width="2"/>`;
+  body += `<text x="${x + rw / 2}" y="${y + rh + 24}" text-anchor="middle" font-size="14" fill="#1e293b">${l} ${unit}</text>`;
+  body += `<text x="${x - 12}" y="${y + rh / 2 + 4}" text-anchor="end" font-size="14" fill="#1e293b">${ww} ${unit}</text>`;
+  return svgShell(spec, body, `rectangle ${l} by ${ww} ${unit}`);
+}
+
 export const renderers = {
   ...sharedRenderers,
   circle,
@@ -754,6 +771,7 @@ export const renderers = {
   clock_face: clockFace,
   measuring_scale: measuringScale,
   pictograph,
+  rectangle_dim: rectangleDim,
   cuboid: cuboid,
   angle_on_line: angleOnLine,
   table,
