@@ -103,7 +103,7 @@ export function selectNextCirclesPracticeTarget(studentState = {}) {
     const weakSet = new Set(weakSkillIds);
     const sorted = [...weakSkillIds].sort((a, b) => skillIdNumber(a) - skillIdNumber(b));
     skillId = findEarliestWeakPrerequisite(sorted[0], weakSet);
-  } else if (studentState.currentSkillId && SKILL_IDS.has(studentState.currentSkillId)) {
+  } else if (studentState.currentSkillId && SKILL_IDS.has(studentState.currentSkillId) && !(studentState.masteredSkillIds || []).includes(studentState.currentSkillId)) {
     skillId = studentState.currentSkillId;
   } else {
     skillId = (studentState.masteredSkillIds || [])
