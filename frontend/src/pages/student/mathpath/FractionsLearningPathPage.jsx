@@ -306,6 +306,24 @@ export default function FractionsLearningPathPage() {
     return new Set(ids.length ? ids : fractionSkillGraph.skillIds);
   }, [visibleSkillRows]);
 
+  // Scope the header progress to the student's visible (level-appropriate) skills
+  // rather than the full 26-skill P6 catalogue, so a P3 student isn't measured
+  // against secondary-tier fractions skills. MUST stay above the early-return
+  // gates below — a hook after a conditional return violates the Rules of Hooks
+  // and crashes the page ("rendered fewer hooks than expected").
+  const visibleProgress = useMemo(() => {
+    const visibleArr = [...visibleSkillIds];
+    const totalVisible = visibleArr.length;
+    const within = (ids = []) => ids.filter((id) => visibleSkillIds.has(id));
+    return {
+      ...masteryProgress,
+      totalSkills: totalVisible || masteryProgress.totalSkills,
+      masteredSkills: within(masteryProgress.masteredSkills || []),
+      fluentSkills: within(masteryProgress.fluentSkills || []),
+      retainedSkills: within(masteryProgress.retainedSkills || []),
+    };
+  }, [visibleSkillIds, masteryProgress]);
+
   const strands = useMemo(() => {
     return STRAND_GROUPS.map((group) => {
       const items = group.ids
@@ -389,22 +407,6 @@ export default function FractionsLearningPathPage() {
     }
     navigate(to);
   };
-
-  // Scope the header progress to the student's visible (level-appropriate) skills
-  // rather than the full 26-skill P6 catalogue, so a P3 student isn't measured
-  // against secondary-tier fractions skills.
-  const visibleProgress = useMemo(() => {
-    const visibleArr = [...visibleSkillIds];
-    const totalVisible = visibleArr.length;
-    const within = (ids = []) => ids.filter((id) => visibleSkillIds.has(id));
-    return {
-      ...masteryProgress,
-      totalSkills: totalVisible || masteryProgress.totalSkills,
-      masteredSkills: within(masteryProgress.masteredSkills || []),
-      fluentSkills: within(masteryProgress.fluentSkills || []),
-      retainedSkills: within(masteryProgress.retainedSkills || []),
-    };
-  }, [visibleSkillIds, masteryProgress]);
 
   return (
     <div className="mx-auto max-w-5xl space-y-5">
