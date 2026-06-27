@@ -610,14 +610,15 @@ function lShape(spec) {
     [overallW, notchH], [overallW, overallH], [0, overallH],
   ].map(([u, v]) => `${X(u)},${Y(v)}`).join(' ');
   let body = `<polygon points="${pts}" fill="#eff6ff" stroke="#111" stroke-width="2"/>`;
-  const lbl = (u, v, t, dy = 0) => `<text x="${X(u)}" y="${Y(v) + dy}" text-anchor="middle" font-size="13" fill="#1e293b">${t} cm</text>`;
-  // Outer edges
-  body += lbl((overallW - notchW) / 2, 0, overallW - notchW, -6);          // top
-  body += lbl(0, overallH / 2, overallH, -8);                              // left
-  body += lbl(overallW / 2, overallH, overallW, 18);                       // bottom
-  body += lbl(overallW, (notchH + overallH) / 2, overallH - notchH, 0);    // right (lower)
-  body += lbl(overallW - notchW, notchH / 2, notchH, 0);                   // notch vertical
-  body += lbl((overallW - notchW + overallW) / 2, notchH, notchW, -6);     // notch horizontal
+  // All labels sit OUTSIDE the figure (above/below/left/right of the edges, or
+  // in the empty notch cut-out), never on top of an edge stroke.
+  const txt = (px, py, t, anchor = 'middle') => `<text x="${px}" y="${py}" text-anchor="${anchor}" font-size="13" fill="#1e293b">${t} cm</text>`;
+  body += txt(X((overallW - notchW) / 2), Y(0) - 9, overallW - notchW);                       // top — above
+  body += txt(X(0) - 10, Y(overallH / 2) + 4, overallH, 'end');                                // left — outside left
+  body += txt(X(overallW / 2), Y(overallH) + 22, overallW, 'middle');                          // bottom — below
+  body += txt(X(overallW) + 10, Y((notchH + overallH) / 2) + 4, overallH - notchH, 'start');   // right — outside right
+  body += txt(X(overallW - notchW) + 8, Y(notchH / 2) + 4, notchH, 'start');                   // notch vertical — in cut-out
+  body += txt(X((overallW - notchW + overallW) / 2), Y(notchH) - 7, notchW);                   // notch horizontal — in cut-out
   return svgShell(spec, body, 'L-shaped figure');
 }
 
@@ -638,8 +639,9 @@ function parallelogram(spec) {
   let body = `<polygon points="${pts}" fill="#eff6ff" stroke="#111" stroke-width="2"/>`;
   // Perpendicular height (dashed) from top-left down to the base line.
   body += `<line x1="${X(tl[0])}" y1="${Y(0)}" x2="${X(tl[0])}" y2="${Y(height)}" stroke="#1d4ed8" stroke-dasharray="5 4" stroke-width="1.5"/>`;
-  body += `<text x="${X(base / 2)}" y="${Y(height) + 20}" text-anchor="middle" font-size="13" fill="#1e293b">base ${base} cm</text>`;
-  body += `<text x="${X(tl[0]) - 8}" y="${Y(height / 2)}" text-anchor="end" font-size="13" fill="#1d4ed8">height ${height} cm</text>`;
+  // base label below the figure; height label outside to the LEFT of the figure.
+  body += `<text x="${X(base / 2)}" y="${Y(height) + 22}" text-anchor="middle" font-size="13" fill="#1e293b">base ${base} cm</text>`;
+  body += `<text x="${X(0) - 10}" y="${Y(height / 2) + 4}" text-anchor="end" font-size="13" fill="#1d4ed8">height ${height} cm</text>`;
   return svgShell(spec, body, 'parallelogram');
 }
 
@@ -658,9 +660,10 @@ function trapezium(spec) {
     .map(([u, v]) => `${X(u)},${Y(v)}`).join(' ');
   let body = `<polygon points="${pts}" fill="#eff6ff" stroke="#111" stroke-width="2"/>`;
   body += `<line x1="${X(inset)}" y1="${Y(0)}" x2="${X(inset)}" y2="${Y(height)}" stroke="#1d4ed8" stroke-dasharray="5 4" stroke-width="1.5"/>`;
-  body += `<text x="${X(inset + a / 2)}" y="${Y(0) - 8}" text-anchor="middle" font-size="13" fill="#1e293b">${a} cm</text>`;
-  body += `<text x="${X(b / 2)}" y="${Y(height) + 20}" text-anchor="middle" font-size="13" fill="#1e293b">${b} cm</text>`;
-  body += `<text x="${X(inset) - 8}" y="${Y(height / 2)}" text-anchor="end" font-size="13" fill="#1d4ed8">h ${height} cm</text>`;
+  // top side above, bottom side below, height outside to the LEFT.
+  body += `<text x="${X(inset + a / 2)}" y="${Y(0) - 9}" text-anchor="middle" font-size="13" fill="#1e293b">${a} cm</text>`;
+  body += `<text x="${X(b / 2)}" y="${Y(height) + 22}" text-anchor="middle" font-size="13" fill="#1e293b">${b} cm</text>`;
+  body += `<text x="${X(0) - 10}" y="${Y(height / 2) + 4}" text-anchor="end" font-size="13" fill="#1d4ed8">h ${height} cm</text>`;
   return svgShell(spec, body, 'trapezium');
 }
 
