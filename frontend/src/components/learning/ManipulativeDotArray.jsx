@@ -229,8 +229,17 @@ export function parseCoinsDiagram(question) {
 
 function MoneyPiece({ value, counted, onClick }) {
   const meta = SGD_DENOM_META[value];
+  // Prefer a real coin/note image (transparent PNG) from /public/money/ when one
+  // exists; fall back to the styled circle/rectangle if the file is missing or
+  // fails to load, so the diagram always renders. Files: /money/coin-{cents}.png
+  // (coins) and /money/note-{cents}.png (notes) — e.g. coin-100.png for $1.
+  const [imgFailed, setImgFailed] = useState(false);
   if (!meta) return null;
   const isCoin = meta.shape === 'coin';
+  const imgSrc = `/money/${isCoin ? 'coin' : 'note'}-${value}.png`;
+  // Coin images render slightly larger than the drawn circles so the artwork
+  // is legible; notes stay wide.
+  const dim = isCoin ? { width: 58, height: 58 } : { width: 96, height: 56 };
   return (
     <button
       type="button"
@@ -238,18 +247,27 @@ function MoneyPiece({ value, counted, onClick }) {
       aria-label={meta.label}
       className="relative flex shrink-0 items-center justify-center select-none transition-all"
       style={{
-        width: isCoin ? 50 : 72,
-        height: isCoin ? 50 : 44,
-        borderRadius: isCoin ? '9999px' : 8,
-        background: meta.bg,
-        border: `3px solid ${meta.ring}`,
+        ...dim,
+        borderRadius: imgFailed ? (isCoin ? '9999px' : 8) : 0,
+        background: imgFailed ? meta.bg : 'transparent',
+        border: imgFailed ? `3px solid ${meta.ring}` : 'none',
         transform: counted ? 'scale(0.82)' : 'scale(1)',
-        boxShadow: counted ? 'none' : '0 2px 4px rgba(0,0,0,0.18)',
+        boxShadow: !counted && imgFailed ? '0 2px 4px rgba(0,0,0,0.18)' : 'none',
       }}
     >
-      <span className="font-bold" style={{ color: meta.fg, fontSize: isCoin ? 14 : 16, lineHeight: 1 }}>
-        {meta.label}
-      </span>
+      {imgFailed ? (
+        <span className="font-bold" style={{ color: meta.fg, fontSize: isCoin ? 14 : 16, lineHeight: 1 }}>
+          {meta.label}
+        </span>
+      ) : (
+        <img
+          src={imgSrc}
+          alt={meta.label}
+          draggable={false}
+          onError={() => setImgFailed(true)}
+          style={{ width: '100%', height: '100%', objectFit: 'contain', pointerEvents: 'none' }}
+        />
+      )}
       {counted && <span className="absolute -bottom-1 -right-1 text-sm leading-none">✓</span>}
     </button>
   );
