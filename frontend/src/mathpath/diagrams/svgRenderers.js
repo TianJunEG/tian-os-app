@@ -594,6 +594,76 @@ function partialCircle(spec, kind) {
 function semicircle(spec) { return partialCircle(spec, 'semicircle'); }
 function quarterCircle(spec) { return partialCircle(spec, 'quarter_circle'); }
 
+// L-shaped (rectilinear) figure. data: { overallW, overallH, notchW, notchH }.
+// The notch is removed from the TOP-RIGHT corner, giving the classic L. Each
+// edge is labelled with its length so area/perimeter is solvable from the figure.
+function lShape(spec) {
+  const { overallW, overallH, notchW, notchH } = spec.data;
+  const w = spec.width; const h = spec.height;
+  // Fit the figure into the drawing box with padding; scale by the larger dim.
+  const pad = 60; const maxW = w - pad * 2; const maxH = h - pad * 2;
+  const s = Math.min(maxW / overallW, maxH / overallH);
+  const ox = (w - overallW * s) / 2; const oy = (h - overallH * s) / 2;
+  const X = (u) => ox + u * s; const Y = (u) => oy + u * s;
+  const pts = [
+    [0, 0], [overallW - notchW, 0], [overallW - notchW, notchH],
+    [overallW, notchH], [overallW, overallH], [0, overallH],
+  ].map(([u, v]) => `${X(u)},${Y(v)}`).join(' ');
+  let body = `<polygon points="${pts}" fill="#eff6ff" stroke="#111" stroke-width="2"/>`;
+  const lbl = (u, v, t, dy = 0) => `<text x="${X(u)}" y="${Y(v) + dy}" text-anchor="middle" font-size="13" fill="#1e293b">${t} cm</text>`;
+  // Outer edges
+  body += lbl((overallW - notchW) / 2, 0, overallW - notchW, -6);          // top
+  body += lbl(0, overallH / 2, overallH, -8);                              // left
+  body += lbl(overallW / 2, overallH, overallW, 18);                       // bottom
+  body += lbl(overallW, (notchH + overallH) / 2, overallH - notchH, 0);    // right (lower)
+  body += lbl(overallW - notchW, notchH / 2, notchH, 0);                   // notch vertical
+  body += lbl((overallW - notchW + overallW) / 2, notchH, notchW, -6);     // notch horizontal
+  return svgShell(spec, body, 'L-shaped figure');
+}
+
+// Parallelogram. data: { base, height, slant }. Drawn with the perpendicular
+// height as a dashed line so "area = base × height" is clear.
+function parallelogram(spec) {
+  const { base, height, slant } = spec.data;
+  const w = spec.width; const h = spec.height;
+  const pad = 70; const slantShift = Math.min(slant, base) * 0.5;
+  const spanW = base + slantShift; const spanH = height;
+  const s = Math.min((w - pad * 2) / spanW, (h - pad * 2) / spanH);
+  const ox = (w - spanW * s) / 2; const oy = (h - spanH * s) / 2;
+  const X = (u) => ox + u * s; const Y = (u) => oy + u * s;
+  // bottom-left, bottom-right, top-right, top-left
+  const bl = [0, height]; const br = [base, height];
+  const tr = [base + slantShift, 0]; const tl = [slantShift, 0];
+  const pts = [bl, br, tr, tl].map(([u, v]) => `${X(u)},${Y(v)}`).join(' ');
+  let body = `<polygon points="${pts}" fill="#eff6ff" stroke="#111" stroke-width="2"/>`;
+  // Perpendicular height (dashed) from top-left down to the base line.
+  body += `<line x1="${X(tl[0])}" y1="${Y(0)}" x2="${X(tl[0])}" y2="${Y(height)}" stroke="#1d4ed8" stroke-dasharray="5 4" stroke-width="1.5"/>`;
+  body += `<text x="${X(base / 2)}" y="${Y(height) + 20}" text-anchor="middle" font-size="13" fill="#1e293b">base ${base} cm</text>`;
+  body += `<text x="${X(tl[0]) - 8}" y="${Y(height / 2)}" text-anchor="end" font-size="13" fill="#1d4ed8">height ${height} cm</text>`;
+  return svgShell(spec, body, 'parallelogram');
+}
+
+// Trapezium. data: { a (top parallel side), b (bottom parallel side), height }.
+// Isosceles layout with the top centred over the bottom; dashed height line.
+function trapezium(spec) {
+  const { a, b, height } = spec.data;
+  const w = spec.width; const h = spec.height;
+  const pad = 70; const span = Math.max(a, b);
+  const s = Math.min((w - pad * 2) / span, (h - pad * 2) / height);
+  const ox = (w - b * s) / 2; const oy = (h - height * s) / 2;
+  const X = (u) => ox + u * s; const Y = (u) => oy + u * s;
+  const inset = (b - a) / 2;
+  // bottom-left, bottom-right, top-right, top-left
+  const pts = [[0, height], [b, height], [inset + a, 0], [inset, 0]]
+    .map(([u, v]) => `${X(u)},${Y(v)}`).join(' ');
+  let body = `<polygon points="${pts}" fill="#eff6ff" stroke="#111" stroke-width="2"/>`;
+  body += `<line x1="${X(inset)}" y1="${Y(0)}" x2="${X(inset)}" y2="${Y(height)}" stroke="#1d4ed8" stroke-dasharray="5 4" stroke-width="1.5"/>`;
+  body += `<text x="${X(inset + a / 2)}" y="${Y(0) - 8}" text-anchor="middle" font-size="13" fill="#1e293b">${a} cm</text>`;
+  body += `<text x="${X(b / 2)}" y="${Y(height) + 20}" text-anchor="middle" font-size="13" fill="#1e293b">${b} cm</text>`;
+  body += `<text x="${X(inset) - 8}" y="${Y(height / 2)}" text-anchor="end" font-size="13" fill="#1d4ed8">h ${height} cm</text>`;
+  return svgShell(spec, body, 'trapezium');
+}
+
 export const renderers = {
   ...sharedRenderers,
   circle,
@@ -610,6 +680,9 @@ export const renderers = {
   ratio_bar: ratioBar,
   rectangle_area: rectangleArea,
   triangle_area: triangleArea,
+  l_shape: lShape,
+  parallelogram,
+  trapezium,
   cuboid: cuboid,
   angle_on_line: angleOnLine,
   table,

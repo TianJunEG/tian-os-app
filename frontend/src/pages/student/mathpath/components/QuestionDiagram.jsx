@@ -83,8 +83,9 @@ function inferShadedFractionDiagramFromAnswer(question = {}) {
 // Kinds that have no renderer — questions with these will show without a diagram
 // rather than being silently skipped.
 const UNMAPPABLE_DIAGRAM_KINDS = new Set([
-  'polygon', 'symmetry', 'reflection', 'solid', 'net', 'parallelogram',
-  'trapezium', 'l-shape', 'pictograph', 'value-list', 'pie', 'scale', 'coins',
+  // l-shape / parallelogram / trapezium now have renderers (svgRenderers.js).
+  'polygon', 'symmetry', 'reflection', 'solid', 'net',
+  'pictograph', 'value-list', 'pie', 'scale', 'coins',
 ]);
 
 // Convert generators' legacy `diagram: { kind, ...data }` shape into the
@@ -113,6 +114,18 @@ function normalizeDiagramKind(diagram) {
       if (diagram.base && diagram.height)
         return { type: 'triangle_area', width: 400, height: 280, data: { base: `${diagram.base} cm`, height: `${diagram.height} cm` } };
       return null;
+    case 'l-shape': {
+      // Generator emits { W, H, notch:[notchW, notchH] }.
+      const [notchW, notchH] = Array.isArray(diagram.notch) ? diagram.notch : [0, 0];
+      if (!diagram.W || !diagram.H || !notchW || !notchH) return null;
+      return { type: 'l_shape', width: 420, height: 320, data: { overallW: diagram.W, overallH: diagram.H, notchW, notchH } };
+    }
+    case 'parallelogram':
+      if (!diagram.base || !diagram.height) return null;
+      return { type: 'parallelogram', width: 440, height: 300, data: { base: diagram.base, height: diagram.height, slant: diagram.slant || diagram.height } };
+    case 'trapezium':
+      if (!diagram.a || !diagram.b || !diagram.height) return null;
+      return { type: 'trapezium', width: 440, height: 300, data: { a: diagram.a, b: diagram.b, height: diagram.height } };
     case 'angle':
       return { type: 'angle_on_line', width: 400, height: 240, data: { angleDegrees: diagram.degrees } };
     case 'bar':
