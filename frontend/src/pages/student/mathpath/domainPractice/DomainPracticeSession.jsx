@@ -13,6 +13,7 @@ import { getMascotForModule, getMascotVoice } from '../../../../config/mascots';
 import MathSymbolBar from '../components/MathSymbolBar';
 import AnswerInputRenderer, { getAnswerInputType } from '../components/AnswerInputRenderer';
 import QuestionDiagram, { canRenderQuestionDiagram } from '../components/QuestionDiagram';
+import { CONFIDENCE_OPTIONS, CONFIDENCE_OPTIONS_LP } from '../../../../mathpath/confidenceOptions';
 import {
   buildSubmitPayload,
   summarisePracticeResult,
@@ -27,19 +28,11 @@ import {
 const MASCOT_KEY = getMascotForModule('mathpath')?.key || 'kylo';
 const INACTIVITY_SECONDS = 120;
 
-const REFLECTION_OPTIONS = [
-  { value: 'i_know_this', label: 'Solid', color: 'bg-emerald-100 border-emerald-300 text-emerald-800 hover:bg-emerald-200' },
-  { value: 'not_sure', label: "Not sure", color: 'bg-amber-100 border-amber-300 text-amber-800 hover:bg-amber-200' },
-  { value: 'i_need_practice', label: 'Shaky', color: 'bg-orange-100 border-orange-300 text-orange-800 hover:bg-orange-200' },
-  { value: 'i_need_help', label: 'Need help', color: 'bg-red-100 border-red-300 text-red-800 hover:bg-red-200' },
-];
-
-const LP_REFLECTION_OPTIONS = [
-  { value: 'i_know_this', emoji: '😊', label: 'I know it!' },
-  { value: 'not_sure', emoji: '🤔', label: 'Not sure' },
-  { value: 'i_need_practice', emoji: '😕', label: 'Need practice' },
-  { value: 'i_need_help', emoji: '🙋', label: 'Need help' },
-];
+// Canonical confidence scale shared by every practice surface (see
+// mathpath/confidenceOptions.js). Uses backend-mapped values so selections are
+// never silently dropped from confidence analytics.
+const REFLECTION_OPTIONS = CONFIDENCE_OPTIONS;
+const LP_REFLECTION_OPTIONS = CONFIDENCE_OPTIONS_LP;
 
 export default function DomainPracticeSession({ domain }) {
   const navigate = useNavigate();

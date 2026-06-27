@@ -13,13 +13,10 @@ import FullScreenWorkingMode from '../../../../components/learning/FullScreenWor
 import WorkingPreviewCard from '../../../../components/learning/WorkingPreviewCard';
 import { hasWorkingDecision, resolveWorkingRequirementLevel } from '../../../../components/learning/WorkingEvidenceDecision';
 import SubmissionReviewModal from '../components/SubmissionReviewModal';
+import { CONFIDENCE_OPTIONS } from '../../../../mathpath/confidenceOptions';
 
-const REFLECTION_OPTIONS = [
-  { value: 'i_know_this', label: 'I know this' },
-  { value: 'not_sure', label: "I'm not sure" },
-  { value: 'dont_know', label: "I don't know" },
-  { value: 'need_help', label: 'I need help' },
-];
+// Canonical confidence scale shared by every practice surface.
+const REFLECTION_OPTIONS = CONFIDENCE_OPTIONS;
 const EMPTY_STROKES = [];
 
 export default function AssessmentQuestionScreen() {

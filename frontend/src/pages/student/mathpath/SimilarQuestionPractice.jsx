@@ -11,12 +11,10 @@ import WorkingCanvas, { resolveWorkingRequirement } from '../../../components/le
 import { hasWorkingDecision, resolveWorkingRequirementLevel } from '../../../components/learning/WorkingEvidenceDecision';
 import SubmissionReviewModal from './components/SubmissionReviewModal';
 import { getUniversalSkillByFrameworkId } from '../../../mathpath/curriculum';
+import { CONFIDENCE_OPTIONS } from '../../../mathpath/confidenceOptions';
 
-const REFLECTION_OPTIONS = [
-  { value: 'i_know_this', label: 'I know this' },
-  { value: 'not_sure', label: "I'm not sure" },
-  { value: 'dont_know', label: "I don't know" },
-];
+// Canonical confidence scale shared by every practice surface.
+const REFLECTION_OPTIONS = CONFIDENCE_OPTIONS;
 const EMPTY_STROKES = [];
 
 function skillLabel(skillId = '') {

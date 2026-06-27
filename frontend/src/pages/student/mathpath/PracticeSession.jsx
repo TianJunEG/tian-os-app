@@ -73,13 +73,10 @@ import {
 } from '../../../components/learning/WorkingEvidenceDecision';
 import SubmissionReviewModal from './components/SubmissionReviewModal';
 import MascotAvatar, { MascotBubble } from '../../../components/MascotAvatar';
+import { CONFIDENCE_OPTIONS } from '../../../mathpath/confidenceOptions';
 
-const REFLECTION_OPTIONS = [
-  { value: 'i_know_this', label: 'I know this' },
-  { value: 'not_sure', label: "I'm not sure" },
-  { value: 'dont_know', label: "I don't know" },
-  { value: 'i_need_help', label: 'I need help' },
-];
+// Canonical confidence scale shared by every practice surface.
+const REFLECTION_OPTIONS = CONFIDENCE_OPTIONS;
 
 // Self-explanation prompt (metacognition): after a correct answer the mascot
 // asks "why did that work?" and the student taps a strategy. Explaining your
