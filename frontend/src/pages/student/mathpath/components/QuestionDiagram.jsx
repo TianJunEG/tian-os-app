@@ -83,9 +83,9 @@ function inferShadedFractionDiagramFromAnswer(question = {}) {
 // Kinds that have no renderer — questions with these will show without a diagram
 // rather than being silently skipped.
 const UNMAPPABLE_DIAGRAM_KINDS = new Set([
-  // l-shape / parallelogram / trapezium / clock / scale / cuboid now render.
+  // l-shape / parallelogram / trapezium / clock / scale / cuboid / pictograph render.
   'polygon', 'symmetry', 'reflection', 'solid', 'net',
-  'pictograph', 'value-list', 'pie', 'coins',
+  'value-list', 'pie', 'coins',
 ]);
 
 // Convert generators' legacy `diagram: { kind, ...data }` shape into the
@@ -135,6 +135,11 @@ function normalizeDiagramKind(diagram) {
       if (!diagram.length || !diagram.width || !diagram.height) return null;
       // 470 wide so the "width …" label (placed past the back face) isn't clipped.
       return { type: 'cuboid', width: 470, height: 300, data: { length: diagram.length, width: diagram.width, height: diagram.height } };
+    case 'pictograph': {
+      const rows = Array.isArray(diagram.rows) ? diagram.rows : [];
+      if (!rows.length) return null;
+      return { type: 'pictograph', width: 520, height: 64 + rows.length * 34, data: { keyValue: diagram.keyValue || 1, unit: diagram.unit || '', rows } };
+    }
     case 'angle':
       return { type: 'angle_on_line', width: 400, height: 240, data: { angleDegrees: diagram.degrees } };
     case 'bar':

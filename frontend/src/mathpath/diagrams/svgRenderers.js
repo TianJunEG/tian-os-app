@@ -712,6 +712,26 @@ function measuringScale(spec) {
   return svgShell(spec, body, 'measuring scale');
 }
 
+// Picture graph (pictograph). data: { keyValue, unit, rows:[[label, count]…] }.
+// Each row draws `count` symbols; the key states what one symbol is worth.
+// Uses a filled circle (renders consistently across browsers, unlike emoji).
+function pictograph(spec) {
+  const { keyValue = 1, unit = '', rows = [] } = spec.data;
+  const w = spec.width;
+  const labelW = 96; const x0 = labelW + 16; const rowH = 34; const top = 50;
+  const maxCount = Math.max(1, ...rows.map(([, c]) => Number(c) || 0));
+  const symStep = Math.min(24, (w - x0 - 16) / maxCount);
+  let body = `<text x="16" y="26" font-size="13" fill="#1e293b">Key: each ● = ${keyValue}${unit ? ` ${unit}` : ''}</text>`;
+  rows.forEach(([label, count], i) => {
+    const y = top + i * rowH;
+    body += `<text x="16" y="${y + 5}" font-size="13" fill="#475569">${label}</text>`;
+    for (let s = 0; s < (Number(count) || 0); s += 1) {
+      body += `<circle cx="${x0 + s * symStep + symStep / 2}" cy="${y}" r="${Math.min(8, symStep / 2 - 2)}" fill="#2563eb"/>`;
+    }
+  });
+  return svgShell(spec, body, 'picture graph');
+}
+
 export const renderers = {
   ...sharedRenderers,
   circle,
@@ -733,6 +753,7 @@ export const renderers = {
   trapezium,
   clock_face: clockFace,
   measuring_scale: measuringScale,
+  pictograph,
   cuboid: cuboid,
   angle_on_line: angleOnLine,
   table,
