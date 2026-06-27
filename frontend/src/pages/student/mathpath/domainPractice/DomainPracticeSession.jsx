@@ -12,6 +12,7 @@ import { useAuth } from '../../../../context/AuthContext';
 import { getMascotForModule, getMascotVoice } from '../../../../config/mascots';
 import MathSymbolBar from '../components/MathSymbolBar';
 import AnswerInputRenderer, { getAnswerInputType } from '../components/AnswerInputRenderer';
+import QuestionDiagram, { canRenderQuestionDiagram } from '../components/QuestionDiagram';
 import {
   buildSubmitPayload,
   summarisePracticeResult,
@@ -360,7 +361,16 @@ export default function DomainPracticeSession({ domain }) {
                   </>
                 );
               }
-              return <p className="text-xl font-semibold leading-relaxed text-ink-900 whitespace-pre-wrap"><MathText text={prompt} /></p>;
+              // Default: render the generator's diagram (geometry, area, circle,
+              // triangle, angle, bar/line graph, table, bar-model…) when one can
+              // actually be drawn, then the prompt. canRenderQuestionDiagram
+              // guards so text-only questions never show an error box.
+              return (
+                <>
+                  {canRenderQuestionDiagram(current) && <QuestionDiagram question={current} />}
+                  <p className="text-xl font-semibold leading-relaxed text-ink-900 whitespace-pre-wrap"><MathText text={prompt} /></p>
+                </>
+              );
             })()}
           </div>
           <button

@@ -7,6 +7,7 @@ import { Alert, Badge, Button, Card, PageHeader, ProgressBar, Spinner } from '..
 import { MascotBubble } from '../../../components/MascotAvatar';
 import { useAuth } from '../../../context/AuthContext';
 import ManipulativeDotArray, { parseDotStem, numericLine, toSpeakable, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram } from '../../../components/learning/ManipulativeDotArray';
+import QuestionDiagram, { canRenderQuestionDiagram } from './components/QuestionDiagram';
 import { speak, setVoiceEnabled } from '../../../utils/sound';
 import { getMascotVoice } from '../../../config/mascots';
 
@@ -434,7 +435,17 @@ export default function DomainDiagnosticSession() {
               </>
             );
           }
-          return <p className="text-lg font-semibold text-ink-900 whitespace-pre-wrap">{prompt}</p>;
+          // Default: render the question's diagram (geometry, area, circle,
+          // bar/line graph, table…) when one can actually be drawn — for
+          // custom adapters that route through diagram-producing generators —
+          // then the prompt. Generic text-only diagnostics simply render the
+          // prompt (no diagram to draw).
+          return (
+            <>
+              {canRenderQuestionDiagram(question) && <QuestionDiagram question={question} />}
+              <PromptRow prompt={prompt} isLowerPrimary={isLowerPrimary} />
+            </>
+          );
         })()}
 
         {question?.type === 'mcq' && (question.choices || []).length > 0 ? (
