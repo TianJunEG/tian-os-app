@@ -50,7 +50,7 @@ export default function TestPaperResults() {
           return (
             <div key={q.order} className={`rounded-xl border bg-white p-4 ${q.correct ? 'border-emerald-200' : 'border-rose-200'}`}>
               <div className="mb-1 flex items-center justify-between gap-2">
-                <span className="text-xs font-semibold text-slate-400">Q{q.order} · Section {q.section} · {q.marks} mark{q.marks === 1 ? '' : 's'}</span>
+                <span className="text-xs font-semibold text-slate-400">Q{q.order} · {q.paper === 2 ? 'Paper 2' : `Section ${q.section}`} · {q.marks} mark{q.marks === 1 ? '' : 's'}</span>
                 <span className={`inline-flex items-center gap-1 text-xs font-semibold ${q.correct ? 'text-emerald-600' : 'text-rose-600'}`}>
                   {q.correct ? <><CheckCircle2 size={15} /> {q.marksAwarded}/{q.marks}</> : <><XCircle size={15} /> 0/{q.marks}</>}
                 </span>
@@ -60,7 +60,8 @@ export default function TestPaperResults() {
                 <div className="my-2"><QuestionDiagram question={{ diagram: q.diagram }} /></div>
               )}
 
-              <p className="text-slate-800"><MathText text={q.stem} /></p>
+              {q.groupIntro && <p className="mb-1 rounded-lg bg-slate-50 px-3 py-1.5 text-sm text-slate-600"><MathText text={q.groupIntro} /></p>}
+              <p className="text-slate-800">{q.partLabel && <span className="font-semibold text-slate-500">({q.partLabel})&nbsp;</span>}<MathText text={q.stem} /></p>
 
               <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm">
                 <span className={q.correct ? 'text-emerald-700' : 'text-rose-700'}>

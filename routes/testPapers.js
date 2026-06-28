@@ -17,6 +17,10 @@ function toClientQuestion(q) {
   return {
     order: q.order,
     section: q.section,
+    paper: q.paper || 1,
+    groupId: q.groupId || '',
+    groupIntro: q.groupIntro || '',
+    partLabel: q.partLabel || '',
     marks: q.marks,
     type: q.type,
     stem: q.stem,
@@ -175,6 +179,10 @@ router.post('/sessions/:sessionId/submit', protect, asyncHandler(async (req, res
     marked.push({
       order: q.order,
       section: q.section,
+      paper: q.paper || 1,
+      groupId: q.groupId || '',
+      groupIntro: q.groupIntro || '',
+      partLabel: q.partLabel || '',
       marks: q.marks,
       type: q.type,
       stem: q.stem,

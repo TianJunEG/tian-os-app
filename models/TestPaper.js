@@ -15,6 +15,13 @@ import mongoose from 'mongoose';
 const paperQuestionSchema = new mongoose.Schema({
   order: { type: Number, required: true },
   section: { type: String, default: 'A' },              // A / B / C — display grouping
+  paper: { type: Number, default: 1 },                  // 1 = Paper 1, 2 = Paper 2 (word problems)
+  // Multi-part questions (e.g. Paper 2 "(a)…(b)…"): parts share a groupId and the
+  // first part carries the shared groupIntro. Each part is still a normal scored
+  // question (own order/marks/answer), so marking is unchanged.
+  groupId: { type: String, default: '' },
+  groupIntro: { type: String, default: '' },
+  partLabel: { type: String, default: '' },             // 'a', 'b'
   marks: { type: Number, default: 1 },
   type: { type: String, enum: ['mcq', 'short_answer'], default: 'short_answer' },
   stem: { type: String, required: true },

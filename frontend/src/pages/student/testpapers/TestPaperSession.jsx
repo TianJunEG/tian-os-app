@@ -130,15 +130,23 @@ export default function TestPaperSession() {
       {q && (
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="mb-2 flex items-center gap-2 text-xs text-slate-400">
-            <span className="rounded bg-slate-100 px-1.5 py-0.5 font-semibold">Section {q.section}</span>
+            <span className="rounded bg-slate-100 px-1.5 py-0.5 font-semibold">{q.paper === 2 ? 'Paper 2' : `Section ${q.section}`}</span>
             <span>{q.marks} mark{q.marks === 1 ? '' : 's'}</span>
           </div>
+
+          {/* Shared context for a multi-part word problem (shown on each part). */}
+          {q.groupIntro && (
+            <p className="mb-3 rounded-xl bg-slate-50 px-3 py-2 text-base leading-relaxed text-slate-700"><MathText text={q.groupIntro} /></p>
+          )}
 
           {q.diagram && canRenderQuestionDiagram({ diagram: q.diagram }) && (
             <div className="mb-4"><QuestionDiagram question={{ diagram: q.diagram }} /></div>
           )}
 
-          <p className="mb-4 text-lg leading-relaxed text-slate-900"><MathText text={q.stem} /></p>
+          <p className="mb-4 text-lg leading-relaxed text-slate-900">
+            {q.partLabel && <span className="font-semibold text-slate-500">({q.partLabel})&nbsp;</span>}
+            <MathText text={q.stem} />
+          </p>
 
           {q.type === 'mcq' && Array.isArray(q.choices) && q.choices.length > 0 ? (
             <div className="space-y-2">
