@@ -27,6 +27,14 @@ import {
 } from './core';
 
 const MASCOT_KEY = getMascotForModule('mathpath')?.key || 'kylo';
+
+// Lower = easier. Used to order a first-timer's questions easiest-first.
+const DIFF_RANK = { easy: 0, simple: 0, foundational: 0, medium: 1, moderate: 1, hard: 2, challenging: 3, advanced: 3 };
+function difficultyRank(q) {
+  const d = q?.difficulty;
+  if (typeof d === 'number' && Number.isFinite(d)) return d;
+  return DIFF_RANK[String(d || '').toLowerCase().trim()] ?? 1;
+}
 const INACTIVITY_SECONDS = 120;
 
 // Canonical confidence scale shared by every practice surface (see
@@ -76,6 +84,8 @@ export default function DomainPracticeSession({ domain }) {
   const struggleQuestionRef = useRef(null);
   const [showStruggleHelp, setShowStruggleHelp] = useState(false);
   const [showStruggleSolution, setShowStruggleSolution] = useState(false);
+  // Gentle first-time entry.
+  const [showWarmup, setShowWarmup] = useState(false);
 
   const questionStartedAt = useRef(Date.now());
   const lastActivityAt = useRef(Date.now());
@@ -105,8 +115,22 @@ export default function DomainPracticeSession({ domain }) {
         const res = await config.start({ targetSkillId, questionCount: 6 });
         const data = res?.data || {};
         if (!data.questions?.length) throw new Error('No questions returned.');
+        // Gentle first-time entry: the very first time a student opens this skill,
+        // order the questions easiest-first and show a low-pressure warm-up, so a
+        // brand-new (or struggling) student gets early wins instead of hitting the
+        // hardest questions cold and giving up.
+        const seenKey = `tian:mp-seen:${user?.id || user?._id || 'anon'}:${domain}:${targetSkillId || 'mixed'}`;
+        let firstTime = false;
+        try { firstTime = !window.localStorage.getItem(seenKey); } catch { firstTime = false; }
+        let sessionData = data;
+        if (firstTime) {
+          const ordered = [...data.questions].sort((a, b) => difficultyRank(a) - difficultyRank(b));
+          sessionData = { ...data, questions: ordered };
+          try { window.localStorage.setItem(seenKey, '1'); } catch { /* private mode — fine */ }
+        }
         if (active) {
-          setSession(data);
+          setSession(sessionData);
+          if (firstTime) setShowWarmup(true);
           questionStartedAt.current = Date.now();
           lastActivityAt.current = Date.now();
         }
@@ -554,6 +578,24 @@ export default function DomainPracticeSession({ domain }) {
           setWorkingQuestionId(null);
         }}
       />
+
+      {/* Gentle first-time entry — a calm, encouraging start so a brand-new student
+          isn't dropped straight into hard questions. Questions are already ordered
+          easiest-first for this first session. */}
+      {showWarmup && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl">
+            <MascotBubble
+              name={MASCOT_KEY}
+              message="New topic! We'll start with the easier ones and build up from there. It's okay not to know yet — just give each one a try, and I'll help if you get stuck."
+              size="sm"
+              voiced
+              className="mb-4"
+            />
+            <Button className="w-full" onClick={() => setShowWarmup(false)}>Let&apos;s go</Button>
+          </div>
+        </div>
+      )}
 
       {/* Struggle safety net — after repeated "I don't know", step in warmly with
           a worked example or an easy way to switch, so the student doesn't quit. */}
