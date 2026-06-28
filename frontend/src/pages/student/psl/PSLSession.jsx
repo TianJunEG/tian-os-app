@@ -170,6 +170,12 @@ export default function PSLSession() {
         timeSpentMs: Date.now() - stepStartRef.current,
       });
       const result = res.data;
+      // Don't celebrate on Solve — the very next step (Check) asks the student to
+      // verify the answer makes sense, so a "Well done!" here pre-empts that
+      // reflection. Praise is held back until the Check step.
+      if (currentStepId === 'solve' && result.correct) {
+        result.feedback = 'Good — now check whether your answer makes sense.';
+      }
       setCompletedSteps((prev) => ({ ...prev, [currentStepId]: result }));
       setFeedback(result);
 

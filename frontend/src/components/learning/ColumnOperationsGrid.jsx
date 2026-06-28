@@ -247,6 +247,12 @@ function DivisionGrid({ grid, onChange, cellRefs }) {
         ))}
       </div>
 
+      {/* Vinculum — the division line sits ABOVE the dividend (under the
+          quotient), forming the top of the ")" bracket. */}
+      <div className="flex gap-1" style={{ marginLeft: `${(divisorDigits + 1) * 44}px` }}>
+        <div className="h-0.5 flex-1 bg-ink-900" style={{ width: `${cols * 44}px` }} />
+      </div>
+
       <div className="flex items-center gap-1">
         {divisor.map((v, ci) => (
           <CellInput
@@ -265,10 +271,6 @@ function DivisionGrid({ grid, onChange, cellRefs }) {
             inputRef={makeRefSetter(cellRefs, `dividend-0-${ci}`)}
           />
         ))}
-      </div>
-
-      <div className="flex gap-1" style={{ marginLeft: `${(divisorDigits + 1) * 44}px` }}>
-        <div className="h-0.5 flex-1 bg-ink-900" style={{ width: `${cols * 44}px` }} />
       </div>
 
       {remainderSteps.map((row, ri) => (

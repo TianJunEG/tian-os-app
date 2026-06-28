@@ -326,7 +326,7 @@ export default function DomainPracticeSession({ domain }) {
                   </>
                 );
               }
-              if (isLPrimary && patternData) {
+              if (patternData) {
                 return (
                   <>
                     <ManipulativePatternStrip key={current?.questionId} items={patternData.items} />
@@ -334,7 +334,7 @@ export default function DomainPracticeSession({ domain }) {
                   </>
                 );
               }
-              if (isLPrimary && compareData) {
+              if (compareData) {
                 return (
                   <>
                     <ManipulativeCompareSets key={current?.questionId} left={compareData.left} right={compareData.right} />
@@ -342,7 +342,7 @@ export default function DomainPracticeSession({ domain }) {
                   </>
                 );
               }
-              if (isLPrimary && countData) {
+              if (countData) {
                 return (
                   <>
                     <ManipulativeCountArray key={current?.questionId} emoji={countData.emoji} count={countData.count} />
