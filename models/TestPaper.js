@@ -52,10 +52,11 @@ const testPaperSchema = new mongoose.Schema({
 
 testPaperSchema.index({ status: 1, level: 1 });
 
-// Keep totalMarks in sync with the embedded questions.
-testPaperSchema.pre('save', function syncTotalMarks(next) {
+// Keep totalMarks in sync with the embedded questions. Synchronous hook (no
+// `next` param) — Mongoose runs it and proceeds; declaring an unused `next`
+// threw "next is not a function" on save in this Mongoose version.
+testPaperSchema.pre('save', function syncTotalMarks() {
   this.totalMarks = (this.questions || []).reduce((sum, q) => sum + (Number(q.marks) || 0), 0);
-  next();
 });
 
 export default mongoose.model('TestPaper', testPaperSchema);
