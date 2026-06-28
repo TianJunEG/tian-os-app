@@ -441,6 +441,7 @@ export default function FractionsStoryModeSession() {
                     label="Your working"
                     submittedImage={working.workingImage || ''}
                     submittedStrokes={working.workingStrokes || []}
+                    initialMathObjects={working.workingMathObjects || []}
                     initialColumnGrid={working.workingColumnGrid || null}
                     initialMathSteps={working.workingSteps || null}
                     initialSubmitted={Boolean(working.workingSubmitted)}
