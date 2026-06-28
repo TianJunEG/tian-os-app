@@ -513,6 +513,11 @@ export default function StudentProfile() {
     }, {});
   }, [state.data]);
 
+  // Must stay above the early returns below — calling a hook only on the
+  // loaded render path violates the Rules of Hooks ("rendered more hooks than
+  // during the previous render") and crashes the profile when data arrives.
+  const [celebration, setCelebration] = useState(() => getCelebrationStyle());
+
   if (state.loading) return <Spinner label="Loading your profile…" />;
   if (state.error) {
     return (
@@ -528,7 +533,6 @@ export default function StudentProfile() {
   const timeline = state.data?.timeline || [];
   const progress = summary.progress || { mastered: 0, total: 1, percentage: 0 };
   const avatarText = initials(student.name);
-  const [celebration, setCelebration] = useState(() => getCelebrationStyle());
   const visualMode = resolveStudentVisualMode({
     ...student,
     studentVisualMode: student.studentVisualMode,
