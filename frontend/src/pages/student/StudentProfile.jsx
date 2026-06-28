@@ -29,6 +29,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { studentProfileAPI } from '../../services/api';
+import { getCelebrationStyle, setCelebrationStyle, celebrationPreview } from '../../utils/confetti';
 import { Badge, Button, Card, ErrorState, ProgressBar, Spinner } from '../../components/ui';
 import { getVisualModeStyles, isLowerPrimary, isSecondary, resolveStudentVisualMode, STUDENT_VISUAL_MODES } from '../../design-os/studentVisualMode';
 import { FEATURE_FLAGS } from '../../config/featureFlags';
@@ -527,6 +528,7 @@ export default function StudentProfile() {
   const timeline = state.data?.timeline || [];
   const progress = summary.progress || { mastered: 0, total: 1, percentage: 0 };
   const avatarText = initials(student.name);
+  const [celebration, setCelebration] = useState(() => getCelebrationStyle());
   const visualMode = resolveStudentVisualMode({
     ...student,
     studentVisualMode: student.studentVisualMode,
@@ -660,6 +662,35 @@ export default function StudentProfile() {
           <p className="text-sm font-semibold text-ink-500">Recommended Action</p>
           <p className="mt-2 text-lg font-semibold text-ink-900">{summary.recommendedAction?.label || 'Continue Learning'}</p>
           {!isLowerPrimary(visual.mode) && <p className="mt-2 text-sm leading-5 text-ink-500">Pick up from the next useful skill and keep your progress moving.</p>}
+        </Card>
+      </section>
+
+      <section className="mt-5">
+        <Card className={`p-5 sm:p-6 ${visual.styles.card}`}>
+          <p className="text-sm font-semibold text-ink-500">Celebration</p>
+          <p className="mt-1 text-lg font-semibold text-ink-900">How should we celebrate a correct answer?</p>
+          <div className="mt-4 grid grid-cols-3 gap-3">
+            {[
+              { id: 'confetti', label: 'Confetti', emoji: '🎉' },
+              { id: 'fireworks', label: 'Fireworks', emoji: '🎆' },
+              { id: 'off', label: 'Off', emoji: '🤫' },
+            ].map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => {
+                  setCelebration(opt.id);
+                  setCelebrationStyle(opt.id);
+                  if (opt.id !== 'off') celebrationPreview(opt.id, { count: 120, duration: 1800 });
+                }}
+                className={`flex flex-col items-center gap-1 rounded-2xl border-2 px-3 py-4 text-center transition ${celebration === opt.id ? 'border-emerald bg-emerald-tint' : 'border-line-soft bg-white hover:border-emerald/40'}`}
+              >
+                <span className="text-3xl leading-none">{opt.emoji}</span>
+                <span className="text-sm font-semibold text-ink-800">{opt.label}</span>
+              </button>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-ink-400">Tap a style to preview it. This applies across MathPath, Problems, Test Papers and Spelling.</p>
         </Card>
       </section>
 

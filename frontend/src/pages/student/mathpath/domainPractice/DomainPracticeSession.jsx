@@ -8,6 +8,7 @@ import FullScreenWorkingMode from '../../../../components/learning/FullScreenWor
 import WorkingPreviewCard from '../../../../components/learning/WorkingPreviewCard';
 import ManipulativeDotArray, { parseDotStem, numericLine, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram, parseCountDiagram, ManipulativeCountArray, parseCompareDiagram, ManipulativeCompareSets, parsePatternDiagram, ManipulativePatternStrip } from '../../../../components/learning/ManipulativeDotArray';
 import { speak, isVoiceEnabled, setVoiceEnabled } from '../../../../utils/sound';
+import { confettiBurst } from '../../../../utils/confetti';
 import { useAuth } from '../../../../context/AuthContext';
 import { getMascotForModule, getMascotVoice } from '../../../../config/mascots';
 import MathSymbolBar from '../components/MathSymbolBar';
@@ -57,6 +58,14 @@ export default function DomainPracticeSession({ domain }) {
   const [workingQuestionId, setWorkingQuestionId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
+  const celebratedRef = useRef(false);
+  // Celebrate a strong finish (respects the student's confetti/fireworks choice).
+  useEffect(() => {
+    if (result && !celebratedRef.current && (result.accuracyPercentage ?? 0) >= 80) {
+      celebratedRef.current = true;
+      setTimeout(() => confettiBurst({ count: result.accuracyPercentage >= 100 ? 160 : 120, duration: 2000 }), 300);
+    }
+  }, [result]);
   const [elapsedSec, setElapsedSec] = useState(0);
   const [showReflection, setShowReflection] = useState(false);
   const [pendingAnswer, setPendingAnswer] = useState(null);
