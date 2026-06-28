@@ -33,7 +33,7 @@ import MascotBubble from './components/MascotBubble';
 import HintLadder from './components/HintLadder';
 import ReasoningInput from './components/ReasoningInput';
 import WorkedSolutionWalkthrough from './components/WorkedSolutionWalkthrough';
-import WorkingCanvas from '../../../components/learning/WorkingCanvas';
+import FullScreenWorkingMode from '../../../components/learning/FullScreenWorkingMode';
 import { getVoiceScripts } from './utils/voiceScripts';
 import { confettiBurst } from '../../../utils/confetti';
 import { playCorrect, playWin, isVoiceEnabled, setVoiceEnabled, speak } from '../../../utils/sound';
@@ -77,6 +77,7 @@ export default function PSLSession() {
   const [stepResponses, setStepResponses] = useState({});
   const [retryCount, setRetryCount] = useState({});
   const [showScratchpad, setShowScratchpad] = useState(false);
+  const [scratchByProblem, setScratchByProblem] = useState({}); // { [problemIndex]: { workingStrokes, workingMathObjects } } — ephemeral, retained across reopens
   const [streak, setStreak] = useState(0);
   const [hints, setHints] = useState([]);
   const [hintLoading, setHintLoading] = useState(false);
@@ -728,31 +729,27 @@ export default function PSLSession() {
         </div>
       </div>
 
-      {/* Full-screen scratchpad overlay */}
-      {showScratchpad && (
-        <div className="fixed inset-0 z-[60] flex flex-col bg-white" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-          <div className="flex items-center justify-between border-b border-ink-100 px-4 py-3">
-            <div className="flex items-center gap-2 font-semibold text-ink-700">
-              <Pencil className="h-4 w-4" /> Scratchpad
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowScratchpad(false)}
-              className="inline-flex items-center gap-1 rounded-lg border border-ink-200 px-3 py-1.5 text-sm font-semibold text-ink-600 hover:bg-ink-50"
-            >
-              <X className="h-4 w-4" /> Close
-            </button>
-          </div>
-          <div className="min-h-0 flex-1 overflow-auto p-3">
-            <WorkingCanvas
-              questionId={`${session?.sessionId}-${problemIndex}-solve`}
-              label="Scratchpad"
-              required={false}
-              allowNoWorking={false}
-            />
-          </div>
-        </div>
-      )}
+      {/* Full-screen scratchpad — shares the MathPath working canvas, so text
+          labels are draggable + editable and (Stage 2) the Four Ops grid lives
+          here too. Ephemeral: work is kept per-problem only for this sitting. */}
+      <FullScreenWorkingMode
+        open={showScratchpad}
+        questionId={`${session?.sessionId}-${problemIndex}-scratch`}
+        questionText={currentProblem?.storyText || ''}
+        initialStrokes={(scratchByProblem[problemIndex] || {}).workingStrokes || []}
+        initialMathObjects={(scratchByProblem[problemIndex] || {}).workingMathObjects || []}
+        onClose={() => setShowScratchpad(false)}
+        onSave={(payload) => {
+          setScratchByProblem((prev) => ({
+            ...prev,
+            [problemIndex]: {
+              workingStrokes: payload.workingStrokes || [],
+              workingMathObjects: payload.workingMathObjects || [],
+            },
+          }));
+          setShowScratchpad(false);
+        }}
+      />
     </div>
   );
 }
