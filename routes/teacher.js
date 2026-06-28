@@ -246,6 +246,89 @@ router.get('/classes/:id/students', asyncHandler(async (req, res) => {
   res.json({ students: out });
 }));
 
+// Corrections tracker: who has / hasn't done their corrections, and whether each
+// correction was marked right. The Mistake "learning ladder" is:
+//   new → acknowledged → corrected → understood → mastered
+// plus correction_attempted (tried the correction but it was auto-marked wrong).
+// A correction is "done" once learningStatus reaches corrected (or beyond); it is
+// "outstanding" while still new / acknowledged / correction_attempted.
+const CORRECTION_DONE = ['corrected', 'understood', 'mastered'];
+router.get('/classes/:id/corrections', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return;
+  const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
+  const ids = await rosterIds(c._id);
+  const students = await Student.find({ _id: { $in: ids } }).select('name level').lean();
+
+  const agg = await Mistake.aggregate([
+    { $match: { studentId: { $in: ids }, status: { $ne: 'resolved' } } },
+    { $group: {
+      _id: '$studentId',
+      total: { $sum: 1 },
+      notStarted: { $sum: { $cond: [{ $eq: ['$learningStatus', 'new'] }, 1, 0] } },
+      inProgress: { $sum: { $cond: [{ $eq: ['$learningStatus', 'acknowledged'] }, 1, 0] } },
+      failed: { $sum: { $cond: [{ $eq: ['$learningStatus', 'correction_attempted'] }, 1, 0] } },
+      done: { $sum: { $cond: [{ $in: ['$learningStatus', CORRECTION_DONE] }, 1, 0] } },
+    } },
+  ]);
+  const byStudent = Object.fromEntries(agg.map((a) => [String(a._id), a]));
+
+  const roster = students.map((s) => {
+    const a = byStudent[String(s._id)] || {};
+    const notStarted = a.notStarted || 0; const inProgress = a.inProgress || 0;
+    const failed = a.failed || 0; const done = a.done || 0; const total = a.total || 0;
+    const outstanding = notStarted + inProgress + failed;
+    return {
+      studentId: s._id, name: s.name, level: s.level,
+      total, outstanding, done, notStarted, inProgress, failed,
+      completionPct: total ? Math.round((done / total) * 100) : 100,
+    };
+  });
+  // Most outstanding first; break ties by failed corrections (need help most).
+  roster.sort((a, b) => b.outstanding - a.outstanding || b.failed - a.failed || a.name.localeCompare(b.name));
+
+  res.json({
+    class: { id: c._id, name: c.name, level: c.level },
+    summary: {
+      totalStudents: roster.length,
+      studentsWithOutstanding: roster.filter((r) => r.outstanding > 0).length,
+      studentsAllDone: roster.filter((r) => r.total > 0 && r.outstanding === 0).length,
+      totalOutstanding: roster.reduce((s, r) => s + r.outstanding, 0),
+      totalFailed: roster.reduce((s, r) => s + r.failed, 0),
+    },
+    students: roster,
+  });
+}));
+
+// Drill-down: one student's outstanding (and recently corrected) mistakes, so the
+// teacher can see exactly which corrections are pending or were marked wrong.
+router.get('/classes/:id/corrections/:studentId', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return;
+  const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
+  const ids = (await rosterIds(c._id)).map(String);
+  if (!ids.includes(String(req.params.studentId))) return res.status(403).json({ error: 'Student not in this class.' });
+
+  const mistakes = await Mistake.find({ studentId: req.params.studentId, status: { $ne: 'resolved' } })
+    .populate({ path: 'skillId', model: Skill })
+    .sort({ occurredAt: -1 })
+    .limit(60)
+    .lean();
+
+  res.json({
+    mistakes: mistakes.map((m) => ({
+      id: m._id,
+      skillName: m.skillId?.name || m.skillCode || 'Mistake',
+      module: m.module,
+      questionStem: m.questionStem || m.questionText || '',
+      studentAnswer: m.studentAnswer,
+      correctAnswer: m.correctAnswer,
+      learningStatus: m.learningStatus || 'new',
+      correctionAttempt: m.correctionAttempt || '',
+      correctionDone: CORRECTION_DONE.includes(m.learningStatus),
+      occurredAt: m.occurredAt || m.createdAt,
+    })),
+  });
+}));
+
 // Real-data class dashboard: class overview, the "Needs you this week" flag list
 // (students who need in-person remediation, the exact skill + reason), per-domain
 // grasp, and a per-skill mastery heatmap. Replaces the synthetic client builders.

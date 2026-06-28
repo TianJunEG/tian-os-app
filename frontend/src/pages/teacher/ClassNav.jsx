@@ -19,6 +19,7 @@ export default function ClassNav({ classId, name, level }) {
     ['Overview', base],
     ['MathPath', `${base}/mathpath`],
     ['Students', `${base}/students`],
+    ['Corrections', `${base}/corrections`],
     ['Assign work', `${base}/assign`],
     ['Tests', `${base}/assessments`],
   ];
