@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { BookOpen, ChevronDown, ChevronUp, Compass, Flame, HelpCircle, Pencil, Volume2, X } from 'lucide-react';
+import { BookOpen, Compass, Flame, HelpCircle, Pencil, Volume2, X } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import StepProgressBar from './components/StepProgressBar';
 import StoryPanel from './components/StoryPanel';
@@ -396,24 +396,12 @@ export default function PSLSession() {
             />
             <button
               type="button"
-              onClick={() => setShowScratchpad((v) => !v)}
+              onClick={() => setShowScratchpad(true)}
               className="mt-3 flex w-full items-center gap-2 rounded-lg border border-dashed border-ink-200 px-3 py-2 text-xs font-medium text-ink-500 transition-colors hover:border-ink-300 hover:bg-ink-50 hover:text-ink-600"
             >
               <Pencil className="h-3.5 w-3.5" />
-              <span className="flex-1 text-left">Scratchpad</span>
-              {showScratchpad ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+              <span className="flex-1 text-left">Open scratchpad</span>
             </button>
-            {showScratchpad && (
-              <div className="mt-2">
-                <WorkingCanvas
-                  questionId={`${session?.sessionId}-${problemIndex}-solve`}
-                  label="Scratchpad"
-                  required={false}
-                  allowNoWorking={false}
-                  compact
-                />
-              </div>
-            )}
           </>
         );
       case 'check':
@@ -739,6 +727,32 @@ export default function PSLSession() {
           </div>
         </div>
       </div>
+
+      {/* Full-screen scratchpad overlay */}
+      {showScratchpad && (
+        <div className="fixed inset-0 z-[60] flex flex-col bg-white" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+          <div className="flex items-center justify-between border-b border-ink-100 px-4 py-3">
+            <div className="flex items-center gap-2 font-semibold text-ink-700">
+              <Pencil className="h-4 w-4" /> Scratchpad
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowScratchpad(false)}
+              className="inline-flex items-center gap-1 rounded-lg border border-ink-200 px-3 py-1.5 text-sm font-semibold text-ink-600 hover:bg-ink-50"
+            >
+              <X className="h-4 w-4" /> Close
+            </button>
+          </div>
+          <div className="min-h-0 flex-1 overflow-auto p-3">
+            <WorkingCanvas
+              questionId={`${session?.sessionId}-${problemIndex}-solve`}
+              label="Scratchpad"
+              required={false}
+              allowNoWorking={false}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
