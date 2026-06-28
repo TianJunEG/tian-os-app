@@ -1,45 +1,62 @@
-# Vocabulary Builder — standalone web app
+# Vocabulary Builder — standalone lead-gen web app
 
-A self-contained web app for Primary 6 (PSLE) English **vocabulary** practice.
-Adaptive ladder (meet → meaning → synonym → nuance → exam form) + spaced
-repetition over ~406 words mined from real prelim papers.
+A self-contained web app for Primary 5 & 6 (Singapore) English **vocabulary**
+practice. Adaptive ladder (meet → meaning → synonym → nuance → exam form) +
+spaced repetition over **712 words** (P6 406, P5 306) mined from real exam papers.
 
-**No framework. No build step. No backend.** It's three files
-(`index.html`, `styles.css`, `app.js`) plus the shared vocabulary engine, which
-is imported directly as an ES module. Progress is stored in `localStorage`.
+**No framework. No build step. No backend.** Three files (`index.html`,
+`styles.css`, `app.js`) + a `config.js`, plus the shared vocabulary engine in
+`shared/englishpath/vocabulary/` (pure JS — no React/auth/server). Progress is
+stored in `localStorage`.
 
-This is independent of Tian OS — it reuses only the engine in
-`shared/englishpath/vocabulary/` (pure JS, no React/auth/server).
+## The funnel (lead-gen)
+
+- **Free / anonymous:** practise any number of sessions, P5 or P6 — but nothing
+  is saved (top-of-funnel taste).
+- **The gate:** when they want progress remembered, a paywall modal captures
+  their **email + child's level** (the lead) and sends them to checkout.
+- **Premium:** saved progress + spaced review + readiness tracking.
 
 ## Run locally
 
 Serve from the **repo root** (so the `../shared/...` import resolves):
 
 ```bash
-# from the repo root
 python3 -m http.server 4178
-# then open http://localhost:4178/englishpath-vocab-app/index.html
+# open http://localhost:4178/englishpath-vocab-app/index.html
 ```
 
-## Deploy as a fully separate static site
+With no config set it runs in demo mode: the lead is logged to the console and
+Premium unlocks instantly so you can click through the whole flow.
 
-The engine is the only external dependency. Two options:
+## Go live (three one-time steps)
 
-1. **Bundle it in** (recommended — one self-contained file, host anywhere):
-   ```bash
-   cd englishpath-vocab-app
-   npx esbuild app.js --bundle --format=esm --outfile=dist/app.bundle.js
-   # point index.html's <script src> at ./dist/app.bundle.js, then upload
-   # index.html + styles.css + dist/ to Netlify / Vercel / GitHub Pages / S3.
-   ```
+1. **Lead capture** — edit `config.js`, set `LEAD_ENDPOINT` to a form/CRM
+   endpoint that accepts a POST (Formspree, Web3Forms, a Zapier/Make webhook, or
+   your own). The app POSTs `{ email, level, source, app, at }` there.
+2. **Payment** — set `STRIPE_PAYMENT_LINK` to a Stripe Payment Link. In Stripe,
+   set that link's after-payment redirect to your site URL with `?unlocked=1`
+   appended (e.g. `https://yoursite/?unlocked=1`); the app grants Premium when
+   the customer returns. (Static-site gating trusts that redirect — fine for a
+   freemium funnel; add a backend later if you need hard enforcement.)
+3. **Hosting** — repo **Settings → Pages → Source: "GitHub Actions"**. The
+   workflow `.github/workflows/deploy-vocab-app.yml` then bundles the app
+   (inlining the engine into one minified file) and publishes it on every change
+   to the app or the word bank. The site goes live at
+   `https://<org>.github.io/<repo>/`.
 
-2. **Copy the engine alongside**: copy `shared/englishpath/vocabulary/` into this
-   folder and change the import in `app.js` to the local path.
+### Deploy elsewhere instead
 
-Either way the result is a pure static site — no server, no database.
+Bundle to a portable static folder and upload anywhere (Netlify, Vercel, S3):
+
+```bash
+mkdir -p dist && cp englishpath-vocab-app/index.html englishpath-vocab-app/styles.css dist/
+npx esbuild englishpath-vocab-app/app.js --bundle --format=esm --minify --outfile=dist/app.js
+# upload dist/  (On Netlify you can use Netlify Forms instead of LEAD_ENDPOINT.)
+```
 
 ## Updating the word bank
 
-The word bank lives in the shared engine
-(`shared/englishpath/vocabulary/`). Regenerate `harvestedEntries.js` via the
-harvest pipeline; this app and the Tian OS module both pick up the change.
+The bank lives in the shared engine (`shared/englishpath/vocabulary/`).
+Regenerate `harvestedEntries.js` via the harvest pipeline; this app and the
+Tian OS in-app module both pick up the change.

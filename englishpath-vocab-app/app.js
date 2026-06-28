@@ -21,8 +21,9 @@ import {
   vocabularyWordBank,
   TIERS,
 } from '../shared/englishpath/vocabulary/index.js';
+import { CONFIG } from './config.js';
 
-const PRICE = 'S$9/mo'; // display only — real pricing comes from your billing system
+const PRICE = CONFIG.PRICE || 'S$9/mo'; // display only — real pricing comes from Stripe
 const LEVELS = [
   { id: 'P6', label: 'Primary 6' },
   { id: 'P5', label: 'Primary 5' },
@@ -38,17 +39,46 @@ const app = document.getElementById('app');
 
 // ---- entitlement + lead (stubs) -------------------------------------------
 const isPremium = () => localStorage.getItem(K.unlocked) === '1';
+
 function captureLead(lead) {
-  // INTEGRATE: POST `lead` to your CRM / email list (Mailchimp, HubSpot, etc.).
+  const record = { ...lead, app: 'vocab-builder', at: new Date().toISOString() };
   try {
-    localStorage.setItem(K.lead, JSON.stringify({ ...lead, at: new Date().toISOString() }));
+    localStorage.setItem(K.lead, JSON.stringify(record));
   } catch (_) {}
-  console.log('[lead captured]', lead);
+  // Send the lead to the configured endpoint (CRM / form service). Fire-and-forget.
+  if (CONFIG.LEAD_ENDPOINT) {
+    const body = CONFIG.WEB3FORMS_ACCESS_KEY
+      ? { access_key: CONFIG.WEB3FORMS_ACCESS_KEY, subject: 'New Vocabulary Builder lead', ...record }
+      : record;
+    fetch(CONFIG.LEAD_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(body),
+    }).catch(() => {});
+  } else {
+    console.log('[lead captured — set CONFIG.LEAD_ENDPOINT to send it]', record);
+  }
 }
+
 function grantPremium() {
-  // INTEGRATE: only call this after a real payment / license check succeeds.
+  // Real enforcement needs a backend; on a static site this trusts the Stripe
+  // success redirect (?unlocked=1) — fine for a freemium funnel.
   try {
     localStorage.setItem(K.unlocked, '1');
+  } catch (_) {}
+}
+
+// If the customer is returning from a successful Stripe payment (?unlocked=1),
+// grant Premium and clean the URL so a refresh doesn't re-trigger anything.
+function consumePaymentReturn() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('unlocked') === '1') {
+      grantPremium();
+      params.delete('unlocked');
+      const url = window.location.pathname + (params.toString() ? '?' + params : '');
+      window.history.replaceState({}, '', url);
+    }
   } catch (_) {}
 }
 
@@ -405,10 +435,16 @@ function openPaywall(source) {
     e.preventDefault();
     const data = new FormData(e.target);
     const lead = { email: data.get('email'), level: data.get('level'), source };
-    captureLead(lead); // → the lead
-    grantPremium(); // demo: unlock immediately. INTEGRATE: gate behind real payment.
+    captureLead(lead); // → the lead (sent to CONFIG.LEAD_ENDPOINT)
     level = lead.level;
     setLevel(level);
+    if (CONFIG.STRIPE_PAYMENT_LINK) {
+      // Send them to checkout. Premium unlocks when Stripe redirects back with ?unlocked=1.
+      const sep = CONFIG.STRIPE_PAYMENT_LINK.includes('?') ? '&' : '?';
+      window.location.href = CONFIG.STRIPE_PAYMENT_LINK + sep + 'prefilled_email=' + encodeURIComponent(lead.email || '');
+      return;
+    }
+    grantPremium(); // demo mode (no payment link configured): unlock immediately
     overlay.querySelector('.modal').innerHTML = `
       <div class="center" style="padding:18px 6px">
         <div class="score" style="font-size:46px">🎉</div>
@@ -425,4 +461,5 @@ function openPaywall(source) {
 }
 
 // ---- boot -----------------------------------------------------------------
+consumePaymentReturn(); // grant Premium if returning from a successful checkout
 renderHome();
