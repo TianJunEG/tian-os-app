@@ -3,7 +3,7 @@ import express from 'express';
 import { protect } from '../middleware/auth.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 import { resolveStudent } from '../utils/studentContext.js';
-import { isCorrectWithContext } from '../utils/answerCheck.js';
+import { gradeAnswer } from '../utils/testPaperGrading.js';
 import { recordLearningEvents } from '../services/telemetry/learningTelemetryService.js';
 import TestPaper from '../models/TestPaper.js';
 import TestPaperSession from '../models/TestPaperSession.js';
@@ -24,25 +24,6 @@ function toClientQuestion(q) {
     unit: q.unit || '',
     diagram: q.diagram || null,
   };
-}
-
-// Lenient marking on top of the shared grader: tolerate harmless formatting a
-// student might type — a leading currency symbol ($), a trailing unit, and
-// spacing around a ratio colon ("3:4" === "3 : 4"). Avoids marking a correct
-// answer wrong over presentation.
-function normalizeForCompare(s, unit = '') {
-  let t = String(s == null ? '' : s).trim().toLowerCase();
-  t = t.replace(/^\$\s*/, '');                 // leading currency
-  if (unit) t = t.replace(new RegExp(`\\s*${unit.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.?$`), ''); // trailing unit
-  t = t.replace(/\s*:\s*/g, ':');              // ratio spacing
-  t = t.replace(/\s+/g, ' ').trim();
-  return t;
-}
-
-function gradeAnswer(given, q) {
-  if (String(given).trim() === '') return false;
-  if (isCorrectWithContext(given, q.answer, q.stem)) return true;
-  return normalizeForCompare(given, q.unit) === normalizeForCompare(q.answer, q.unit);
 }
 
 function secondsRemaining(session) {
