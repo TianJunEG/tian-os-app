@@ -71,6 +71,11 @@ export default function DomainPracticeSession({ domain }) {
   const [pendingAnswer, setPendingAnswer] = useState(null);
   const [showInactivityAlert, setShowInactivityAlert] = useState(false);
   const [voiceOn, setVoiceOn] = useState(() => isVoiceEnabled());
+  // Live struggle safety net.
+  const struggleStreakRef = useRef(0);
+  const struggleQuestionRef = useRef(null);
+  const [showStruggleHelp, setShowStruggleHelp] = useState(false);
+  const [showStruggleSolution, setShowStruggleSolution] = useState(false);
 
   const questionStartedAt = useRef(Date.now());
   const lastActivityAt = useRef(Date.now());
@@ -197,6 +202,7 @@ export default function DomainPracticeSession({ domain }) {
   }
 
   function confirmReflection(reflectionValue) {
+    const answeredQuestion = current;
     const answer = { ...pendingAnswer, reflection: reflectionValue };
     const nextAnswers = [...answers, answer];
     setAnswers(nextAnswers);
@@ -205,6 +211,10 @@ export default function DomainPracticeSession({ domain }) {
     setPendingAnswer(null);
     inactivityPausedSec.current = 0;
     inactivityPausedAt.current = null;
+    // Track "I don't know" / "I need help" in a row — after 3, step in with an
+    // encouraging way out before the student gives up.
+    const struggled = reflectionValue === 'i_dont_know' || reflectionValue === 'i_need_help';
+    struggleStreakRef.current = struggled ? struggleStreakRef.current + 1 : 0;
     if (isLast) {
       finish(nextAnswers);
     } else {
@@ -212,6 +222,12 @@ export default function DomainPracticeSession({ domain }) {
       setElapsedSec(0);
       questionStartedAt.current = Date.now();
       lastActivityAt.current = Date.now();
+      if (struggleStreakRef.current >= 3) {
+        struggleStreakRef.current = 0;
+        struggleQuestionRef.current = answeredQuestion;
+        setShowStruggleSolution(false);
+        setShowStruggleHelp(true);
+      }
     }
   }
 
@@ -538,6 +554,41 @@ export default function DomainPracticeSession({ domain }) {
           setWorkingQuestionId(null);
         }}
       />
+
+      {/* Struggle safety net — after repeated "I don't know", step in warmly with
+          a worked example or an easy way to switch, so the student doesn't quit. */}
+      {showStruggleHelp && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl">
+            <MascotBubble
+              name={MASCOT_KEY}
+              message="This part is tricky — and that's completely okay. Everyone learns at their own pace. What would help right now?"
+              size="sm"
+              voiced
+              className="mb-3"
+            />
+            {showStruggleSolution && struggleQuestionRef.current && (
+              <div className="mb-3 rounded-xl bg-ink-50 p-3 text-sm text-ink-700">
+                <p className="mb-1 font-semibold text-ink-800">{struggleQuestionRef.current.prompt}</p>
+                {Array.isArray(struggleQuestionRef.current.solutionSteps) && struggleQuestionRef.current.solutionSteps.length ? (
+                  <ol className="list-decimal space-y-0.5 pl-5">
+                    {struggleQuestionRef.current.solutionSteps.map((s, i) => <li key={i}>{s}</li>)}
+                  </ol>
+                ) : (
+                  <p className="text-ink-500">{struggleQuestionRef.current.workedSolution || "Break it into smaller steps — you can do this."}</p>
+                )}
+              </div>
+            )}
+            <div className="grid gap-2">
+              {!showStruggleSolution && (
+                <Button variant="secondary" onClick={() => setShowStruggleSolution(true)}>Show me how</Button>
+              )}
+              <Button variant="secondary" onClick={() => navigate('/student/mathpath')}>Try a different topic</Button>
+              <Button onClick={() => { setShowStruggleHelp(false); setShowStruggleSolution(false); }}>Keep going</Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Inactivity alert — modal overlay */}
       {showInactivityAlert && (
