@@ -472,11 +472,22 @@ export async function generateProblem(skillId, options = {}) {
     vars.groups = fracDen;
     vars.total = fracDen * vars.perGroup;
     vars.part = fracNum * vars.perGroup;
+    vars.fractionPart = vars.part; // the {fractionPart} token (the fraction that was taken away)
+    // "Remainder" templates (... ÷ ... × ... then SUBTRACT) ask for what's LEFT, not the
+    // fraction itself — answer = total − part. Without this, a correct answer reads as wrong.
+    const isRemainder = Array.isArray(template.operations) && template.operations.includes('subtraction');
     if (template.unknownPosition === 'whole') {
       vars.answer = vars.total;
+    } else if (isRemainder) {
+      vars.answer = vars.total - vars.part;
     } else if (template.unknownPosition === 'part') {
       vars.answer = vars.part;
     }
+    // keep nums in sync so the visual/answer key match the worked solution
+    nums.total = vars.total;
+    nums.part = vars.part;
+    nums.fractionPart = vars.fractionPart;
+    nums.answer = vars.answer;
   }
 
   const storyText = substituteTokens(template.storyTemplate, vars);
