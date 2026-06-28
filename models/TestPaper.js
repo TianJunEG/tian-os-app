@@ -34,6 +34,11 @@ const testPaperSchema = new mongoose.Schema({
   title: { type: String, required: true },                     // 'P5 Maths — Mid-Year Mock A'
   subject: { type: String, default: 'Mathematics' },
   level: { type: String, default: '' },                        // 'P5'
+  // 'mock' = full mixed exam paper; 'challenge' = topic-scoped set of hard
+  // questions (the KooBits-style "Challenging" tier — drill one topic's tough
+  // problems, usually untimed). `topic` labels a challenge set's focus.
+  category: { type: String, enum: ['mock', 'challenge'], default: 'mock' },
+  topic: { type: String, default: '' },                        // 'Fractions' (challenge sets)
   durationMinutes: { type: Number, default: 0 },               // 0 = untimed
   description: { type: String, default: '' },
   status: { type: String, enum: ['draft', 'published'], default: 'draft' },

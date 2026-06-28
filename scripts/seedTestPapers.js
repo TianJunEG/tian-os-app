@@ -170,9 +170,57 @@ const P6_MOCK_A = {
   ],
 };
 
+// ── Topic challenge sets (KooBits-style "Challenging" tier): one topic, all
+// hard word problems, untimed. Mark-verified.
+const P5_FRAC_CHALLENGE = {
+  paperCode: 'P5-FRAC-CHALLENGE',
+  title: 'P5 Fractions — Challenge',
+  subject: 'Mathematics',
+  level: 'P5',
+  category: 'challenge',
+  topic: 'Fractions',
+  durationMinutes: 0,
+  status: 'published',
+  description: 'Tough P5 fraction word problems — work-backwards, remainder and part-whole reasoning.',
+  tags: ['challenge', 'fractions'],
+  source: 'authored',
+  sourceRef: 'TianOS_P5_Frac_Challenge',
+  questions: [
+    { order: 1, section: 'A', marks: 3, type: 'short_answer', stem: 'Raj had a sum of money. He spent 2/5 of it on a toy and 1/3 of the remainder on a book. He had $40 left. How much money did he have at first?', answer: '100', unit: '$', skillName: 'Fraction of remainder (work backwards)', difficulty: 'hard', solutionSteps: ['After the toy, 3/5 of the money was left.', '1/3 of that remainder went on the book = 1/5 of the original.', 'Left = 3/5 − 1/5 = 2/5 of the original = $40, so the original = $40 ÷ 2 × 5 = $100.'], workedSolution: '2/5 of the money = $40 left → original = $100.' },
+    { order: 2, section: 'A', marks: 3, type: 'short_answer', stem: '5/8 of the pupils in a class are boys. There are 12 girls. How many pupils are in the class?', answer: '32', skillName: 'Fraction part-whole', difficulty: 'hard', solutionSteps: ['Girls = 1 − 5/8 = 3/8 of the class.', '3/8 = 12, so 1/8 = 4.', 'Whole class = 8/8 = 32.'], workedSolution: 'Girls 3/8 = 12 → 1/8 = 4 → class = 32.' },
+    { order: 3, section: 'A', marks: 3, type: 'short_answer', stem: 'A tank was 3/4 full. After 18 litres were used, it was 1/2 full. What is the capacity of the tank?', answer: '72', unit: 'L', skillName: 'Fraction difference', difficulty: 'hard', solutionSteps: ['3/4 − 1/2 = 1/4 of the tank was used.', '1/4 = 18 litres.', 'Capacity = 4 × 18 = 72 litres.'], workedSolution: '1/4 of the tank = 18 L → capacity = 72 L.' },
+    { order: 4, section: 'B', marks: 4, type: 'short_answer', stem: 'Mrs Tan bought some apples. She gave 1/4 to her neighbour and 2/3 of the remainder to her sister. She had 9 apples left. How many apples did she buy?', answer: '36', skillName: 'Fraction of remainder', difficulty: 'hard', solutionSteps: ['After the neighbour, 3/4 were left.', 'She gave 2/3 of that = 1/2 of the apples to her sister.', 'Left = 3/4 − 1/2 = 1/4 = 9, so total = 36.'], workedSolution: 'Left 1/4 = 9 → bought 36.' },
+    { order: 5, section: 'B', marks: 4, type: 'short_answer', stem: '1/3 of a number is equal to 1/4 of 48. What is the number?', answer: '36', skillName: 'Fraction equations', difficulty: 'hard', solutionSteps: ['1/4 of 48 = 12.', '1/3 of the number = 12, so the number = 3 × 12 = 36.'], workedSolution: '1/4 of 48 = 12; number = 3 × 12 = 36.' },
+    { order: 6, section: 'B', marks: 4, type: 'short_answer', stem: 'Ben read 2/5 of a book on Monday and 1/4 of the book on Tuesday. He still had 42 pages left. How many pages does the book have?', answer: '120', skillName: 'Combining fractions', difficulty: 'hard', solutionSteps: ['Read 2/5 + 1/4 = 8/20 + 5/20 = 13/20.', 'Left = 7/20 = 42 pages.', 'Total = 42 ÷ 7 × 20 = 120 pages.'], workedSolution: 'Left 7/20 = 42 → book = 120 pages.' },
+  ],
+};
+
+const P6_PCT_RATIO_CHALLENGE = {
+  paperCode: 'P6-PCT-RATIO-CHALLENGE',
+  title: 'P6 Percentage & Ratio — Challenge',
+  subject: 'Mathematics',
+  level: 'P6',
+  category: 'challenge',
+  topic: 'Percentage & Ratio',
+  durationMinutes: 0,
+  status: 'published',
+  description: 'Tough P6 percentage and ratio word problems — reverse percentage and changing ratios.',
+  tags: ['challenge', 'percentage', 'ratio'],
+  source: 'authored',
+  sourceRef: 'TianOS_P6_PctRatio_Challenge',
+  questions: [
+    { order: 1, section: 'A', marks: 3, type: 'short_answer', stem: 'A number is increased by 20% to become 96. What was the original number?', answer: '80', skillName: 'Reverse percentage', difficulty: 'hard', solutionSteps: ['96 represents 120% of the original.', '1% = 96 ÷ 120 = 0.8.', 'Original = 100% = 80.'], workedSolution: '120% = 96 → 100% = 80.' },
+    { order: 2, section: 'A', marks: 3, type: 'short_answer', stem: "The ratio of John's money to Mary's money is 2 : 3. If John has $48, how much do they have altogether?", answer: '120', unit: '$', skillName: 'Ratio word problem', difficulty: 'hard', solutionSteps: ['John = 2 units = $48, so 1 unit = $24.', 'Total = 2 + 3 = 5 units = 5 × $24 = $120.'], workedSolution: '2 units = $48 → 1 unit = $24; total 5 units = $120.' },
+    { order: 3, section: 'A', marks: 3, type: 'short_answer', stem: 'In a bag, 40% of the balls are red and the rest are blue. There are 36 blue balls. How many balls are there altogether?', answer: '60', skillName: 'Reverse percentage', difficulty: 'hard', solutionSteps: ['Blue = 100% − 40% = 60% of the balls.', '60% = 36, so 1% = 0.6.', 'Total = 100% = 60.'], workedSolution: 'Blue 60% = 36 → total 60.' },
+    { order: 4, section: 'B', marks: 4, type: 'short_answer', stem: 'The ratio of boys to girls in a hall was 5 : 4. After 20 boys left, the ratio became 3 : 4. How many girls were in the hall?', answer: '40', skillName: 'Changing ratio (constant part)', difficulty: 'hard', solutionSteps: ['Girls did not change. Let 1 unit = u: boys 5u, girls 4u.', 'After 20 boys leave: (5u − 20) : 4u = 3 : 4 → 4(5u − 20) = 3(4u) → 8u = 80 → u = 10.', 'Girls = 4u = 40.'], workedSolution: 'Solve (5u−20):4u = 3:4 → u = 10; girls = 4u = 40.' },
+    { order: 5, section: 'B', marks: 4, type: 'short_answer', stem: 'A shopkeeper sold an item for $84 after giving a 30% discount. What was the original price?', answer: '120', unit: '$', skillName: 'Reverse percentage (discount)', difficulty: 'hard', solutionSteps: ['$84 is 70% of the original price.', '1% = 84 ÷ 70 = 1.2.', 'Original = 100% = $120.'], workedSolution: '70% = $84 → 100% = $120.' },
+    { order: 6, section: 'B', marks: 4, type: 'short_answer', stem: 'The ratio of red to blue to green marbles is 2 : 3 : 5. There are 60 more green marbles than red marbles. How many marbles are there altogether?', answer: '200', skillName: 'Three-part ratio', difficulty: 'hard', solutionSteps: ['Green − red = 5 − 2 = 3 units = 60, so 1 unit = 20.', 'Total = 2 + 3 + 5 = 10 units = 10 × 20 = 200.'], workedSolution: '3 units = 60 → 1 unit = 20; total 10 units = 200.' },
+  ],
+};
+
 async function run() {
   await mongoose.connect(URI);
-  const papers = [P4_MOCK_A, P5_MOCK_A, P6_MOCK_A];
+  const papers = [P4_MOCK_A, P5_MOCK_A, P6_MOCK_A, P5_FRAC_CHALLENGE, P6_PCT_RATIO_CHALLENGE];
   for (const def of papers) {
     await TestPaper.deleteOne({ paperCode: def.paperCode });
     const doc = new TestPaper(def);

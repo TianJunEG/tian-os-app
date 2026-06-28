@@ -36,7 +36,7 @@ function secondsRemaining(session) {
 router.get('/', protect, asyncHandler(async (req, res) => {
   const student = await resolveStudent(req);
   const papers = await TestPaper.find({ status: 'published' })
-    .select('paperCode title subject level durationMinutes totalMarks description tags questions')
+    .select('paperCode title subject level durationMinutes totalMarks description tags questions category topic')
     .lean();
 
   const sittings = await TestPaperSession.find({ studentId: student._id, status: 'completed' })
@@ -58,6 +58,8 @@ router.get('/', protect, asyncHandler(async (req, res) => {
     title: p.title,
     subject: p.subject,
     level: p.level,
+    category: p.category || 'mock',
+    topic: p.topic || '',
     durationMinutes: p.durationMinutes,
     totalMarks: p.totalMarks,
     description: p.description,
