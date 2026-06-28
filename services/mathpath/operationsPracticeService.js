@@ -37,6 +37,7 @@ export function buildOperationsPracticeSession({
     questionFamilyId: q.questionFamilyId,
     type: q.type,
     prompt: q.prompt,
+    unit: q.unit || '',
     choices: q.choices || [],
     answer: q.answer,
     acceptedAnswers: q.acceptedAnswers || [],

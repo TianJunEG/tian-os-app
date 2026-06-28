@@ -139,14 +139,23 @@ export default function TestPaperSession() {
             </div>
           ) : (
             <div>
-              <input
-                value={answers[q.order] ?? ''}
-                onChange={(e) => setAnswer(q.order, e.target.value)}
-                inputMode="text"
-                placeholder="Type your answer"
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 font-mono text-lg text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-              />
-              {q.unit && <p className="mt-1 text-xs text-slate-400">Answer in {q.unit}</p>}
+              {(() => {
+                const unit = String(q.unit || '').trim();
+                const isPrefix = /^(\$|s\$|rm|£|€)$/i.test(unit);
+                return (
+                  <div className="relative flex items-center">
+                    {unit && isPrefix && <span className="pointer-events-none absolute left-4 text-lg font-semibold text-slate-400">{unit}</span>}
+                    <input
+                      value={answers[q.order] ?? ''}
+                      onChange={(e) => setAnswer(q.order, e.target.value)}
+                      inputMode="text"
+                      placeholder="Type your answer"
+                      className={`w-full rounded-xl border border-slate-200 py-3 font-mono text-lg text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 ${unit && isPrefix ? 'pl-10 pr-4' : unit ? 'pl-4 pr-14' : 'px-4'}`}
+                    />
+                    {unit && !isPrefix && <span className="pointer-events-none absolute right-4 text-lg font-semibold text-slate-400">{unit}</span>}
+                  </div>
+                );
+              })()}
             </div>
           )}
         </div>

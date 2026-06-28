@@ -226,19 +226,28 @@ export default function AnswerInputRenderer({
         ? 'text'
         : 'decimal';
   const label = type === 'decimal' ? 'Decimal answer' : type === 'whole_number' ? 'Whole number answer' : type === 'expression' ? 'Expression answer' : 'Answer';
+  // A question's unit (e.g. "cm", "$", "min") is shown as a FIXED suffix so the
+  // student types only the value — the unit never becomes part of the typed
+  // answer (and so can't break marking). Currency-style units sit before the box.
+  const unit = type === 'expression' ? '' : String(question?.unit || '').trim();
+  const unitIsPrefix = /^(\$|s\$|rm|£|€)$/i.test(unit);
   return (
     <div className="block">
-      <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{label}</span>
-      <input
-        value={value}
-        onChange={(event) => onChange?.(event.target.value)}
-        disabled={disabled}
-        inputMode={inputMode}
-        aria-label={`Your answer${label === 'Answer' ? '' : ` (${label})`}`}
-        placeholder={question?.placeholder || (type === 'decimal' ? 'e.g. 0.25' : type === 'whole_number' ? 'e.g. 12' : 'Type your answer')}
-        className="w-full rounded-xl border border-line-soft px-4 py-3 font-mono text-lg text-ink-900 focus:border-emerald focus:outline-none focus:ring-2 focus:ring-emerald/20"
-        onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
-      />
+      <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{label}{unit ? ` (in ${unit})` : ''}</span>
+      <div className="relative flex items-center">
+        {unit && unitIsPrefix && <span className="pointer-events-none absolute left-4 text-lg font-semibold text-ink-400">{unit}</span>}
+        <input
+          value={value}
+          onChange={(event) => onChange?.(event.target.value)}
+          disabled={disabled}
+          inputMode={inputMode}
+          aria-label={`Your answer${unit ? ` in ${unit}` : ''}${label === 'Answer' ? '' : ` (${label})`}`}
+          placeholder={question?.placeholder || (type === 'decimal' ? 'e.g. 0.25' : type === 'whole_number' ? 'e.g. 12' : 'Type your answer')}
+          className={`w-full rounded-xl border border-line-soft py-3 font-mono text-lg text-ink-900 focus:border-emerald focus:outline-none focus:ring-2 focus:ring-emerald/20 ${unit && unitIsPrefix ? 'pl-10 pr-4' : unit ? 'pl-4 pr-14' : 'px-4'}`}
+          onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
+        />
+        {unit && !unitIsPrefix && <span className="pointer-events-none absolute right-4 text-lg font-semibold text-ink-400">{unit}</span>}
+      </div>
       {type === 'expression' && (
         <MathSymbolBar symbols={EXPRESSION_SYMBOLS} value={value} onChange={onChange} disabled={disabled} className="mt-3 justify-center" />
       )}

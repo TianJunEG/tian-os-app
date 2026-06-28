@@ -45,6 +45,19 @@ describe('isCorrect — answer checking', () => {
     expect(isCorrectWithContext('5', '5/4', stem)).toBe(true);
     expect(isCorrectWithContext('4', '5/4', stem)).toBe(false);
   });
+  it('does not mark a correct number wrong over its unit', () => {
+    // A unit on one side only must not fail a correct value (the unit is a
+    // fixed input adornment, not part of the graded answer).
+    expect(isCorrect('38 cm', '38')).toBe(true);     // student typed the unit
+    expect(isCorrect('38', '38 cm')).toBe(true);     // expected carries the unit
+    expect(isCorrect('165', '165 min')).toBe(true);
+    expect(isCorrect('$60', '60')).toBe(true);
+    // Still rejects a genuinely different value, with or without units.
+    expect(isCorrect('40 cm', '38')).toBe(false);
+    expect(isCorrect('40', '38 cm')).toBe(false);
+    // Genuinely conflicting units on a same value remain a mismatch.
+    expect(isCorrect('3 cm', '3 m')).toBe(false);
+  });
 });
 
 describe('masteryEngine.recordAttempt', () => {
