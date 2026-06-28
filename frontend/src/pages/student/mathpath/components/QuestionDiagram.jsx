@@ -83,9 +83,9 @@ function inferShadedFractionDiagramFromAnswer(question = {}) {
 // Kinds that have no renderer — questions with these will show without a diagram
 // rather than being silently skipped.
 const UNMAPPABLE_DIAGRAM_KINDS = new Set([
-  // l-shape / parallelogram / trapezium / clock / scale / cuboid / pictograph render.
-  'polygon', 'symmetry', 'reflection', 'solid', 'net',
-  'value-list', 'pie', 'coins',
+  // Most shapes now render (rect/clock/scale/cuboid/pictograph/net/pie/polygon/
+  // composite). Remaining: symmetry, reflection, solid, value-list (lower freq).
+  'symmetry', 'reflection', 'solid', 'value-list', 'coins',
 ]);
 
 // Convert generators' legacy `diagram: { kind, ...data }` shape into the
@@ -143,6 +143,25 @@ function normalizeDiagramKind(diagram) {
       const rows = Array.isArray(diagram.rows) ? diagram.rows : [];
       if (!rows.length) return null;
       return { type: 'pictograph', width: 520, height: 64 + rows.length * 34, data: { keyValue: diagram.keyValue || 1, unit: diagram.unit || '', rows } };
+    }
+    case 'net':
+      if (!diagram.l || !diagram.w || !diagram.h) return null;
+      return { type: 'cuboid_net', width: 420, height: 360, data: { l: diagram.l, w: diagram.w, h: diagram.h, unit: diagram.unit || 'cm' } };
+    case 'pie': {
+      const sectors = Array.isArray(diagram.sectors) ? diagram.sectors : [];
+      if (!sectors.length) return null;
+      return { type: 'pie_chart', width: 460, height: 280, data: { sectors } };
+    }
+    case 'polygon':
+      if (!diagram.sides) return null;
+      return { type: 'regular_polygon', width: 300, height: 300, data: { sides: diagram.sides } };
+    case 'composite': {
+      // Same geometry as an L-shape: an outer rectangle [w,h] with a corner
+      // notch [cw,ch] removed.
+      const outer = Array.isArray(diagram.outer) ? diagram.outer : null;
+      const cut = Array.isArray(diagram.cut) ? diagram.cut : null;
+      if (!outer || !cut) return null;
+      return { type: 'l_shape', width: 420, height: 320, data: { overallW: outer[0], overallH: outer[1], notchW: cut[0], notchH: cut[1] } };
     }
     case 'angle':
       return { type: 'angle_on_line', width: 400, height: 240, data: { angleDegrees: diagram.degrees } };

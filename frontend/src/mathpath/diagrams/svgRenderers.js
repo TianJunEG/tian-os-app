@@ -749,6 +749,73 @@ function rectangleDim(spec) {
   return svgShell(spec, body, `rectangle ${l} by ${ww} ${unit}`);
 }
 
+// Unfolded cuboid net (cross). data: { l, w, h, unit }. Vertical strip of
+// top/front/bottom/back with the two side faces flanking the front, so a
+// student can see the 6 faces and read the dimensions to find the volume.
+function cuboidNet(spec) {
+  const { l = 2, w: ww = 2, h = 2, unit = 'cm' } = spec.data;
+  const W = spec.width; const H = spec.height; const pad = 30;
+  const spanW = ww + l + ww; const spanH = ww + h + ww + h;
+  const s = Math.min((W - pad * 2) / spanW, (H - pad * 2) / spanH);
+  const ox = (W - spanW * s) / 2; const oy = (H - spanH * s) / 2;
+  const fx = ox + ww * s; const fy = oy + ww * s;       // front face origin
+  const face = (x, y, fw, fh) => `<rect x="${x}" y="${y}" width="${fw}" height="${fh}" fill="#eff6ff" stroke="#111" stroke-width="1.5"/>`;
+  let body = '';
+  body += face(fx, fy - ww * s, l * s, ww * s);          // top
+  body += face(fx, fy, l * s, h * s);                    // front
+  body += face(fx, fy + h * s, l * s, ww * s);           // bottom
+  body += face(fx, fy + h * s + ww * s, l * s, h * s);   // back
+  body += face(fx - ww * s, fy, ww * s, h * s);          // left
+  body += face(fx + l * s, fy, ww * s, h * s);           // right
+  // label the three dimensions on the front face
+  body += `<text x="${fx + l * s / 2}" y="${fy + h * s / 2}" text-anchor="middle" font-size="12" fill="#1e293b">${l} ${unit}</text>`;
+  body += `<text x="${fx - 6}" y="${fy + h * s / 2 + 14}" text-anchor="end" font-size="12" fill="#1e293b">${h} ${unit}</text>`;
+  body += `<text x="${fx + l * s / 2}" y="${fy - ww * s / 2}" text-anchor="middle" font-size="12" fill="#475569">${ww} ${unit}</text>`;
+  return svgShell(spec, body, `net of a cuboid ${l} by ${ww} by ${h} ${unit}`);
+}
+
+// Pie chart. data: { sectors: [[label, value]…] }. Values are summed to whole.
+function pieChart(spec) {
+  const { sectors = [] } = spec.data;
+  const W = spec.width; const H = spec.height;
+  const cx = W * 0.36; const cy = H / 2; const r = Math.min(W * 0.36, H / 2) - 16;
+  const total = sectors.reduce((sum, [, v]) => sum + Number(v || 0), 0) || 1;
+  const COLORS = ['#60a5fa', '#f87171', '#34d399', '#fbbf24', '#a78bfa', '#fb923c'];
+  let a0 = -Math.PI / 2; let body = ''; let legendY = cy - sectors.length * 11;
+  sectors.forEach(([label, value], i) => {
+    const frac = Number(value || 0) / total;
+    const a1 = a0 + frac * 2 * Math.PI;
+    const x1 = cx + r * Math.cos(a0); const y1 = cy + r * Math.sin(a0);
+    const x2 = cx + r * Math.cos(a1); const y2 = cy + r * Math.sin(a1);
+    const large = frac > 0.5 ? 1 : 0;
+    const fill = COLORS[i % COLORS.length];
+    body += frac >= 0.999
+      ? `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="#fff" stroke-width="2"/>`
+      : `<path d="M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z" fill="${fill}" stroke="#fff" stroke-width="2"/>`;
+    const lx = W * 0.74; const ly = legendY + i * 22;
+    body += `<rect x="${lx}" y="${ly - 10}" width="13" height="13" fill="${fill}"/>`;
+    body += `<text x="${lx + 19}" y="${ly + 1}" font-size="13" fill="#1e293b">${esc(String(label))} (${Math.round(frac * 100)}%)</text>`;
+    a0 = a1;
+  });
+  return svgShell(spec, body, 'pie chart');
+}
+
+// Regular polygon. data: { sides }. Draws an n-sided regular polygon.
+function regularPolygon(spec) {
+  const { sides = 3 } = spec.data;
+  const n = Math.max(3, Number(sides) || 3);
+  const W = spec.width; const H = spec.height;
+  const cx = W / 2; const cy = H / 2 + 6; const r = Math.min(W, H) / 2 - 30;
+  const pts = [];
+  for (let i = 0; i < n; i += 1) {
+    const a = (i / n) * 2 * Math.PI - Math.PI / 2;
+    pts.push(`${cx + r * Math.cos(a)},${cy + r * Math.sin(a)}`);
+  }
+  let body = `<polygon points="${pts.join(' ')}" fill="#eff6ff" stroke="#111" stroke-width="2"/>`;
+  body += `<text x="${cx}" y="${H - 12}" text-anchor="middle" font-size="13" fill="#475569">${n} sides</text>`;
+  return svgShell(spec, body, `${n}-sided polygon`);
+}
+
 export const renderers = {
   ...sharedRenderers,
   circle,
@@ -772,6 +839,9 @@ export const renderers = {
   measuring_scale: measuringScale,
   pictograph,
   rectangle_dim: rectangleDim,
+  cuboid_net: cuboidNet,
+  pie_chart: pieChart,
+  regular_polygon: regularPolygon,
   cuboid: cuboid,
   angle_on_line: angleOnLine,
   table,
