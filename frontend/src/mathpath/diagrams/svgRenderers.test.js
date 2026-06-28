@@ -167,18 +167,19 @@ describe('geometry and chart diagram animations', () => {
     expect(svg).toContain('45');
   });
 
-  it('bar_chart shows a value label on each bar, a y-scale, and category labels', () => {
+  it('bar_chart draws an even ruled y-axis + category labels (no values on the bars)', () => {
     const svg = renderers.bar_chart({
       width: 400, height: 300,
-      data: { bars: [{ value: 10, label: 'A' }, { value: 7, label: 'B' }, { value: 4, label: 'C' }] },
+      data: { bars: [{ value: 10, label: 'A' }, { value: 6, label: 'B' }, { value: 4, label: 'C' }] },
     });
 
     // 3 bars (by fill colour; svgShell adds a background rect too)
     expect([...svg.matchAll(/fill="#93c5fd"/g)].length).toBe(3);
-    // Each bar's value is labelled (so a student can read it) + category labels.
-    for (const v of ['>10<', '>7<', '>4<', '>A<', '>B<', '>C<']) expect(svg).toContain(v);
-    // A y-axis scale exists.
-    expect(svg).toContain('#94a3b8');
+    // Category labels present; scale starts at 0 and is ruled with gridlines so
+    // the student READS each value off the axis (not printed above the bars).
+    for (const v of ['>A<', '>B<', '>C<']) expect(svg).toContain(v);
+    expect(svg).toContain('>0<');
+    expect([...svg.matchAll(/<line /g)].length).toBeGreaterThan(5);
   });
 
   it('circle renderer draws a circle with a labeled radius line', () => {

@@ -437,28 +437,29 @@ function barChart(spec) {
   const { bars = [] } = spec.data;
   const w = spec.width; const h = spec.height;
   const x0 = 44; const y0 = h - 44; const cw = w - x0 - 20; const ch = y0 - 30;
-  const max = Math.max(...bars.map((b) => Number(b.value || 0)), 1);
+  const maxVal = Math.max(...bars.map((b) => Number(b.value || 0)), 1);
+  // An even, fully-ruled y-axis so the student READS each bar off the gridlines.
+  // Values are deliberately NOT printed above the bars — reading the scale is
+  // the skill the question tests.
+  const interval = maxVal <= 12 ? 1 : maxVal <= 30 ? 2 : maxVal <= 60 ? 5 : maxVal <= 150 ? 10 : 20;
+  const niceMax = (Math.ceil(maxVal / interval) * interval) || interval;
   const bw = cw / Math.max(1, bars.length);
   let body = '';
-  // y-axis scale + faint gridlines so the bars are readable as values
-  const steps = 4;
-  for (let s = 1; s <= steps; s += 1) {
-    const val = Math.round((max * s) / steps);
-    const gy = y0 - (ch * s) / steps;
-    body += `<line x1="${x0}" y1="${gy}" x2="${w - 20}" y2="${gy}" stroke="#eef2f7"/>`;
-    body += `<text x="${x0 - 6}" y="${gy + 4}" text-anchor="end" font-size="11" fill="#94a3b8">${val}</text>`;
+  // Horizontal gridlines + a label at EVERY interval (including 0).
+  for (let v = 0; v <= niceMax + 1e-6; v += interval) {
+    const gy = y0 - (ch * v) / niceMax;
+    body += `<line x1="${x0}" y1="${gy}" x2="${w - 16}" y2="${gy}" stroke="${v === 0 ? '#111' : '#e2e8f0'}"${v === 0 ? ' stroke-width="1.5"' : ''}/>`;
+    body += `<text x="${x0 - 6}" y="${gy + 4}" text-anchor="end" font-size="11" fill="#64748b">${v}</text>`;
   }
-  // axes
-  body += `<line x1="${x0}" y1="${y0}" x2="${w - 20}" y2="${y0}" stroke="#111" stroke-width="1.5"/>`;
-  body += `<line x1="${x0}" y1="${y0}" x2="${x0}" y2="22" stroke="#111" stroke-width="1.5"/>`;
-  // bars with a VALUE label on top + category label below
+  // y-axis line
+  body += `<line x1="${x0}" y1="${y0}" x2="${x0}" y2="${y0 - ch}" stroke="#111" stroke-width="1.5"/>`;
+  // Bars + category labels only (no value labels — read them from the scale).
   bars.forEach((b, i) => {
     const v = Number(b.value || 0);
-    const bh = (v / max) * ch;
+    const bh = (v / niceMax) * ch;
     const bx = x0 + i * bw + 10;
     const bWidth = Math.max(8, bw - 20);
     body += `<rect x="${bx}" y="${y0 - bh}" width="${bWidth}" height="${bh}" fill="#93c5fd" stroke="#2563eb"/>`;
-    body += `<text x="${bx + bWidth / 2}" y="${y0 - bh - 6}" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">${v}</text>`;
     body += `<text x="${bx + bWidth / 2}" y="${y0 + 18}" text-anchor="middle" font-size="12" fill="#475569">${esc(b.label || '')}</text>`;
   });
   return svgShell(spec, body, 'bar chart');

@@ -5,6 +5,7 @@ import { testPapersAPI } from '../../../services/api';
 import QuestionDiagram, { canRenderQuestionDiagram } from '../../student/mathpath/components/QuestionDiagram';
 import FullScreenWorkingMode from '../../../components/learning/FullScreenWorkingMode';
 import WorkingPreviewCard from '../../../components/learning/WorkingPreviewCard';
+import { MathText } from '../../../components/ui/Fraction';
 
 function fmtTime(sec) {
   if (sec == null) return null;
@@ -137,7 +138,7 @@ export default function TestPaperSession() {
             <div className="mb-4"><QuestionDiagram question={{ diagram: q.diagram }} /></div>
           )}
 
-          <p className="mb-4 text-lg leading-relaxed text-slate-900">{q.stem}</p>
+          <p className="mb-4 text-lg leading-relaxed text-slate-900"><MathText text={q.stem} /></p>
 
           {q.type === 'mcq' && Array.isArray(q.choices) && q.choices.length > 0 ? (
             <div className="space-y-2">
@@ -147,7 +148,7 @@ export default function TestPaperSession() {
                   <button
                     key={choice} type="button" onClick={() => setAnswer(q.order, choice)}
                     className={`block w-full rounded-xl border px-4 py-3 text-left text-base font-medium transition ${selected ? 'border-indigo-500 bg-indigo-50 text-indigo-800' : 'border-slate-200 bg-white text-slate-800 hover:border-slate-300'}`}
-                  >{choice}</button>
+                  ><MathText text={choice} /></button>
                 );
               })}
             </div>

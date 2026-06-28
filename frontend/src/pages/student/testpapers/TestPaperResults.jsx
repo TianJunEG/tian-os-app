@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircle2, XCircle, ArrowRight, Brain, FileText } from 'lucide-react';
 import QuestionDiagram, { canRenderQuestionDiagram } from '../../student/mathpath/components/QuestionDiagram';
+import { MathText } from '../../../components/ui/Fraction';
 
 // Marked result for a sitting. Reached from submission with the marked paper in
 // nav state. No live refetch — a sitting is marked once; if the state is lost
@@ -59,23 +60,23 @@ export default function TestPaperResults() {
                 <div className="my-2"><QuestionDiagram question={{ diagram: q.diagram }} /></div>
               )}
 
-              <p className="text-slate-800">{q.stem}</p>
+              <p className="text-slate-800"><MathText text={q.stem} /></p>
 
               <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm">
                 <span className={q.correct ? 'text-emerald-700' : 'text-rose-700'}>
-                  Your answer: <span className="font-semibold">{q.studentAnswer || '—'}</span>
+                  Your answer: <span className="font-semibold"><MathText text={q.studentAnswer || '—'} /></span>
                 </span>
                 {!q.correct && (
-                  <span className="text-slate-600">Correct: <span className="font-semibold text-slate-900">{q.correctAnswer}{q.unit ? ` ${q.unit}` : ''}</span></span>
+                  <span className="text-slate-600">Correct: <span className="font-semibold text-slate-900"><MathText text={q.correctAnswer} />{q.unit ? ` ${q.unit}` : ''}</span></span>
                 )}
               </div>
 
               {!q.correct && (Array.isArray(q.solutionSteps) && q.solutionSteps.length > 0 ? (
                 <ol className="mt-2 list-decimal space-y-0.5 rounded-lg bg-slate-50 px-5 py-2 text-sm text-slate-600">
-                  {q.solutionSteps.map((step, i) => <li key={i}>{step}</li>)}
+                  {q.solutionSteps.map((step, i) => <li key={i}><MathText text={step} /></li>)}
                 </ol>
               ) : q.workedSolution ? (
-                <p className="mt-2 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">{q.workedSolution}</p>
+                <p className="mt-2 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600"><MathText text={q.workedSolution} /></p>
               ) : null)}
 
               {q.workingSubmitted && (
