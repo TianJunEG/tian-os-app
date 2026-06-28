@@ -1,16 +1,17 @@
 # Deploys the standalone Vocabulary Builder lead-gen app to GitHub Pages.
+#
 # One-time setup: repo Settings → Pages → Build and deployment → Source:
-# "GitHub Actions". After that this runs automatically whenever the app or the
-# shared vocabulary engine changes (and on manual dispatch).
+# "GitHub Actions". Then trigger this from the Actions tab → "Deploy Vocab
+# Builder" → "Run workflow".
+#
+# Manual-dispatch only for now so merging to main never leaves a failing run
+# before Pages is enabled. To auto-deploy on every change afterwards, add:
+#   push: { branches: [main], paths: ['englishpath-vocab-app/**',
+#           'shared/englishpath/vocabulary/**',
+#           '.github/workflows/deploy-vocab-app.yml'] }
 name: Deploy Vocab Builder
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'englishpath-vocab-app/**'
-      - 'shared/englishpath/vocabulary/**'
-      - '.github/workflows/deploy-vocab-app.yml'
   workflow_dispatch:
 
 permissions:

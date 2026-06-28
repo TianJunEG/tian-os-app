@@ -39,11 +39,12 @@ Premium unlocks instantly so you can click through the whole flow.
    appended (e.g. `https://yoursite/?unlocked=1`); the app grants Premium when
    the customer returns. (Static-site gating trusts that redirect — fine for a
    freemium funnel; add a backend later if you need hard enforcement.)
-3. **Hosting** — repo **Settings → Pages → Source: "GitHub Actions"**. The
-   workflow `.github/workflows/deploy-vocab-app.yml` then bundles the app
-   (inlining the engine into one minified file) and publishes it on every change
-   to the app or the word bank. The site goes live at
-   `https://<org>.github.io/<repo>/`.
+3. **Hosting** — repo **Settings → Pages → Source: "GitHub Actions"**, then
+   **Actions tab → "Deploy Vocab Builder" → Run workflow**. It bundles the app
+   (inlining the engine into one minified file) and publishes it at
+   `https://<org>.github.io/<repo>/`. The workflow is manual-trigger only so
+   merging never leaves a failing run before Pages is on; flip it to
+   auto-deploy-on-push afterwards (snippet in the workflow file).
 
 ### Deploy elsewhere instead
 
