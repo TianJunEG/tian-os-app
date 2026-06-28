@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { PenLine, Calculator } from 'lucide-react';
 import { Modal, Button } from '../ui';
 import WorkingToolbar, { WORKING_COLOURS } from './WorkingToolbar';
+import ColumnOperationsGrid, { makeEmptyGrid } from './ColumnOperationsGrid';
 import { FEATURE_FLAGS } from '../../config/featureFlags';
 import {
   drawStroke,
@@ -392,6 +394,11 @@ export default function FullScreenWorkingMode({
   const [hasObjectEdit, setHasObjectEdit] = useState(false);
   const [mathDraft, setMathDraft] = useState(null);
   const [textDraft, setTextDraft] = useState(null);
+  // Draw ↔ Four Ops (column arithmetic). 'draw' is the default, so the existing
+  // canvas behaviour is unchanged; Four Ops adds the column grid here too.
+  const [workingMode, setWorkingMode] = useState('draw');
+  const [columnGrid, setColumnGrid] = useState(() => makeEmptyGrid('addition', 0));
+  const hasColumnContent = columnGrid?.rows?.some((r) => r.some((c) => c)) || columnGrid?.dividend?.some((c) => c);
   useEffect(() => { toolRef.current = tool; }, [tool]);
   useEffect(() => { colourRef.current = colour; }, [colour]);
   useEffect(() => { brushSizeRef.current = brushSize; }, [brushSize]);
@@ -586,9 +593,11 @@ export default function FullScreenWorkingMode({
       workingImage: exportCanvas?.toDataURL('image/png') || canvas?.toDataURL('image/png') || '',
       workingStrokes: strokesRef.current,
       workingMathObjects: mathObjectsRef.current,
+      workingColumnGrid: columnGrid,
+      workingMode,
       workingSubmitted: true,
       workingSubmittedAt: new Date().toISOString(),
-      source: 'fullscreen_working',
+      source: workingMode === 'column' ? 'column_operations' : 'fullscreen_working',
       canvasDimensions: { width: CANVAS_WIDTH, height: CANVAS_HEIGHT },
       questionSnapshot: {
         text: questionText,
@@ -844,11 +853,26 @@ export default function FullScreenWorkingMode({
       footer={(
         <>
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button disabled={!hasCanvasMarks && !strokes.length && !hasObjectEdit} onClick={save}>Save Working</Button>
+          <Button disabled={!hasCanvasMarks && !strokes.length && !hasObjectEdit && !hasColumnContent} onClick={save}>Save Working</Button>
         </>
       )}
     >
       <div className="flex h-full min-h-0 flex-col gap-2">
+        {/* Draw ↔ Four Ops tabs (Four Ops = column arithmetic grid). */}
+        <div className="flex gap-1.5">
+          {[{ id: 'draw', label: 'Draw', Icon: PenLine }, { id: 'column', label: 'Four Ops', Icon: Calculator }].map(({ id, label, Icon }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setWorkingMode(id)}
+              className={`inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${workingMode === id ? 'border-emerald-deep bg-emerald-deep text-white' : 'border-line-soft bg-white text-emerald-deep hover:bg-emerald-tint'}`}
+            >
+              <Icon className="h-3.5 w-3.5" /> {label}
+            </button>
+          ))}
+        </div>
+        {workingMode === 'draw' && (
+        <>
         <WorkingToolbar
           tool={tool}
           colour={colour}
@@ -1054,6 +1078,13 @@ export default function FullScreenWorkingMode({
             </div>
           </div>
         </div>
+        </>
+        )}
+        {workingMode === 'column' && (
+          <div className="min-h-0 flex-1 overflow-auto rounded-xl border border-line-soft bg-surface-raised p-3">
+            <ColumnOperationsGrid grid={columnGrid} onChange={(next) => { setColumnGrid(next); setHasObjectEdit(true); }} />
+          </div>
+        )}
       </div>
     </Modal>
   );
