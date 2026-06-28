@@ -167,13 +167,24 @@ export default function PSLResults() {
   const visualStyles = getVisualModeStyles(resolveStudentVisualMode(user || {}));
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [restarting, setRestarting] = useState(false);
 
   const celebratedRef = React.useRef(false);
-  useEffect(() => {
+  const load = React.useCallback(() => {
+    setLoading(true); setLoadError(false);
+    let settled = false;
+    // Never strand the student on "Loading…" if the request hangs (e.g. it lands
+    // mid-deploy-restart and stays pending). Fail over to a retry after 20s.
+    const timer = setTimeout(() => {
+      if (!settled) { settled = true; setLoadError(true); setLoading(false); }
+    }, 20000);
     pslAPI.getSession(sessionId)
       .then((res) => {
+        if (settled) return;
+        settled = true; clearTimeout(timer);
         setData(res.data);
+        setLoading(false);
         if (!celebratedRef.current) {
           celebratedRef.current = true;
           const score = res.data?.summary?.overallScore || 0;
@@ -183,9 +194,13 @@ export default function PSLResults() {
           }, 300);
         }
       })
-      .catch(() => navigate('/student/psl'))
-      .finally(() => setLoading(false));
-  }, [sessionId, navigate]);
+      .catch(() => {
+        if (settled) return;
+        settled = true; clearTimeout(timer);
+        setLoadError(true); setLoading(false);
+      });
+  }, [sessionId]);
+  useEffect(() => { load(); }, [load]);
 
   /* ── Loading state ─────────────────────────────────────────── */
   if (loading) {
@@ -194,6 +209,25 @@ export default function PSLResults() {
         <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#dde1e8] border-t-[#d9892e]" />
           <p className="text-sm font-medium" style={{ color: '#6b7585' }}>Loading results…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="bg-dot-grid min-h-screen">
+        <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-6 text-center">
+          <p className="text-base font-semibold text-ink-700">We couldn&apos;t load your results just now.</p>
+          <p className="text-sm text-ink-500">Your work is saved — this is usually a brief connection hiccup.</p>
+          <div className="flex gap-3">
+            <button type="button" onClick={load} className="inline-flex items-center gap-1 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+              <RotateCcw className="h-4 w-4" /> Try again
+            </button>
+            <button type="button" onClick={() => navigate('/student/psl')} className="rounded-xl border border-ink-200 px-4 py-2 text-sm font-semibold text-ink-600 hover:bg-ink-50">
+              Back to Problems
+            </button>
+          </div>
         </div>
       </div>
     );
