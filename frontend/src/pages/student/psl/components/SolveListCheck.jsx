@@ -1,4 +1,5 @@
 import React from 'react';
+import { MathText } from '../../../../components/ui/Fraction';
 
 export default function SolveListCheck({ scaffoldStep, response, onChange }) {
   const expected = scaffoldStep?.expectedResponse || {};
@@ -36,7 +37,7 @@ export default function SolveListCheck({ scaffoldStep, response, onChange }) {
           </p>
           <ul className="list-inside list-disc text-sm text-purple">
             {conditions.map((c, i) => (
-              <li key={i}>{c}</li>
+              <li key={i}><MathText text={String(c)} /></li>
             ))}
           </ul>
         </div>

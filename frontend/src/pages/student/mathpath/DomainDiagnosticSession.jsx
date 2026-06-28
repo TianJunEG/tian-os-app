@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { MathText } from '../../../components/ui/Fraction';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Pencil, Sparkles, Volume2, X } from 'lucide-react';
 import ScratchpadOverlay from '../../../components/learning/ScratchpadOverlay';
@@ -55,7 +56,7 @@ function resolveDomain(segment) {
 function PromptRow({ prompt, isLowerPrimary }) {
   return (
     <div className="flex items-center gap-2">
-      <p className={isLowerPrimary ? 'text-xl font-bold text-ink-900' : 'text-lg font-semibold text-ink-900 whitespace-pre-wrap'}>{prompt}</p>
+      <p className={isLowerPrimary ? 'text-xl font-bold text-ink-900' : 'text-lg font-semibold text-ink-900 whitespace-pre-wrap'}><MathText text={prompt} /></p>
       <button
         type="button"
         aria-label="Read question"
@@ -376,7 +377,7 @@ export default function DomainDiagnosticSession() {
               <>
                 <ManipulativeMoneyDiagram key={question?.questionId} tokens={coinTokens} />
                 <div className="flex items-center gap-2">
-                  <p className={isLowerPrimary ? 'text-xl font-bold text-ink-900' : 'text-lg font-semibold text-ink-900 whitespace-pre-wrap'}>{prompt}</p>
+                  <p className={isLowerPrimary ? 'text-xl font-bold text-ink-900' : 'text-lg font-semibold text-ink-900 whitespace-pre-wrap'}><MathText text={prompt} /></p>
                   <button
                     type="button"
                     aria-label="Read question"
@@ -399,7 +400,7 @@ export default function DomainDiagnosticSession() {
                   operator={moneyData.operator}
                 />
                 <div className="flex items-center gap-2">
-                  <p className="text-xl font-bold text-ink-900">{prompt}</p>
+                  <p className="text-xl font-bold text-ink-900"><MathText text={prompt} /></p>
                   <button
                     type="button"
                     aria-label="Read question"

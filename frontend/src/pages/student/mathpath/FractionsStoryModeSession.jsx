@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { MathText } from '../../../components/ui/Fraction';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Lightbulb, Pencil, Sparkles } from 'lucide-react';
 import { Button, Card, ProgressBar } from '../../../components/ui';
@@ -370,7 +371,7 @@ export default function FractionsStoryModeSession() {
                 <FractionExpressionQuestion prompt={scene?.questionText || ''} value={answer} onChange={setAnswer} />
               ) : (
                 <>
-                  <p className="break-words text-lg font-semibold leading-relaxed text-ink-900">{story.prompt}</p>
+                  <p className="break-words text-lg font-semibold leading-relaxed text-ink-900"><MathText text={story.prompt} /></p>
                   <p className="mt-4 break-words text-base leading-relaxed text-ink-800">{scene?.questionText}</p>
                 </>
               )}

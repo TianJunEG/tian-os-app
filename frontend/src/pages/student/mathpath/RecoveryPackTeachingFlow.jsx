@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { MathText } from '../../../components/ui/Fraction';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowRight, CheckCircle, RefreshCw } from 'lucide-react';
 import { Badge, Button, Card, ErrorState, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
@@ -68,7 +69,7 @@ function QuestionCard({ question, stageId, onSubmit, disabled = false }) {
   return (
     <div className="rounded-2xl border border-line-soft bg-white p-4">
       <div className="flex items-start justify-between gap-3">
-        <p className="font-semibold text-ink-800">{question.prompt}</p>
+        <p className="font-semibold text-ink-800"><MathText text={question.prompt} /></p>
         {answered && <Badge tone={question.progress?.correct ? 'success' : 'gold'}>{question.progress?.correct ? 'Done' : 'Tried'}</Badge>}
       </div>
       {question.scaffold && <p className="mt-2 rounded-xl bg-emerald-tint px-3 py-2 text-sm text-emerald-deep">{question.scaffold}</p>}
