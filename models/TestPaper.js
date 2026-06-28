@@ -23,11 +23,18 @@ const paperQuestionSchema = new mongoose.Schema({
   groupIntro: { type: String, default: '' },
   partLabel: { type: String, default: '' },             // 'a', 'b'
   marks: { type: Number, default: 1 },
-  type: { type: String, enum: ['mcq', 'short_answer'], default: 'short_answer' },
+  type: { type: String, enum: ['mcq', 'short_answer', 'shade_grid'], default: 'short_answer' },
   stem: { type: String, required: true },
   choices: { type: [String], default: [] },             // MCQ options
   answer: { type: String, required: true },             // canonical answer (never sent mid-paper)
   unit: { type: String, default: '' },                  // e.g. 'cm', '$'
+  // Reading tolerance for "measure the angle" questions — accept the typed value
+  // within ±tolerance degrees (reading off a screen is approximate). 0 = exact.
+  tolerance: { type: Number, default: 0 },
+  // Interactive shade-grid (symmetry): { rows, cols, preShaded: [[r,c]…], line }.
+  // Student clicks empty cells to shade; answer = the cells they must add
+  // (serialised sorted "r-c,r-c").
+  grid: { type: mongoose.Schema.Types.Mixed, default: null },
   workedSolution: { type: String, default: '' },
   solutionSteps: { type: [String], default: [] },
   frameworkSkillId: { type: String, default: '' },      // skill tag for mistakes/analytics

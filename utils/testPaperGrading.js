@@ -20,9 +20,19 @@ export function normalizeForCompare(s, unit = '') {
   return t;
 }
 
-// Grade one answer against an embedded paper question { answer, stem, unit }.
+// Grade one answer against an embedded paper question { answer, stem, unit,
+// tolerance }. A non-zero `tolerance` (e.g. "measure the angle") accepts the
+// typed number within ±tolerance. Shade-grid answers are serialised "r-c,r-c"
+// strings and match exactly via the fallthrough.
 export function gradeAnswer(given, question = {}) {
-  if (String(given == null ? '' : given).trim() === '') return false;
+  const g = String(given == null ? '' : given).trim();
+  if (g === '') return false;
+  const tol = Number(question.tolerance) || 0;
+  if (tol > 0) {
+    const gn = parseFloat(g.replace(/[^0-9.\-]/g, ''));
+    const an = parseFloat(String(question.answer ?? '').replace(/[^0-9.\-]/g, ''));
+    if (Number.isFinite(gn) && Number.isFinite(an) && Math.abs(gn - an) <= tol) return true;
+  }
   if (isCorrectWithContext(given, question.answer, question.stem)) return true;
   return normalizeForCompare(given, question.unit) === normalizeForCompare(question.answer, question.unit);
 }

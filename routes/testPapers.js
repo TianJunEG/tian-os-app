@@ -27,6 +27,7 @@ function toClientQuestion(q) {
     choices: Array.isArray(q.choices) ? q.choices : [],
     unit: q.unit || '',
     diagram: q.diagram || null,
+    grid: q.grid || null,
   };
 }
 
@@ -188,6 +189,7 @@ router.post('/sessions/:sessionId/submit', protect, asyncHandler(async (req, res
       stem: q.stem,
       choices: q.choices,
       diagram: q.diagram || null,
+      grid: q.grid || null,
       unit: q.unit || '',
       studentAnswer,
       correctAnswer: q.answer,

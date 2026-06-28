@@ -164,7 +164,7 @@ function normalizeDiagramKind(diagram) {
       return { type: 'l_shape', width: 420, height: 320, data: { overallW: outer[0], overallH: outer[1], notchW: cut[0], notchH: cut[1] } };
     }
     case 'angle':
-      return { type: 'angle_on_line', width: 400, height: 240, data: { angleDegrees: diagram.degrees } };
+      return { type: 'angle_on_line', width: 400, height: 240, data: { angleDegrees: diagram.degrees, showValue: diagram.showValue !== false, label: diagram.label || 'x' } };
     case 'bar':
       return {
         type: 'bar_chart', width: 480, height: 320,

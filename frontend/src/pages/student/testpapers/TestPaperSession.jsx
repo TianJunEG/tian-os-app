@@ -6,6 +6,7 @@ import QuestionDiagram, { canRenderQuestionDiagram } from '../../student/mathpat
 import FullScreenWorkingMode from '../../../components/learning/FullScreenWorkingMode';
 import WorkingPreviewCard from '../../../components/learning/WorkingPreviewCard';
 import { MathText } from '../../../components/ui/Fraction';
+import SymmetryShadeGrid from './SymmetryShadeGrid';
 
 function fmtTime(sec) {
   if (sec == null) return null;
@@ -148,7 +149,12 @@ export default function TestPaperSession() {
             <MathText text={q.stem} />
           </p>
 
-          {q.type === 'mcq' && Array.isArray(q.choices) && q.choices.length > 0 ? (
+          {q.type === 'shade_grid' && q.grid ? (
+            <div>
+              <SymmetryShadeGrid grid={q.grid} value={answers[q.order] || ''} onChange={(v) => setAnswer(q.order, v)} />
+              <p className="mt-2 text-xs text-slate-400">Tap a square to shade it; tap again to clear.</p>
+            </div>
+          ) : q.type === 'mcq' && Array.isArray(q.choices) && q.choices.length > 0 ? (
             <div className="space-y-2">
               {q.choices.map((choice) => {
                 const selected = answers[q.order] === choice;

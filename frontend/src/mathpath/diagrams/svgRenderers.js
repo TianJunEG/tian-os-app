@@ -402,12 +402,15 @@ function cuboid(spec) {
 }
 
 function angleOnLine(spec) {
-  const { angleDegrees } = spec.data;
+  const { angleDegrees, showValue = true, label = 'x' } = spec.data;
+  // "Measure the angle" questions hide the value and show a label (e.g. x) so the
+  // student reads the angle off the figure instead of being handed the answer.
+  const tag = showValue ? `${angleDegrees}°` : label;
   const w = spec.width; const h = spec.height; const cx = w / 2; const cy = h / 2 + 30; const r = Math.min(w, h) * 0.28;
   const rad = (Math.PI * angleDegrees) / 180;
   const x2 = cx + r * Math.cos(Math.PI - rad); const y2 = cy - r * Math.sin(Math.PI - rad);
   if (REDUCE_MOTION) {
-    const body = `<line x1="${cx - r}" y1="${cy}" x2="${cx + r}" y2="${cy}" stroke="#111" stroke-width="2"/><line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="#1d4ed8" stroke-width="2"/><path d="M ${cx - 40} ${cy} A 40 40 0 0 1 ${cx - 40 * Math.cos(rad)} ${cy - 40 * Math.sin(rad)}" fill="none" stroke="#111"/><text x="${cx - 24}" y="${cy - 16}" font-size="14">${angleDegrees}°</text>`;
+    const body = `<line x1="${cx - r}" y1="${cy}" x2="${cx + r}" y2="${cy}" stroke="#111" stroke-width="2"/><line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="#1d4ed8" stroke-width="2"/><path d="M ${cx - 40} ${cy} A 40 40 0 0 1 ${cx - 40 * Math.cos(rad)} ${cy - 40 * Math.sin(rad)}" fill="none" stroke="#111"/><text x="${cx - 24}" y="${cy - 16}" font-size="14">${tag}</text>`;
     return svgShell(spec, body, 'angle on line');
   }
   const baseLen = 2 * r;
@@ -417,7 +420,7 @@ function angleOnLine(spec) {
   body += `<line x1="${cx - r}" y1="${cy}" x2="${cx + r}" y2="${cy}" stroke="#111" stroke-width="2" stroke-dasharray="${baseLen}" stroke-dashoffset="${baseLen}"><animate attributeName="stroke-dashoffset" from="${baseLen}" to="0" dur="0.3s" fill="freeze"/></line>`;
   body += `<line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="#1d4ed8" stroke-width="2" stroke-dasharray="${armLen}" stroke-dashoffset="${armLen}"><animate attributeName="stroke-dashoffset" from="${armLen}" to="0" dur="0.3s" begin="0.3s" fill="freeze"/></line>`;
   body += `<path d="M ${cx - 40} ${cy} A 40 40 0 0 1 ${cx - 40 * Math.cos(rad)} ${cy - 40 * Math.sin(rad)}" fill="none" stroke="#111" stroke-dasharray="${arcLen}" stroke-dashoffset="${arcLen}"><animate attributeName="stroke-dashoffset" from="${arcLen}" to="0" dur="0.3s" begin="0.6s" fill="freeze"/></path>`;
-  body += `<text x="${cx - 24}" y="${cy - 16}" font-size="14" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.25s" begin="0.85s" fill="freeze"/>${angleDegrees}°</text>`;
+  body += `<text x="${cx - 24}" y="${cy - 16}" font-size="14" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.25s" begin="0.85s" fill="freeze"/>${tag}</text>`;
   return svgShell(spec, body, 'angle on line');
 }
 
