@@ -334,6 +334,12 @@ export function drawMathStamp(ctx, stroke, options = {}) {
     ctx.fillText('÷', x, y + r(10));
   } else if (stroke.template === 'equals') {
     ctx.fillText('=', x, y + r(10));
+  } else if (stroke.template === 'text') {
+    // Free-text label. Readable sans-serif, supports simple multi-line entry.
+    ctx.font = `${r(22)}px -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif`;
+    String(stroke.text || '').split('\n').forEach((line, i) => {
+      ctx.fillText(line, x, y + r(8) + i * r(26));
+    });
   }
 
   ctx.restore();

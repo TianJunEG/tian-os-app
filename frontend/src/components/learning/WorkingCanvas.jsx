@@ -312,6 +312,7 @@ export default function WorkingCanvas({
   const [notNeeded, setNotNeeded] = useState(Boolean(initialWorkingNotNeeded));
   const [attachedImage, setAttachedImage] = useState(submittedImage || '');
   const [mathDraft, setMathDraft] = useState(null);
+  const [textDraft, setTextDraft] = useState('');
   const [workingMode, setWorkingMode] = useState('draw');
   const [mathSteps, setMathSteps] = useState([{ id: 'step-1', text: '' }]);
   const [columnGrid, setColumnGrid] = useState(() => makeEmptyGrid('addition', 0));
@@ -394,6 +395,9 @@ export default function WorkingCanvas({
 
   const beginStroke = (event) => {
     if (readOnly) return;
+    // The Text tool places a typed label via the text-entry bar, not by
+    // drawing — so don't start a stroke (otherwise it left stray ink).
+    if (tool === 'text') return;
     // Palm rejection: if a pointer is already drawing, ignore the new
     // pointerdown (e.g. a palm landing while the pen draws).
     if (drawingRef.current) return;
@@ -593,6 +597,16 @@ export default function WorkingCanvas({
     insertMathStamp(template);
   };
 
+  // Text tool: type a label and place it on the scratchpad. Rendered as a
+  // 'text' stamp (a stroke) so it saves + exports with the rest of the working.
+  const commitTextStamp = () => {
+    const text = textDraft.trim();
+    if (!text) { setTool('pen'); return; }
+    insertMathStamp('text', { text, colour: colour || '#172554', size: 4 });
+    setTextDraft('');
+    setTool('pen');
+  };
+
   const insertDraftMath = () => {
     const template = mathDraft?.template;
     const builder = MATH_BUILDERS[template];
@@ -731,6 +745,29 @@ export default function WorkingCanvas({
               <RotateCcw style={{ width: 13, height: 13 }} />
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Text-entry bar — shown while the Text tool is active. Type a label and
+          Add places it on the scratchpad (as a saveable, exportable text stamp). */}
+      {workingMode === 'draw' && tool === 'text' && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderBottom: '1px solid #e7eaef', background: '#fbf1e1' }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#b06f1f', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Text</span>
+          <input
+            autoFocus
+            value={textDraft}
+            onChange={(e) => setTextDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') { e.preventDefault(); commitTextStamp(); }
+              if (e.key === 'Escape') { setTextDraft(''); setTool('pen'); }
+            }}
+            placeholder="Type a label, then press Add"
+            style={{ flex: 1, minWidth: 0, border: '1px solid #e7c89a', borderRadius: 8, padding: '6px 10px', fontSize: 14, color: '#172554' }}
+          />
+          <button type="button" onClick={commitTextStamp} disabled={!textDraft.trim()}
+            style={{ border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: 13, fontWeight: 700, color: '#fff', background: textDraft.trim() ? '#d9892e' : '#e7c89a', cursor: textDraft.trim() ? 'pointer' : 'default' }}>Add</button>
+          <button type="button" onClick={() => { setTextDraft(''); setTool('pen'); }}
+            style={{ border: '1px solid #e7c89a', borderRadius: 8, padding: '6px 10px', fontSize: 13, fontWeight: 600, color: '#b06f1f', background: '#fff', cursor: 'pointer' }}>Cancel</button>
         </div>
       )}
 
