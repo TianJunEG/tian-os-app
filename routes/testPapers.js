@@ -67,20 +67,30 @@ router.get('/', protect, asyncHandler(async (req, res) => {
     if (bestByPaper[s.paperCode] == null || pct > bestByPaper[s.paperCode]) bestByPaper[s.paperCode] = pct;
   }
 
-  res.json({
-    papers: papers.map((p) => ({
-      paperCode: p.paperCode,
-      title: p.title,
-      subject: p.subject,
-      level: p.level,
-      durationMinutes: p.durationMinutes,
-      totalMarks: p.totalMarks,
-      description: p.description,
-      tags: p.tags || [],
-      questionCount: (p.questions || []).length,
-      bestScorePct: bestByPaper[p.paperCode] ?? null,
-    })),
-  });
+  // Surface the student's own level first (pilot spans P3–P6). Student.level is
+  // a label like "Primary 5"; map to the paper level code "P5".
+  const lm = String(student.level || '').match(/(\d+)/);
+  const studentLevel = /primary/i.test(student.level || '') && lm ? `P${lm[1]}` : '';
+
+  const shaped = papers.map((p) => ({
+    paperCode: p.paperCode,
+    title: p.title,
+    subject: p.subject,
+    level: p.level,
+    durationMinutes: p.durationMinutes,
+    totalMarks: p.totalMarks,
+    description: p.description,
+    tags: p.tags || [],
+    questionCount: (p.questions || []).length,
+    bestScorePct: bestByPaper[p.paperCode] ?? null,
+    forYourLevel: studentLevel ? p.level === studentLevel : false,
+  }));
+  // Your-level papers first, then by level ascending, then title.
+  shaped.sort((a, b) => (Number(b.forYourLevel) - Number(a.forYourLevel))
+    || String(a.level).localeCompare(String(b.level))
+    || String(a.title).localeCompare(String(b.title)));
+
+  res.json({ studentLevel, papers: shaped });
 }));
 
 // GET /api/test-papers/:paperCode — paper meta (no answers).

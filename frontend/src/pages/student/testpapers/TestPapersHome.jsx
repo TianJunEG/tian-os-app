@@ -9,6 +9,7 @@ import { testPapersAPI } from '../../../services/api';
 export default function TestPapersHome() {
   const navigate = useNavigate();
   const [papers, setPapers] = useState([]);
+  const [studentLevel, setStudentLevel] = useState('');
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(null);
   const [error, setError] = useState('');
@@ -16,7 +17,7 @@ export default function TestPapersHome() {
   useEffect(() => {
     let alive = true;
     testPapersAPI.list()
-      .then((res) => { if (alive) setPapers(res.data?.papers || []); })
+      .then((res) => { if (alive) { setPapers(res.data?.papers || []); setStudentLevel(res.data?.studentLevel || ''); } })
       .catch(() => { if (alive) setError('Could not load papers. Please try again.'); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
@@ -43,7 +44,9 @@ export default function TestPapersHome() {
         </div>
         <div>
           <h1 className="text-xl font-bold text-slate-900">Test Papers</h1>
-          <p className="text-sm text-slate-500">Sit a full paper under exam conditions, then see your marks.</p>
+          <p className="text-sm text-slate-500">
+            Sit a full paper under exam conditions, then see your marks.{studentLevel ? ` Showing ${studentLevel} papers first.` : ''}
+          </p>
         </div>
       </div>
 
@@ -61,8 +64,9 @@ export default function TestPapersHome() {
             <div key={p.paperCode} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     {p.level && <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-600">{p.level}</span>}
+                    {p.forYourLevel && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-600">For your level</span>}
                     <h2 className="truncate font-semibold text-slate-900">{p.title}</h2>
                   </div>
                   {p.description && <p className="mt-1 text-sm text-slate-500">{p.description}</p>}
