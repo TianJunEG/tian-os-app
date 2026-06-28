@@ -66,6 +66,9 @@ export const FEATURE_FLAGS = {
   spelling: flagEnabled('SPELLING', true),
   comics: flagEnabled('COMICS', true),
   psl: flagEnabled('PSL', true),
+  // Test Papers (exam-style timed papers) — OFF until Phase 1 launch. Set
+  // VITE_ENABLE_TEST_PAPERS=1 to show the nav + section.
+  testPapers: flagEnabled('TEST_PAPERS', false),
   tutor: flagEnabled('TUTOR', true),
   teacher: flagEnabled('TEACHER', true),
   admin: flagEnabled('ADMIN', true),

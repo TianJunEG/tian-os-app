@@ -165,6 +165,9 @@ const PSLSession = lazy(() => import('./pages/student/psl/PSLSession'));
 const PSLResults = lazy(() => import('./pages/student/psl/PSLResults'));
 const PSLMistakeReview = lazy(() => import('./pages/student/psl/PSLMistakeReview'));
 const PSLDecisionGuide = lazy(() => import('./pages/student/psl/DecisionGuide'));
+const TestPapersHome = lazy(() => import('./pages/student/testpapers/TestPapersHome'));
+const TestPaperSession = lazy(() => import('./pages/student/testpapers/TestPaperSession'));
+const TestPaperResults = lazy(() => import('./pages/student/testpapers/TestPaperResults'));
 // Science Adaptive Revision (secondary module) — reuses shared practice/result screens
 const ScienceHome = lazy(() => import('./pages/student/science/ScienceHome'));
 const ScienceTopics = lazy(() => import('./pages/student/science/ScienceTopics'));
@@ -735,6 +738,9 @@ function App() {
             <Route path="/student/psl/results/:sessionId" element={<FeatureGuard feature="psl"><PSLResults /></FeatureGuard>} />
             <Route path="/student/psl/mistakes" element={<FeatureGuard feature="psl"><PSLMistakeReview /></FeatureGuard>} />
             <Route path="/student/psl/decision-guide" element={<FeatureGuard feature="psl"><PSLDecisionGuide /></FeatureGuard>} />
+            <Route path="/student/test-papers" element={<FeatureGuard feature="testPapers"><TestPapersHome /></FeatureGuard>} />
+            <Route path="/student/test-papers/:sessionId/run" element={<FeatureGuard feature="testPapers"><TestPaperSession /></FeatureGuard>} />
+            <Route path="/student/test-papers/:sessionId/results" element={<FeatureGuard feature="testPapers"><TestPaperResults /></FeatureGuard>} />
             <Route path="/student/assignments" element={<StudentAssignments />} />
             <Route path="/student/assessment/:sessionId" element={<InformalAssessment />} />
             <Route path="/student/progress" element={<SkillGraph />} />
