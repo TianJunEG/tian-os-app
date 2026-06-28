@@ -3,6 +3,8 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { Clock, ChevronLeft, ChevronRight, Loader2, Send } from 'lucide-react';
 import { testPapersAPI } from '../../../services/api';
 import QuestionDiagram, { canRenderQuestionDiagram } from '../../student/mathpath/components/QuestionDiagram';
+import FullScreenWorkingMode from '../../../components/learning/FullScreenWorkingMode';
+import WorkingPreviewCard from '../../../components/learning/WorkingPreviewCard';
 
 function fmtTime(sec) {
   if (sec == null) return null;
@@ -26,9 +28,13 @@ export default function TestPaperSession() {
   const [index, setIndex] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(location.state?.session?.secondsRemaining ?? null);
   const [submitting, setSubmitting] = useState(false);
+  const [workingByOrder, setWorkingByOrder] = useState({});  // { [order]: { workingImage, workingStrokes, workingMathObjects, workingSubmitted } }
+  const [workingOpenOrder, setWorkingOpenOrder] = useState(null);
 
   const answersRef = useRef(answers);
   answersRef.current = answers;
+  const workingRef = useRef(workingByOrder);
+  workingRef.current = workingByOrder;
   const submittedRef = useRef(false);
   const startedAtRef = useRef(Date.now());
 
@@ -48,7 +54,15 @@ export default function TestPaperSession() {
     submittedRef.current = true;
     setSubmitting(true);
     const payload = {
-      answers: (session?.questions || []).map((q) => ({ order: q.order, answer: answersRef.current[q.order] ?? '' })),
+      answers: (session?.questions || []).map((q) => {
+        const w = workingRef.current[q.order] || {};
+        return {
+          order: q.order,
+          answer: answersRef.current[q.order] ?? '',
+          workingSubmitted: Boolean(w.workingSubmitted),
+          workingImage: w.workingImage || '',
+        };
+      }),
       durationUsedSec: Math.floor((Date.now() - startedAtRef.current) / 1000),
     };
     try {
@@ -158,6 +172,20 @@ export default function TestPaperSession() {
               })()}
             </div>
           )}
+
+          {/* Working space — students show their working; it's stored with the
+              submission so a teacher can see they worked it out. */}
+          <div className="mt-5 border-t border-slate-100 pt-4">
+            <WorkingPreviewCard
+              workingImage={(workingByOrder[q.order] || {}).workingImage || ''}
+              workingSubmitted={Boolean((workingByOrder[q.order] || {}).workingSubmitted)}
+              onOpen={() => setWorkingOpenOrder(q.order)}
+              onRemove={(workingByOrder[q.order] || {}).workingSubmitted
+                ? () => setWorkingByOrder((prev) => { const n = { ...prev }; delete n[q.order]; return n; })
+                : undefined}
+              openLabel="Show your working"
+            />
+          </div>
         </div>
       )}
 
@@ -182,6 +210,21 @@ export default function TestPaperSession() {
           >{submitting ? <Loader2 size={16} className="animate-spin" /> : <><Send size={15} /> Submit paper</>}</button>
         )}
       </div>
+
+      <FullScreenWorkingMode
+        open={workingOpenOrder != null}
+        questionId={`tp-${sessionId}-${workingOpenOrder}`}
+        questionText={questions.find((x) => x.order === workingOpenOrder)?.stem || ''}
+        initialStrokes={(workingByOrder[workingOpenOrder] || {}).workingStrokes || []}
+        initialMathObjects={(workingByOrder[workingOpenOrder] || {}).workingMathObjects || []}
+        onClose={() => setWorkingOpenOrder(null)}
+        onSave={(p) => {
+          const ord = workingOpenOrder;
+          if (ord == null) return;
+          setWorkingByOrder((prev) => ({ ...prev, [ord]: { ...p } }));
+          setWorkingOpenOrder(null);
+        }}
+      />
     </div>
   );
 }

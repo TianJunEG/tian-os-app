@@ -78,6 +78,13 @@ export default function TestPaperResults() {
                 <p className="mt-2 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">{q.workedSolution}</p>
               ) : null)}
 
+              {q.workingSubmitted && (
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-xs font-semibold text-slate-500">✍️ Working shown{q.workingImage ? ' — view' : ''}</summary>
+                  {q.workingImage && <img src={q.workingImage} alt={`Working for question ${q.order}`} className="mt-2 max-h-64 rounded-lg border border-slate-200" />}
+                </details>
+              )}
+
               {!q.correct && isWordProblem && (
                 <button
                   type="button" onClick={() => navigate('/student/psl')}

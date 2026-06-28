@@ -169,7 +169,9 @@ router.post('/sessions/:sessionId/submit', protect, asyncHandler(async (req, res
     marksAwarded += awarded;
     if (correct) correctCount += 1;
 
-    scoredAnswers.push({ order: q.order, answer: studentAnswer, correct, marksAwarded: awarded, timeMs: submitted.timeMs ?? null });
+    const workingSubmitted = Boolean(submitted.workingSubmitted);
+    const workingImage = String(submitted.workingImage || '');
+    scoredAnswers.push({ order: q.order, answer: studentAnswer, correct, marksAwarded: awarded, timeMs: submitted.timeMs ?? null, workingSubmitted, workingImage });
     marked.push({
       order: q.order,
       section: q.section,
@@ -186,6 +188,8 @@ router.post('/sessions/:sessionId/submit', protect, asyncHandler(async (req, res
       workedSolution: q.workedSolution || '',
       solutionSteps: Array.isArray(q.solutionSteps) ? q.solutionSteps : [],
       skillName: q.skillName || '',
+      workingSubmitted,
+      workingImage,
     });
   }
 

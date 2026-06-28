@@ -27,6 +27,10 @@ const sittingAnswerSchema = new mongoose.Schema({
   correct: { type: Boolean, default: false },
   marksAwarded: { type: Number, default: 0 },
   timeMs: { type: Number, default: null },
+  // Working / scratchpad evidence so a teacher can see the student showed their
+  // working (image is a PNG data URL captured from the working canvas).
+  workingSubmitted: { type: Boolean, default: false },
+  workingImage: { type: String, default: '' },
 }, { _id: false });
 
 const testPaperSessionSchema = new mongoose.Schema({
