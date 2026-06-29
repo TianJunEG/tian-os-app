@@ -27,6 +27,7 @@ import { asyncHandler } from '../middleware/errorHandler.js';
 import ClassDiagnosticSession from '../models/ClassDiagnosticSession.js';
 import { createClassDiagnosticSession, buildKioskStatus } from '../services/kiosk/classDiagnosticService.js';
 import { getDiagnosticDomain } from '../services/diagnostics/diagnosticDomainRegistry.js';
+import { parseRosterCsv, importRoster, createStudentRecord } from '../services/school/schoolAdminService.js';
 
 const router = express.Router();
 router.use(protect, requireWorkspace);
@@ -988,6 +989,73 @@ router.get('/students/:id/psl/sessions/:sessionId', asyncHandler(async (req, res
     },
     problems,
   });
+}));
+
+// ── Class & roster management (teacher-owned) ─────────────────────────────
+// Create a class in the teacher's own workspace.
+router.post('/classes', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return undefined;
+  const name = String(req.body?.name || '').trim();
+  if (!name) return res.status(400).json({ error: 'A class name is required.' });
+  const klass = await Class.create({
+    workspaceId: req.workspaceId,
+    teacherUserId: req.user.id,
+    name,
+    level: String(req.body?.level || '').trim(),
+    modules: ['MathPath'],
+    status: 'active',
+  });
+  return res.status(201).json({ class: { id: String(klass._id), name: klass.name, level: klass.level } });
+}));
+
+// Add a single student to a class.
+router.post('/classes/:id/students', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return undefined;
+  const klass = await getOwnedClass(req);
+  if (!klass) return res.status(404).json({ error: 'Class not found.' });
+  const name = String(req.body?.name || '').trim();
+  if (!name) return res.status(400).json({ error: 'Student name is required.' });
+  const { student } = await createStudentRecord({
+    workspaceId: req.workspaceId,
+    createdByUserId: req.user.id,
+    name,
+    level: String(req.body?.level || '').trim(),
+    classId: klass._id,
+  });
+  return res.status(201).json({ student: { studentId: String(student._id), name: student.name, level: student.level } });
+}));
+
+// Bulk-import a roster: pasted names (one per line) OR a CSV with a "name" header.
+router.post('/classes/:id/import-roster', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return undefined;
+  const klass = await getOwnedClass(req);
+  if (!klass) return res.status(404).json({ error: 'Class not found.' });
+  const text = String(req.body?.text || '');
+  if (!text.trim()) return res.status(400).json({ error: 'Paste some names, or upload a CSV.' });
+
+  // A CSV has a header row containing a "name" column; otherwise treat each
+  // non-empty line as a single student name ("paste names" mode).
+  const firstCells = text.split(/\r?\n/)[0].split(',').map((s) => s.trim().toLowerCase());
+  let rows;
+  let parseErrors = [];
+  if (firstCells.includes('name')) {
+    const parsed = parseRosterCsv(text);
+    rows = parsed.rows;
+    parseErrors = parsed.errors || [];
+  } else {
+    rows = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean).map((name) => ({ name }));
+  }
+  if (!rows.length) return res.status(400).json({ error: 'No student names found.', parseErrors });
+
+  const out = await importRoster({
+    workspaceId: req.workspaceId,
+    createdByUserId: req.user.id,
+    teacherUserId: req.user.id,
+    rows,
+    defaultClassId: klass._id,
+    createMissingClasses: false,
+  });
+  return res.json({ ...out, parseErrors });
 }));
 
 // ── In-class diagnostic kiosk (teacher side) ──────────────────────────────

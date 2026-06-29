@@ -606,6 +606,10 @@ export const teacherAPI = {
   assessmentResults: (id) => api.get(`/teacher/assessments/${id}/results`),
   closeAssessment: (id) => api.post(`/teacher/assessments/${id}/close`),
   deleteAssessment: (id) => api.delete(`/teacher/assessments/${id}`),
+  // Class & roster management
+  createClass: (data) => api.post('/teacher/classes', data),
+  addStudent: (id, data) => api.post(`/teacher/classes/${id}/students`, data),
+  importRoster: (id, text) => api.post(`/teacher/classes/${id}/import-roster`, { text }),
   // In-class diagnostic kiosk
   createKioskSession: (id, data) => api.post(`/teacher/classes/${id}/kiosk-sessions`, data),
   listKioskSessions: (id) => api.get(`/teacher/classes/${id}/kiosk-sessions`),

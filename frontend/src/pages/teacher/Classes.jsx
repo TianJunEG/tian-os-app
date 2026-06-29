@@ -1,24 +1,70 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { LayoutGrid } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { LayoutGrid, Plus } from 'lucide-react';
 import { teacherAPI } from '../../services/api';
-import { Card, Badge, ProgressBar, PageHeader, Spinner, ErrorState, EmptyState } from '../../components/ui';
+import { Card, Badge, ProgressBar, PageHeader, Spinner, ErrorState, EmptyState, Button } from '../../components/ui';
 
 // All classes assigned to the teacher.
 export default function Classes() {
+  const navigate = useNavigate();
   const [classes, setClasses] = useState(null);
   const [loadError, setLoadError] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [name, setName] = useState('');
+  const [level, setLevel] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState('');
 
   const load = () => { setLoadError(false); setClasses(null); teacherAPI.classes().then((r) => setClasses(r.data.classes || [])).catch(() => setLoadError(true)); };
   useEffect(() => { load(); }, []);
+
+  async function createClass(e) {
+    e?.preventDefault?.();
+    if (!name.trim() || saving) return;
+    setSaving(true);
+    setFormError('');
+    try {
+      const { data } = await teacherAPI.createClass({ name: name.trim(), level: level.trim() });
+      // Drop straight into the new class's students page to add the roster.
+      navigate(`/teacher/classes/${data.class.id}/students`);
+    } catch (err) {
+      setFormError(err?.response?.data?.error || 'Could not create the class.');
+      setSaving(false);
+    }
+  }
 
   if (loadError) return <ErrorState message="Couldn't load classes." onRetry={load} />;
   if (!classes) return <Spinner />;
   return (
     <>
-      <PageHeader title="Classes" subtitle="Tap a class to see mastery and group students." />
+      <div className="flex items-start justify-between gap-3">
+        <PageHeader title="Classes" subtitle="Tap a class to see mastery and group students." />
+        <Button size="s" onClick={() => setShowForm((v) => !v)} className="mt-1 shrink-0">
+          <Plus size={16} className="mr-1" /> New class
+        </Button>
+      </div>
+
+      {showForm && (
+        <Card className="mb-4 p-4">
+          <form onSubmit={createClass} className="flex flex-wrap items-end gap-3">
+            <label className="text-sm">
+              <span className="mb-1 block font-medium text-ink-600">Class name</span>
+              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Primary 5 Maths" autoFocus
+                className="w-56 rounded-lg border border-border-subtle px-3 py-2 text-ink-800" />
+            </label>
+            <label className="text-sm">
+              <span className="mb-1 block font-medium text-ink-600">Level (optional)</span>
+              <input value={level} onChange={(e) => setLevel(e.target.value)} placeholder="e.g. Primary 5"
+                className="w-44 rounded-lg border border-border-subtle px-3 py-2 text-ink-800" />
+            </label>
+            <Button type="submit" disabled={saving || !name.trim()}>{saving ? 'Creating…' : 'Create & add students'}</Button>
+          </form>
+          {formError && <p className="mt-2 text-sm text-rose-600">{formError}</p>}
+        </Card>
+      )}
+
       {classes.length === 0 ? (
-        <EmptyState icon={LayoutGrid} message="No classes assigned yet." />
+        <EmptyState icon={LayoutGrid} message="No classes yet. Create one to get started." />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {classes.map((c) => (
