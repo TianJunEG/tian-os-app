@@ -15,6 +15,7 @@ import TutorCertification from '../models/TutorCertification.js';
 import { buildLessonPrep } from '../utils/tutorLessonPrep.js';
 import { getTutorLessonPrep } from '../services/mathpath/tutorLessonPrepEngine.js';
 import { createAssignmentFromLessonPrep } from '../services/mathpath/mathPathAssignmentService.js';
+import { sanitizeHomeworkResults } from '../utils/homeworkResults.js';
 import {
   listPartnerStudentIdsForUser,
   userCanAccessPartnerStudent,
@@ -235,6 +236,7 @@ router.post('/students/:id/lesson-notes', asyncHandler(async (req, res) => {
     notes: b.notes || b.covered || '', nextAction: b.nextAction || b.nextRecommendation || '',
     covered: b.covered || '', didWell: b.didWell || '', struggledWith: b.struggledWith || '',
     misconceptions: b.misconceptions || '', homeworkAssigned: b.homeworkAssigned || '',
+    homeworkResults: sanitizeHomeworkResults(b.homeworkResults),
     nextRecommendation: b.nextRecommendation || '', parentSummary: b.parentSummary || '',
     parentUpdateStatus: 'draft',
   });
@@ -427,6 +429,7 @@ router.post('/lesson-notes', asyncHandler(async (req, res) => {
     struggledWith: b.struggledWith || '',
     misconceptions: b.misconceptions || '',
     homeworkAssigned: b.homeworkAssigned || '',
+    homeworkResults: sanitizeHomeworkResults(b.homeworkResults),
     nextRecommendation: b.nextRecommendation || b.nextAction || '',
     parentSummary: b.parentSummary || '',
     parentUpdateStatus: 'draft',
