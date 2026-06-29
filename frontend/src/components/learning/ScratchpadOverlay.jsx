@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { PenLine, Eraser, Move, RotateCcw, Sigma, Trash2, X } from 'lucide-react';
+import { PenLine, Eraser, Move, Calculator, RotateCcw, Sigma, Trash2, X } from 'lucide-react';
 import { drawStroke, pointFromEvent as extractPoint, beginStrokeData, finalizeStroke, topStampIndexAtPoint, moveStampInStrokes } from './drawingUtils';
+import ColumnOperationsGrid, { makeEmptyGrid } from './ColumnOperationsGrid';
 
 // Math symbol stamps. Simple ones (operators, π, θ, ∠) insert immediately;
 // the rest open a small builder popover so the student can fill in the parts.
@@ -81,11 +82,19 @@ export default function ScratchpadOverlay({
   // complex stamp (fraction, power, root, mixed) needs field input.
   const [showMath, setShowMath] = useState(false);
   const [mathDraft, setMathDraft] = useState(null);
+  // Four Ops: an optional column-arithmetic grid (same component the practice
+  // working canvas uses) shown as a floating panel so the student can set out a
+  // sum without leaving the question. Grid state is ephemeral, reset per question.
+  const [showFourOps, setShowFourOps] = useState(false);
+  const [columnGrid, setColumnGrid] = useState(() => makeEmptyGrid('addition', 0));
 
-  // Reset strokes from props when the overlay (re-)opens for a new question.
+  // Reset strokes (and the column grid) from props when the overlay (re-)opens
+  // for a new question.
   useEffect(() => {
     if (!open) return;
     setStrokes(Array.isArray(initialStrokes) ? initialStrokes : []);
+    setColumnGrid(makeEmptyGrid('addition', 0));
+    setShowFourOps(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
@@ -350,6 +359,15 @@ export default function ScratchpadOverlay({
         >
           <Sigma className="h-4 w-4" />
         </button>
+        <button
+          type="button"
+          onClick={() => setShowFourOps((v) => !v)}
+          className={toolBtn(showFourOps)}
+          title="Four Ops (column working)"
+          aria-label="Four Ops column working"
+        >
+          <Calculator className="h-4 w-4" />
+        </button>
         <div className="my-1 border-t border-line-soft" />
         {/* Colours — only when pen is active so the eraser doesn't look colourful. */}
         {tool === 'pen' && COLOURS.map((c) => (
@@ -389,6 +407,27 @@ export default function ScratchpadOverlay({
           <X className="h-4 w-4" />
         </button>
       </div>
+
+      {/* Four Ops — a floating column-arithmetic panel (the same grid the practice
+          working canvas uses). It sits on the LEFT so the right-side palette, the
+          question, and the answer box stay reachable. Being its own element above
+          the canvas, taps land on the grid inputs, not the ink layer. */}
+      {showFourOps && (
+        <div className="fixed left-4 top-24 z-50 max-h-[72vh] w-[min(92vw,440px)] overflow-auto rounded-2xl border border-line-soft bg-white/97 p-3 shadow-card backdrop-blur">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Column working</span>
+            <button
+              type="button"
+              onClick={() => setShowFourOps(false)}
+              className="grid h-7 w-7 place-items-center rounded-lg text-ink-400 transition hover:bg-line-soft hover:text-ink-700"
+              aria-label="Close column working"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <ColumnOperationsGrid grid={columnGrid} onChange={setColumnGrid} />
+        </div>
+      )}
 
       {/* Math symbols toolbar — appears to the LEFT of the main palette when
           enabled, so it doesn't crowd the right-side controls. */}
