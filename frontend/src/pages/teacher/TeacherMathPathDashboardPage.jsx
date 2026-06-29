@@ -275,7 +275,10 @@ export default function TeacherMathPathDashboardPage() {
       const [dashRes, studentsRes, workingRes] = await Promise.all([
         teacherAPI.classDashboard(id),
         teacherAPI.classStudents(id),
-        mathpathAPI.workingReviewSummary({ limit: 100 }),
+        // Class-wide working review is workspace-scoped on the backend and can fail
+        // (or be unsupported) without the rest of the dashboard being unusable — make
+        // it non-fatal so one panel's data source never blanks the whole page.
+        mathpathAPI.workingReviewSummary({ limit: 100 }).catch(() => null),
       ]);
       setDashboard(dashRes?.data || null);
       setWorkingReview(workingRes?.data || null);
