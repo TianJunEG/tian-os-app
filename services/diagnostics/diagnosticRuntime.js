@@ -119,6 +119,20 @@ export function resolveDiagnosticCompletion({
     };
   }
   if (generationFailed) {
+    // The question bank was exhausted before the target was reached — common in
+    // visual-heavy domains with thin diagnostic banks (e.g. volume), where an
+    // adaptive STEP_DOWN can leave no easier item to serve. If the student has
+    // already answered at least one question we have enough signal to place them,
+    // so finish as a coverage-complete placement rather than trapping them with a
+    // retryable error (a retry can't conjure a question that doesn't exist). Only
+    // surface the hard error when nothing has been answered (a genuine setup gap).
+    if (answered >= 1) {
+      return {
+        sessionComplete: true,
+        completionReason: COMPLETION_REASONS.COVERAGE_COMPLETE,
+        adaptiveStopDeferred: false,
+      };
+    }
     return {
       sessionComplete: false,
       completionReason: COMPLETION_REASONS.QUESTION_GENERATION_FAILED,
