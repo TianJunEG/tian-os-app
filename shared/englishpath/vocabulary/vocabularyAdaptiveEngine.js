@@ -261,16 +261,21 @@ export function buildSession(state, { size, now = Date.now(), bank = vocabularyW
     }
   }
 
-  let room = state.config.maxActiveLearning - activeLearningWords(state, bank).length;
+  // New words: teach a batch first, THEN quiz them, so the first question is
+  // genuine recall rather than an immediate echo of the meaning we just showed.
+  const room = state.config.maxActiveLearning - activeLearningWords(state, bank).length;
+  const slotsLeft = limit - descriptors.length;
+  const fresh = [];
   for (const w of bank) {
-    if (descriptors.length >= limit) break;
-    if (room <= 0) break;
+    if (fresh.length >= room) break;
     if (state.words[w.id]?.introduced || usedWords.has(w.id)) continue;
-    descriptors.push({ wordId: w.id, taskType: 'meet_word', mode: 'new' });
-    if (descriptors.length < limit) descriptors.push({ wordId: w.id, taskType: firstGradedRung(w, bank), mode: 'new' });
-    usedWords.add(w.id);
-    room -= 1;
+    fresh.push(w);
   }
+  // Each new word needs a meet card + a question, so only take as many as fit.
+  const newCount = Math.min(fresh.length, Math.floor(slotsLeft / 2));
+  const chosen = fresh.slice(0, newCount);
+  for (const w of chosen) descriptors.push({ wordId: w.id, taskType: 'meet_word', mode: 'new' });
+  for (const w of chosen) descriptors.push({ wordId: w.id, taskType: firstGradedRung(w, bank), mode: 'new' });
 
   return descriptors
     .slice(0, limit)

@@ -96,16 +96,19 @@ export default function VocabSession() {
   }
 
   const tier = TIERS[(task.tier || 1) - 1];
+  // Teach cards aren't questions — number only the actual questions.
+  const qTotal = tasks.filter((x) => x.kind !== 'teach').length;
+  const qNum = tasks.slice(0, idx + 1).filter((x) => x.kind !== 'teach').length;
 
   return (
     <div className="mx-auto max-w-xl">
       <BackLink navigate={navigate} />
 
       <div className="mb-2 flex items-center justify-between gap-3 text-sm text-ink-500">
-        <span className="font-mono tabular-nums">Question {idx + 1} of {tasks.length}</span>
+        <span className="font-mono tabular-nums">{task.kind === 'teach' ? 'New word' : `Question ${qNum} of ${qTotal}`}</span>
         <span className="flex items-center gap-2">
           {task.mode === 'review' && <Badge tone="gold">Review</Badge>}
-          {tier && <Badge tone="neutral">{tier.name}</Badge>}
+          {tier && task.kind !== 'teach' && <Badge tone="neutral">{tier.name}</Badge>}
         </span>
       </div>
       <ProgressBar value={idx + (answered || task.kind === 'teach' ? 1 : 0)} max={tasks.length} className="mb-6" />

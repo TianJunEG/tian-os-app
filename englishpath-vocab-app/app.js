@@ -245,12 +245,24 @@ function readinessRow(key, label, examReadiness) {
     </div>`;
 }
 
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 function startSession() {
   if (!levelHasWords(level)) {
     level = 'P6';
     setLevel(level);
   }
-  const tasks = buildSession(state, { size: 10, bank: bank() });
+  // Free sessions aren't saved, so vary the words each time rather than always
+  // starting from the top of the list. Premium follows the adaptive order.
+  const sessionBank = isPremium() ? bank() : shuffle(bank());
+  const tasks = buildSession(state, { size: 10, bank: sessionBank });
   session = { tasks, idx: 0, answered: false, log: [] };
   renderSession();
 }
@@ -265,11 +277,17 @@ function renderSession() {
   const tier = TIERS[(t.tier || 1) - 1];
   const progressUnits = session.idx + (session.answered || t.kind === 'teach' ? 1 : 0);
 
+  // Teach cards aren't questions — label them "New word" and number only the
+  // actual questions.
+  const qTotal = session.tasks.filter((x) => x.kind !== 'teach').length;
+  const qNum = session.tasks.slice(0, session.idx + 1).filter((x) => x.kind !== 'teach').length;
+  const counter = t.kind === 'teach' ? 'New word' : `Question ${qNum} of ${qTotal}`;
+
   const head = `
     <button class="btn ghost" data-home>← Home</button>
     <div class="sessionbar">
-      <span class="mono">Question ${session.idx + 1} of ${session.tasks.length}</span>
-      <span>${t.mode === 'review' ? '<span class="tag gold">Review</span> ' : ''}<span class="tag">${tier ? tier.name : ''}</span></span>
+      <span class="mono">${counter}</span>
+      <span>${t.mode === 'review' ? '<span class="tag gold">Review</span> ' : ''}${t.kind === 'teach' ? '' : `<span class="tag">${tier ? tier.name : ''}</span>`}</span>
     </div>
     <div class="bar" style="margin-bottom:18px"><span style="width:${(progressUnits / session.tasks.length) * 100}%"></span></div>`;
 
@@ -360,16 +378,23 @@ function renderResults() {
   const correct = graded.filter((e) => e.correct).length;
   const total = graded.length;
   const pct = total ? Math.round((correct / total) * 100) : 100;
+  const newCount = session.log.filter((e) => e.kind === 'teach').length;
   const premium = isPremium();
 
-  const convert = premium
-    ? ''
+  // What's next — the answer differs for free vs Premium.
+  const next = premium
+    ? `
+      <div class="card center">
+        <span class="lockpill" style="background:var(--emerald-tint);color:var(--emerald-deep)">✓ What's next</span>
+        <h3 style="margin-top:8px">${newCount ? `${newCount} new word${newCount === 1 ? '' : 's'} added to your review` : 'Keep your streak going'}</h3>
+        <p class="muted">They're saved. Come back tomorrow and spaced review will bring them back right before you'd forget — plus fresh words.</p>
+      </div>`
     : `
       <div class="card locked center">
-        <span class="lockpill">🔒 Don't lose this</span>
-        <h3 style="margin-top:8px">Your progress isn't being saved</h3>
-        <p class="muted">On the free version, this session disappears when you leave. Unlock Premium to keep your progress, bring these words back with spaced review, and target your weak words.</p>
-        <button class="btn mt" data-unlock>Save my progress — ${PRICE} →</button>
+        <span class="lockpill">🔒 What's next</span>
+        <h3 style="margin-top:8px">You met ${newCount} new word${newCount === 1 ? '' : 's'} — keep ${newCount === 1 ? 'it' : 'them'}</h3>
+        <p class="muted">Free practice isn't saved, so these slip away when you leave. Unlock Premium to lock them in: saved progress, spaced review that brings each word back before you forget, and new words every session.</p>
+        <button class="btn mt" data-unlock>Unlock progress — ${PRICE} →</button>
       </div>`;
 
   app.innerHTML = `
@@ -378,7 +403,7 @@ function renderResults() {
       <div class="score">${correct}<small> / ${total}</small></div>
       <p class="muted" style="margin:2px 0 0">${pct}% correct</p>
     </div>
-    ${convert}
+    ${next}
     <div class="card">
       <h3>This session</h3>
       <ul class="reslist">
