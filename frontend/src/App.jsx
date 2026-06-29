@@ -240,6 +240,9 @@ const Grouping = lazy(() => import('./pages/teacher/Grouping'));
 const WeakGroups = lazy(() => import('./pages/teacher/WeakGroups'));
 const ClassDiagnosticKiosk = lazy(() => import('./pages/teacher/ClassDiagnosticKiosk'));
 const ClassQuickMark = lazy(() => import('./pages/teacher/ClassQuickMark'));
+const ClassAnnouncements = lazy(() => import('./pages/teacher/ClassAnnouncements'));
+const ParentAnnouncements = lazy(() => import('./pages/parent/ParentAnnouncements'));
+const ParentAnnouncementDetail = lazy(() => import('./pages/parent/ParentAnnouncementDetail'));
 const KioskLandingPage = lazy(() => import('./pages/kiosk/KioskLandingPage'));
 const KioskQuestionScreen = lazy(() => import('./pages/kiosk/KioskQuestionScreen'));
 const KioskResultPage = lazy(() => import('./pages/kiosk/KioskResultPage'));
@@ -768,6 +771,8 @@ function App() {
             {/* Parent (Phase 3) */}
             <Route path="/parent" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentHome /></FeatureGuard>} />
             <Route path="/parent/notifications" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentNotifications /></FeatureGuard>} />
+            <Route path="/parent/announcements" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentAnnouncements /></FeatureGuard>} />
+            <Route path="/parent/announcements/:id" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentAnnouncementDetail /></FeatureGuard>} />
             <Route path="/parent/link-requests" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentLinkRequests /></FeatureGuard>} />
             <Route path="/parent/recordings/:rid" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentLessonReplay /></FeatureGuard>} />
             <Route path="/parent/success-centre" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentSuccessCentre /></FeatureGuard>} />
@@ -840,6 +845,7 @@ function App() {
             <Route path="/teacher/classes/:id/mastery" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassMasteryMap /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/kiosk" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassDiagnosticKiosk /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/quickmark" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassQuickMark /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/announcements" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassAnnouncements /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/students" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassStudents /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/corrections" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassCorrections /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/groups" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><Grouping /></FeatureGuard></RoleGuard>} />

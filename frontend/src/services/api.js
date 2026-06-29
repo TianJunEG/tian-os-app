@@ -621,6 +621,17 @@ export const teacherAPI = {
   listKioskSessions: (id) => api.get(`/teacher/classes/${id}/kiosk-sessions`),
   kioskSessionStatus: (id, sessionId) => api.get(`/teacher/classes/${id}/kiosk-sessions/${sessionId}`),
   closeKioskSession: (id, sessionId) => api.post(`/teacher/classes/${id}/kiosk-sessions/${sessionId}/close`),
+  // Announcements to parents
+  createAnnouncement: (id, data) => api.post(`/teacher/classes/${id}/announcements`, data),
+  listAnnouncements: (id) => api.get(`/teacher/classes/${id}/announcements`),
+  deleteAnnouncement: (id, aid) => api.delete(`/teacher/classes/${id}/announcements/${aid}`),
+};
+
+// Announcements (shared: parents read + comment; the author reads + replies).
+export const announcementsAPI = {
+  feed: () => api.get('/announcements'),
+  get: (id) => api.get(`/announcements/${id}`),
+  comment: (id, content) => api.post(`/announcements/${id}/comments`, { content }),
 };
 
 // School-aligned Test Mode specifications (Table of Specification).

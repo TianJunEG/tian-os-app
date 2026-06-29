@@ -25,6 +25,7 @@ export default function ClassNav({ classId, name, level }) {
   ];
   const moreTabs = [
     FEATURE_FLAGS.psl && ['Problem Solving', `${base}/psl`],
+    ['Announcements', `${base}/announcements`],
     ['Quick Mark', `${base}/quickmark`],
     ['Class check-in', `${base}/kiosk`],
     ['Mastery map', `${base}/mastery`],

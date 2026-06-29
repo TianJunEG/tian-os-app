@@ -174,6 +174,9 @@ export default function ParentHome() {
           <Link to={`/parent/success-centre?child=${child.studentId}`} className="ml-4 text-sm font-semibold text-gold-deep">
             Open Success Centre →
           </Link>
+          <Link to="/parent/announcements" className="ml-4 text-sm font-semibold text-ink-500">
+            Announcements →
+          </Link>
         </div>
       </Card>
 
