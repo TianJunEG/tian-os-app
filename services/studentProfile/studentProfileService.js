@@ -21,6 +21,11 @@ export const XP_VALUES = Object.freeze({
   skillMastered: 50,
   masteryTestPassed: 75,
   dailyStreakMaintained: 5,
+  // Effort & growth rewards (per occurrence; XP is cumulative across sessions).
+  perfectSession: 20, // got every question right
+  accuracyImproved: 15, // beat a personal best on a skill
+  rePractice: 8, // chose to redo a skill (small reward for effort)
+  rePracticeImproved: 20, // redid a skill AND beat last time (bigger — tiered)
 });
 
 export const ACHIEVEMENT_DEFINITIONS = Object.freeze([
@@ -128,6 +133,73 @@ export const ACHIEVEMENT_DEFINITIONS = Object.freeze([
     category: 'Growth',
     unlockedWhen: (m) => m.masteryTestsPassed >= 1,
   },
+  // Accuracy — getting everything right.
+  {
+    code: 'all_correct_first',
+    title: 'Perfect Round',
+    description: 'Got every question right in a session.',
+    icon: 'trophy',
+    category: 'Accuracy',
+    unlockedWhen: (m) => m.perfectSessions >= 1,
+  },
+  {
+    code: 'all_correct_ten',
+    title: 'Ten Perfect Rounds',
+    description: 'Aced ten sessions with full marks.',
+    icon: 'trophy',
+    category: 'Accuracy',
+    unlockedWhen: (m) => m.perfectSessions >= 10,
+  },
+  {
+    code: 'all_correct_twentyfive',
+    title: 'Flawless ×25',
+    description: 'Twenty-five all-correct sessions.',
+    icon: 'trophy',
+    category: 'Accuracy',
+    unlockedWhen: (m) => m.perfectSessions >= 25,
+  },
+  // Growth — improving on yourself.
+  {
+    code: 'accuracy_improved_first',
+    title: 'New Personal Best',
+    description: 'Beat your best accuracy on a skill.',
+    icon: 'target',
+    category: 'Growth',
+    unlockedWhen: (m) => m.accuracyImprovedSessions >= 1,
+  },
+  {
+    code: 'accuracy_improved_ten',
+    title: 'Always Improving',
+    description: 'Set ten new accuracy bests.',
+    icon: 'target',
+    category: 'Growth',
+    unlockedWhen: (m) => m.accuracyImprovedSessions >= 10,
+  },
+  {
+    code: 'repractice_improved_first',
+    title: 'Bounce Back',
+    description: 'Re-practised a skill and beat your last score.',
+    icon: 'streak',
+    category: 'Growth',
+    unlockedWhen: (m) => m.rePracticeImprovedSessions >= 1,
+  },
+  // Effort — choosing to redo and get stronger.
+  {
+    code: 'repractice_first',
+    title: 'Second Look',
+    description: 'Re-practised a skill to get stronger.',
+    icon: 'practice',
+    category: 'Effort',
+    unlockedWhen: (m) => m.rePracticeSessions >= 1,
+  },
+  {
+    code: 'repractice_ten',
+    title: 'Practice Makes Progress',
+    description: 'Re-practised ten times.',
+    icon: 'practice',
+    category: 'Effort',
+    unlockedWhen: (m) => m.rePracticeSessions >= 10,
+  },
 ]);
 
 function resolveStudentVisualMode(student = {}) {
@@ -214,6 +286,39 @@ async function getSkillName(skillId) {
     ],
   }).lean();
   return skill?.name || skillId;
+}
+
+// Pure: derive effort/growth award counts from completed practice sessions,
+// ordered oldest-first. Each session: { summary: { accuracySummary: { total,
+// correct, accuracyPercentage } }, targetSkillId }. A session is a "re-practice"
+// when its skill was practised before; accuracyImproved = a new personal best on
+// that skill; rePracticeImproved = a redo that beat the immediately previous
+// attempt. Exported for testing.
+export function computeAwardMetrics(sessions = []) {
+  let perfectSessions = 0;
+  let accuracyImprovedSessions = 0;
+  let rePracticeSessions = 0;
+  let rePracticeImprovedSessions = 0;
+  const bestBySkill = {};
+  const lastBySkill = {};
+  for (const s of sessions) {
+    const acc = s.summary?.accuracySummary;
+    if (!acc || !(acc.total > 0)) continue;
+    const pct = acc.accuracyPercentage ?? Math.round((acc.correct / acc.total) * 100);
+    if (acc.total >= 5 && acc.correct === acc.total) perfectSessions += 1;
+    const skill = s.targetSkillId || '';
+    if (acc.total >= 3 && skill) {
+      const seenBefore = Object.prototype.hasOwnProperty.call(bestBySkill, skill);
+      if (seenBefore) {
+        rePracticeSessions += 1;
+        if (pct > bestBySkill[skill]) accuracyImprovedSessions += 1;
+        if (pct > lastBySkill[skill]) rePracticeImprovedSessions += 1;
+      }
+      bestBySkill[skill] = Math.max(bestBySkill[skill] ?? 0, pct);
+      lastBySkill[skill] = pct;
+    }
+  }
+  return { perfectSessions, accuracyImprovedSessions, rePracticeSessions, rePracticeImprovedSessions };
 }
 
 async function deriveMetrics(student) {
@@ -328,9 +433,22 @@ async function deriveMetrics(student) {
     ...masteredRecords.filter((row) => domainIdFromSlug(row.skillId?.slug) === currentDomain).map(recordSkillCode),
   ]);
 
+  // Effort & growth award metrics — derived from every completed practice session,
+  // ordered in time, so they work across all domains/flows. perfectSessions: 100%
+  // on 5+ Qs. A session is a "re-practice" when the skill was practised before;
+  // accuracyImproved = a new personal best on that skill; rePracticeImproved = a
+  // redo that beat the previous attempt.
+  const completedForAwards = await MathPathPracticeSession
+    .find({ studentId, status: 'completed' })
+    .select('summary completedAt targetSkillId')
+    .sort({ completedAt: 1 })
+    .lean();
+  const awardMetrics = computeAwardMetrics(completedForAwards);
+
   return {
     studentId,
     questionsSolved,
+    ...awardMetrics,
     diagnosticsCompleted,
     practiceSessions,
     fluencySessions: uniqueCount(fluencySessionIds),
@@ -361,6 +479,10 @@ function calculateXP(metrics) {
     skillMastered: metrics.skillsMastered * XP_VALUES.skillMastered,
     masteryTestPassed: metrics.masteryTestsPassed * XP_VALUES.masteryTestPassed,
     dailyStreakMaintained: metrics.streak * XP_VALUES.dailyStreakMaintained,
+    perfectSession: (metrics.perfectSessions || 0) * XP_VALUES.perfectSession,
+    accuracyImproved: (metrics.accuracyImprovedSessions || 0) * XP_VALUES.accuracyImproved,
+    rePractice: (metrics.rePracticeSessions || 0) * XP_VALUES.rePractice,
+    rePracticeImproved: (metrics.rePracticeImprovedSessions || 0) * XP_VALUES.rePracticeImproved,
   };
   return {
     totalXP: Object.values(sourceTotals).reduce((sum, value) => sum + value, 0),
