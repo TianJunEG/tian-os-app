@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Wrench, Dumbbell, ChevronRight, PartyPopper } from 'lucide-react';
+import { Wrench, Dumbbell, ChevronRight, PartyPopper, Trash2 } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { Card, Button, Badge, PageHeader, Spinner, EmptyState, ErrorState } from '../../../components/ui';
 import { MathText } from '../../../components/ui/Fraction';
@@ -36,6 +36,21 @@ export default function MistakesHome() {
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState(null);
   const [fallbackMessage, setFallbackMessage] = useState('');
+  const [removingId, setRemovingId] = useState(null);
+
+  // Remove a mistake that was logged by error (e.g. a correct answer marked
+  // wrong). Hard delete on the server; drop it from the list optimistically.
+  const removeMistake = async (e, id) => {
+    e.stopPropagation();
+    if (typeof window !== 'undefined' && !window.confirm('Remove this from the review? Use this only if it was logged by mistake (e.g. your answer was actually correct). This can’t be undone.')) return;
+    setRemovingId(id);
+    try {
+      await mathpathAPI.deleteMistake(id);
+      setData((d) => ({ ...d, mistakes: (d?.mistakes || []).filter((m) => m.id !== id) }));
+    } catch (err) {
+      setError(err.response?.data?.error || 'Could not remove the mistake. Please try again.');
+    } finally { setRemovingId(null); }
+  };
 
   const load = useCallback(async () => {
     try {
@@ -210,7 +225,20 @@ export default function MistakesHome() {
                       </p>
                     </div>
                   </div>
-                  <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-ink-300" />
+                  <div className="flex shrink-0 flex-col items-center gap-2">
+                    <ChevronRight className="mt-1 h-4 w-4 text-ink-300" />
+                    <button
+                      type="button"
+                      title="Remove — logged by mistake"
+                      aria-label="Remove this mistake"
+                      disabled={removingId === m.id}
+                      onClick={(e) => removeMistake(e, m.id)}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      className="grid h-7 w-7 place-items-center rounded-lg text-ink-300 transition hover:bg-error-100 hover:text-error-700 disabled:opacity-40"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               </Card>
             ))}

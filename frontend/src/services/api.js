@@ -327,6 +327,7 @@ export const mathpathAPI = {
   completeFluencySession: (data) => api.post('/fluency/session/complete', data),
   mistakes: (params) => api.get('/mistakes', { params }),
   mistake: (id) => api.get(`/mistakes/${id}`),
+  deleteMistake: (id) => api.delete(`/mistakes/${id}`),
   recordMistakes: (mistakes) => api.post('/mistakes/bulk', { mistakes }),
   reviewMistake: (id, data) => api.post(`/mistakes/${id}/review`, data),
   updateMistakeLearning: (id, data) => api.patch(`/mistakes/${id}/learning`, data),
