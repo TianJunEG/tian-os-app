@@ -402,12 +402,15 @@ function cuboid(spec) {
 }
 
 function angleOnLine(spec) {
-  const { angleDegrees } = spec.data;
+  const { angleDegrees, showValue = true, label = 'x' } = spec.data;
+  // "Measure the angle" questions hide the value and show a label (e.g. x) so the
+  // student reads the angle off the figure instead of being handed the answer.
+  const tag = showValue ? `${angleDegrees}°` : label;
   const w = spec.width; const h = spec.height; const cx = w / 2; const cy = h / 2 + 30; const r = Math.min(w, h) * 0.28;
   const rad = (Math.PI * angleDegrees) / 180;
   const x2 = cx + r * Math.cos(Math.PI - rad); const y2 = cy - r * Math.sin(Math.PI - rad);
   if (REDUCE_MOTION) {
-    const body = `<line x1="${cx - r}" y1="${cy}" x2="${cx + r}" y2="${cy}" stroke="#111" stroke-width="2"/><line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="#1d4ed8" stroke-width="2"/><path d="M ${cx - 40} ${cy} A 40 40 0 0 1 ${cx - 40 * Math.cos(rad)} ${cy - 40 * Math.sin(rad)}" fill="none" stroke="#111"/><text x="${cx - 24}" y="${cy - 16}" font-size="14">${angleDegrees}°</text>`;
+    const body = `<line x1="${cx - r}" y1="${cy}" x2="${cx + r}" y2="${cy}" stroke="#111" stroke-width="2"/><line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="#1d4ed8" stroke-width="2"/><path d="M ${cx - 40} ${cy} A 40 40 0 0 1 ${cx - 40 * Math.cos(rad)} ${cy - 40 * Math.sin(rad)}" fill="none" stroke="#111"/><text x="${cx - 24}" y="${cy - 16}" font-size="14">${tag}</text>`;
     return svgShell(spec, body, 'angle on line');
   }
   const baseLen = 2 * r;
@@ -417,7 +420,7 @@ function angleOnLine(spec) {
   body += `<line x1="${cx - r}" y1="${cy}" x2="${cx + r}" y2="${cy}" stroke="#111" stroke-width="2" stroke-dasharray="${baseLen}" stroke-dashoffset="${baseLen}"><animate attributeName="stroke-dashoffset" from="${baseLen}" to="0" dur="0.3s" fill="freeze"/></line>`;
   body += `<line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="#1d4ed8" stroke-width="2" stroke-dasharray="${armLen}" stroke-dashoffset="${armLen}"><animate attributeName="stroke-dashoffset" from="${armLen}" to="0" dur="0.3s" begin="0.3s" fill="freeze"/></line>`;
   body += `<path d="M ${cx - 40} ${cy} A 40 40 0 0 1 ${cx - 40 * Math.cos(rad)} ${cy - 40 * Math.sin(rad)}" fill="none" stroke="#111" stroke-dasharray="${arcLen}" stroke-dashoffset="${arcLen}"><animate attributeName="stroke-dashoffset" from="${arcLen}" to="0" dur="0.3s" begin="0.6s" fill="freeze"/></path>`;
-  body += `<text x="${cx - 24}" y="${cy - 16}" font-size="14" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.25s" begin="0.85s" fill="freeze"/>${angleDegrees}°</text>`;
+  body += `<text x="${cx - 24}" y="${cy - 16}" font-size="14" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.25s" begin="0.85s" fill="freeze"/>${tag}</text>`;
   return svgShell(spec, body, 'angle on line');
 }
 
@@ -435,31 +438,32 @@ function table(spec) {
 
 function barChart(spec) {
   const { bars = [] } = spec.data;
-  const w = spec.width; const h = spec.height; const x0 = 50; const y0 = h - 45; const cw = w - 90; const ch = h - 80;
-  const max = Math.max(...bars.map((b) => Number(b.value || 0)), 1);
-  const bw = cw / bars.length;
-  if (REDUCE_MOTION) {
-    let body = `<line x1="${x0}" y1="${y0}" x2="${w - 20}" y2="${y0}" stroke="#111"/><line x1="${x0}" y1="${y0}" x2="${x0}" y2="20" stroke="#111"/>`;
-    bars.forEach((b, i) => {
-      const bh = (Number(b.value || 0) / max) * ch;
-      const bx = x0 + i * bw + 8;
-      body += `<rect x="${bx}" y="${y0 - bh}" width="${bw - 16}" height="${bh}" fill="#93c5fd" stroke="#111"/><text x="${bx + (bw - 16) / 2}" y="${y0 + 16}" text-anchor="middle" font-size="12">${esc(b.label || '')}</text>`;
-    });
-    return svgShell(spec, body, 'bar chart');
-  }
-  const xAxisLen = w - 20 - x0;
-  const yAxisLen = y0 - 20;
+  const w = spec.width; const h = spec.height;
+  const x0 = 44; const y0 = h - 44; const cw = w - x0 - 20; const ch = y0 - 30;
+  const maxVal = Math.max(...bars.map((b) => Number(b.value || 0)), 1);
+  // An even, fully-ruled y-axis so the student READS each bar off the gridlines.
+  // Values are deliberately NOT printed above the bars — reading the scale is
+  // the skill the question tests.
+  const interval = maxVal <= 12 ? 1 : maxVal <= 30 ? 2 : maxVal <= 60 ? 5 : maxVal <= 150 ? 10 : 20;
+  const niceMax = (Math.ceil(maxVal / interval) * interval) || interval;
+  const bw = cw / Math.max(1, bars.length);
   let body = '';
-  body += `<line x1="${x0}" y1="${y0}" x2="${w - 20}" y2="${y0}" stroke="#111" stroke-dasharray="${xAxisLen}" stroke-dashoffset="${xAxisLen}"><animate attributeName="stroke-dashoffset" from="${xAxisLen}" to="0" dur="0.3s" fill="freeze"/></line>`;
-  body += `<line x1="${x0}" y1="${y0}" x2="${x0}" y2="20" stroke="#111" stroke-dasharray="${yAxisLen}" stroke-dashoffset="${yAxisLen}"><animate attributeName="stroke-dashoffset" from="${yAxisLen}" to="0" dur="0.3s" fill="freeze"/></line>`;
-  const perBar = Math.min(0.18, 1.0 / (bars.length || 1));
+  // Horizontal gridlines + a label at EVERY interval (including 0).
+  for (let v = 0; v <= niceMax + 1e-6; v += interval) {
+    const gy = y0 - (ch * v) / niceMax;
+    body += `<line x1="${x0}" y1="${gy}" x2="${w - 16}" y2="${gy}" stroke="${v === 0 ? '#111' : '#e2e8f0'}"${v === 0 ? ' stroke-width="1.5"' : ''}/>`;
+    body += `<text x="${x0 - 6}" y="${gy + 4}" text-anchor="end" font-size="11" fill="#64748b">${v}</text>`;
+  }
+  // y-axis line
+  body += `<line x1="${x0}" y1="${y0}" x2="${x0}" y2="${y0 - ch}" stroke="#111" stroke-width="1.5"/>`;
+  // Bars + category labels only (no value labels — read them from the scale).
   bars.forEach((b, i) => {
-    const bh = (Number(b.value || 0) / max) * ch;
-    const bx = x0 + i * bw + 8;
-    const delay = (0.3 + i * perBar).toFixed(2);
-    const labelDelay = (0.3 + i * perBar + 0.2).toFixed(2);
-    body += `<rect x="${bx}" y="${y0}" width="${bw - 16}" height="0" fill="#93c5fd" stroke="#111"><animate attributeName="height" from="0" to="${bh}" dur="0.3s" begin="${delay}s" fill="freeze"/><animate attributeName="y" from="${y0}" to="${y0 - bh}" dur="0.3s" begin="${delay}s" fill="freeze"/></rect>`;
-    body += `<text x="${bx + (bw - 16) / 2}" y="${y0 + 16}" text-anchor="middle" font-size="12" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.2s" begin="${labelDelay}s" fill="freeze"/>${esc(b.label || '')}</text>`;
+    const v = Number(b.value || 0);
+    const bh = (v / niceMax) * ch;
+    const bx = x0 + i * bw + 10;
+    const bWidth = Math.max(8, bw - 20);
+    body += `<rect x="${bx}" y="${y0 - bh}" width="${bWidth}" height="${bh}" fill="#93c5fd" stroke="#2563eb"/>`;
+    body += `<text x="${bx + bWidth / 2}" y="${y0 + 18}" text-anchor="middle" font-size="12" fill="#475569">${esc(b.label || '')}</text>`;
   });
   return svgShell(spec, body, 'bar chart');
 }
@@ -594,6 +598,228 @@ function partialCircle(spec, kind) {
 function semicircle(spec) { return partialCircle(spec, 'semicircle'); }
 function quarterCircle(spec) { return partialCircle(spec, 'quarter_circle'); }
 
+// L-shaped (rectilinear) figure. data: { overallW, overallH, notchW, notchH }.
+// The notch is removed from the TOP-RIGHT corner, giving the classic L. Each
+// edge is labelled with its length so area/perimeter is solvable from the figure.
+function lShape(spec) {
+  const { overallW, overallH, notchW, notchH } = spec.data;
+  const w = spec.width; const h = spec.height;
+  // Fit the figure into the drawing box with padding; scale by the larger dim.
+  const pad = 60; const maxW = w - pad * 2; const maxH = h - pad * 2;
+  const s = Math.min(maxW / overallW, maxH / overallH);
+  const ox = (w - overallW * s) / 2; const oy = (h - overallH * s) / 2;
+  const X = (u) => ox + u * s; const Y = (u) => oy + u * s;
+  const pts = [
+    [0, 0], [overallW - notchW, 0], [overallW - notchW, notchH],
+    [overallW, notchH], [overallW, overallH], [0, overallH],
+  ].map(([u, v]) => `${X(u)},${Y(v)}`).join(' ');
+  let body = `<polygon points="${pts}" fill="#eff6ff" stroke="#111" stroke-width="2"/>`;
+  // All labels sit OUTSIDE the figure (above/below/left/right of the edges, or
+  // in the empty notch cut-out), never on top of an edge stroke.
+  const txt = (px, py, t, anchor = 'middle') => `<text x="${px}" y="${py}" text-anchor="${anchor}" font-size="13" fill="#1e293b">${t} cm</text>`;
+  body += txt(X((overallW - notchW) / 2), Y(0) - 9, overallW - notchW);                       // top — above
+  body += txt(X(0) - 10, Y(overallH / 2) + 4, overallH, 'end');                                // left — outside left
+  body += txt(X(overallW / 2), Y(overallH) + 22, overallW, 'middle');                          // bottom — below
+  body += txt(X(overallW) + 10, Y((notchH + overallH) / 2) + 4, overallH - notchH, 'start');   // right — outside right
+  body += txt(X(overallW - notchW) + 8, Y(notchH / 2) + 4, notchH, 'start');                   // notch vertical — in cut-out
+  body += txt(X((overallW - notchW + overallW) / 2), Y(notchH) - 7, notchW);                   // notch horizontal — in cut-out
+  return svgShell(spec, body, 'L-shaped figure');
+}
+
+// Parallelogram. data: { base, height, slant }. Drawn with the perpendicular
+// height as a dashed line so "area = base × height" is clear.
+function parallelogram(spec) {
+  const { base, height, slant } = spec.data;
+  const w = spec.width; const h = spec.height;
+  const pad = 70; const slantShift = Math.min(slant, base) * 0.5;
+  const spanW = base + slantShift; const spanH = height;
+  const s = Math.min((w - pad * 2) / spanW, (h - pad * 2) / spanH);
+  const ox = (w - spanW * s) / 2; const oy = (h - spanH * s) / 2;
+  const X = (u) => ox + u * s; const Y = (u) => oy + u * s;
+  // bottom-left, bottom-right, top-right, top-left
+  const bl = [0, height]; const br = [base, height];
+  const tr = [base + slantShift, 0]; const tl = [slantShift, 0];
+  const pts = [bl, br, tr, tl].map(([u, v]) => `${X(u)},${Y(v)}`).join(' ');
+  let body = `<polygon points="${pts}" fill="#eff6ff" stroke="#111" stroke-width="2"/>`;
+  // Perpendicular height (dashed) from top-left down to the base line.
+  body += `<line x1="${X(tl[0])}" y1="${Y(0)}" x2="${X(tl[0])}" y2="${Y(height)}" stroke="#1d4ed8" stroke-dasharray="5 4" stroke-width="1.5"/>`;
+  // base label below the figure; height label outside to the LEFT of the figure.
+  body += `<text x="${X(base / 2)}" y="${Y(height) + 22}" text-anchor="middle" font-size="13" fill="#1e293b">base ${base} cm</text>`;
+  body += `<text x="${X(0) - 10}" y="${Y(height / 2) + 4}" text-anchor="end" font-size="13" fill="#1d4ed8">height ${height} cm</text>`;
+  return svgShell(spec, body, 'parallelogram');
+}
+
+// Trapezium. data: { a (top parallel side), b (bottom parallel side), height }.
+// Isosceles layout with the top centred over the bottom; dashed height line.
+function trapezium(spec) {
+  const { a, b, height } = spec.data;
+  const w = spec.width; const h = spec.height;
+  const pad = 70; const span = Math.max(a, b);
+  const s = Math.min((w - pad * 2) / span, (h - pad * 2) / height);
+  const ox = (w - b * s) / 2; const oy = (h - height * s) / 2;
+  const X = (u) => ox + u * s; const Y = (u) => oy + u * s;
+  const inset = (b - a) / 2;
+  // bottom-left, bottom-right, top-right, top-left
+  const pts = [[0, height], [b, height], [inset + a, 0], [inset, 0]]
+    .map(([u, v]) => `${X(u)},${Y(v)}`).join(' ');
+  let body = `<polygon points="${pts}" fill="#eff6ff" stroke="#111" stroke-width="2"/>`;
+  body += `<line x1="${X(inset)}" y1="${Y(0)}" x2="${X(inset)}" y2="${Y(height)}" stroke="#1d4ed8" stroke-dasharray="5 4" stroke-width="1.5"/>`;
+  // top side above, bottom side below, height outside to the LEFT.
+  body += `<text x="${X(inset + a / 2)}" y="${Y(0) - 9}" text-anchor="middle" font-size="13" fill="#1e293b">${a} cm</text>`;
+  body += `<text x="${X(b / 2)}" y="${Y(height) + 22}" text-anchor="middle" font-size="13" fill="#1e293b">${b} cm</text>`;
+  body += `<text x="${X(0) - 10}" y="${Y(height / 2) + 4}" text-anchor="end" font-size="13" fill="#1d4ed8">h ${height} cm</text>`;
+  return svgShell(spec, body, 'trapezium');
+}
+
+// Analogue clock face. data: { hour, minute }. Numbers 1–12, hour ticks, and
+// hour + minute hands pointing to the time so "what time does the clock show?"
+// is actually readable.
+function clockFace(spec) {
+  const { hour = 12, minute = 0 } = spec.data;
+  const w = spec.width; const h = spec.height;
+  const cx = w / 2; const cy = h / 2; const r = Math.min(w, h) / 2 - 26;
+  let body = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#fff" stroke="#111" stroke-width="3"/>`;
+  for (let i = 1; i <= 12; i += 1) {
+    const a = (i / 12) * 2 * Math.PI - Math.PI / 2;
+    const x1 = cx + Math.cos(a) * (r - 7); const y1 = cy + Math.sin(a) * (r - 7);
+    const x2 = cx + Math.cos(a) * r; const y2 = cy + Math.sin(a) * r;
+    body += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#111" stroke-width="${i % 3 === 0 ? 3 : 1.5}"/>`;
+    const nx = cx + Math.cos(a) * (r - 24); const ny = cy + Math.sin(a) * (r - 24) + 6;
+    body += `<text x="${nx}" y="${ny}" text-anchor="middle" font-size="17" font-weight="600" fill="#1e293b">${i}</text>`;
+  }
+  const minA = (minute / 60) * 2 * Math.PI - Math.PI / 2;
+  const hrA = (((hour % 12) + minute / 60) / 12) * 2 * Math.PI - Math.PI / 2;
+  body += `<line x1="${cx}" y1="${cy}" x2="${cx + Math.cos(hrA) * r * 0.52}" y2="${cy + Math.sin(hrA) * r * 0.52}" stroke="#111" stroke-width="5" stroke-linecap="round"/>`;
+  body += `<line x1="${cx}" y1="${cy}" x2="${cx + Math.cos(minA) * r * 0.8}" y2="${cy + Math.sin(minA) * r * 0.8}" stroke="#1d4ed8" stroke-width="3" stroke-linecap="round"/>`;
+  body += `<circle cx="${cx}" cy="${cy}" r="5" fill="#111"/>`;
+  return svgShell(spec, body, `clock showing ${hour}:${String(minute).padStart(2, '0')}`);
+}
+
+// Linear measuring scale (weighing scale / gauge). data:
+// { start, interval, marks, unit }. Evenly-spaced ticks labelled in the unit,
+// with a red pointer at the `marks`-th tick past start so the student reads it.
+function measuringScale(spec) {
+  const { start = 0, interval = 10, marks = 1, unit = 'g' } = spec.data;
+  const w = spec.width; const h = spec.height;
+  const pad = 46; const trackY = h - 64; const x0 = pad; const x1 = w - pad;
+  const totalTicks = Math.max(Number(marks) + 4, 6);
+  const step = (x1 - x0) / totalTicks;
+  let body = `<line x1="${x0}" y1="${trackY}" x2="${x1}" y2="${trackY}" stroke="#111" stroke-width="2"/>`;
+  for (let i = 0; i <= totalTicks; i += 1) {
+    const x = x0 + i * step;
+    body += `<line x1="${x}" y1="${trackY}" x2="${x}" y2="${trackY - 14}" stroke="#111" stroke-width="1.5"/>`;
+    body += `<text x="${x}" y="${trackY + 22}" text-anchor="middle" font-size="12" fill="#475569">${start + i * interval}</text>`;
+  }
+  const px = x0 + Number(marks) * step;
+  body += `<polygon points="${px - 9},${trackY - 38} ${px + 9},${trackY - 38} ${px},${trackY - 17}" fill="#dc2626"/>`;
+  body += `<text x="${w / 2}" y="24" text-anchor="middle" font-size="13" fill="#1e293b">Each mark = ${interval} ${unit}</text>`;
+  return svgShell(spec, body, 'measuring scale');
+}
+
+// Picture graph (pictograph). data: { keyValue, unit, rows:[[label, count]…] }.
+// Each row draws `count` symbols; the key states what one symbol is worth.
+// Uses a filled circle (renders consistently across browsers, unlike emoji).
+function pictograph(spec) {
+  const { keyValue = 1, unit = '', rows = [] } = spec.data;
+  const w = spec.width;
+  const labelW = 96; const x0 = labelW + 16; const rowH = 34; const top = 50;
+  const maxCount = Math.max(1, ...rows.map(([, c]) => Number(c) || 0));
+  const symStep = Math.min(24, (w - x0 - 16) / maxCount);
+  let body = `<text x="16" y="26" font-size="13" fill="#1e293b">Key: each ● = ${keyValue}${unit ? ` ${unit}` : ''}</text>`;
+  rows.forEach(([label, count], i) => {
+    const y = top + i * rowH;
+    body += `<text x="16" y="${y + 5}" font-size="13" fill="#475569">${label}</text>`;
+    for (let s = 0; s < (Number(count) || 0); s += 1) {
+      body += `<circle cx="${x0 + s * symStep + symStep / 2}" cy="${y}" r="${Math.min(8, symStep / 2 - 2)}" fill="#2563eb"/>`;
+    }
+  });
+  return svgShell(spec, body, 'picture graph');
+}
+
+// Plain dimension rectangle for perimeter/area questions stated in real units
+// (cm/m) — NO unit grid (the grid implies "count the squares", wrong for a
+// formula question and misleading when the side is e.g. 15 cm). data:
+// { l, w, unit }. Length labelled below, width labelled on the left.
+function rectangleDim(spec) {
+  const { l = 1, w: ww = 1, unit = 'cm' } = spec.data;
+  const W = spec.width; const H = spec.height; const pad = 64;
+  const big = Math.max(l, ww) || 1;
+  const s = Math.min((W - pad * 2) / big, (H - pad * 2) / big);
+  const rw = Math.max(20, l * s); const rh = Math.max(20, ww * s);
+  const x = (W - rw) / 2; const y = (H - rh) / 2;
+  let body = `<rect x="${x}" y="${y}" width="${rw}" height="${rh}" fill="#eff6ff" stroke="#111" stroke-width="2"/>`;
+  body += `<text x="${x + rw / 2}" y="${y + rh + 24}" text-anchor="middle" font-size="14" fill="#1e293b">${l} ${unit}</text>`;
+  body += `<text x="${x - 12}" y="${y + rh / 2 + 4}" text-anchor="end" font-size="14" fill="#1e293b">${ww} ${unit}</text>`;
+  return svgShell(spec, body, `rectangle ${l} by ${ww} ${unit}`);
+}
+
+// Unfolded cuboid net (cross). data: { l, w, h, unit }. Vertical strip of
+// top/front/bottom/back with the two side faces flanking the front, so a
+// student can see the 6 faces and read the dimensions to find the volume.
+function cuboidNet(spec) {
+  const { l = 2, w: ww = 2, h = 2, unit = 'cm' } = spec.data;
+  const W = spec.width; const H = spec.height; const pad = 30;
+  const spanW = ww + l + ww; const spanH = ww + h + ww + h;
+  const s = Math.min((W - pad * 2) / spanW, (H - pad * 2) / spanH);
+  const ox = (W - spanW * s) / 2; const oy = (H - spanH * s) / 2;
+  const fx = ox + ww * s; const fy = oy + ww * s;       // front face origin
+  const face = (x, y, fw, fh) => `<rect x="${x}" y="${y}" width="${fw}" height="${fh}" fill="#eff6ff" stroke="#111" stroke-width="1.5"/>`;
+  let body = '';
+  body += face(fx, fy - ww * s, l * s, ww * s);          // top
+  body += face(fx, fy, l * s, h * s);                    // front
+  body += face(fx, fy + h * s, l * s, ww * s);           // bottom
+  body += face(fx, fy + h * s + ww * s, l * s, h * s);   // back
+  body += face(fx - ww * s, fy, ww * s, h * s);          // left
+  body += face(fx + l * s, fy, ww * s, h * s);           // right
+  // label the three dimensions on the front face
+  body += `<text x="${fx + l * s / 2}" y="${fy + h * s / 2}" text-anchor="middle" font-size="12" fill="#1e293b">${l} ${unit}</text>`;
+  body += `<text x="${fx - 6}" y="${fy + h * s / 2 + 14}" text-anchor="end" font-size="12" fill="#1e293b">${h} ${unit}</text>`;
+  body += `<text x="${fx + l * s / 2}" y="${fy - ww * s / 2}" text-anchor="middle" font-size="12" fill="#475569">${ww} ${unit}</text>`;
+  return svgShell(spec, body, `net of a cuboid ${l} by ${ww} by ${h} ${unit}`);
+}
+
+// Pie chart. data: { sectors: [[label, value]…] }. Values are summed to whole.
+function pieChart(spec) {
+  const { sectors = [] } = spec.data;
+  const W = spec.width; const H = spec.height;
+  const cx = W * 0.36; const cy = H / 2; const r = Math.min(W * 0.36, H / 2) - 16;
+  const total = sectors.reduce((sum, [, v]) => sum + Number(v || 0), 0) || 1;
+  const COLORS = ['#60a5fa', '#f87171', '#34d399', '#fbbf24', '#a78bfa', '#fb923c'];
+  let a0 = -Math.PI / 2; let body = ''; let legendY = cy - sectors.length * 11;
+  sectors.forEach(([label, value], i) => {
+    const frac = Number(value || 0) / total;
+    const a1 = a0 + frac * 2 * Math.PI;
+    const x1 = cx + r * Math.cos(a0); const y1 = cy + r * Math.sin(a0);
+    const x2 = cx + r * Math.cos(a1); const y2 = cy + r * Math.sin(a1);
+    const large = frac > 0.5 ? 1 : 0;
+    const fill = COLORS[i % COLORS.length];
+    body += frac >= 0.999
+      ? `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="#fff" stroke-width="2"/>`
+      : `<path d="M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z" fill="${fill}" stroke="#fff" stroke-width="2"/>`;
+    const lx = W * 0.74; const ly = legendY + i * 22;
+    body += `<rect x="${lx}" y="${ly - 10}" width="13" height="13" fill="${fill}"/>`;
+    body += `<text x="${lx + 19}" y="${ly + 1}" font-size="13" fill="#1e293b">${esc(String(label))} (${Math.round(frac * 100)}%)</text>`;
+    a0 = a1;
+  });
+  return svgShell(spec, body, 'pie chart');
+}
+
+// Regular polygon. data: { sides }. Draws an n-sided regular polygon.
+function regularPolygon(spec) {
+  const { sides = 3 } = spec.data;
+  const n = Math.max(3, Number(sides) || 3);
+  const W = spec.width; const H = spec.height;
+  const cx = W / 2; const cy = H / 2 + 6; const r = Math.min(W, H) / 2 - 30;
+  const pts = [];
+  for (let i = 0; i < n; i += 1) {
+    const a = (i / n) * 2 * Math.PI - Math.PI / 2;
+    pts.push(`${cx + r * Math.cos(a)},${cy + r * Math.sin(a)}`);
+  }
+  let body = `<polygon points="${pts.join(' ')}" fill="#eff6ff" stroke="#111" stroke-width="2"/>`;
+  body += `<text x="${cx}" y="${H - 12}" text-anchor="middle" font-size="13" fill="#475569">${n} sides</text>`;
+  return svgShell(spec, body, `${n}-sided polygon`);
+}
+
 export const renderers = {
   ...sharedRenderers,
   circle,
@@ -610,6 +836,16 @@ export const renderers = {
   ratio_bar: ratioBar,
   rectangle_area: rectangleArea,
   triangle_area: triangleArea,
+  l_shape: lShape,
+  parallelogram,
+  trapezium,
+  clock_face: clockFace,
+  measuring_scale: measuringScale,
+  pictograph,
+  rectangle_dim: rectangleDim,
+  cuboid_net: cuboidNet,
+  pie_chart: pieChart,
+  regular_polygon: regularPolygon,
   cuboid: cuboid,
   angle_on_line: angleOnLine,
   table,

@@ -1,11 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { MathText } from '../../../components/ui/Fraction';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, Sparkles, Volume2, X } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Pencil, Sparkles, Volume2, X } from 'lucide-react';
+import ScratchpadOverlay from '../../../components/learning/ScratchpadOverlay';
 import { diagnosticsAPI } from '../../../services/api';
 import { Alert, Badge, Button, Card, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
 import { MascotBubble } from '../../../components/MascotAvatar';
 import { useAuth } from '../../../context/AuthContext';
 import ManipulativeDotArray, { parseDotStem, numericLine, toSpeakable, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram } from '../../../components/learning/ManipulativeDotArray';
+import QuestionDiagram, { canRenderQuestionDiagram } from './components/QuestionDiagram';
 import { speak, setVoiceEnabled } from '../../../utils/sound';
 import { getMascotVoice } from '../../../config/mascots';
 
@@ -36,6 +39,7 @@ const DOMAIN_CONFIG = {
   money: { domainId: 'money', label: 'Money' },
   time: { domainId: 'time', label: 'Time' },
   statistics: { domainId: 'statistics', label: 'Statistics' },
+  'early-numeracy': { domainId: 'early_numeracy', label: 'Numeracy' },
 };
 
 function resolveDomain(segment) {
@@ -45,6 +49,24 @@ function resolveDomain(segment) {
   const domainId = key.replace(/-/g, '_');
   const label = key.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
   return { segment: key, domainId, label };
+}
+
+// Question prompt + read-aloud button. Shared by every manipulative renderer
+// (count / compare / pattern) so the markup stays consistent.
+function PromptRow({ prompt, isLowerPrimary }) {
+  return (
+    <div className="flex items-center gap-2">
+      <p className={isLowerPrimary ? 'text-xl font-bold text-ink-900' : 'text-lg font-semibold text-ink-900 whitespace-pre-wrap'}><MathText text={prompt} /></p>
+      <button
+        type="button"
+        aria-label="Read question"
+        onClick={() => speak(toSpeakable(prompt), { rate: 0.8, gender: 'female' })}
+        className="rounded-full p-1 text-ink-400 hover:text-emerald active:scale-90"
+      >
+        <Volume2 className="h-5 w-5" />
+      </button>
+    </div>
+  );
 }
 
 export function summariseDiagnosticResult(result = {}) {
@@ -89,6 +111,13 @@ export default function DomainDiagnosticSession() {
   const [question, setQuestion] = useState(null);
   const [progress, setProgress] = useState({ answeredCount: 0, estimatedQuestionCount: 8 });
   const [draft, setDraft] = useState('');
+  // Scratchpad overlay: a transparent ink layer over the diagnostic UI so the
+  // student can write anywhere on screen while the question stays visible
+  // underneath. Per-question store keeps strokes when they close/reopen, but
+  // working is OPTIONAL and never submitted to the server — pure thinking
+  // space for multi-step problems (volume, money, …).
+  const [scratchpadOpen, setScratchpadOpen] = useState(false);
+  const [strokesByQuestion, setStrokesByQuestion] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [encouragement, setEncouragement] = useState('');
@@ -155,6 +184,7 @@ export default function DomainDiagnosticSession() {
         setProgress(data.progress || progress);
         setEncouragement(data.supportiveCopy || '');
         setDraft('');
+        setScratchpadOpen(false);
         startedAt.current = Date.now();
       }
     } catch (e) {
@@ -279,12 +309,75 @@ export default function DomainDiagnosticSession() {
           const moneyData = domain.segment === 'money' ? parseMoneyPrompt(prompt) : null;
           // Prefer the GENERATED coin/note diagram over fragile prompt parsing.
           const coinTokens = domain.segment === 'money' ? parseCoinsDiagram(question) : null;
+          // Early-numeracy "Count them. How many?" emits diagram:{kind:'count',
+          // emoji, count}. The diagnostic had no renderer for it, so the
+          // student saw the question with nothing to count. Render the emoji
+          // N times in a friendly grid.
+          const countDiagram = question?.diagram?.kind === 'count' ? question.diagram : null;
+          if (countDiagram) {
+            const items = Array.from({ length: Number(countDiagram.count) || 0 });
+            return (
+              <>
+                <div className="mb-4 flex flex-wrap justify-center gap-3 rounded-2xl bg-emerald-tint/40 p-5" aria-label={`${items.length} ${countDiagram.emoji || 'objects'} to count`}>
+                  {items.map((_, i) => (
+                    <span key={i} className="text-5xl leading-none" role="img" aria-hidden="true">{countDiagram.emoji || '⬤'}</span>
+                  ))}
+                </div>
+                <PromptRow prompt={prompt} isLowerPrimary={isLowerPrimary} />
+              </>
+            );
+          }
+          // Early-numeracy "More, fewer or the same?" emits diagram:{kind:'compare',
+          // left:{emoji,count}, right:{emoji,count}} — two groups to compare.
+          const compareDiagram = question?.diagram?.kind === 'compare' ? question.diagram : null;
+          if (compareDiagram) {
+            const group = (g, label) => (
+              <div className="flex flex-col items-center gap-2 rounded-2xl bg-white/70 p-4">
+                <div className="flex flex-wrap justify-center gap-2" aria-label={`${g?.count || 0} ${g?.emoji || 'objects'}`}>
+                  {Array.from({ length: Number(g?.count) || 0 }).map((_, i) => (
+                    <span key={i} className="text-4xl leading-none" role="img" aria-hidden="true">{g?.emoji || '⬤'}</span>
+                  ))}
+                </div>
+                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-400">{label}</span>
+              </div>
+            );
+            return (
+              <>
+                <div className="mb-4 grid grid-cols-2 items-center gap-4 rounded-2xl bg-emerald-tint/40 p-5">
+                  {group(compareDiagram.left, 'Group A')}
+                  {group(compareDiagram.right, 'Group B')}
+                </div>
+                <PromptRow prompt={prompt} isLowerPrimary={isLowerPrimary} />
+              </>
+            );
+          }
+          // Early-numeracy "What comes next? / What's missing?" emits
+          // diagram:{kind:'pattern', items:[...], missingIndex}. Render the
+          // sequence with a highlighted "?" box at the missing position.
+          const patternDiagram = question?.diagram?.kind === 'pattern' ? question.diagram : null;
+          if (patternDiagram) {
+            const items = Array.isArray(patternDiagram.items) ? patternDiagram.items : [];
+            return (
+              <>
+                <div className="mb-4 flex flex-wrap items-center justify-center gap-3 rounded-2xl bg-emerald-tint/40 p-5" aria-label="Pattern sequence">
+                  {items.map((item, i) => (
+                    item == null || i === patternDiagram.missingIndex ? (
+                      <span key={i} className="grid h-14 w-14 place-items-center rounded-xl border-2 border-dashed border-emerald text-3xl font-bold text-emerald-deep">?</span>
+                    ) : (
+                      <span key={i} className="text-4xl leading-none" role="img" aria-hidden="true">{item}</span>
+                    )
+                  ))}
+                </div>
+                <PromptRow prompt={prompt} isLowerPrimary={isLowerPrimary} />
+              </>
+            );
+          }
           if (coinTokens) {
             return (
               <>
                 <ManipulativeMoneyDiagram key={question?.questionId} tokens={coinTokens} />
                 <div className="flex items-center gap-2">
-                  <p className={isLowerPrimary ? 'text-xl font-bold text-ink-900' : 'text-lg font-semibold text-ink-900 whitespace-pre-wrap'}>{prompt}</p>
+                  <p className={isLowerPrimary ? 'text-xl font-bold text-ink-900' : 'text-lg font-semibold text-ink-900 whitespace-pre-wrap'}><MathText text={prompt} /></p>
                   <button
                     type="button"
                     aria-label="Read question"
@@ -307,7 +400,7 @@ export default function DomainDiagnosticSession() {
                   operator={moneyData.operator}
                 />
                 <div className="flex items-center gap-2">
-                  <p className="text-xl font-bold text-ink-900">{prompt}</p>
+                  <p className="text-xl font-bold text-ink-900"><MathText text={prompt} /></p>
                   <button
                     type="button"
                     aria-label="Read question"
@@ -343,7 +436,17 @@ export default function DomainDiagnosticSession() {
               </>
             );
           }
-          return <p className="text-lg font-semibold text-ink-900 whitespace-pre-wrap">{prompt}</p>;
+          // Default: render the question's diagram (geometry, area, circle,
+          // bar/line graph, table…) when one can actually be drawn — for
+          // custom adapters that route through diagram-producing generators —
+          // then the prompt. Generic text-only diagnostics simply render the
+          // prompt (no diagram to draw).
+          return (
+            <>
+              {canRenderQuestionDiagram(question) && <QuestionDiagram question={question} />}
+              <PromptRow prompt={prompt} isLowerPrimary={isLowerPrimary} />
+            </>
+          );
         })()}
 
         {question?.type === 'mcq' && (question.choices || []).length > 0 ? (
@@ -392,6 +495,34 @@ export default function DomainDiagnosticSession() {
           />
         )}
       </Card>
+
+      {/* Optional scratchpad — a transparent ink layer over the page so the
+          student can write anywhere on screen while the question stays
+          visible underneath. */}
+      <button
+        type="button"
+        onClick={() => setScratchpadOpen(true)}
+        className="mt-3 flex w-full items-center gap-2 rounded-lg border border-dashed border-ink-200 px-3 py-2 text-xs font-medium text-ink-500 transition-colors hover:border-ink-300 hover:bg-ink-50 hover:text-ink-600"
+      >
+        <Pencil className="h-3.5 w-3.5" />
+        <span className="flex-1 text-left">Open scratchpad</span>
+        <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-ink-400">Optional</span>
+      </button>
+      <ScratchpadOverlay
+        open={scratchpadOpen}
+        initialStrokes={strokesByQuestion[question?.questionId] || []}
+        onChange={(next) => {
+          const qid = question?.questionId;
+          if (qid) setStrokesByQuestion((prev) => ({ ...prev, [qid]: next }));
+        }}
+        onClose={() => setScratchpadOpen(false)}
+        // Answer capture: type the answer right where you did the working.
+        // Two-way bound to the page's main draft state so closing the overlay
+        // leaves the typed value in the underlying "Type your answer" input.
+        answerValue={draft}
+        onAnswerChange={setDraft}
+        onSubmitAnswer={() => { setScratchpadOpen(false); submitAnswer(); }}
+      />
 
       {submitError && (
         <div className="flex items-start gap-2">

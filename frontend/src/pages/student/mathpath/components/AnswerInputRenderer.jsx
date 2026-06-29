@@ -138,6 +138,11 @@ function extractOrderingItems(question = {}) {
 
 function OrderingAnswerInput({ question, value, onChange, disabled, onEnter }) {
   const items = useMemo(() => extractOrderingItems(question), [question]);
+  // Detect if this is a FRACTION ordering question (items are fraction-shaped).
+  // extractOrderingItems already filters to /\d+\/\d+/ shapes, so any non-empty
+  // items array means fractions. Whole/decimal ordering keeps the plain input.
+  const isFractionOrdering = items.length > 0
+    && items.every((item) => /^\s*-?\d+(\s+\d+\s*\/\s*\d+|\s*\/\s*\d+)?\s*$/.test(item));
   const parts = String(value || '').split(',').map((item) => item.trim());
   const setPart = (index, nextValue) => {
     const next = Array.from({ length: Math.max(items.length, parts.length, index + 1) }, (_, i) => parts[i] || '');
@@ -148,20 +153,30 @@ function OrderingAnswerInput({ question, value, onChange, disabled, onEnter }) {
   return (
     <div className="rounded-xl border border-line-soft bg-white p-4">
       <p className="mb-3 text-sm font-semibold text-ink-700">Enter the order from smallest to largest.</p>
-      <div className="grid gap-2 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-3">
         {Array.from({ length: Math.max(2, items.length || 3) }, (_, index) => (
-          <label key={index} className="min-w-0">
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Position {index + 1}</span>
-            <input
-              value={parts[index] || ''}
-              onChange={(event) => setPart(index, event.target.value)}
-              disabled={disabled}
-              aria-label={`Your answer for position ${index + 1}`}
-              placeholder={items[index] ? 'Type here' : 'Fraction'}
-              className="h-12 w-full rounded-xl border border-line-soft px-3 text-center font-mono text-base text-ink-900 focus:border-emerald focus:outline-none focus:ring-2 focus:ring-emerald/20"
-              onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
-            />
-          </label>
+          <div key={index} className="min-w-0">
+            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Position {index + 1}</p>
+            {isFractionOrdering ? (
+              <FractionAnswerInput
+                value={parts[index] || ''}
+                onChange={(next) => setPart(index, next)}
+                disabled={disabled}
+                onEnter={onEnter}
+                allowWhole
+              />
+            ) : (
+              <input
+                value={parts[index] || ''}
+                onChange={(event) => setPart(index, event.target.value)}
+                disabled={disabled}
+                aria-label={`Your answer for position ${index + 1}`}
+                placeholder="Type here"
+                className="h-12 w-full rounded-xl border border-line-soft px-3 text-center font-mono text-base text-ink-900 focus:border-emerald focus:outline-none focus:ring-2 focus:ring-emerald/20"
+                onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
+              />
+            )}
+          </div>
         ))}
       </div>
     </div>
@@ -211,19 +226,28 @@ export default function AnswerInputRenderer({
         ? 'text'
         : 'decimal';
   const label = type === 'decimal' ? 'Decimal answer' : type === 'whole_number' ? 'Whole number answer' : type === 'expression' ? 'Expression answer' : 'Answer';
+  // A question's unit (e.g. "cm", "$", "min") is shown as a FIXED suffix so the
+  // student types only the value — the unit never becomes part of the typed
+  // answer (and so can't break marking). Currency-style units sit before the box.
+  const unit = type === 'expression' ? '' : String(question?.unit || '').trim();
+  const unitIsPrefix = /^(\$|s\$|rm|£|€)$/i.test(unit);
   return (
     <div className="block">
-      <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{label}</span>
-      <input
-        value={value}
-        onChange={(event) => onChange?.(event.target.value)}
-        disabled={disabled}
-        inputMode={inputMode}
-        aria-label={`Your answer${label === 'Answer' ? '' : ` (${label})`}`}
-        placeholder={question?.placeholder || (type === 'decimal' ? 'e.g. 0.25' : type === 'whole_number' ? 'e.g. 12' : 'Type your answer')}
-        className="w-full rounded-xl border border-line-soft px-4 py-3 font-mono text-lg text-ink-900 focus:border-emerald focus:outline-none focus:ring-2 focus:ring-emerald/20"
-        onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
-      />
+      <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{label}{unit ? ` (in ${unit})` : ''}</span>
+      <div className="relative flex items-center">
+        {unit && unitIsPrefix && <span className="pointer-events-none absolute left-4 text-lg font-semibold text-ink-400">{unit}</span>}
+        <input
+          value={value}
+          onChange={(event) => onChange?.(event.target.value)}
+          disabled={disabled}
+          inputMode={inputMode}
+          aria-label={`Your answer${unit ? ` in ${unit}` : ''}${label === 'Answer' ? '' : ` (${label})`}`}
+          placeholder={question?.placeholder || (type === 'decimal' ? 'e.g. 0.25' : type === 'whole_number' ? 'e.g. 12' : 'Type your answer')}
+          className={`w-full rounded-xl border border-line-soft py-3 font-mono text-lg text-ink-900 focus:border-emerald focus:outline-none focus:ring-2 focus:ring-emerald/20 ${unit && unitIsPrefix ? 'pl-10 pr-4' : unit ? 'pl-4 pr-14' : 'px-4'}`}
+          onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
+        />
+        {unit && !unitIsPrefix && <span className="pointer-events-none absolute right-4 text-lg font-semibold text-ink-400">{unit}</span>}
+      </div>
       {type === 'expression' && (
         <MathSymbolBar symbols={EXPRESSION_SYMBOLS} value={value} onChange={onChange} disabled={disabled} className="mt-3 justify-center" />
       )}

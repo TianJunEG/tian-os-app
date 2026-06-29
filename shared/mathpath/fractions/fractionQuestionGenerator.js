@@ -781,10 +781,13 @@ function templateForSkill(skillId, variant, ctx) {
       const a = seq(s, 2, 9);
       const b = distinctSeq(s + 5, 2, 9, a);
       const relation = a < b ? '>' : '<';
+      // Also accept the greater fraction as a valid answer — a student who reads
+      // the question as "which is greater?" and writes the larger value is right.
+      const greaterFrac = a < b ? `1/${a}` : `1/${b}`;
       return {
         prompt: `Write > or < to compare: 1/${a} and 1/${b}`,
         answer: { type: 'text', value: relation, display: relation },
-        acceptedAnswers: [relation],
+        acceptedAnswers: [relation, greaterFrac],
         solutionSteps: ['For unit fractions, smaller denominator means larger value.', `So the sign is "${relation}".`],
       };
     }
@@ -793,10 +796,11 @@ function templateForSkill(skillId, variant, ctx) {
       const a = seq(s + 1, 1, d - 1);
       const b = distinctSeq(s + 4, 1, d - 1, a);
       const greater = a > b ? '>' : '<';
+      const greaterFrac = a > b ? `${a}/${d}` : `${b}/${d}`;
       return {
         prompt: `Write > or < to compare: ${a}/${d} and ${b}/${d}`,
         answer: { type: 'text', value: greater, display: greater },
-        acceptedAnswers: [greater],
+        acceptedAnswers: [greater, greaterFrac],
         solutionSteps: ['Denominators are equal.', 'Compare numerators directly.', `The symbol is "${greater}".`],
       };
     }
@@ -846,10 +850,13 @@ function templateForSkill(skillId, variant, ctx) {
       const a = seq(s + 2, n + 1, 12);
       const b = distinctSeq(s + 5, n + 1, 12, a);
       const greater = a < b ? '>' : '<';
+      // Same-numerator: smaller denominator means larger fraction, so the
+      // greater fraction is n/min(a,b). Also accept it as a valid answer.
+      const greaterFrac = a < b ? `${n}/${a}` : `${n}/${b}`;
       return {
         prompt: `Write > or < to compare: ${n}/${a} and ${n}/${b}`,
         answer: { type: 'text', value: greater, display: greater },
-        acceptedAnswers: [greater],
+        acceptedAnswers: [greater, greaterFrac],
         solutionSteps: ['Numerators are equal.', 'Smaller denominator gives larger fraction.', `The symbol is "${greater}".`],
       };
     }
@@ -1230,13 +1237,23 @@ function templateForSkill(skillId, variant, ctx) {
         const d = seq(s, 2, 6); const w = seq(s + 2, 1, 3); const n = seq(s + 5, 1, d - 1);
         const impA = w * d + n;
         const impB = seq(s + 8, d + 1, d * 3);
-        const cmp = impA === impB ? '=' : (impA > impB ? '>' : '<');
         const mixedA = toMixed({ numerator: impA, denominator: d });
+        const mixedAStr = mixedStr(mixedA);
+        const impBStr = `${impB}/${d}`;
+        // Stem asks "Which is greater?" — the answer must be the GREATER value
+        // (matching the F008_003 convention). The earlier answer was the
+        // comparison symbol (<, >, =), which mismatched the stem entirely.
+        const greaterDisplay = impA === impB ? mixedAStr : (impA > impB ? mixedAStr : impBStr);
+        const cmp = impA === impB ? '=' : (impA > impB ? '>' : '<');
+        // Accept either the greater value OR the comparison symbol (lenient).
+        const accepted = impA === impB
+          ? ['=', mixedAStr, impBStr]
+          : [greaterDisplay, cmp];
         return {
-          prompt: `Which is greater: ${mixedStr(mixedA)} or ${impB}/${d}?`,
-          answer: { type: 'text', value: cmp, display: cmp },
-          acceptedAnswers: [cmp],
-          solutionSteps: [`Convert ${mixedStr(mixedA)} to improper: ${impA}/${d}.`, `Compare ${impA}/${d} and ${impB}/${d}.`, `The answer is "${cmp}".`],
+          prompt: `Which is greater: ${mixedAStr} or ${impBStr}?`,
+          answer: { type: 'text', value: greaterDisplay, display: greaterDisplay },
+          acceptedAnswers: accepted,
+          solutionSteps: [`Convert ${mixedAStr} to improper: ${impA}/${d}.`, `Compare ${impA}/${d} and ${impB}/${d}.`, `The greater value is ${greaterDisplay}.`],
         };
       }
       if (familyId.endsWith('_005')) {

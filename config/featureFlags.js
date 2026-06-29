@@ -31,8 +31,12 @@ export const FLAGS = {
   science: process.env.FEAT_SCIENCE === '1',
   mechanisms: process.env.FEAT_MECHANISMS === '1',
   spelling: process.env.FEAT_SPELLING !== '0',
+  englishpath: process.env.FEAT_ENGLISHPATH !== '0',
   comics: process.env.FEAT_COMICS !== '0',
   psl: process.env.FEAT_PSL !== '0',
+  // Test Papers (exam-style timed papers) — ON by default (Phase 1 live). Set
+  // FEAT_TEST_PAPERS=0 to disable the API.
+  testPapers: process.env.FEAT_TEST_PAPERS !== '0',
   admin: true,
   // Self-serve registration is closed until the company is registered and
   // pricing is set. Set FEAT_OPEN_REGISTRATION=1 in env to re-enable.

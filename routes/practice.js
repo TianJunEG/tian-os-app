@@ -28,24 +28,31 @@ function answerInputTypeFor(answer = '') {
   return '';
 }
 
+const OBJECT_ID_PATTERN = /^[a-f0-9]{24}$/i;
+
 async function resolveSkillRefToIds(refs = []) {
   const out = [];
   for (const refRaw of refs || []) {
     if (!refRaw) continue;
     const ref = String(refRaw).trim();
     if (!ref) continue;
-    if (FRAMEWORK_SKILL_ID_PATTERN.test(ref)) {
-      const code = ref.toUpperCase();
-      const matched = await Skill.findOne({
-        $or: [
-          { 'metadata.mathPathSkillId': code },
-          { 'metadata.frameworkCode': code },
-        ],
-      }).select('_id');
-      if (matched?._id) out.push(String(matched._id));
-      continue;
-    }
-    out.push(ref);
+    // Already a Mongo ObjectId — use directly.
+    if (OBJECT_ID_PATTERN.test(ref)) { out.push(ref); continue; }
+    // Otherwise it's a framework/skill code (F012, MN001, TM001, ME004, a
+    // slug…). Resolve it to the real Skill _id. CRITICAL: never push a
+    // non-ObjectId string onto `out` — it flows into Question.find({skillId})
+    // and throws "Cast to ObjectId failed for value …" (a 500 that broke
+    // "Try again" from a money/time/measurement mistake). Unresolvable codes
+    // are dropped; the generation fallback then handles the resolved skill.
+    const code = ref.toUpperCase();
+    const matched = await Skill.findOne({
+      $or: [
+        { 'metadata.mathPathSkillId': code },
+        { 'metadata.frameworkCode': code },
+        { slug: ref },
+      ],
+    }).select('_id');
+    if (matched?._id) out.push(String(matched._id));
   }
   return [...new Set(out)];
 }

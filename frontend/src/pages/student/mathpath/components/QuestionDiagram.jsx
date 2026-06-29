@@ -83,8 +83,9 @@ function inferShadedFractionDiagramFromAnswer(question = {}) {
 // Kinds that have no renderer — questions with these will show without a diagram
 // rather than being silently skipped.
 const UNMAPPABLE_DIAGRAM_KINDS = new Set([
-  'polygon', 'symmetry', 'reflection', 'solid', 'net', 'parallelogram',
-  'trapezium', 'l-shape', 'pictograph', 'value-list', 'pie', 'scale', 'coins',
+  // Most shapes now render (rect/clock/scale/cuboid/pictograph/net/pie/polygon/
+  // composite). Remaining: symmetry, reflection, solid, value-list (lower freq).
+  'symmetry', 'reflection', 'solid', 'value-list', 'coins',
 ]);
 
 // Convert generators' legacy `diagram: { kind, ...data }` shape into the
@@ -106,15 +107,64 @@ function normalizeDiagramKind(diagram) {
         return { type: 'semicircle', width: 360, height: 220, data: { diameter: (diagram.radius || 0) * 2, label: `${(diagram.radius || 0) * 2} cm` } };
       return null;
     case 'rectangle':
-      return { type: 'rectangle_area', width: 400, height: 280, data: { widthUnits: diagram.l, heightUnits: diagram.w } };
+      if (!diagram.l || !diagram.w) return null;
+      // Plain cm/m dimension rectangle — NOT the unit-square grid (these are
+      // perimeter/area questions stated in real units, e.g. "6 cm long").
+      return { type: 'rectangle_dim', width: 380, height: 300, data: { l: diagram.l, w: diagram.w, unit: diagram.unit || 'cm' } };
     case 'square':
-      return { type: 'rectangle_area', width: 320, height: 280, data: { widthUnits: diagram.side, heightUnits: diagram.side } };
+      if (!diagram.side) return null;
+      return { type: 'rectangle_dim', width: 320, height: 300, data: { l: diagram.side, w: diagram.side, unit: diagram.unit || 'cm' } };
     case 'triangle':
       if (diagram.base && diagram.height)
         return { type: 'triangle_area', width: 400, height: 280, data: { base: `${diagram.base} cm`, height: `${diagram.height} cm` } };
       return null;
+    case 'l-shape': {
+      // Generator emits { W, H, notch:[notchW, notchH] }.
+      const [notchW, notchH] = Array.isArray(diagram.notch) ? diagram.notch : [0, 0];
+      if (!diagram.W || !diagram.H || !notchW || !notchH) return null;
+      return { type: 'l_shape', width: 420, height: 320, data: { overallW: diagram.W, overallH: diagram.H, notchW, notchH } };
+    }
+    case 'parallelogram':
+      if (!diagram.base || !diagram.height) return null;
+      return { type: 'parallelogram', width: 440, height: 300, data: { base: diagram.base, height: diagram.height, slant: diagram.slant || diagram.height } };
+    case 'trapezium':
+      if (!diagram.a || !diagram.b || !diagram.height) return null;
+      return { type: 'trapezium', width: 440, height: 300, data: { a: diagram.a, b: diagram.b, height: diagram.height } };
+    case 'clock':
+      return { type: 'clock_face', width: 300, height: 300, data: { hour: Number(diagram.hour) || 12, minute: Number(diagram.minute) || 0 } };
+    case 'scale':
+      if (diagram.interval == null) return null;
+      return { type: 'measuring_scale', width: 480, height: 170, data: { start: Number(diagram.start) || 0, interval: Number(diagram.interval), marks: Number(diagram.marks) || 0, unit: diagram.unit || 'g' } };
+    case 'cuboid':
+      if (!diagram.length || !diagram.width || !diagram.height) return null;
+      // 470 wide so the "width …" label (placed past the back face) isn't clipped.
+      return { type: 'cuboid', width: 470, height: 300, data: { length: diagram.length, width: diagram.width, height: diagram.height } };
+    case 'pictograph': {
+      const rows = Array.isArray(diagram.rows) ? diagram.rows : [];
+      if (!rows.length) return null;
+      return { type: 'pictograph', width: 520, height: 64 + rows.length * 34, data: { keyValue: diagram.keyValue || 1, unit: diagram.unit || '', rows } };
+    }
+    case 'net':
+      if (!diagram.l || !diagram.w || !diagram.h) return null;
+      return { type: 'cuboid_net', width: 420, height: 360, data: { l: diagram.l, w: diagram.w, h: diagram.h, unit: diagram.unit || 'cm' } };
+    case 'pie': {
+      const sectors = Array.isArray(diagram.sectors) ? diagram.sectors : [];
+      if (!sectors.length) return null;
+      return { type: 'pie_chart', width: 460, height: 280, data: { sectors } };
+    }
+    case 'polygon':
+      if (!diagram.sides) return null;
+      return { type: 'regular_polygon', width: 300, height: 300, data: { sides: diagram.sides } };
+    case 'composite': {
+      // Same geometry as an L-shape: an outer rectangle [w,h] with a corner
+      // notch [cw,ch] removed.
+      const outer = Array.isArray(diagram.outer) ? diagram.outer : null;
+      const cut = Array.isArray(diagram.cut) ? diagram.cut : null;
+      if (!outer || !cut) return null;
+      return { type: 'l_shape', width: 420, height: 320, data: { overallW: outer[0], overallH: outer[1], notchW: cut[0], notchH: cut[1] } };
+    }
     case 'angle':
-      return { type: 'angle_on_line', width: 400, height: 240, data: { angleDegrees: diagram.degrees } };
+      return { type: 'angle_on_line', width: 400, height: 240, data: { angleDegrees: diagram.degrees, showValue: diagram.showValue !== false, label: diagram.label || 'x' } };
     case 'bar':
       return {
         type: 'bar_chart', width: 480, height: 320,

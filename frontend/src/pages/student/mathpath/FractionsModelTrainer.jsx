@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { MathText } from '../../../components/ui/Fraction';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Check, CheckCircle, Circle, Lock, PencilLine, RotateCcw } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
@@ -482,7 +483,7 @@ function TemplatePicker({ templates = [], onOpen }) {
             <h2 className="text-base font-semibold text-emerald-deep">{template.title}</h2>
             <Badge tone="navy">{template.question_type.replace(/_/g, ' ')}</Badge>
           </div>
-          <p className="mb-4 flex-1 text-sm leading-6 text-ink-600">{template.prompt}</p>
+          <p className="mb-4 flex-1 text-sm leading-6 text-ink-600"><MathText text={template.prompt} /></p>
           <Button size="s" icon={ArrowRight} onClick={() => onOpen(template.template_id)}>Open trainer</Button>
         </Card>
       ))}
@@ -1168,7 +1169,7 @@ export default function FractionsModelTrainer() {
         questionContent={(
           <div className="space-y-3 text-base">
             <p className="font-semibold text-emerald-deep">{template.title}</p>
-            <p>{template.prompt}</p>
+            <p><MathText text={template.prompt} /></p>
             {youDoAnswer && (
               <p className="rounded-lg bg-emerald-tint px-3 py-2 text-sm text-emerald-deep">
                 Your note: {youDoAnswer}

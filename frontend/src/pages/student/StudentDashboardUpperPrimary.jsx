@@ -73,14 +73,15 @@ function confidenceInsightFromBuckets(buckets = {}) {
   const unsureCorrect = Number(buckets.unsureCorrect || 0);
   if (confidentIncorrect > 0) {
     const insight = interpretConfidence({ correct: false, confidence: 'high' });
-    return { value: confidentIncorrect, body: insight.student, empty: false };
+    return { value: confidentIncorrect, caption: 'times you felt sure but slipped', body: insight.student, empty: false };
   }
   if (unsureCorrect > 0) {
     const insight = interpretConfidence({ correct: true, confidence: 'low' });
-    return { value: unsureCorrect, body: insight.student, empty: false };
+    return { value: unsureCorrect, caption: 'times you were right but unsure', body: insight.student, empty: false };
   }
   return {
     value: Number(buckets.confidentCorrect || 0),
+    caption: 'answers you felt sure about — and got right',
     body: 'Confidence looks aligned with recent answers.',
     empty: false,
   };
@@ -113,6 +114,10 @@ function buildUpperPrimaryMetricCards(analytics = {}) {
 }
 
 function UpperPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, masteredSkillCount = 0 }) {
+  // A student is only "returning" when there's a real skill name to point at.
+  // Without this, brand-new students saw the misleading "Pick up where you
+  // left off" body even though they had nothing to continue.
+  const isReturning = hasPlacement && Boolean(currentSkill?.skillName);
   const assessmentGate = getFractionAssessmentBlueprintReadiness({
     completedSkillIds: Array.from({ length: masteredSkillCount }, (_, index) => `F${String(index + 1).padStart(3, '0')}`),
   });
@@ -130,12 +135,14 @@ function UpperPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, m
   const cards = [
     {
       icon: BookOpen,
-      title: 'Continue Learning',
-      body: 'Pick up where you left off',
-      to: hasPlacement ? action.to : '/student/mathpath/diagnostic',
-      state: action.to?.startsWith('/student/mathpath/practice/') ? continueState : undefined,
+      // Route brand-new students to the MathPath home (domain grid) so they
+      // pick a topic — never auto-funnel them into the fractions check-in.
+      title: isReturning ? 'Continue Learning' : 'Start MathPath',
+      body: isReturning ? currentSkill.skillName : 'Pick a topic to begin.',
+      to: isReturning ? action.to : '/student/mathpath',
+      state: isReturning && action.to?.startsWith('/student/mathpath/practice/') ? continueState : undefined,
       tone: 'from-emerald-50 to-white text-emerald-700',
-      disabled: action.disabled,
+      disabled: isReturning ? action.disabled : false,
     },
     { icon: Search, title: 'Review Mistakes', body: 'Learn from your recent mistakes', to: '/student/mathpath/mistakes', tone: 'from-amber-50 to-white text-amber-700' },
     ...(FEATURE_FLAGS.fluency ? [{ icon: Timer, title: 'Fluency Challenge', body: 'Improve speed and accuracy', to: '/student/mathpath/fluency', tone: 'from-blue-50 to-white text-blue-700' }] : []),
@@ -390,6 +397,9 @@ export default function StudentDashboardUpperPrimary({
             <div style={{ fontSize: metrics.confidence.empty ? 18 : 46, fontWeight: 800, color: '#1c2433', lineHeight: 1.05, marginTop: 4 }}>
               {metrics.confidence.empty ? '—' : metrics.confidence.value}
             </div>
+            {!metrics.confidence.empty && metrics.confidence.caption && (
+              <div style={{ fontSize: 13, color: '#a8616f', fontWeight: 600, marginTop: 3, lineHeight: 1.3 }}>{metrics.confidence.caption}</div>
+            )}
             {expandedCards.c && (
               <div style={{ fontSize: 14.5, color: '#7a4450', lineHeight: 1.5, marginTop: 8 }}>{metrics.confidence.body}</div>
             )}

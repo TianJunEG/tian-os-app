@@ -1,8 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AlertTriangle, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../../../context/AuthContext';
-import { Card, Button, PageHeader, Badge } from '../../../../components/ui';
+import { Card, Button, PageHeader, Badge, Spinner } from '../../../../components/ui';
 import { mathpathAPI } from '../../../../services/api';
 
 function inferLevel(user) {
@@ -60,6 +60,19 @@ export default function DiagnosticIntroScreen() {
     };
   }, [mode, diagnosticPurpose]);
 
+  // Auto-start on mount so this screen matches every other domain check-in,
+  // which jump straight from the dashboard / domain page into question 1
+  // without an intro/mode/badge screen. Adult-overridable mode keeps the
+  // explicit intro UI (allowModeOverride in nav state).
+  const autoStartedRef = useRef(false);
+  useEffect(() => {
+    if (autoStartedRef.current) return;
+    if (allowModeOverride) return; // adult deliberately wants the picker
+    autoStartedRef.current = true;
+    startDiagnostic();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const startDiagnostic = async () => {
     if (starting) return;
     setStarting(true);
@@ -89,6 +102,17 @@ export default function DiagnosticIntroScreen() {
       setStarting(false);
     }
   };
+
+  // While auto-starting, render a Spinner so the student doesn't see the
+  // intro UI flash. The intro UI is only shown when adult-overridable mode
+  // is requested or auto-start failed (error shown below).
+  if (!allowModeOverride && !error) {
+    return (
+      <div className="mx-auto max-w-2xl py-10">
+        <Spinner label="Setting up your check-in…" />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-2xl">

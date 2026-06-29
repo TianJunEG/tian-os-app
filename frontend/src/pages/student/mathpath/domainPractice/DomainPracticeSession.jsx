@@ -8,10 +8,13 @@ import FullScreenWorkingMode from '../../../../components/learning/FullScreenWor
 import WorkingPreviewCard from '../../../../components/learning/WorkingPreviewCard';
 import ManipulativeDotArray, { parseDotStem, numericLine, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram, parseCountDiagram, ManipulativeCountArray, parseCompareDiagram, ManipulativeCompareSets, parsePatternDiagram, ManipulativePatternStrip, parseShapeChoice, ShapeGlyph, parsePositionDiagram, ManipulativePositionStack, DragAnswerChips } from '../../../../components/learning/ManipulativeDotArray';
 import { speak, isVoiceEnabled, setVoiceEnabled } from '../../../../utils/sound';
+import { confettiBurst } from '../../../../utils/confetti';
 import { useAuth } from '../../../../context/AuthContext';
 import { getMascotForModule, getMascotVoice } from '../../../../config/mascots';
 import MathSymbolBar from '../components/MathSymbolBar';
 import AnswerInputRenderer, { getAnswerInputType } from '../components/AnswerInputRenderer';
+import QuestionDiagram, { canRenderQuestionDiagram } from '../components/QuestionDiagram';
+import { CONFIDENCE_OPTIONS, CONFIDENCE_OPTIONS_LP } from '../../../../mathpath/confidenceOptions';
 import {
   buildSubmitPayload,
   summarisePracticeResult,
@@ -24,21 +27,21 @@ import {
 } from './core';
 
 const MASCOT_KEY = getMascotForModule('mathpath')?.key || 'kylo';
+
+// Lower = easier. Used to order a first-timer's questions easiest-first.
+const DIFF_RANK = { easy: 0, simple: 0, foundational: 0, medium: 1, moderate: 1, hard: 2, challenging: 3, advanced: 3 };
+function difficultyRank(q) {
+  const d = q?.difficulty;
+  if (typeof d === 'number' && Number.isFinite(d)) return d;
+  return DIFF_RANK[String(d || '').toLowerCase().trim()] ?? 1;
+}
 const INACTIVITY_SECONDS = 120;
 
-const REFLECTION_OPTIONS = [
-  { value: 'i_know_this', label: 'Solid', color: 'bg-emerald-100 border-emerald-300 text-emerald-800 hover:bg-emerald-200' },
-  { value: 'not_sure', label: "Not sure", color: 'bg-amber-100 border-amber-300 text-amber-800 hover:bg-amber-200' },
-  { value: 'i_need_practice', label: 'Shaky', color: 'bg-orange-100 border-orange-300 text-orange-800 hover:bg-orange-200' },
-  { value: 'i_need_help', label: 'Need help', color: 'bg-red-100 border-red-300 text-red-800 hover:bg-red-200' },
-];
-
-const LP_REFLECTION_OPTIONS = [
-  { value: 'i_know_this', emoji: '😊', label: 'I know it!' },
-  { value: 'not_sure', emoji: '🤔', label: 'Not sure' },
-  { value: 'i_need_practice', emoji: '😕', label: 'Need practice' },
-  { value: 'i_need_help', emoji: '🙋', label: 'Need help' },
-];
+// Canonical confidence scale shared by every practice surface (see
+// mathpath/confidenceOptions.js). Uses backend-mapped values so selections are
+// never silently dropped from confidence analytics.
+const REFLECTION_OPTIONS = CONFIDENCE_OPTIONS;
+const LP_REFLECTION_OPTIONS = CONFIDENCE_OPTIONS_LP;
 
 export default function DomainPracticeSession({ domain }) {
   const navigate = useNavigate();
@@ -63,11 +66,26 @@ export default function DomainPracticeSession({ domain }) {
   const [workingQuestionId, setWorkingQuestionId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
+  const celebratedRef = useRef(false);
+  // Celebrate a strong finish (respects the student's confetti/fireworks choice).
+  useEffect(() => {
+    if (result && !celebratedRef.current && (result.accuracyPercentage ?? 0) >= 80) {
+      celebratedRef.current = true;
+      setTimeout(() => confettiBurst({ count: result.accuracyPercentage >= 100 ? 160 : 120, duration: 2000 }), 300);
+    }
+  }, [result]);
   const [elapsedSec, setElapsedSec] = useState(0);
   const [showReflection, setShowReflection] = useState(false);
   const [pendingAnswer, setPendingAnswer] = useState(null);
   const [showInactivityAlert, setShowInactivityAlert] = useState(false);
   const [voiceOn, setVoiceOn] = useState(() => isVoiceEnabled());
+  // Live struggle safety net.
+  const struggleStreakRef = useRef(0);
+  const struggleQuestionRef = useRef(null);
+  const [showStruggleHelp, setShowStruggleHelp] = useState(false);
+  const [showStruggleSolution, setShowStruggleSolution] = useState(false);
+  // Gentle first-time entry.
+  const [showWarmup, setShowWarmup] = useState(false);
 
   const questionStartedAt = useRef(Date.now());
   const lastActivityAt = useRef(Date.now());
@@ -97,8 +115,22 @@ export default function DomainPracticeSession({ domain }) {
         const res = await config.start({ targetSkillId, questionCount: 6 });
         const data = res?.data || {};
         if (!data.questions?.length) throw new Error('No questions returned.');
+        // Gentle first-time entry: the very first time a student opens this skill,
+        // order the questions easiest-first and show a low-pressure warm-up, so a
+        // brand-new (or struggling) student gets early wins instead of hitting the
+        // hardest questions cold and giving up.
+        const seenKey = `tian:mp-seen:${user?.id || user?._id || 'anon'}:${domain}:${targetSkillId || 'mixed'}`;
+        let firstTime = false;
+        try { firstTime = !window.localStorage.getItem(seenKey); } catch { firstTime = false; }
+        let sessionData = data;
+        if (firstTime) {
+          const ordered = [...data.questions].sort((a, b) => difficultyRank(a) - difficultyRank(b));
+          sessionData = { ...data, questions: ordered };
+          try { window.localStorage.setItem(seenKey, '1'); } catch { /* private mode — fine */ }
+        }
         if (active) {
-          setSession(data);
+          setSession(sessionData);
+          if (firstTime) setShowWarmup(true);
           questionStartedAt.current = Date.now();
           lastActivityAt.current = Date.now();
         }
@@ -197,6 +229,7 @@ export default function DomainPracticeSession({ domain }) {
   }
 
   function confirmReflection(reflectionValue) {
+    const answeredQuestion = current;
     const answer = { ...pendingAnswer, reflection: reflectionValue };
     const nextAnswers = [...answers, answer];
     setAnswers(nextAnswers);
@@ -205,6 +238,10 @@ export default function DomainPracticeSession({ domain }) {
     setPendingAnswer(null);
     inactivityPausedSec.current = 0;
     inactivityPausedAt.current = null;
+    // Track "I don't know" / "I need help" in a row — after 3, step in with an
+    // encouraging way out before the student gives up.
+    const struggled = reflectionValue === 'i_dont_know' || reflectionValue === 'i_need_help';
+    struggleStreakRef.current = struggled ? struggleStreakRef.current + 1 : 0;
     if (isLast) {
       finish(nextAnswers);
     } else {
@@ -212,6 +249,12 @@ export default function DomainPracticeSession({ domain }) {
       setElapsedSec(0);
       questionStartedAt.current = Date.now();
       lastActivityAt.current = Date.now();
+      if (struggleStreakRef.current >= 3) {
+        struggleStreakRef.current = 0;
+        struggleQuestionRef.current = answeredQuestion;
+        setShowStruggleSolution(false);
+        setShowStruggleHelp(true);
+      }
     }
   }
 
@@ -327,7 +370,7 @@ export default function DomainPracticeSession({ domain }) {
                   </>
                 );
               }
-              if (isLPrimary && patternData) {
+              if (patternData) {
                 return (
                   <>
                     <ManipulativePatternStrip key={current?.questionId} items={patternData.items} />
@@ -335,7 +378,7 @@ export default function DomainPracticeSession({ domain }) {
                   </>
                 );
               }
-              if (isLPrimary && positionData) {
+              if (positionData) {
                 return (
                   <>
                     <ManipulativePositionStack key={current?.questionId} top={positionData.top} bottom={positionData.bottom} />
@@ -343,7 +386,7 @@ export default function DomainPracticeSession({ domain }) {
                   </>
                 );
               }
-              if (isLPrimary && compareData) {
+              if (compareData) {
                 return (
                   <>
                     <ManipulativeCompareSets key={current?.questionId} left={compareData.left} right={compareData.right} />
@@ -351,7 +394,7 @@ export default function DomainPracticeSession({ domain }) {
                   </>
                 );
               }
-              if (isLPrimary && countData) {
+              if (countData) {
                 return (
                   <>
                     <ManipulativeCountArray key={current?.questionId} emoji={countData.emoji} count={countData.count} />
@@ -372,7 +415,16 @@ export default function DomainPracticeSession({ domain }) {
                   </>
                 );
               }
-              return <p className="text-xl font-semibold leading-relaxed text-ink-900 whitespace-pre-wrap"><MathText text={prompt} /></p>;
+              // Default: render the generator's diagram (geometry, area, circle,
+              // triangle, angle, bar/line graph, table, bar-model…) when one can
+              // actually be drawn, then the prompt. canRenderQuestionDiagram
+              // guards so text-only questions never show an error box.
+              return (
+                <>
+                  {canRenderQuestionDiagram(current) && <QuestionDiagram question={current} />}
+                  <p className="text-xl font-semibold leading-relaxed text-ink-900 whitespace-pre-wrap"><MathText text={prompt} /></p>
+                </>
+              );
             })()}
           </div>
           <button
@@ -549,6 +601,59 @@ export default function DomainPracticeSession({ domain }) {
           setWorkingQuestionId(null);
         }}
       />
+
+      {/* Gentle first-time entry — a calm, encouraging start so a brand-new student
+          isn't dropped straight into hard questions. Questions are already ordered
+          easiest-first for this first session. */}
+      {showWarmup && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl">
+            <MascotBubble
+              name={MASCOT_KEY}
+              message="New topic! We'll start with the easier ones and build up from there. It's okay not to know yet — just give each one a try, and I'll help if you get stuck."
+              size="sm"
+              voiced
+              className="mb-4"
+            />
+            <Button className="w-full" onClick={() => setShowWarmup(false)}>Let&apos;s go</Button>
+          </div>
+        </div>
+      )}
+
+      {/* Struggle safety net — after repeated "I don't know", step in warmly with
+          a worked example or an easy way to switch, so the student doesn't quit. */}
+      {showStruggleHelp && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl">
+            <MascotBubble
+              name={MASCOT_KEY}
+              message="This part is tricky — and that's completely okay. Everyone learns at their own pace. What would help right now?"
+              size="sm"
+              voiced
+              className="mb-3"
+            />
+            {showStruggleSolution && struggleQuestionRef.current && (
+              <div className="mb-3 rounded-xl bg-ink-50 p-3 text-sm text-ink-700">
+                <p className="mb-1 font-semibold text-ink-800">{struggleQuestionRef.current.prompt}</p>
+                {Array.isArray(struggleQuestionRef.current.solutionSteps) && struggleQuestionRef.current.solutionSteps.length ? (
+                  <ol className="list-decimal space-y-0.5 pl-5">
+                    {struggleQuestionRef.current.solutionSteps.map((s, i) => <li key={i}>{s}</li>)}
+                  </ol>
+                ) : (
+                  <p className="text-ink-500">{struggleQuestionRef.current.workedSolution || "Break it into smaller steps — you can do this."}</p>
+                )}
+              </div>
+            )}
+            <div className="grid gap-2">
+              {!showStruggleSolution && (
+                <Button variant="secondary" onClick={() => setShowStruggleSolution(true)}>Show me how</Button>
+              )}
+              <Button variant="secondary" onClick={() => navigate('/student/mathpath')}>Try a different topic</Button>
+              <Button onClick={() => { setShowStruggleHelp(false); setShowStruggleSolution(false); }}>Keep going</Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Inactivity alert — modal overlay */}
       {showInactivityAlert && (

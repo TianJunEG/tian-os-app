@@ -466,6 +466,16 @@ export const pslAPI = {
   dashboard: (studentId) => api.get('/psl/dashboard', { params: { studentId } }),
 };
 
+// Test Papers — exam-style timed papers, marked at submission.
+export const testPapersAPI = {
+  list: () => api.get('/test-papers'),
+  getPaper: (paperCode) => api.get(`/test-papers/${paperCode}`),
+  startSession: (paperCode) => api.post(`/test-papers/${paperCode}/sessions`),
+  getSession: (sessionId) => api.get(`/test-papers/sessions/${sessionId}`),
+  submit: (sessionId, data) => api.post(`/test-papers/sessions/${sessionId}/submit`, data),
+  abandon: (sessionId) => api.patch(`/test-papers/sessions/${sessionId}/abandon`),
+};
+
 // Mechanisms Playground (Secondary D&T). Completing a mechanism's concept check
 // records practice/mistakes/mastery against the D&T skill in the shared core.
 export const mechanismsAPI = {
@@ -568,6 +578,8 @@ export const teacherAPI = {
   classOverview: (id) => api.get(`/teacher/classes/${id}`),
   classMastery: (id, subject) => api.get(`/teacher/classes/${id}/mastery`, { params: subject ? { subject } : {} }),
   classStudents: (id) => api.get(`/teacher/classes/${id}/students`),
+  classCorrections: (id) => api.get(`/teacher/classes/${id}/corrections`),
+  studentCorrections: (id, studentId) => api.get(`/teacher/classes/${id}/corrections/${studentId}`),
   classDashboard: (id, subject) => api.get(`/teacher/classes/${id}/dashboard`, { params: subject ? { subject } : {} }),
   student: (id) => api.get(`/teacher/students/${id}`),
   groups: (id) => api.get(`/teacher/classes/${id}/groups`),

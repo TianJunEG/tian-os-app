@@ -178,6 +178,7 @@ const BUILDERS = {
       value: ans, unit: 'cm³', tag: 'mea/volume-add-edges',
       steps: ['Volume = length × width × height.', `${l} × ${w} × ${h} = ${ans} cm³.`],
       distractors: [l + w + h, l * w, 2 * (l * w + w * h + l * h)], // edges sum / area / surface area
+      diagram: { kind: 'cuboid', length: l, width: w, height: h },
     };
   },
   // ME012 — Nets and volume of cuboids

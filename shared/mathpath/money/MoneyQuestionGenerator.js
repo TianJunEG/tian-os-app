@@ -40,8 +40,10 @@ function money(cents) {
 }
 
 // Real SGD denominations (in cents) and human labels for coin/note recognition.
+// The $100 note (10000) is intentionally excluded — it isn't used to teach
+// money at this level, so the generator never produces it.
 const COIN_CENTS = [5, 10, 20, 50, 100];
-const NOTE_CENTS = [200, 500, 1000, 5000, 10000];
+const NOTE_CENTS = [200, 500, 1000, 5000];
 function denomLabel(cents) {
   if (cents < 100) return `${cents}-cent coin`;
   if (cents === 100) return '$1 coin';

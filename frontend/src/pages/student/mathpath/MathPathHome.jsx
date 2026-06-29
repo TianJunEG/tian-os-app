@@ -369,7 +369,13 @@ export default function MathPathHome() {
         <MascotGreeting mascotKey="kylo" studentName={(user?.name || 'there').split(' ')[0]} className="mt-3" />
       </div>
 
-      {/* Hero — main CTA + progress */}
+      {/* Hero — main CTA + progress.
+          Hidden for brand-new students: the hero is fractions-specific (title,
+          progress denominator, CTA) so showing it before placement force-feeds
+          fractions. Brand-new students see the domain grid below and pick
+          their own topic. Returning students keep the fractions context they
+          already have. */}
+      {hasPlacement && (
       <Card className={`p-4 sm:p-5 ${visualStyles.heroCard}`}>
         <div className="grid gap-5 md:grid-cols-[20rem_1fr] md:items-center">
           <div className={`relative h-44 overflow-hidden rounded-2xl ${visualStyles.heroPanel}`}>
@@ -442,6 +448,17 @@ export default function MathPathHome() {
           </div>
         )}
       </Card>
+      )}
+
+      {/* Welcome card — brand-new students see this instead of the fractions
+          hero. Sets context that the topic grid below is the entry point. */}
+      {!hasPlacement && (
+        <Card className="p-4 sm:p-5">
+          <p className="text-sm font-semibold uppercase tracking-[0.08em] text-emerald-deep">Welcome to MathPath</p>
+          <h2 className="mt-1 font-display text-2xl sm:text-3xl font-semibold text-ink-900">Pick a topic to begin</h2>
+          <p className="mt-2 text-sm text-ink-500">Each topic has a short check-in that finds your best starting point — no pressure, just match what you're learning at school.</p>
+        </Card>
+      )}
 
       {/* Weak topics alert */}
       {weak.length > 0 && (

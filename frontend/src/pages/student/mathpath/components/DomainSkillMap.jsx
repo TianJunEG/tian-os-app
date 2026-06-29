@@ -28,7 +28,10 @@ function statusTone(label) {
 }
 
 function SkillCard({ skill, onPractise }) {
-  const levelTag = (skill.singaporeLevel || []).join('/');
+  // The MOE level (e.g. "Primary 1") is intentionally hidden: a student placed
+  // on lower-level skills shouldn't be reminded of that. Difficulty progression
+  // is already conveyed by strand grouping + the prerequisite chain
+  // ("Unlocks after …" below).
   const clickable = !skill.locked;
   return (
     <Card
@@ -48,7 +51,6 @@ function SkillCard({ skill, onPractise }) {
       <div className="mt-2 flex flex-wrap gap-2">
         <Badge tone={statusTone(skill.statusLabel)}>{skill.statusLabel}</Badge>
         {skill.current && <Badge tone="gold">Recommended</Badge>}
-        {levelTag && <Badge tone="neutral">{levelTag}</Badge>}
       </div>
       {skill.locked && skill.missingPrerequisiteNames?.[0] && (
         <p className="mt-3 line-clamp-1 text-xs text-ink-400">Unlocks after {skill.missingPrerequisiteNames[0]}</p>

@@ -1,0 +1,55 @@
+# Deploys the standalone Vocabulary Builder lead-gen app to GitHub Pages.
+#
+# One-time setup: repo Settings → Pages → Build and deployment → Source:
+# "GitHub Actions". Then trigger this from the Actions tab → "Deploy Vocab
+# Builder" → "Run workflow".
+#
+# Manual-dispatch only for now so merging to main never leaves a failing run
+# before Pages is enabled. To auto-deploy on every change afterwards, add:
+#   push: { branches: [main], paths: ['englishpath-vocab-app/**',
+#           'shared/englishpath/vocabulary/**',
+#           '.github/workflows/deploy-vocab-app.yml'] }
+name: Deploy Vocab Builder
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment; cancel older in-progress runs.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Bundle the app (inline the shared engine into one file)
+        run: |
+          mkdir -p _site
+          cp englishpath-vocab-app/index.html englishpath-vocab-app/styles.css _site/
+          npx --yes esbuild englishpath-vocab-app/app.js \
+            --bundle --format=esm --minify --outfile=_site/app.js
+      - name: Add SPA-friendly 404 (serves the app for any path)
+        run: cp _site/index.html _site/404.html
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

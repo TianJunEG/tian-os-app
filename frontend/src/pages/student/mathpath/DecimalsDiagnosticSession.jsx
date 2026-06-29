@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Pencil, Sparkles } from 'lucide-react';
 import { diagnosticsAPI } from '../../../services/api';
 import { Alert, Badge, Button, Card, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
 import { MascotBubble } from '../../../components/MascotAvatar';
+import ScratchpadOverlay from '../../../components/learning/ScratchpadOverlay';
 
 // Adaptive Decimals diagnostic ("check-in"). Drives the generic
 // /api/diagnostics/* runtime with domainId 'decimals': start returns the first
@@ -48,6 +49,11 @@ export default function DecimalsDiagnosticSession() {
   const [question, setQuestion] = useState(null);
   const [progress, setProgress] = useState({ answeredCount: 0, estimatedQuestionCount: 8 });
   const [draft, setDraft] = useState('');
+  // Same scratchpad-overlay pattern the other domain diagnostics use, so
+  // students get a consistent "open scratchpad → work + type answer → submit"
+  // flow across every domain check-in.
+  const [scratchpadOpen, setScratchpadOpen] = useState(false);
+  const [strokesByQuestion, setStrokesByQuestion] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [encouragement, setEncouragement] = useState('');
   const [result, setResult] = useState(null);
@@ -111,6 +117,7 @@ export default function DecimalsDiagnosticSession() {
         setProgress(data.progress || progress);
         setEncouragement(data.supportiveCopy || '');
         setDraft('');
+        setScratchpadOpen(false);
         startedAt.current = Date.now();
       }
     } catch (e) {
@@ -215,6 +222,30 @@ export default function DecimalsDiagnosticSession() {
           />
         )}
       </Card>
+
+      {/* Optional scratchpad — transparent overlay with tools + answer capture
+          box, matching every other domain check-in. */}
+      <button
+        type="button"
+        onClick={() => setScratchpadOpen(true)}
+        className="mt-3 flex w-full items-center gap-2 rounded-lg border border-dashed border-ink-200 px-3 py-2 text-xs font-medium text-ink-500 transition-colors hover:border-ink-300 hover:bg-ink-50 hover:text-ink-600"
+      >
+        <Pencil className="h-3.5 w-3.5" />
+        <span className="flex-1 text-left">Open scratchpad</span>
+        <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-ink-400">Optional</span>
+      </button>
+      <ScratchpadOverlay
+        open={scratchpadOpen}
+        initialStrokes={strokesByQuestion[question?.questionId] || []}
+        onChange={(next) => {
+          const qid = question?.questionId;
+          if (qid) setStrokesByQuestion((prev) => ({ ...prev, [qid]: next }));
+        }}
+        onClose={() => setScratchpadOpen(false)}
+        answerValue={draft}
+        onAnswerChange={setDraft}
+        onSubmitAnswer={() => { setScratchpadOpen(false); submitAnswer(); }}
+      />
 
       <div className="flex justify-end">
         <Button icon={CheckCircle2} disabled={!draft.trim() || submitting} onClick={submitAnswer}>

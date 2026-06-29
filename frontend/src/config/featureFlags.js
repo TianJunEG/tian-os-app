@@ -64,8 +64,14 @@ export const FEATURE_FLAGS = {
   science: flagEnabled('SCIENCE'),
   mechanisms: flagEnabled('MECHANISMS'),
   spelling: flagEnabled('SPELLING', true),
+  // EnglishPath Vocabulary Builder — adaptive P6 vocabulary practice (client-side
+  // engine in shared/englishpath). Default on; disable with VITE_ENABLE_ENGLISHPATH=false.
+  englishpath: flagEnabled('ENGLISHPATH', true),
   comics: flagEnabled('COMICS', true),
   psl: flagEnabled('PSL', true),
+  // Test Papers (exam-style timed papers) — ON (Phase 1 live). Set
+  // VITE_ENABLE_TEST_PAPERS=0 to hide the nav + section.
+  testPapers: flagEnabled('TEST_PAPERS', true),
   tutor: flagEnabled('TUTOR', true),
   teacher: flagEnabled('TEACHER', true),
   admin: flagEnabled('ADMIN', true),

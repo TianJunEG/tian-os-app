@@ -57,7 +57,8 @@
     "postgres:prisma:generate": "prisma generate && esbuild generated/prisma/client.ts --bundle --platform=node --format=esm --packages=external --outfile=generated/prisma/client.js",
     "postgres:health": "node scripts/postgres/checkPrismaHealth.js",
     "postgres:phase1:backfill": "node scripts/postgres/backfillMathPathReferenceData.js",
-    "postgres:phase1:parity": "node scripts/postgres/checkMathPathReferenceParity.js"
+    "postgres:phase1:parity": "node scripts/postgres/checkMathPathReferenceParity.js",
+    "seed:testpapers": "node scripts/seedTestPapers.js"
   },
   "keywords": [
     "tutoring",

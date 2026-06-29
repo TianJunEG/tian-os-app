@@ -78,6 +78,7 @@ import lifelabRoutes from './routes/lifelab.js';
 import spellingPracticeRoutes from './routes/spellingPractice.js';
 import mechanismsRoutes from './routes/mechanisms.js';
 import pslRoutes from './routes/psl.js';
+import testPaperRoutes from './routes/testPapers.js';
 import comicsRoutes from './routes/comics.js';
 import assessmentSpecificationRoutes from './routes/assessmentSpecifications.js';
 import assessmentBlueprintRoutes from './routes/assessmentBlueprints.js';
@@ -277,6 +278,9 @@ app.use('/api/lifelab', featureGate({ feature: 'lifelab', minVersion: 'v0.6' }),
 app.use('/api/spelling-practice', featureGate({ feature: 'spelling', minVersion: 'v0.6' }), spellingPracticeRoutes);
 app.use('/api/mechanisms', featureGate({ feature: 'mechanisms', minVersion: 'v0.6' }), mechanismsRoutes);
 app.use('/api/psl', featureGate({ feature: 'psl', minVersion: 'v0.7' }), pslRoutes);
+// Test Papers gated on the flag only (high minVersion so a version bump never
+// auto-enables it) — flip FEAT_TEST_PAPERS=1 to launch.
+app.use('/api/test-papers', featureGate({ feature: 'testPapers', minVersion: 'v99' }), testPaperRoutes);
 app.use('/api/comics', featureGate({ feature: 'comics', minVersion: 'v0.7' }), comicsRoutes);
 app.use('/api/assessment-specifications', assessmentSpecificationRoutes);
 app.use('/api/assessment-blueprints', assessmentBlueprintRoutes);

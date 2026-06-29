@@ -18,6 +18,7 @@ export const NAV_ITEMS = [
   { key: 'student.mathpath', label: 'MathPath', path: '/student/mathpath', icon: Calculator, roles: ['student'], minVersion: 'v0.1' },
   { key: 'student.psl', label: 'Problems', path: '/student/psl', icon: Brain, roles: ['student'], minVersion: 'v0.1', featureFlag: 'psl' },
   { key: 'student.practice', label: 'Practice', path: '/student/assignments', icon: ClipboardList, roles: ['student'], minVersion: 'v0.1' },
+  { key: 'student.papers', label: 'Test Papers', path: '/student/test-papers', icon: FileText, roles: ['student'], minVersion: 'v0.1', featureFlag: 'testPapers' },
   { key: 'student.mistakes', label: 'Mistakes', path: '/student/mathpath/mistakes', icon: CheckSquare, roles: ['student'], minVersion: 'v0.1' },
   { key: 'student.progress', label: 'Progress', path: '/student/progress', icon: GitBranch, roles: ['student'], minVersion: 'v0.1' },
   { key: 'student.profile', label: 'Profile', path: '/student/profile', icon: UserCircle, roles: ['student'], minVersion: 'v0.1' },

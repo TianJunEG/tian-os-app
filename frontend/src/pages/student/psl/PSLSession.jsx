@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { BookOpen, ChevronDown, ChevronUp, Compass, Flame, HelpCircle, Pencil, Volume2, X } from 'lucide-react';
+import { BookOpen, Compass, Flame, HelpCircle, Pencil, Volume2, X } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import StepProgressBar from './components/StepProgressBar';
 import StoryPanel from './components/StoryPanel';
@@ -33,7 +33,7 @@ import MascotBubble from './components/MascotBubble';
 import HintLadder from './components/HintLadder';
 import ReasoningInput from './components/ReasoningInput';
 import WorkedSolutionWalkthrough from './components/WorkedSolutionWalkthrough';
-import WorkingCanvas from '../../../components/learning/WorkingCanvas';
+import FullScreenWorkingMode from '../../../components/learning/FullScreenWorkingMode';
 import { getVoiceScripts } from './utils/voiceScripts';
 import { confettiBurst } from '../../../utils/confetti';
 import { playCorrect, playWin, isVoiceEnabled, setVoiceEnabled, speak } from '../../../utils/sound';
@@ -77,6 +77,7 @@ export default function PSLSession() {
   const [stepResponses, setStepResponses] = useState({});
   const [retryCount, setRetryCount] = useState({});
   const [showScratchpad, setShowScratchpad] = useState(false);
+  const [scratchByProblem, setScratchByProblem] = useState({}); // { [problemIndex]: { workingStrokes, workingMathObjects } } — ephemeral, retained across reopens
   const [streak, setStreak] = useState(0);
   const [hints, setHints] = useState([]);
   const [hintLoading, setHintLoading] = useState(false);
@@ -169,6 +170,12 @@ export default function PSLSession() {
         timeSpentMs: Date.now() - stepStartRef.current,
       });
       const result = res.data;
+      // Don't celebrate on Solve — the very next step (Check) asks the student to
+      // verify the answer makes sense, so a "Well done!" here pre-empts that
+      // reflection. Praise is held back until the Check step.
+      if (currentStepId === 'solve' && result.correct) {
+        result.feedback = 'Good — now check whether your answer makes sense.';
+      }
       setCompletedSteps((prev) => ({ ...prev, [currentStepId]: result }));
       setFeedback(result);
 
@@ -396,24 +403,12 @@ export default function PSLSession() {
             />
             <button
               type="button"
-              onClick={() => setShowScratchpad((v) => !v)}
+              onClick={() => setShowScratchpad(true)}
               className="mt-3 flex w-full items-center gap-2 rounded-lg border border-dashed border-ink-200 px-3 py-2 text-xs font-medium text-ink-500 transition-colors hover:border-ink-300 hover:bg-ink-50 hover:text-ink-600"
             >
               <Pencil className="h-3.5 w-3.5" />
-              <span className="flex-1 text-left">Scratchpad</span>
-              {showScratchpad ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+              <span className="flex-1 text-left">Open scratchpad</span>
             </button>
-            {showScratchpad && (
-              <div className="mt-2">
-                <WorkingCanvas
-                  questionId={`${session?.sessionId}-${problemIndex}-solve`}
-                  label="Scratchpad"
-                  required={false}
-                  allowNoWorking={false}
-                  compact
-                />
-              </div>
-            )}
           </>
         );
       case 'check':
@@ -739,6 +734,28 @@ export default function PSLSession() {
           </div>
         </div>
       </div>
+
+      {/* Full-screen scratchpad — shares the MathPath working canvas, so text
+          labels are draggable + editable and (Stage 2) the Four Ops grid lives
+          here too. Ephemeral: work is kept per-problem only for this sitting. */}
+      <FullScreenWorkingMode
+        open={showScratchpad}
+        questionId={`${session?.sessionId}-${problemIndex}-scratch`}
+        questionText={currentProblem?.storyText || ''}
+        initialStrokes={(scratchByProblem[problemIndex] || {}).workingStrokes || []}
+        initialMathObjects={(scratchByProblem[problemIndex] || {}).workingMathObjects || []}
+        onClose={() => setShowScratchpad(false)}
+        onSave={(payload) => {
+          setScratchByProblem((prev) => ({
+            ...prev,
+            [problemIndex]: {
+              workingStrokes: payload.workingStrokes || [],
+              workingMathObjects: payload.workingMathObjects || [],
+            },
+          }));
+          setShowScratchpad(false);
+        }}
+      />
     </div>
   );
 }

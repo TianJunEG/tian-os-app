@@ -116,6 +116,10 @@ const SpellingLearn = lazy(() => import('./pages/student/spelling/LearnMode'));
 const SpellingSelfTest = lazy(() => import('./pages/student/spelling/SelfTest'));
 const SpellingPracticeResults = lazy(() => import('./pages/student/spelling/SpellingResults'));
 const SpellingPracticeMistakes = lazy(() => import('./pages/student/spelling/SpellingMistakes'));
+// EnglishPath · Vocabulary Builder (secondary module, English · Vocabulary) — client engine
+const VocabHome = lazy(() => import('./pages/student/englishpath/VocabHome'));
+const VocabSession = lazy(() => import('./pages/student/englishpath/VocabSession'));
+const VocabResults = lazy(() => import('./pages/student/englishpath/VocabResults'));
 const StudentLifeLab = lazy(() => import('./pages/student/StudentLifeLab'));
 const SkillGraph = lazy(() => import('./pages/student/SkillGraph'));
 const StudentWorksheets = lazy(() => import('./pages/student/StudentWorksheets'));
@@ -165,6 +169,9 @@ const PSLSession = lazy(() => import('./pages/student/psl/PSLSession'));
 const PSLResults = lazy(() => import('./pages/student/psl/PSLResults'));
 const PSLMistakeReview = lazy(() => import('./pages/student/psl/PSLMistakeReview'));
 const PSLDecisionGuide = lazy(() => import('./pages/student/psl/DecisionGuide'));
+const TestPapersHome = lazy(() => import('./pages/student/testpapers/TestPapersHome'));
+const TestPaperSession = lazy(() => import('./pages/student/testpapers/TestPaperSession'));
+const TestPaperResults = lazy(() => import('./pages/student/testpapers/TestPaperResults'));
 // Science Adaptive Revision (secondary module) — reuses shared practice/result screens
 const ScienceHome = lazy(() => import('./pages/student/science/ScienceHome'));
 const ScienceTopics = lazy(() => import('./pages/student/science/ScienceTopics'));
@@ -228,6 +235,7 @@ const PremiumHomeUpgradePage = lazy(() => import('./pages/parent/PremiumHomeUpgr
 const PendingUpgradesPage = lazy(() => import('./pages/admin/PendingUpgradesPage'));
 const ClassMasteryMap = lazy(() => import('./pages/teacher/ClassMasteryMap'));
 const ClassStudents = lazy(() => import('./pages/teacher/ClassStudents'));
+const ClassCorrections = lazy(() => import('./pages/teacher/ClassCorrections'));
 const Grouping = lazy(() => import('./pages/teacher/Grouping'));
 const WeakGroups = lazy(() => import('./pages/teacher/WeakGroups'));
 const TeacherAssignPractice = lazy(() => import('./pages/teacher/AssignPractice'));
@@ -725,6 +733,11 @@ function App() {
             <Route path="/student/spelling/results/:sessionId" element={<FeatureGuard feature="spelling"><SpellingPracticeResults /></FeatureGuard>} />
             <Route path="/student/spelling/mistakes" element={<FeatureGuard feature="spelling"><SpellingPracticeMistakes /></FeatureGuard>} />
 
+            {/* EnglishPath · Vocabulary Builder (English · Vocabulary) — client-side adaptive engine */}
+            <Route path="/student/english/vocab" element={<FeatureGuard feature="englishpath"><VocabHome /></FeatureGuard>} />
+            <Route path="/student/english/vocab/practice" element={<FeatureGuard feature="englishpath"><VocabSession /></FeatureGuard>} />
+            <Route path="/student/english/vocab/results" element={<FeatureGuard feature="englishpath"><VocabResults /></FeatureGuard>} />
+
             {/* Tian 7 Chronicles — comic word problems */}
             <Route path="/student/comics" element={<FeatureGuard feature="comics"><ComicsHome /></FeatureGuard>} />
             <Route path="/student/comics/:slug" element={<FeatureGuard feature="comics"><ComicReader /></FeatureGuard>} />
@@ -735,6 +748,9 @@ function App() {
             <Route path="/student/psl/results/:sessionId" element={<FeatureGuard feature="psl"><PSLResults /></FeatureGuard>} />
             <Route path="/student/psl/mistakes" element={<FeatureGuard feature="psl"><PSLMistakeReview /></FeatureGuard>} />
             <Route path="/student/psl/decision-guide" element={<FeatureGuard feature="psl"><PSLDecisionGuide /></FeatureGuard>} />
+            <Route path="/student/test-papers" element={<FeatureGuard feature="testPapers"><TestPapersHome /></FeatureGuard>} />
+            <Route path="/student/test-papers/:sessionId/run" element={<FeatureGuard feature="testPapers"><TestPaperSession /></FeatureGuard>} />
+            <Route path="/student/test-papers/:sessionId/results" element={<FeatureGuard feature="testPapers"><TestPaperResults /></FeatureGuard>} />
             <Route path="/student/assignments" element={<StudentAssignments />} />
             <Route path="/student/assessment/:sessionId" element={<InformalAssessment />} />
             <Route path="/student/progress" element={<SkillGraph />} />
@@ -813,6 +829,7 @@ function App() {
             <Route path="/teacher/classes/:id/mathpath/assessment-upload" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><AssessmentUploadPage /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/mastery" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassMasteryMap /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/students" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassStudents /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/corrections" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassCorrections /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/groups" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><Grouping /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/weak-groups" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><WeakGroups /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/assign" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherAssignPractice /></FeatureGuard></RoleGuard>} />
