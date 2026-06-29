@@ -606,6 +606,11 @@ export const teacherAPI = {
   assessmentResults: (id) => api.get(`/teacher/assessments/${id}/results`),
   closeAssessment: (id) => api.post(`/teacher/assessments/${id}/close`),
   deleteAssessment: (id) => api.delete(`/teacher/assessments/${id}`),
+  // In-class diagnostic kiosk
+  createKioskSession: (id, data) => api.post(`/teacher/classes/${id}/kiosk-sessions`, data),
+  listKioskSessions: (id) => api.get(`/teacher/classes/${id}/kiosk-sessions`),
+  kioskSessionStatus: (id, sessionId) => api.get(`/teacher/classes/${id}/kiosk-sessions/${sessionId}`),
+  closeKioskSession: (id, sessionId) => api.post(`/teacher/classes/${id}/kiosk-sessions/${sessionId}/close`),
 };
 
 // School-aligned Test Mode specifications (Table of Specification).

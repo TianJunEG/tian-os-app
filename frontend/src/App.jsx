@@ -238,6 +238,10 @@ const ClassStudents = lazy(() => import('./pages/teacher/ClassStudents'));
 const ClassCorrections = lazy(() => import('./pages/teacher/ClassCorrections'));
 const Grouping = lazy(() => import('./pages/teacher/Grouping'));
 const WeakGroups = lazy(() => import('./pages/teacher/WeakGroups'));
+const ClassDiagnosticKiosk = lazy(() => import('./pages/teacher/ClassDiagnosticKiosk'));
+const KioskLandingPage = lazy(() => import('./pages/kiosk/KioskLandingPage'));
+const KioskQuestionScreen = lazy(() => import('./pages/kiosk/KioskQuestionScreen'));
+const KioskResultPage = lazy(() => import('./pages/kiosk/KioskResultPage'));
 const TeacherAssignPractice = lazy(() => import('./pages/teacher/AssignPractice'));
 const TeacherAssessments = lazy(() => import('./pages/teacher/Assessments'));
 const TeacherCreateAssessment = lazy(() => import('./pages/teacher/CreateAssessment'));
@@ -481,6 +485,11 @@ function App() {
           <Route path="/resources/:slug" element={<ResourceDetailPage />} />
           <Route path="/student/mathpath/cheatsheet/:sheetId" element={<CheatSheet />} />
           <Route path="/science" element={<ProtectedRoute><SciencePracticePage /></ProtectedRoute>} />
+
+          {/* In-class diagnostic kiosk — PUBLIC (teacher-supervised iPads, no login) */}
+          <Route path="/kiosk/:code" element={<KioskLandingPage />} />
+          <Route path="/kiosk/:code/q/:sessionId" element={<KioskQuestionScreen />} />
+          <Route path="/kiosk/:code/result/:sessionId" element={<KioskResultPage />} />
 
           {/* Auth Routes */}
           <Route
@@ -828,6 +837,7 @@ function App() {
             <Route path="/teacher/classes/:id/mathpath/test-spec" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TestSpecificationPage /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/mathpath/assessment-upload" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><AssessmentUploadPage /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/mastery" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassMasteryMap /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/kiosk" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassDiagnosticKiosk /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/students" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassStudents /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/corrections" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassCorrections /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/groups" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><Grouping /></FeatureGuard></RoleGuard>} />
