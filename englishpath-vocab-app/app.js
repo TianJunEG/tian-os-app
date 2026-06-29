@@ -82,22 +82,6 @@ function consumePaymentReturn() {
   } catch (_) {}
 }
 
-// ---- level ----------------------------------------------------------------
-function getLevel() {
-  const v = localStorage.getItem(K.level);
-  return LEVELS.some((l) => l.id === v) ? v : 'P6';
-}
-function setLevel(v) {
-  localStorage.setItem(K.level, v);
-}
-function bankForLevel(level) {
-  const b = vocabularyWordBank.filter((w) => (w.level || 'P6') === level);
-  return b.length ? b : vocabularyWordBank.filter((w) => (w.level || 'P6') === 'P6');
-}
-function levelHasWords(level) {
-  return vocabularyWordBank.some((w) => (w.level || 'P6') === level);
-}
-
 // ---- progress (only persisted for Premium) --------------------------------
 function loadProgress() {
   if (!isPremium()) return initState(); // free = always fresh, nothing saved
@@ -136,75 +120,67 @@ function markup(text) {
 }
 
 // ---- app state ------------------------------------------------------------
-let level = getLevel();
 let state = loadProgress();
 let session = null;
 
+// One combined Primary 5 & 6 vocabulary pool.
 function bank() {
-  return bankForLevel(level);
+  return vocabularyWordBank;
 }
 
 // ---- views ----------------------------------------------------------------
-function levelToggle() {
-  return `<div class="seg">${LEVELS.map(
-    (l) =>
-      `<button class="seg-btn ${l.id === level ? 'on' : ''}" data-level="${l.id}">${l.label}${
-        levelHasWords(l.id) ? '' : ' <span class="soon">soon</span>'
-      }</button>`
-  ).join('')}</div>`;
-}
-
 function renderHome() {
   state = loadProgress();
-  const s = summarize(state, { bank: bank() });
-  const { counts, examReadiness } = s;
   const premium = isPremium();
-  const wordCount = bank().length;
+  const s = premium ? summarize(state, { bank: bank() }) : null;
+
+  const ctaEyebrow = premium ? (s.counts.dueNow ? 'Review due' : 'Your practice') : 'Free · no sign-up';
+  const ctaHeading =
+    premium && s.counts.dueNow
+      ? `${s.counts.dueNow} word${s.counts.dueNow === 1 ? '' : 's'} to review + new`
+      : 'Start a 10-question session';
 
   const premiumBlock = premium
     ? `
       <div class="stats">
-        <div class="stat"><div class="n">${counts.introduced}</div><div class="l">Words learned</div></div>
-        <div class="stat"><div class="n">${counts.mastered}</div><div class="l">Mastered</div></div>
-        <div class="stat"><div class="n">${counts.dueNow}</div><div class="l">Due to review</div></div>
+        <div class="stat"><div class="n">${s.counts.introduced}</div><div class="l">Words learned</div></div>
+        <div class="stat"><div class="n">${s.counts.mastered}</div><div class="l">Mastered</div></div>
+        <div class="stat"><div class="n">${s.counts.dueNow}</div><div class="l">Due to review</div></div>
       </div>
       <div class="card">
         <h3>Exam-section readiness</h3>
-        ${readinessRow('vocab_mcq', 'Vocabulary MCQ', examReadiness)}
-        ${readinessRow('vocab_cloze', 'Vocabulary Cloze', examReadiness)}
+        ${readinessRow('vocab_mcq', 'Vocabulary MCQ', s.examReadiness)}
+        ${readinessRow('vocab_cloze', 'Vocabulary Cloze', s.examReadiness)}
       </div>`
     : `
       <div class="card locked">
         <span class="lockpill">🔒 Premium</span>
-        <h3 style="margin-top:8px">Track your progress &amp; ace the paper</h3>
+        <h3 style="margin-top:8px">Make it stick &amp; ace the paper</h3>
         <ul class="benefits">
-          <li>✓ Save your progress across every session</li>
-          <li>✓ Spaced review brings words back right before you forget</li>
-          <li>✓ Targets your weak words automatically</li>
-          <li>✓ Unlocks all ${wordCount} words + a parent readiness report</li>
+          <li>✓ Saves your progress across every session</li>
+          <li>✓ Spaced review brings each word back right before you forget</li>
+          <li>✓ Targets the words you get wrong</li>
+          <li>✓ Unlocks the full word bank + a parent readiness report</li>
         </ul>
-        <button class="btn" data-unlock>Unlock progress — ${PRICE} →</button>
-        <p class="hint mt">Free to practise · your progress is only saved with Premium.</p>
+        <button class="btn full" data-unlock>Unlock progress — ${PRICE} →</button>
+        <p class="hint center mt">Free to practise · progress is saved only with Premium.</p>
       </div>`;
 
   app.innerHTML = `
-    <div class="row" style="margin-bottom:12px">
-      <h1 style="margin:0">Vocabulary Builder</h1>
-      ${levelToggle()}
-    </div>
-    <p class="sub">The words the ${level === 'P5' ? 'Primary 5' : 'Primary 6'} English paper actually tests — learned step by step.</p>
-
-    <div class="card">
-      <div class="row">
-        <div>
-          <div class="eyebrow">Free practice</div>
-          <h2 style="margin-top:4px">A 10-question session</h2>
-        </div>
-        <button class="btn" data-go="practice">Start practice →</button>
-      </div>
+    <div class="hero">
+      <div class="eyebrow">Primary 5 &amp; 6 English</div>
+      <h1>Master the words the exam tests</h1>
+      <p class="sub">The real vocabulary MCQ and cloze words — learned step by step, in 5-minute sessions.</p>
     </div>
 
-    ${premiumBlock}
+    <div class="card cta">
+      <div class="eyebrow">${ctaEyebrow}</div>
+      <h2>${ctaHeading}</h2>
+      <p class="muted">Meet a few new words, then test yourself. About 5 minutes.</p>
+      <button class="btn full mt" data-go="practice">${premium ? 'Continue' : 'Start practice'} →</button>
+    </div>
+
+    ${premium ? premiumBlock : ''}
 
     <div class="card">
       <h3>How each word is built up</h3>
@@ -213,17 +189,12 @@ function renderHome() {
       </ol>
     </div>
 
+    ${premium ? '' : premiumBlock}
+
     ${premium ? '<button class="btn ghost" data-reset>↺ Reset my progress</button>' : ''}
   `;
 
   app.querySelector('[data-go="practice"]').onclick = startSession;
-  app.querySelectorAll('[data-level]').forEach((b) => {
-    b.onclick = () => {
-      level = b.getAttribute('data-level');
-      setLevel(level);
-      renderHome();
-    };
-  });
   const unlock = app.querySelector('[data-unlock]');
   if (unlock) unlock.onclick = () => openPaywall('home');
   const reset = app.querySelector('[data-reset]');
@@ -255,10 +226,6 @@ function shuffle(arr) {
 }
 
 function startSession() {
-  if (!levelHasWords(level)) {
-    level = 'P6';
-    setLevel(level);
-  }
   // Free sessions aren't saved, so vary the words each time rather than always
   // starting from the top of the list. Premium follows the adaptive order.
   const sessionBank = isPremium() ? bank() : shuffle(bank());
@@ -277,11 +244,12 @@ function renderSession() {
   const tier = TIERS[(t.tier || 1) - 1];
   const progressUnits = session.idx + (session.answered || t.kind === 'teach' ? 1 : 0);
 
-  // Teach cards aren't questions — label them "New word" and number only the
-  // actual questions.
-  const qTotal = session.tasks.filter((x) => x.kind !== 'teach').length;
-  const qNum = session.tasks.slice(0, session.idx + 1).filter((x) => x.kind !== 'teach').length;
-  const counter = t.kind === 'teach' ? 'New word' : `Question ${qNum} of ${qTotal}`;
+  // Teach cards aren't questions — label them "New word (x of y)" and number
+  // only the actual questions.
+  const upTo = (kind) => session.tasks.slice(0, session.idx + 1).filter((x) => (kind === 'teach' ? x.kind === 'teach' : x.kind !== 'teach')).length;
+  const total = (kind) => session.tasks.filter((x) => (kind === 'teach' ? x.kind === 'teach' : x.kind !== 'teach')).length;
+  const counter =
+    t.kind === 'teach' ? `New word · ${upTo('teach')} of ${total('teach')}` : `Question ${upTo('q')} of ${total('q')}`;
 
   const head = `
     <button class="btn ghost" data-home>← Home</button>
@@ -397,6 +365,9 @@ function renderResults() {
         <button class="btn mt" data-unlock>Unlock progress — ${PRICE} →</button>
       </div>`;
 
+  const newWords = session.log.filter((e) => e.kind === 'teach').map((e) => e.word);
+  const questions = session.log.filter((e) => e.kind === 'mcq');
+
   app.innerHTML = `
     <div class="card center">
       <div class="eyebrow">Session score</div>
@@ -405,12 +376,14 @@ function renderResults() {
     </div>
     ${next}
     <div class="card">
-      <h3>This session</h3>
+      <h3>Words you met</h3>
+      <div class="chips">${newWords.map((w) => `<span class="chip">${esc(w)}</span>`).join('') || '<span class="muted">—</span>'}</div>
+      <h3 class="mt">How you did</h3>
       <ul class="reslist">
-        ${session.log
+        ${questions
           .map(
-            (e) => `<li><span><span class="w">${esc(e.word)}</span> <span class="lbl">· ${esc(e.label)}</span></span>
-              <span>${e.kind === 'teach' ? '<span class="lbl" style="color:var(--gold)">learned</span>' : e.correct ? '✓' : '✗'}</span></li>`
+            (e) => `<li><span class="w">${esc(e.word)}</span>
+              <span class="${e.correct ? 'ok-mk' : 'no-mk'}">${e.correct ? '✓' : '✗'}</span></li>`
           )
           .join('')}
       </ul>
@@ -437,14 +410,14 @@ function openPaywall(source) {
       <ul class="benefits">
         <li>✓ Saved progress + spaced review across all sessions</li>
         <li>✓ Automatic weak-word targeting</li>
-        <li>✓ All ${bank().length} ${level} words + parent readiness report</li>
-        <li>✓ Switch freely between Primary 5 and Primary 6</li>
+        <li>✓ The full Primary 5 &amp; 6 word bank</li>
+        <li>✓ A parent readiness report</li>
       </ul>
       <form data-form>
         <label class="fld"><span>Parent email</span>
           <input type="email" name="email" required placeholder="you@email.com" autocomplete="email" /></label>
         <label class="fld"><span>Child's level</span>
-          <select name="level">${LEVELS.map((l) => `<option value="${l.id}" ${l.id === level ? 'selected' : ''}>${l.label}</option>`).join('')}</select></label>
+          <select name="level">${LEVELS.map((l) => `<option value="${l.id}" ${l.id === 'P6' ? 'selected' : ''}>${l.label}</option>`).join('')}</select></label>
         <button class="btn full" type="submit">Get started — ${PRICE}</button>
         <p class="hint center mt">We'll email your access link. No spam, unsubscribe anytime.</p>
       </form>
@@ -460,8 +433,6 @@ function openPaywall(source) {
     const data = new FormData(e.target);
     const lead = { email: data.get('email'), level: data.get('level'), source };
     captureLead(lead); // → the lead (sent to CONFIG.LEAD_ENDPOINT)
-    level = lead.level;
-    setLevel(level);
     if (CONFIG.STRIPE_PAYMENT_LINK) {
       // Send them to checkout. Premium unlocks when Stripe redirects back with ?unlocked=1.
       const sep = CONFIG.STRIPE_PAYMENT_LINK.includes('?') ? '&' : '?';
