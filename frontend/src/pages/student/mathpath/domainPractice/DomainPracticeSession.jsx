@@ -9,6 +9,7 @@ import WorkingPreviewCard from '../../../../components/learning/WorkingPreviewCa
 import ManipulativeDotArray, { parseDotStem, numericLine, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram, parseCountDiagram, ManipulativeCountArray, parseCompareDiagram, ManipulativeCompareSets, parsePatternDiagram, ManipulativePatternStrip, parseShapeChoice, ShapeGlyph, parsePositionDiagram, ManipulativePositionStack, DragAnswerChips } from '../../../../components/learning/ManipulativeDotArray';
 import { speak, isVoiceEnabled, setVoiceEnabled } from '../../../../utils/sound';
 import { confettiBurst } from '../../../../utils/confetti';
+import { studentProfileAPI } from '../../../../services/api';
 import { useAuth } from '../../../../context/AuthContext';
 import { getMascotForModule, getMascotVoice } from '../../../../config/mascots';
 import MathSymbolBar from '../components/MathSymbolBar';
@@ -73,6 +74,29 @@ export default function DomainPracticeSession({ domain }) {
       celebratedRef.current = true;
       setTimeout(() => confettiBurst({ count: result.accuracyPercentage >= 100 ? 160 : 120, duration: 2000 }), 300);
     }
+  }, [result]);
+  const [newAwards, setNewAwards] = useState([]);
+  const awardsCheckedRef = useRef(false);
+  // After a session, surface any award badges it just unlocked. Fetching
+  // achievements runs the unlock sync server-side; "just unlocked" = within the
+  // last ~2 min (i.e. earned by this session).
+  useEffect(() => {
+    if (!result || awardsCheckedRef.current) return undefined;
+    awardsCheckedRef.current = true;
+    let active = true;
+    studentProfileAPI.achievements().then((r) => {
+      if (!active) return;
+      const list = r?.data?.achievements || r?.data || [];
+      const cutoff = Date.now() - 120000;
+      const fresh = Array.isArray(list)
+        ? list.filter((a) => a.unlocked && a.unlockedAt && new Date(a.unlockedAt).getTime() >= cutoff)
+        : [];
+      if (fresh.length) {
+        setNewAwards(fresh.map((a) => a.title));
+        setTimeout(() => confettiBurst({ count: 170, duration: 2200 }), 600);
+      }
+    }).catch(() => {});
+    return () => { active = false; };
   }, [result]);
   const [elapsedSec, setElapsedSec] = useState(0);
   const [showReflection, setShowReflection] = useState(false);
@@ -286,6 +310,16 @@ export default function DomainPracticeSession({ domain }) {
       <div className="mx-auto max-w-2xl space-y-5 px-4 py-8">
         <PageHeader title="Practice complete" subtitle={`You scored ${result.correct}/${result.total} (${result.accuracyPercentage}%).`} />
         <MascotBubble name={MASCOT_KEY} message={mascotMessageFor(label, result.accuracyPercentage)} size="sm" voiced className="mb-2" />
+        {(result.accuracyPercentage === 100 || newAwards.length > 0) && (
+          <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
+            {result.accuracyPercentage === 100 && (
+              <p className="font-bold text-amber-700">🌟 All correct — perfect round!</p>
+            )}
+            {newAwards.map((title) => (
+              <p key={title} className="text-sm font-semibold text-amber-700">🏅 New award unlocked: {title}</p>
+            ))}
+          </div>
+        )}
         <Card className="p-5">
           <ProgressBar value={result.correct} max={result.total || 1} />
           <div className="mt-4 space-y-2">
