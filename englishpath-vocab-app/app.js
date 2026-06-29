@@ -199,7 +199,6 @@ function renderHome() {
         <div>
           <div class="eyebrow">Free practice</div>
           <h2 style="margin-top:4px">A 10-question session</h2>
-          <p class="muted" style="margin:2px 0 0">${wordCount} words mined from real ${level} exam papers.</p>
         </div>
         <button class="btn" data-go="practice">Start practice →</button>
       </div>
