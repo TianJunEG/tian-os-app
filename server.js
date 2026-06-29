@@ -11,7 +11,7 @@ import { closeRedis } from './config/redis.js';
 import { isObjectStorageConfigured, signedUrlForUploadPath } from './services/storage/objectStore.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { requestLogger } from './middleware/requestLogger.js';
-import { apiRateLimit, authRateLimit } from './middleware/rateLimiter.js';
+import { apiRateLimit, authRateLimit, rateLimit } from './middleware/rateLimiter.js';
 import { sanitizeInputs } from './middleware/validation.js';
 import authRoutes from './routes/auth.js';
 import tutorRoutes from './routes/tutors.js';
@@ -38,6 +38,7 @@ import fluencyRoutes from './routes/fluency.js';
 import mistakeRoutes from './routes/mistakes.js';
 import masteryRoutes from './routes/mastery.js';
 import diagnosticRoutes from './routes/diagnostics.js';
+import kioskDiagnosticRoutes from './routes/kioskDiagnostics.js';
 import studentProfileRoutes from './routes/studentProfile.js';
 import studentAnalyticsRoutes from './routes/studentAnalytics.js';
 import studentCareRoutes from './routes/studentCare.js';
@@ -156,13 +157,19 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Workspace-Id']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Workspace-Id', 'X-Attempt-Token']
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Security & Validation Middleware
 app.use(sanitizeInputs);
+
+// Public in-class diagnostic kiosk (unauthenticated). Mounted BEFORE the global
+// apiRateLimit so a whole class behind one classroom IP isn't throttled by the
+// per-IP cap; it gets its own, higher limit instead.
+app.use('/api/kiosk', rateLimit(800, 15 * 60 * 1000), kioskDiagnosticRoutes);
+
 app.use(apiRateLimit);
 
 // Serve uploaded files. When object storage is configured, 302-redirect to a

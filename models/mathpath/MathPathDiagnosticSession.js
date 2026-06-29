@@ -46,5 +46,7 @@ mathPathDiagnosticSessionSchema.index({ studentId: 1, domainId: 1 });
 mathPathDiagnosticSessionSchema.index({ studentId: 1, subjectId: 1, domainId: 1, completedAt: 1 });
 mathPathDiagnosticSessionSchema.index({ diagnosticSessionId: 1 }, { unique: true });
 mathPathDiagnosticSessionSchema.index({ status: 1 });
+// Look up all attempts belonging to a class diagnostic kiosk session.
+mathPathDiagnosticSessionSchema.index({ sourceType: 1, sourceId: 1 });
 
 export default mongoose.model('MathPathDiagnosticSession', mathPathDiagnosticSessionSchema);

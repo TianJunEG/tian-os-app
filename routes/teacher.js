@@ -24,6 +24,9 @@ import PSLSession from '../models/psl/PSLSession.js';
 import PSLSkill from '../models/psl/PSLSkill.js';
 import PSLAttempt from '../models/psl/PSLAttempt.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
+import ClassDiagnosticSession from '../models/ClassDiagnosticSession.js';
+import { createClassDiagnosticSession, buildKioskStatus } from '../services/kiosk/classDiagnosticService.js';
+import { getDiagnosticDomain } from '../services/diagnostics/diagnosticDomainRegistry.js';
 
 const router = express.Router();
 router.use(protect, requireWorkspace);
@@ -985,6 +988,89 @@ router.get('/students/:id/psl/sessions/:sessionId', asyncHandler(async (req, res
     },
     problems,
   });
+}));
+
+// ── In-class diagnostic kiosk (teacher side) ──────────────────────────────
+// A1. Create a class diagnostic session → returns a short code + kiosk URL the
+// teacher shows as a QR. Students join unauthenticated via routes/kioskDiagnostics.
+router.post('/classes/:id/kiosk-sessions', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return undefined;
+  const klass = await getOwnedClass(req);
+  if (!klass) return res.status(404).json({ error: 'Class not found.' });
+  const { domainId, mode = 'core', studentLevel = '', subjectId = 'math' } = req.body || {};
+  if (!domainId) return res.status(400).json({ error: 'A diagnostic topic (domainId) is required.' });
+  try {
+    getDiagnosticDomain({ subjectId, domainId });
+  } catch {
+    return res.status(400).json({ error: `Unknown diagnostic topic: ${domainId}` });
+  }
+  const session = await createClassDiagnosticSession({
+    classId: klass._id,
+    workspaceId: req.workspaceId,
+    teacherUserId: req.user.id,
+    subjectId,
+    domainId,
+    mode,
+    studentLevel: studentLevel || klass.level || '',
+  });
+  return res.status(201).json({
+    sessionId: String(session._id),
+    code: session.code,
+    domainId: session.domainId,
+    mode: session.mode,
+    status: session.status,
+    kioskUrl: `/kiosk/${session.code}`,
+    expiresAt: session.expiresAt,
+    rosterCount: session.roster.length,
+  });
+}));
+
+// A1b. List this class's recent kiosk sessions (so the teacher can reopen one).
+router.get('/classes/:id/kiosk-sessions', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return undefined;
+  const klass = await getOwnedClass(req);
+  if (!klass) return res.status(404).json({ error: 'Class not found.' });
+  const sessions = await ClassDiagnosticSession
+    .find({ classId: klass._id, workspaceId: req.workspaceId })
+    .sort({ createdAt: -1 }).limit(20).lean();
+  return res.json({
+    sessions: sessions.map((s) => ({
+      sessionId: String(s._id),
+      code: s.code,
+      domainId: s.domainId,
+      mode: s.mode,
+      status: s.status,
+      rosterCount: s.roster?.length || 0,
+      createdAt: s.createdAt,
+      expiresAt: s.expiresAt,
+    })),
+  });
+}));
+
+// A2. Live status for the teacher's polling view.
+router.get('/classes/:id/kiosk-sessions/:sessionId', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return undefined;
+  const klass = await getOwnedClass(req);
+  if (!klass) return res.status(404).json({ error: 'Class not found.' });
+  const session = await ClassDiagnosticSession.findOne({
+    _id: req.params.sessionId, classId: klass._id, workspaceId: req.workspaceId,
+  });
+  if (!session) return res.status(404).json({ error: 'Session not found.' });
+  return res.json(await buildKioskStatus(session));
+}));
+
+// A3. Close a session (blocks new joins; in-flight attempts can still finish).
+router.post('/classes/:id/kiosk-sessions/:sessionId/close', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return undefined;
+  const klass = await getOwnedClass(req);
+  if (!klass) return res.status(404).json({ error: 'Class not found.' });
+  const session = await ClassDiagnosticSession.findOneAndUpdate(
+    { _id: req.params.sessionId, classId: klass._id, workspaceId: req.workspaceId },
+    { $set: { status: 'closed' } },
+    { new: true },
+  );
+  if (!session) return res.status(404).json({ error: 'Session not found.' });
+  return res.json({ ok: true, status: session.status });
 }));
 
 export default router;
