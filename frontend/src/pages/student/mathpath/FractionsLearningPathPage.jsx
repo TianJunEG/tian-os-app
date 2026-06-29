@@ -242,6 +242,12 @@ export default function FractionsLearningPathPage() {
           .filter((record) => ['fluent', 'retained'].includes(String(record.status || '').toLowerCase()))
           .map(codeFor)
           .filter(Boolean);
+        // Retained needs the retentionState too (computeSkillStatuses requires
+        // mastered + fluent + retentionState.retainedSkillIds), else it stays 0%.
+        const retainedSkillIds = records
+          .filter((record) => String(record.status || '').toLowerCase() === 'retained')
+          .map(codeFor)
+          .filter(Boolean);
 
         const pipelineResult = runMathPathDomainPipeline({
           studentId,
@@ -253,7 +259,7 @@ export default function FractionsLearningPathPage() {
             weakSkillIds,
             fluentSkillIds,
           },
-          retentionState: {},
+          retentionState: { retainedSkillIds },
           assessmentResults: [],
           mistakePlans: [],
           workingAnalysisSummary: {},

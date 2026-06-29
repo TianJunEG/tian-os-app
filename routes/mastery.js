@@ -1832,6 +1832,30 @@ async function loadFractionsSkills() {
   return { skills, byFrameworkId, byObjectId };
 }
 
+// Shape fractions MathPathStudentSkillState docs into /mastery records keyed by the
+// F-code (skillId/frameworkSkillId/skillCode), which is what every fractions consumer
+// matches against. A legacy MasteryRecord for the same F-code wins, so we never
+// double-count a skill across the two storage models.
+export function buildFractionSkillStateRecords({ fractionStates = [], existingRecords = [] } = {}) {
+  const seen = new Set(existingRecords.map((r) => r.frameworkSkillId).filter(Boolean));
+  const out = [];
+  for (const s of fractionStates) {
+    if (!s.skillId || seen.has(s.skillId)) continue;
+    seen.add(s.skillId);
+    out.push({
+      skillId: s.skillId, frameworkSkillId: s.skillId, skillCode: s.skillId,
+      skillName: '', topicName: '', domainId: 'fractions', moeLevel: '',
+      score: s.accuracy ?? 0, attempts: s.attemptCount ?? 0,
+      status: s.status, statusLabel: STATUS_LABEL[s.status] || s.status,
+      lastPracticedAt: s.lastPractisedAt || null,
+      masteryState: s.status, masteryLabel: MASTERY_LABEL[s.status] || s.status,
+      fluency: fluencyLabel(s.fluencyLevel), fluencyStatus: s.fluencyLevel || 'unknown',
+      streak: 0, bestStreak: 0, confidence: 0, consistency: 1, stale: false,
+    });
+  }
+  return out;
+}
+
 // @route GET /api/mastery?studentId=&skillIds=a,b
 // @desc  Mastery records + weak skills + a recommended next skill. Used by the
 //        MathPath progress, Fluency home, and Mistake-to-Mastery home.
@@ -1866,6 +1890,19 @@ router.get('/', protect, asyncHandler(async (req, res) => {
         confidence: r.confidence ?? 0, consistency: r.consistency ?? 1, stale: isStale(r),
       };
     });
+
+    // Fractions practice/recheck now persists to the unified MathPathStudentSkillState
+    // model (domainId 'fractions', skillId = F-code), NOT MasteryRecord — so a
+    // 100%-correct fractions session never showed up here and the dashboard/learning
+    // path stayed stuck at 0% mastered. Surface those skill states as records keyed
+    // by the F-code. Skip when the caller filters by ObjectId skillIds, since these
+    // records key by F-code instead.
+    if (!req.query.skillIds) {
+      const fractionStates = await MathPathStudentSkillState.find({
+        studentId: String(student._id), domainId: 'fractions',
+      }).lean();
+      shaped.push(...buildFractionSkillStateRecords({ fractionStates, existingRecords: shaped }));
+    }
 
     const weak = await weakSkills(student._id, { limit: 5 });
     const weakShaped = weak.map((r) => ({
