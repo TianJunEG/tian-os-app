@@ -31,6 +31,10 @@ import { parseRosterCsv, importRoster, createStudentRecord } from '../services/s
 import multer from 'multer';
 import QuickMarkSession, { QUICK_MARK_STATUSES } from '../models/QuickMarkSession.js';
 import { persistUploadFile } from '../services/storage/objectStore.js';
+import User from '../models/User.js';
+import Announcement from '../models/Announcement.js';
+import AnnouncementComment from '../models/AnnouncementComment.js';
+import { notifyNewAnnouncement, publicAnnouncement } from '../services/announcements/announcementService.js';
 
 const quickMarkPhotoUpload = multer({
   storage: multer.memoryStorage(),
@@ -1086,6 +1090,51 @@ router.post('/classes/:id/import-roster', asyncHandler(async (req, res) => {
     createMissingClasses: false,
   });
   return res.json({ ...out, parseErrors });
+}));
+
+// ── Announcements to parents (class-scoped) ──────────────────────────────
+// Post an announcement to the parents of a class → notifies them.
+router.post('/classes/:id/announcements', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return undefined;
+  const klass = await getOwnedClass(req);
+  if (!klass) return res.status(404).json({ error: 'Class not found.' });
+  const title = String(req.body?.title || '').trim();
+  if (!title) return res.status(400).json({ error: 'A title is required.' });
+  const author = await User.findById(req.user.id).select('name');
+  const announcement = await Announcement.create({
+    workspaceId: req.workspaceId,
+    authorId: req.user.id,
+    authorName: author?.name || 'Teacher',
+    sourceType: 'class',
+    sourceId: String(klass._id),
+    title,
+    body: String(req.body?.body || '').trim().slice(0, 5000),
+    allowComments: req.body?.allowComments !== false,
+  });
+  notifyNewAnnouncement(announcement).catch(() => {}); // fire-and-forget fan-out
+  return res.status(201).json({ announcement: publicAnnouncement(announcement) });
+}));
+
+// List a class's announcements.
+router.get('/classes/:id/announcements', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return undefined;
+  const klass = await getOwnedClass(req);
+  if (!klass) return res.status(404).json({ error: 'Class not found.' });
+  const list = await Announcement.find({ sourceType: 'class', sourceId: String(klass._id) })
+    .sort({ createdAt: -1 }).limit(50).lean();
+  return res.json({ announcements: list.map(publicAnnouncement) });
+}));
+
+// Delete an announcement (author only) + its comments.
+router.delete('/classes/:id/announcements/:aid', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return undefined;
+  const klass = await getOwnedClass(req);
+  if (!klass) return res.status(404).json({ error: 'Class not found.' });
+  const a = await Announcement.findOne({ _id: req.params.aid, sourceId: String(klass._id), authorId: req.user.id });
+  if (!a) return res.status(404).json({ error: 'Announcement not found.' });
+  await AnnouncementComment.deleteMany({ announcementId: a._id });
+  await a.deleteOne();
+  return res.json({ ok: true });
 }));
 
 // ── Quick Mark (fast triage of a physical worksheet stack) ───────────────
