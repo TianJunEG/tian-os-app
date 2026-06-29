@@ -406,6 +406,8 @@ export const studentProfileAPI = {
   achievements: () => api.get('/student-profile/achievements'),
   timeline: () => api.get('/student-profile/timeline'),
   personalBests: () => api.get('/student-profile/personal-bests'),
+  // Reward chart: own stickers, or a tutee's via ?studentId (resolveStudent-gated).
+  stickers: (studentId) => api.get('/student-profile/stickers', { params: studentId ? { studentId } : {} }),
   updateName: (name) => api.patch('/student-profile/name', { name }),
   updateVisualMode: (mode) => api.patch('/student-profile/visual-mode', { mode }),
 };
@@ -494,6 +496,7 @@ export const tutorAPI = {
   lessonNotes: (id) => api.get(`/tutor/students/${id}/lesson-notes`),
   createLessonNote: (id, data) => api.post(`/tutor/students/${id}/lesson-notes`, data),
   sendLessonNote: (id, noteId) => api.post(`/tutor/students/${id}/lesson-notes/${noteId}/send`),
+  awardSticker: (id, data) => api.post(`/tutor/students/${id}/stickers`, data),
   mathPathLessonNotes: (params = {}) => api.get('/tutor/lesson-notes', { params }),
   createMathPathLessonNote: (data) => api.post('/tutor/lesson-notes', data),
   homework: () => api.get('/tutor/homework'),

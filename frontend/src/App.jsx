@@ -48,6 +48,7 @@ import { ROLE_HOME } from './config/nav';
 import FeatureGuard from './components/FeatureGuard';
 const StudentDashboard = lazy(() => import('./pages/student/StudentDashboard'));
 const StudentProfile = lazy(() => import('./pages/student/StudentProfile'));
+const RewardChart = lazy(() => import('./pages/student/RewardChart'));
 const MorePage = lazy(() => import('./pages/MorePage'));
 // MathPath (Phase 2)
 const MathPathHome = lazy(() => import('./pages/student/mathpath/MathPathHome'));
@@ -621,6 +622,7 @@ function App() {
             {/* Student — dashboard shell is live */}
             <Route path="/student" element={<StudentDashboard />} />
             <Route path="/student/profile" element={<StudentProfile />} />
+            <Route path="/student/rewards" element={<RewardChart />} />
             <Route path="/student/mathpath" element={<MathPathHome />} />
             <Route path="/student/mathpath/topics/:topicId" element={<TopicDetail />} />
             <Route path="/student/mathpath/practice/:sessionId" element={<PracticeSession />} />
@@ -810,6 +812,7 @@ function App() {
             <Route path="/agency" element={<AgencyDashboard />} />
             <Route path="/admin/partners/:pid/licence" element={<PartnerLicencePage />} />
             <Route path="/tutor/students/:id/mistakes" element={<FeatureGuard feature="tutor"><TutorMistakesPage /></FeatureGuard>} />
+            <Route path="/tutor/students/:id/rewards" element={<FeatureGuard feature="tutor"><RewardChart /></FeatureGuard>} />
             <Route path="/tutor/students/:id/assign-homework" element={<FeatureGuard feature="tutor"><AssignHomework /></FeatureGuard>} />
             <Route path="/tutor/homework" element={<FeatureGuard feature="tutor"><TutorHomework /></FeatureGuard>} />
             <Route path="/tutor/students/:id/mistakes/:mistakeId/explain" element={<FeatureGuard feature="tutor"><TutorExplanationRecorder /></FeatureGuard>} />

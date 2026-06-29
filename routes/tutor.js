@@ -16,6 +16,7 @@ import { buildLessonPrep } from '../utils/tutorLessonPrep.js';
 import { getTutorLessonPrep } from '../services/mathpath/tutorLessonPrepEngine.js';
 import { createAssignmentFromLessonPrep } from '../services/mathpath/mathPathAssignmentService.js';
 import { sanitizeHomeworkResults } from '../utils/homeworkResults.js';
+import { awardSticker, awardHomeworkSticker } from '../services/rewards/stickerService.js';
 import {
   listPartnerStudentIdsForUser,
   userCanAccessPartnerStudent,
@@ -240,7 +241,39 @@ router.post('/students/:id/lesson-notes', asyncHandler(async (req, res) => {
     nextRecommendation: b.nextRecommendation || '', parentSummary: b.parentSummary || '',
     parentUpdateStatus: 'draft',
   });
-  res.status(201).json({ lessonNote: note });
+  // A strong homework week auto-earns a sticker for the reward chart (idempotent
+  // per note). Non-fatal — never block saving the note on a reward write.
+  let earnedSticker = null;
+  try {
+    const hw = note.homeworkResults || [];
+    earnedSticker = await awardHomeworkSticker({
+      studentId: student._id,
+      noteId: note._id,
+      correct: hw.reduce((s, r) => s + (r.correct || 0), 0),
+      total: hw.reduce((s, r) => s + (r.total || 0), 0),
+    });
+  } catch (err) {
+    console.error('[tutor] homework sticker award failed (non-fatal):', err.message);
+  }
+  res.status(201).json({ lessonNote: note, earnedSticker });
+}));
+
+// @route POST /api/tutor/students/:id/stickers — manually award a reward sticker
+router.post('/students/:id/stickers', asyncHandler(async (req, res) => {
+  if (!ensureTutorWorkspace(req, res)) return;
+  const student = await requireLinkedStudent(req, res); if (!student) return;
+  try {
+    const { sticker } = await awardSticker({
+      studentId: student._id,
+      stickerCode: req.body?.stickerCode,
+      source: 'tutor',
+      awardedByUserId: req.user.id,
+      note: req.body?.note || '',
+    });
+    res.status(201).json({ sticker });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Could not award sticker.' });
+  }
 }));
 
 // @route POST /api/tutor/students/:id/lesson-notes/:noteId/send
