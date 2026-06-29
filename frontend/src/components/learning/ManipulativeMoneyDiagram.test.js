@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseCoinsDiagram } from './ManipulativeDotArray';
+import { parseCoinsDiagram, parseShapeChoice } from './ManipulativeDotArray';
 
 describe('parseCoinsDiagram', () => {
   it('parses the generator coins diagram (single denomination) into one token per coin', () => {
@@ -35,5 +35,18 @@ describe('parseCoinsDiagram', () => {
   it('skips unknown denominations and zero counts', () => {
     const q = { diagram: { kind: 'coins', items: [{ valueCents: 7, count: 5 }, { valueCents: 100, count: 0 }] } };
     expect(parseCoinsDiagram(q)).toBeNull();
+  });
+});
+
+describe('parseShapeChoice', () => {
+  it('extracts the shape kind from a shape: token, else null', () => {
+    expect(parseShapeChoice('shape:triangle')).toBe('triangle');
+    expect(parseShapeChoice('shape:rectangle')).toBe('rectangle');
+    expect(parseShapeChoice('shape:circle')).toBe('circle');
+    expect(parseShapeChoice('shape:square')).toBe('square');
+    expect(parseShapeChoice('shape:hexagon')).toBeNull(); // not a basic shape
+    expect(parseShapeChoice('5')).toBeNull();
+    expect(parseShapeChoice('🔺')).toBeNull();
+    expect(parseShapeChoice(null)).toBeNull();
   });
 });

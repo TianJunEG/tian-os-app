@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 // Convert a math prompt to a TTS-friendly string (strips dot-array lines and symbols).
 export function toSpeakable(text = '') {
@@ -500,14 +500,15 @@ export function ManipulativePatternStrip({ items = [] }) {
         {items.map((item, i) => (
           <span
             key={i}
+            {...(item == null ? { 'data-pattern-slot': 'true' } : {})}
             className="flex items-center justify-center rounded-xl"
             style={{
-              width: 48,
-              height: 48,
+              width: item == null ? 52 : 48,
+              height: item == null ? 52 : 48,
               fontSize: item == null ? 26 : 32,
               lineHeight: 1,
-              background: item == null ? '#fff' : 'transparent',
-              border: item == null ? '2px dashed #c4b5fd' : 'none',
+              background: item == null ? '#faf5ff' : 'transparent',
+              border: item == null ? '2px dashed #a78bfa' : 'none',
               color: '#7c3aed',
               fontWeight: 700,
             }}
@@ -517,7 +518,118 @@ export function ManipulativePatternStrip({ items = [] }) {
           </span>
         ))}
       </div>
-      <p className="text-center text-xs text-ink-400">What goes in the box?</p>
+      <p className="text-center text-xs text-ink-400">Drag or tap the answer into the box</p>
+    </div>
+  );
+}
+
+// ── Drag-or-tap answer chips (K2 kinesthetic input) ──────────────────────────
+// Renders the MCQ choices as chips that can be DRAGGED onto a drop target
+// (any element matching slotSelector) or simply TAPPED — both call onAnswer.
+// Pointer events so it works on touch and mouse; a tiny floating "ghost"
+// follows the finger. Tap is the accessible fallback. The parent should pass
+// key={questionId} so drag state resets per question.
+export function DragAnswerChips({ choices = [], onAnswer, slotSelector = '[data-pattern-slot]', disabled = false }) {
+  const [drag, setDrag] = useState(null); // { value, x, y } while dragging
+  const start = useRef(null);
+
+  const renderPiece = (value, size) => {
+    const shapeKind = parseShapeChoice(value);
+    return shapeKind ? <ShapeGlyph kind={shapeKind} size={size} /> : <span style={{ fontSize: size, lineHeight: 1 }}>{value}</span>;
+  };
+
+  const onPointerDown = (e, value) => {
+    if (disabled) return;
+    start.current = { value, x: e.clientX, y: e.clientY, moved: false };
+    setDrag({ value, x: e.clientX, y: e.clientY });
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* ignore */ }
+  };
+  const onPointerMove = (e) => {
+    const s = start.current;
+    if (!s) return;
+    if (Math.hypot(e.clientX - s.x, e.clientY - s.y) > 6) s.moved = true;
+    setDrag((d) => (d ? { ...d, x: e.clientX, y: e.clientY } : d));
+  };
+  const onPointerUp = (e) => {
+    const s = start.current;
+    start.current = null;
+    setDrag(null);
+    if (!s || disabled) return;
+    if (!s.moved) { onAnswer(s.value); return; } // a tap → answer
+    const dropped = document.elementFromPoint(e.clientX, e.clientY);
+    if (dropped && dropped.closest(slotSelector)) onAnswer(s.value); // dragged onto the box
+  };
+
+  return (
+    <>
+      <div className="grid grid-cols-3 gap-3 pt-1">
+        {choices.map((value) => (
+          <button
+            key={value}
+            type="button"
+            aria-label={parseShapeChoice(value) || String(value)}
+            disabled={disabled}
+            onPointerDown={(e) => onPointerDown(e, value)}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            style={{ touchAction: 'none' }}
+            className="flex items-center justify-center rounded-2xl border-2 border-line-soft bg-white py-5 shadow-sm transition hover:border-violet-300 hover:bg-violet-50 active:scale-95 disabled:opacity-40"
+          >
+            {renderPiece(value, 32)}
+          </button>
+        ))}
+      </div>
+      {drag && (
+        <div
+          style={{ position: 'fixed', left: drag.x, top: drag.y, transform: 'translate(-50%, -50%)', pointerEvents: 'none', zIndex: 60, opacity: 0.9 }}
+        >
+          {renderPiece(drag.value, 40)}
+        </div>
+      )}
+    </>
+  );
+}
+
+// ── K2 Shapes: crisp SVG shape choices (Strand C) ────────────────────────────
+// The four NEL basic shapes have no consistent colour-emoji set (rectangle in
+// particular), so shape-question MCQ choices are emitted as 'shape:<kind>'
+// tokens and rendered here as same-style SVG glyphs.
+const SHAPE_KINDS = new Set(['circle', 'square', 'rectangle', 'triangle']);
+
+// Returns the shape kind for a 'shape:<kind>' choice token, else null.
+export function parseShapeChoice(choice) {
+  const m = /^shape:(circle|square|rectangle|triangle)$/.exec(String(choice || ''));
+  return m ? m[1] : null;
+}
+
+export function ShapeGlyph({ kind, size = 44, color = '#7c3aed' }) {
+  if (!SHAPE_KINDS.has(kind)) return null;
+  const common = { width: size, height: size, viewBox: '0 0 40 40', role: 'img', 'aria-label': kind };
+  if (kind === 'circle') return (<svg {...common}><circle cx="20" cy="20" r="15" fill={color} /></svg>);
+  if (kind === 'square') return (<svg {...common}><rect x="6" y="6" width="28" height="28" rx="3" fill={color} /></svg>);
+  if (kind === 'rectangle') return (<svg {...common}><rect x="3" y="11" width="34" height="18" rx="3" fill={color} /></svg>);
+  return (<svg {...common}><polygon points="20,5 35,33 5,33" fill={color} /></svg>); // triangle
+}
+
+// ── K2 position: top/bottom stack (Strand C, NEL LG4.4) ──────────────────────
+// Generator emits diagram:{kind:'position', top, bottom}.
+export function parsePositionDiagram(question) {
+  const d = question?.diagram;
+  if (!d || d.kind !== 'position' || !d.top || !d.bottom) return null;
+  return { top: d.top, bottom: d.bottom };
+}
+
+export function ManipulativePositionStack({ top, bottom }) {
+  const Cell = (emoji, label) => (
+    <div className="flex items-center justify-between rounded-xl bg-white/70 px-4 py-2">
+      <span style={{ fontSize: 36, lineHeight: 1 }}>{emoji}</span>
+      <span className="text-xs font-semibold uppercase tracking-wide text-violet-400">{label}</span>
+    </div>
+  );
+  return (
+    <div className="mx-auto max-w-xs rounded-2xl bg-violet-50 p-4 space-y-2">
+      {Cell(top, 'top')}
+      {Cell(bottom, 'bottom')}
     </div>
   );
 }

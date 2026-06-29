@@ -6,7 +6,7 @@ import { MascotBubble } from '../../../../components/MascotAvatar';
 import { MathText } from '../../../../components/ui/Fraction';
 import FullScreenWorkingMode from '../../../../components/learning/FullScreenWorkingMode';
 import WorkingPreviewCard from '../../../../components/learning/WorkingPreviewCard';
-import ManipulativeDotArray, { parseDotStem, numericLine, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram, parseCountDiagram, ManipulativeCountArray, parseCompareDiagram, ManipulativeCompareSets, parsePatternDiagram, ManipulativePatternStrip } from '../../../../components/learning/ManipulativeDotArray';
+import ManipulativeDotArray, { parseDotStem, numericLine, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram, parseCountDiagram, ManipulativeCountArray, parseCompareDiagram, ManipulativeCompareSets, parsePatternDiagram, ManipulativePatternStrip, parseShapeChoice, ShapeGlyph, parsePositionDiagram, ManipulativePositionStack, DragAnswerChips } from '../../../../components/learning/ManipulativeDotArray';
 import { speak, isVoiceEnabled, setVoiceEnabled } from '../../../../utils/sound';
 import { confettiBurst } from '../../../../utils/confetti';
 import { useAuth } from '../../../../context/AuthContext';
@@ -180,6 +180,9 @@ export default function DomainPracticeSession({ domain }) {
 
   const questions = session?.questions || [];
   const current = questions[index] || null;
+  // K2 pattern questions become a drag-or-tap activity: drag the missing piece
+  // into the box on the pattern strip (tap still works as the a11y fallback).
+  const lpPatternMcq = isLPrimary && current?.type === 'mcq' ? parsePatternDiagram(current) : null;
   const isLast = index >= questions.length - 1;
   const currentWorking = current?.questionId ? (workingByQuestion[current.questionId] || {}) : {};
 
@@ -337,10 +340,11 @@ export default function DomainPracticeSession({ domain }) {
               // Shown at every level — it's the question's intended visual; the tap-to-
               // count hint just helps younger pupils.
               const coinTokens = domain === 'money' ? parseCoinsDiagram(current) : null;
-              // K2 Early Numeracy visuals (tap-to-count / pattern strip).
+              // K2 Early Numeracy visuals (tap-to-count / pattern / position).
               const countData = parseCountDiagram(current);
               const compareData = parseCompareDiagram(current);
               const patternData = parsePatternDiagram(current);
+              const positionData = parsePositionDiagram(current);
               if (coinTokens) {
                 return (
                   <>
@@ -370,6 +374,14 @@ export default function DomainPracticeSession({ domain }) {
                 return (
                   <>
                     <ManipulativePatternStrip key={current?.questionId} items={patternData.items} />
+                    <p className="text-xl font-bold text-ink-900">{prompt}</p>
+                  </>
+                );
+              }
+              if (positionData) {
+                return (
+                  <>
+                    <ManipulativePositionStack key={current?.questionId} top={positionData.top} bottom={positionData.bottom} />
                     <p className="text-xl font-bold text-ink-900">{prompt}</p>
                   </>
                 );
@@ -428,22 +440,33 @@ export default function DomainPracticeSession({ domain }) {
         </div>
 
         {current?.type === 'mcq' ? (
-          isLPrimary ? (
+          lpPatternMcq ? (
+            <DragAnswerChips
+              key={current?.questionId}
+              choices={current.choices || []}
+              onAnswer={(value) => { speak(value, { rate: 0.85, gender: 'female' }); submitAnswer(value); }}
+              disabled={showReflection || submitting}
+            />
+          ) : isLPrimary ? (
             <div className="grid grid-cols-2 gap-3 pt-1">
-              {(current.choices || []).map((choice) => (
-                <button
-                  key={choice}
-                  type="button"
-                  disabled={showReflection || submitting}
-                  onClick={() => {
-                    speak(choice, { rate: 0.85, gender: 'female' });
-                    submitAnswer(choice);
-                  }}
-                  className="rounded-2xl border-2 border-line-soft bg-white py-5 text-center text-3xl font-bold text-ink-900 shadow-sm transition hover:border-emerald hover:bg-emerald-tint active:scale-95 disabled:opacity-40"
-                >
-                  {choice}
-                </button>
-              ))}
+              {(current.choices || []).map((choice) => {
+                const shapeKind = parseShapeChoice(choice);
+                return (
+                  <button
+                    key={choice}
+                    type="button"
+                    aria-label={shapeKind || String(choice)}
+                    disabled={showReflection || submitting}
+                    onClick={() => {
+                      speak(shapeKind || choice, { rate: 0.85, gender: 'female' });
+                      submitAnswer(choice);
+                    }}
+                    className="flex items-center justify-center rounded-2xl border-2 border-line-soft bg-white py-5 text-center text-3xl font-bold text-ink-900 shadow-sm transition hover:border-emerald hover:bg-emerald-tint active:scale-95 disabled:opacity-40"
+                  >
+                    {shapeKind ? <ShapeGlyph kind={shapeKind} /> : choice}
+                  </button>
+                );
+              })}
             </div>
           ) : (
             <div className="mt-5 grid gap-3">

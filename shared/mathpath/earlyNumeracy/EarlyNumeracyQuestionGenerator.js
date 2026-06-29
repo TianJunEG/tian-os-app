@@ -48,11 +48,12 @@ const SHAPES = ['🔴', '🔵', '🟡', '🟢', '🟣', '🟠', '⭐', '❤️']
 const SIZE_PAIRS = [
   ['🐘', '🐁'], ['🌳', '🌷'], ['🚌', '🚲'], ['🐋', '🐠'], ['🏠', '⛺'], ['🍉', '🍓'],
 ];
-// Strand C (Shapes & Space). The four NEL basic shapes as glyphs + the four
-// direction arrows. (Rectangle has no colour emoji; ▭ is the clearest glyph.)
-const SHAPE_GLYPH = { circle: '🔵', square: '🟦', triangle: '🔺', rectangle: '▭' };
-const SHAPE_NAMES = Object.keys(SHAPE_GLYPH);
-const ALL_SHAPE_GLYPHS = Object.values(SHAPE_GLYPH);
+// Strand C (Shapes & Space). The four NEL basic shapes + the four direction
+// arrows. Shapes are emitted as 'shape:<kind>' tokens (no colour-emoji rectangle
+// exists) and rendered as crisp SVG glyphs by ShapeGlyph in the client.
+const SHAPE_NAMES = ['circle', 'square', 'rectangle', 'triangle'];
+const shapeToken = (name) => `shape:${name}`;
+const ALL_SHAPE_TOKENS = SHAPE_NAMES.map(shapeToken);
 // [glyph, real-object] for "shapes around us".
 const SHAPE_OBJECTS = {
   circle: ['🛞', '🍪', '⏰', '🪙'],
@@ -61,6 +62,9 @@ const SHAPE_OBJECTS = {
   rectangle: ['🚪', '📱', '📺', '🚌'],
 };
 const DIRECTIONS = { up: '⬆️', down: '⬇️', left: '⬅️', right: '➡️' };
+// Position (top/bottom) uses any two distinct friendly objects — the position is
+// what is being tested, not the objects.
+const POSITION_OBJECTS = ['🐱', '🐶', '🐦', '🐟', '🎈', '🧸', '⚽', '🍎', '🚗', '🌟'];
 // Strand D (Measuring). Each pair is [more, less] for the attribute: the first
 // is longer / taller / heavier / holds-more.
 const LENGTH_PAIRS = [['🐍', '🐛'], ['🚂', '🚗'], ['🥖', '🍪'], ['📏', '📎'], ['🪱', '🐞']];
@@ -293,8 +297,8 @@ function genShapeRecognise(rng, skill) {
   return mcq({
     skill, familySuffix: '001',
     prompt: `Tap the ${name}.`,
-    correct: SHAPE_GLYPH[name],
-    choices: shuffle(rng, ALL_SHAPE_GLYPHS),
+    correct: shapeToken(name),
+    choices: shuffle(rng, ALL_SHAPE_TOKENS),
     misconceptionTag: 'en/shape-name-mismatch',
   });
 }
@@ -310,8 +314,8 @@ function genShapeAttributes(rng, skill) {
   return mcq({
     skill, familySuffix: '001',
     prompt: q.prompt,
-    correct: SHAPE_GLYPH[q.name],
-    choices: shuffle(rng, ALL_SHAPE_GLYPHS),
+    correct: shapeToken(q.name),
+    choices: shuffle(rng, ALL_SHAPE_TOKENS),
     misconceptionTag: 'en/miscounts-sides',
   });
 }
@@ -322,9 +326,22 @@ function genShapesAround(rng, skill) {
   return mcq({
     skill, familySuffix: '001',
     prompt: `What shape is this? ${object}`,
-    correct: SHAPE_GLYPH[name],
-    choices: shuffle(rng, ALL_SHAPE_GLYPHS),
+    correct: shapeToken(name),
+    choices: shuffle(rng, ALL_SHAPE_TOKENS),
     misconceptionTag: 'en/shape-name-mismatch',
+  });
+}
+
+function genPosition(rng, skill) {
+  const [top, bottom] = shuffle(rng, POSITION_OBJECTS).slice(0, 2);
+  const askTop = rng() < 0.5;
+  return mcq({
+    skill, familySuffix: askTop ? '001' : '002',
+    prompt: askTop ? 'Which one is on top?' : 'Which one is at the bottom?',
+    correct: askTop ? top : bottom,
+    choices: shuffle(rng, [top, bottom]),
+    diagram: { kind: 'position', top, bottom },
+    misconceptionTag: 'en/confuses-top-bottom',
   });
 }
 
@@ -368,6 +385,7 @@ const BUILDERS = {
   EN014: (rng, skill) => genShapeAttributes(rng, skill),
   EN015: (rng, skill) => genShapesAround(rng, skill),
   EN016: (rng, skill) => genDirection(rng, skill),
+  EN021: (rng, skill) => genPosition(rng, skill),
   EN017: (rng, skill) => measureCompare(rng, skill, { pairs: LENGTH_PAIRS, moreWord: 'longer', lessWord: 'shorter' }),
   EN018: (rng, skill) => measureCompare(rng, skill, { pairs: HEIGHT_PAIRS, moreWord: 'taller', lessWord: 'shorter' }),
   EN019: (rng, skill) => measureCompare(rng, skill, { pairs: WEIGHT_PAIRS, moreWord: 'heavier', lessWord: 'lighter' }),

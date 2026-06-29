@@ -320,6 +320,21 @@ const earlyNumeracySkills = [
     misconceptions: ['en/confuses-holds-more-less'],
     questionFamilies: ['QF_EN020_001', 'QF_EN020_002'],
   },
+  {
+    id: 'EN021',
+    slug: 'en.spatial.position',
+    name: 'On top & at the bottom',
+    description: 'Use position words — top and bottom — to describe where things are.',
+    strand: 'Shapes & Space',
+    prerequisites: [],
+    crossDomainPrerequisites: [],
+    difficulty: 1,
+    singaporeLevel: ['K2'],
+    mastery: { minimumAccuracy: 70, minimumQuestions: 5 },
+    remediationIfWeak: [],
+    misconceptions: ['en/confuses-top-bottom'],
+    questionFamilies: ['QF_EN021_001', 'QF_EN021_002'],
+  },
 ];
 
 const skills = earlyNumeracySkills.map((skill) => ({ ...skill }));
