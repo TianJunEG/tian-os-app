@@ -28,6 +28,36 @@ import ClassDiagnosticSession from '../models/ClassDiagnosticSession.js';
 import { createClassDiagnosticSession, buildKioskStatus } from '../services/kiosk/classDiagnosticService.js';
 import { getDiagnosticDomain } from '../services/diagnostics/diagnosticDomainRegistry.js';
 import { parseRosterCsv, importRoster, createStudentRecord } from '../services/school/schoolAdminService.js';
+import multer from 'multer';
+import QuickMarkSession, { QUICK_MARK_STATUSES } from '../models/QuickMarkSession.js';
+import { persistUploadFile } from '../services/storage/objectStore.js';
+
+const quickMarkPhotoUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 15 * 1024 * 1024, files: 1 },
+  fileFilter: (_req, file, cb) => {
+    if (/^image\//.test(file.mimetype)) cb(null, true);
+    else cb(new Error('Only image photos are supported.'));
+  },
+});
+
+function publicQuickMark(session) {
+  return {
+    quickMarkId: String(session._id),
+    classId: String(session.classId),
+    title: session.title,
+    status: session.status,
+    createdAt: session.createdAt,
+    marks: (session.marks || []).map((m) => ({
+      studentId: String(m.studentId),
+      name: m.name,
+      status: m.status,
+      note: m.note || '',
+      photoUrl: m.photoUrl || '',
+      markedAt: m.markedAt,
+    })),
+  };
+}
 
 const router = express.Router();
 router.use(protect, requireWorkspace);
@@ -1056,6 +1086,93 @@ router.post('/classes/:id/import-roster', asyncHandler(async (req, res) => {
     createMissingClasses: false,
   });
   return res.json({ ...out, parseErrors });
+}));
+
+// ── Quick Mark (fast triage of a physical worksheet stack) ───────────────
+// Create a session — snapshots the class roster, all unmarked.
+router.post('/classes/:id/quickmarks', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return undefined;
+  const klass = await getOwnedClass(req);
+  if (!klass) return res.status(404).json({ error: 'Class not found.' });
+  const ids = await rosterIds(klass._id);
+  const students = await Student.find({ _id: { $in: ids } }).select('_id name').lean();
+  const marks = students
+    .map((s) => ({ studentId: s._id, name: s.name, status: 'not_done' }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const session = await QuickMarkSession.create({
+    workspaceId: req.workspaceId,
+    classId: klass._id,
+    teacherUserId: req.user.id,
+    title: String(req.body?.title || '').trim(),
+    marks,
+  });
+  return res.status(201).json({ session: publicQuickMark(session) });
+}));
+
+// List recent sessions for a class.
+router.get('/classes/:id/quickmarks', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return undefined;
+  const klass = await getOwnedClass(req);
+  if (!klass) return res.status(404).json({ error: 'Class not found.' });
+  const sessions = await QuickMarkSession.find({ classId: klass._id, workspaceId: req.workspaceId })
+    .sort({ createdAt: -1 }).limit(20).lean();
+  return res.json({
+    sessions: sessions.map((s) => ({
+      quickMarkId: String(s._id),
+      title: s.title,
+      status: s.status,
+      createdAt: s.createdAt,
+      total: s.marks?.length || 0,
+      marked: (s.marks || []).filter((m) => m.status !== 'not_done').length,
+    })),
+  });
+}));
+
+// Get one session (full marks).
+router.get('/classes/:id/quickmarks/:qid', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return undefined;
+  const klass = await getOwnedClass(req);
+  if (!klass) return res.status(404).json({ error: 'Class not found.' });
+  const session = await QuickMarkSession.findOne({ _id: req.params.qid, classId: klass._id, workspaceId: req.workspaceId });
+  if (!session) return res.status(404).json({ error: 'Quick Mark session not found.' });
+  return res.json({ session: publicQuickMark(session) });
+}));
+
+// Set a student's status/note.
+router.patch('/classes/:id/quickmarks/:qid/mark', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return undefined;
+  const klass = await getOwnedClass(req);
+  if (!klass) return res.status(404).json({ error: 'Class not found.' });
+  const { studentId, status, note } = req.body || {};
+  if (status && !QUICK_MARK_STATUSES.includes(status)) {
+    return res.status(400).json({ error: 'Unknown status.' });
+  }
+  const set = { 'marks.$.markedAt': new Date() };
+  if (status) set['marks.$.status'] = status;
+  if (note !== undefined) set['marks.$.note'] = String(note).slice(0, 500);
+  const session = await QuickMarkSession.findOneAndUpdate(
+    { _id: req.params.qid, classId: klass._id, workspaceId: req.workspaceId, 'marks.studentId': studentId },
+    { $set: set },
+    { new: true },
+  );
+  if (!session) return res.status(404).json({ error: 'Session or student not found.' });
+  return res.json({ session: publicQuickMark(session) });
+}));
+
+// Attach a photo of a student's pages (optional — useful for the weak group).
+router.post('/classes/:id/quickmarks/:qid/mark/:studentId/photo', quickMarkPhotoUpload.single('photo'), asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return undefined;
+  const klass = await getOwnedClass(req);
+  if (!klass) return res.status(404).json({ error: 'Class not found.' });
+  if (!req.file) return res.status(400).json({ error: 'No photo uploaded.' });
+  const { fileUrl } = await persistUploadFile(req.file, 'quickmark');
+  const session = await QuickMarkSession.findOneAndUpdate(
+    { _id: req.params.qid, classId: klass._id, workspaceId: req.workspaceId, 'marks.studentId': req.params.studentId },
+    { $set: { 'marks.$.photoUrl': fileUrl, 'marks.$.markedAt': new Date() } },
+    { new: true },
+  );
+  if (!session) return res.status(404).json({ error: 'Session or student not found.' });
+  return res.json({ photoUrl: fileUrl, session: publicQuickMark(session) });
 }));
 
 // ── In-class diagnostic kiosk (teacher side) ──────────────────────────────

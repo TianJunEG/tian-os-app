@@ -610,6 +610,12 @@ export const teacherAPI = {
   createClass: (data) => api.post('/teacher/classes', data),
   addStudent: (id, data) => api.post(`/teacher/classes/${id}/students`, data),
   importRoster: (id, text) => api.post(`/teacher/classes/${id}/import-roster`, { text }),
+  // Quick Mark (triage a worksheet stack)
+  createQuickMark: (id, data) => api.post(`/teacher/classes/${id}/quickmarks`, data),
+  listQuickMarks: (id) => api.get(`/teacher/classes/${id}/quickmarks`),
+  getQuickMark: (id, qid) => api.get(`/teacher/classes/${id}/quickmarks/${qid}`),
+  setQuickMark: (id, qid, data) => api.patch(`/teacher/classes/${id}/quickmarks/${qid}/mark`, data),
+  uploadQuickMarkPhoto: (id, qid, studentId, formData) => api.post(`/teacher/classes/${id}/quickmarks/${qid}/mark/${studentId}/photo`, formData),
   // In-class diagnostic kiosk
   createKioskSession: (id, data) => api.post(`/teacher/classes/${id}/kiosk-sessions`, data),
   listKioskSessions: (id) => api.get(`/teacher/classes/${id}/kiosk-sessions`),

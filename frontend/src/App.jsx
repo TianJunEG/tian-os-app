@@ -239,6 +239,7 @@ const ClassCorrections = lazy(() => import('./pages/teacher/ClassCorrections'));
 const Grouping = lazy(() => import('./pages/teacher/Grouping'));
 const WeakGroups = lazy(() => import('./pages/teacher/WeakGroups'));
 const ClassDiagnosticKiosk = lazy(() => import('./pages/teacher/ClassDiagnosticKiosk'));
+const ClassQuickMark = lazy(() => import('./pages/teacher/ClassQuickMark'));
 const KioskLandingPage = lazy(() => import('./pages/kiosk/KioskLandingPage'));
 const KioskQuestionScreen = lazy(() => import('./pages/kiosk/KioskQuestionScreen'));
 const KioskResultPage = lazy(() => import('./pages/kiosk/KioskResultPage'));
@@ -838,6 +839,7 @@ function App() {
             <Route path="/teacher/classes/:id/mathpath/assessment-upload" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><AssessmentUploadPage /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/mastery" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassMasteryMap /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/kiosk" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassDiagnosticKiosk /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/quickmark" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassQuickMark /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/students" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassStudents /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/corrections" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassCorrections /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/groups" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><Grouping /></FeatureGuard></RoleGuard>} />
