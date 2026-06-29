@@ -24,7 +24,7 @@ function makeSession(overrides = {}) {
   };
 }
 
-const cds = { findOne: vi.fn(), findOneAndUpdate: vi.fn(), updateOne: vi.fn() };
+const cds = { findOne: vi.fn(), findOneAndUpdate: vi.fn(), updateOne: vi.fn(), findById: vi.fn() };
 const student = { findById: vi.fn() };
 const mpds = { updateOne: vi.fn(), findOne: vi.fn() };
 const startAdaptiveDiagnostic = vi.fn();
@@ -71,11 +71,12 @@ describe('kiosk diagnostic routes', () => {
     expect(res.status).toBe(200);
     expect(res.data.domainId).toBe('fractions');
     expect(res.data.roster).toEqual([
-      { studentId: AISHA, name: 'Aisha', taken: false },
-      { studentId: BEN, name: 'Ben', taken: true },
+      { ref: '0', name: 'Aisha', taken: false },
+      { ref: '1', name: 'Ben', taken: true },
     ]);
-    // no workspace / level / studentLevel leaked
+    // no real student ObjectIds, workspace, or level leaked to the public endpoint
     expect(JSON.stringify(res.data)).not.toMatch(/ws_1|workspace/);
+    expect(JSON.stringify(res.data)).not.toContain(AISHA);
   });
 
   it('B1: 404 unknown code, 410 closed', async () => {
@@ -85,15 +86,15 @@ describe('kiosk diagnostic routes', () => {
     expect((await request('/sessions/K7Q4MN')).status).toBe(410);
   });
 
-  it('B2: 403 when the chosen name is not in the roster', async () => {
+  it('B2: 400 on an out-of-range roster ref', async () => {
     cds.findOne.mockResolvedValueOnce(makeSession());
-    const res = await request('/sessions/K7Q4MN/begin', { method: 'POST', body: { studentId: '507f1f77bcf86cd7994390ff' } });
-    expect(res.status).toBe(403);
+    const res = await request('/sessions/K7Q4MN/begin', { method: 'POST', body: { ref: '99' } });
+    expect(res.status).toBe(400);
   });
 
   it('B2: 409 when the name is already taken', async () => {
     cds.findOne.mockResolvedValueOnce(makeSession());
-    const res = await request('/sessions/K7Q4MN/begin', { method: 'POST', body: { studentId: BEN } });
+    const res = await request('/sessions/K7Q4MN/begin', { method: 'POST', body: { ref: '1' } });
     expect(res.status).toBe(409);
   });
 
@@ -107,7 +108,7 @@ describe('kiosk diagnostic routes', () => {
       sessionId: 'fractionsdiag_abc', currentQuestion: { questionId: 'q1' }, questions: [{ questionId: 'q1' }], progress: { answeredCount: 0 },
     });
 
-    const res = await request('/sessions/K7Q4MN/begin', { method: 'POST', body: { studentId: AISHA } });
+    const res = await request('/sessions/K7Q4MN/begin', { method: 'POST', body: { ref: '0' } });
     expect(res.status).toBe(200);
     expect(typeof res.data.attemptToken).toBe('string');
     expect(res.data.sessionId).toBe('fractionsdiag_abc');
@@ -125,8 +126,8 @@ describe('kiosk diagnostic routes', () => {
   it('B2: 403 on cross-workspace student', async () => {
     cds.findOne.mockResolvedValueOnce(makeSession());
     student.findById.mockResolvedValueOnce({ _id: AISHA, workspaceId: 'OTHER_WS', level: 'P4' });
-    const res = await request('/sessions/K7Q4MN/begin', { method: 'POST', body: { studentId: AISHA } });
-    expect(res.status).toBe(403);
+    const res = await request('/sessions/K7Q4MN/begin', { method: 'POST', body: { ref: '0' } });
+    expect(res.status).toBe(400);
   });
 
   it('B3: a token minted by begin authorises an answer; missing/mismatched tokens are rejected', async () => {
@@ -137,7 +138,7 @@ describe('kiosk diagnostic routes', () => {
     cds.updateOne.mockResolvedValue({});
     mpds.updateOne.mockResolvedValue({});
     startAdaptiveDiagnostic.mockResolvedValueOnce({ sessionId: 'fractionsdiag_abc', currentQuestion: {}, questions: [], progress: {} });
-    const begin = await request('/sessions/K7Q4MN/begin', { method: 'POST', body: { studentId: AISHA } });
+    const begin = await request('/sessions/K7Q4MN/begin', { method: 'POST', body: { ref: '0' } });
     const token = begin.data.attemptToken;
 
     // missing token → 401
@@ -147,11 +148,29 @@ describe('kiosk diagnostic routes', () => {
     const mismatch = await request('/diagnostics/OTHER_SESSION/answer', { method: 'POST', body: {}, headers: { 'x-attempt-token': token } });
     expect(mismatch.status).toBe(403);
 
-    // correct token + session → engine called
+    // correct token + an OPEN parent session → engine called
+    cds.findById.mockResolvedValueOnce(makeSession());
     student.findById.mockResolvedValueOnce({ _id: AISHA, workspaceId: 'ws_1' });
     answerAdaptiveDiagnostic.mockResolvedValueOnce({ isCorrect: true, sessionComplete: false, progress: {} });
     const ans = await request('/diagnostics/fractionsdiag_abc/answer', { method: 'POST', body: { questionId: 'q1', answer: '3/4' }, headers: { 'x-attempt-token': token } });
     expect(ans.status).toBe(200);
     expect(answerAdaptiveDiagnostic).toHaveBeenCalledWith(expect.objectContaining({ sessionId: 'fractionsdiag_abc' }));
+  });
+
+  it('B3: rejects answers once the parent class session is closed (even with a valid token)', async () => {
+    cds.findOne.mockResolvedValueOnce(makeSession());
+    student.findById.mockResolvedValueOnce({ _id: AISHA, workspaceId: 'ws_1', level: 'P4' });
+    cds.findOneAndUpdate.mockResolvedValueOnce(makeSession());
+    cds.updateOne.mockResolvedValue({});
+    mpds.updateOne.mockResolvedValue({});
+    startAdaptiveDiagnostic.mockResolvedValueOnce({ sessionId: 'fractionsdiag_xyz', currentQuestion: {}, questions: [], progress: {} });
+    const begin = await request('/sessions/K7Q4MN/begin', { method: 'POST', body: { ref: '0' } });
+    const token = begin.data.attemptToken;
+
+    // teacher has since ended the check-in
+    cds.findById.mockResolvedValueOnce(makeSession({ status: 'closed' }));
+    const ans = await request('/diagnostics/fractionsdiag_xyz/answer', { method: 'POST', body: { questionId: 'q', answer: '1' }, headers: { 'x-attempt-token': token } });
+    expect(ans.status).toBe(410);
+    expect(answerAdaptiveDiagnostic).not.toHaveBeenCalled();
   });
 });

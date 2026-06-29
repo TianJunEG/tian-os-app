@@ -1,5 +1,4 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import ClassDiagnosticSession from '../models/ClassDiagnosticSession.js';
 import Student from '../models/Student.js';
 import MathPathDiagnosticSession from '../models/mathpath/MathPathDiagnosticSession.js';
@@ -35,8 +34,10 @@ router.get('/sessions/:code', asyncHandler(async (req, res) => {
     subjectId: session.subjectId,
     domainId: session.domainId,
     mode: session.mode,
-    roster: session.roster.map((r) => ({
-      studentId: String(r.studentId),
+    // Expose an opaque per-session ref (the roster index), never the real student
+    // ObjectId — the picker only needs to identify a slot to claim.
+    roster: session.roster.map((r, i) => ({
+      ref: String(i),
       name: r.name,
       taken: !!r.taken,
     })),
@@ -51,21 +52,20 @@ router.post('/sessions/:code/begin', asyncHandler(async (req, res) => {
   if (found.gone) return res.status(410).json({ error: 'This class session is closed or has expired.' });
   const { session } = found;
 
-  const studentId = String(req.body?.studentId || '');
-  if (!mongoose.isValidObjectId(studentId)) {
+  const idx = Number(req.body?.ref);
+  if (!Number.isInteger(idx) || idx < 0 || idx >= session.roster.length) {
     return res.status(400).json({ error: 'Please choose your name to begin.' });
   }
-  const rosterEntry = session.roster.find((r) => String(r.studentId) === studentId);
-  if (!rosterEntry) return res.status(403).json({ error: 'That name is not in this class session.' });
+  const rosterEntry = session.roster[idx];
   if (rosterEntry.taken) {
     return res.status(409).json({ error: 'That name has already started. Ask your teacher if you need to retry.' });
   }
 
-  const student = await Student.findById(studentId);
-  if (!student) return res.status(404).json({ error: 'Student not found.' });
-  // Cross-workspace leakage guard + results-write guard (writes no-op without a workspace).
-  if (!student.workspaceId || String(student.workspaceId) !== String(session.workspaceId)) {
-    return res.status(403).json({ error: 'Student does not belong to this class.' });
+  const student = await Student.findById(rosterEntry.studentId);
+  // Generic message — never reveal roster/workspace internals to an unauthenticated
+  // caller. (The roster was workspace-filtered at creation, so this is defence in depth.)
+  if (!student || !student.workspaceId || String(student.workspaceId) !== String(session.workspaceId)) {
+    return res.status(400).json({ error: 'That selection is not available. Please tell your teacher.' });
   }
 
   // Atomically claim the roster slot so two iPads can't both take the same name.
@@ -89,13 +89,14 @@ router.post('/sessions/:code/begin', asyncHandler(async (req, res) => {
       enforceReplay: false, // kiosk students may legitimately re-sit across sessions
     });
   } catch (err) {
-    // Roll the claim back so the student can try again, then surface the error.
+    // Roll the claim back so the student can try again.
     await ClassDiagnosticSession.updateOne(
       { _id: session._id, 'roster.studentId': student._id },
       { $set: { 'roster.$.taken': false, 'roster.$.status': 'not_started', 'roster.$.startedAt': null } },
     );
-    const status = Number(err?.status) || 500;
-    return res.status(status).json({ error: err?.publicMessage || err?.message || 'Could not start the diagnostic.' });
+    // Never leak engine internals (e.g. "skills are not seeded yet") to the public kiosk.
+    console.error('[kiosk] begin failed:', err?.message || err);
+    return res.status(500).json({ error: 'Could not start the check-in right now. Please tell your teacher.' });
   }
 
   const diagnosticSessionId = payload.sessionId || payload.session?.sessionId;
@@ -121,6 +122,14 @@ router.post('/sessions/:code/begin', asyncHandler(async (req, res) => {
 async function loadAttempt(req, res) {
   if (req.kiosk.sid !== req.params.sessionId) {
     res.status(403).json({ error: 'This attempt token does not match the session.' });
+    return null;
+  }
+  // The parent class session must still be open AND unexpired — a still-valid token
+  // must not let answers through after the teacher ends the check-in or it expires.
+  const classSession = await ClassDiagnosticSession.findById(req.kiosk.cds);
+  if (!classSession || classSession.status !== 'open'
+      || (classSession.expiresAt && classSession.expiresAt.getTime() < Date.now())) {
+    res.status(410).json({ error: 'This class check-in is no longer active.' });
     return null;
   }
   const student = await Student.findById(req.kiosk.stu);

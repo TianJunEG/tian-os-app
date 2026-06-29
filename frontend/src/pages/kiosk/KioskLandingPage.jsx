@@ -35,10 +35,10 @@ export default function KioskLandingPage() {
 
   async function pickName(student) {
     if (student.taken || busyId) return;
-    setBusyId(student.studentId);
+    setBusyId(student.ref);
     setError('');
     try {
-      const { data } = await kioskAPI.begin(code, student.studentId);
+      const { data } = await kioskAPI.begin(code, student.ref);
       setAttemptToken(data.attemptToken);
       const sessionId = data.sessionId || data.session?.sessionId;
       navigate(`/kiosk/${code}/q/${sessionId}`, {
@@ -87,15 +87,15 @@ export default function KioskLandingPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 14 }}>
           {session.roster.map((s) => (
             <button
-              key={s.studentId}
+              key={s.ref}
               type="button"
               disabled={s.taken || Boolean(busyId)}
               onClick={() => pickName(s)}
               style={{
                 padding: '22px 16px', borderRadius: 16, fontSize: 20, fontWeight: 700,
                 border: '2px solid', cursor: s.taken ? 'default' : 'pointer',
-                background: s.taken ? '#f1f3f5' : (busyId === s.studentId ? '#3f8f6f' : '#ffffff'),
-                color: s.taken ? '#aab2bd' : (busyId === s.studentId ? '#ffffff' : '#1c2433'),
+                background: s.taken ? '#f1f3f5' : (busyId === s.ref ? '#3f8f6f' : '#ffffff'),
+                color: s.taken ? '#aab2bd' : (busyId === s.ref ? '#ffffff' : '#1c2433'),
                 borderColor: s.taken ? '#e3e7eb' : '#cfe3d8',
                 transition: 'all .15s ease',
               }}

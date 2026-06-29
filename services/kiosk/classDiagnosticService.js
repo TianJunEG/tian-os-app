@@ -8,7 +8,9 @@ import MathPathDiagnosticSession from '../../models/mathpath/MathPathDiagnosticS
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const DEFAULT_TTL_MS = 3 * 60 * 60 * 1000; // 3 hours — covers a class period generously
 
-export function generateSessionCode(length = 6) {
+// 8 chars over a 32-symbol alphabet ≈ 40 bits of entropy — makes guessing an
+// active code impractical even across distributed IPs within the session window.
+export function generateSessionCode(length = 8) {
   const bytes = crypto.randomBytes(length);
   let out = '';
   for (let i = 0; i < length; i += 1) out += CODE_ALPHABET[bytes[i] % CODE_ALPHABET.length];

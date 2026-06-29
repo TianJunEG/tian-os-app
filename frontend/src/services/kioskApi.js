@@ -42,7 +42,7 @@ kioskClient.interceptors.response.use((res) => res, (err) => Promise.reject(err)
 
 export const kioskAPI = {
   getSession: (code) => kioskClient.get(`/sessions/${encodeURIComponent(code)}`),
-  begin: (code, studentId) => kioskClient.post(`/sessions/${encodeURIComponent(code)}/begin`, { studentId }),
+  begin: (code, ref) => kioskClient.post(`/sessions/${encodeURIComponent(code)}/begin`, { ref }),
   answer: (sessionId, body) => kioskClient.post(`/diagnostics/${sessionId}/answer`, body),
   finish: (sessionId) => kioskClient.post(`/diagnostics/${sessionId}/finish`, {}),
 };
