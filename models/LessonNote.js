@@ -18,6 +18,18 @@ const lessonNoteSchema = new mongoose.Schema({
   struggledWith: { type: String, default: '' },
   misconceptions: { type: String, default: '' },
   homeworkAssigned: { type: String, default: '' },
+  // Structured per-topic homework results the tutor marks for the week. Accuracy
+  // is derived (correct / total); we store raw counts so totals stay auditable.
+  // Empty for notes that don't log homework.
+  homeworkResults: {
+    type: [{
+      topicId: { type: mongoose.Schema.Types.ObjectId, ref: 'Topic', default: null },
+      topicName: { type: String, default: '', trim: true },
+      correct: { type: Number, default: 0, min: 0 },
+      total: { type: Number, default: 0, min: 0 },
+    }],
+    default: [],
+  },
   nextRecommendation: { type: String, default: '' },
   parentSummary: { type: String, default: '' },
   parentUpdateStatus: { type: String, enum: ['draft', 'sent'], default: 'draft' },

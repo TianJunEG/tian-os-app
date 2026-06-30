@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { PenLine, Eraser, RotateCcw, Sigma, Trash2, X } from 'lucide-react';
-import { drawStroke, pointFromEvent as extractPoint, beginStrokeData, finalizeStroke } from './drawingUtils';
+import { PenLine, Eraser, Move, Calculator, RotateCcw, Sigma, Trash2, X } from 'lucide-react';
+import { drawStroke, pointFromEvent as extractPoint, beginStrokeData, finalizeStroke, topStampIndexAtPoint, moveStampInStrokes } from './drawingUtils';
+import ColumnOperationsGrid, { makeEmptyGrid } from './ColumnOperationsGrid';
 
 // Math symbol stamps. Simple ones (operators, π, θ, ∠) insert immediately;
 // the rest open a small builder popover so the student can fill in the parts.
@@ -69,6 +70,10 @@ export default function ScratchpadOverlay({
   const drawingRef = useRef(false);
   const currentStrokeRef = useRef(null);
   const activePointerRef = useRef(null);
+  // Stamp dragging (Move tool): which stamp index is being dragged, the grab
+  // offset from its anchor, and the live working copy of strokes during the drag.
+  const draggingRef = useRef(null);
+  const dragStrokesRef = useRef(null);
   const [strokes, setStrokes] = useState(Array.isArray(initialStrokes) ? initialStrokes : []);
   const [tool, setTool] = useState('pen');
   const [colour, setColour] = useState(COLOURS[0].value);
@@ -77,11 +82,19 @@ export default function ScratchpadOverlay({
   // complex stamp (fraction, power, root, mixed) needs field input.
   const [showMath, setShowMath] = useState(false);
   const [mathDraft, setMathDraft] = useState(null);
+  // Four Ops: an optional column-arithmetic grid (same component the practice
+  // working canvas uses) shown as a floating panel so the student can set out a
+  // sum without leaving the question. Grid state is ephemeral, reset per question.
+  const [showFourOps, setShowFourOps] = useState(false);
+  const [columnGrid, setColumnGrid] = useState(() => makeEmptyGrid('addition', 0));
 
-  // Reset strokes from props when the overlay (re-)opens for a new question.
+  // Reset strokes (and the column grid) from props when the overlay (re-)opens
+  // for a new question.
   useEffect(() => {
     if (!open) return;
     setStrokes(Array.isArray(initialStrokes) ? initialStrokes : []);
+    setColumnGrid(makeEmptyGrid('addition', 0));
+    setShowFourOps(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
@@ -130,9 +143,24 @@ export default function ScratchpadOverlay({
   }
 
   function beginStroke(event) {
-    if (drawingRef.current) return; // palm rejection
+    if (drawingRef.current || draggingRef.current) return; // palm rejection
     event.preventDefault();
     if (typeof window !== 'undefined') window.getSelection?.()?.removeAllRanges?.();
+    // Move tool: grab the stamp under the pointer and drag it instead of drawing.
+    // A press that misses every stamp is a no-op (so you can't draw in move mode).
+    if (tool === 'move') {
+      const pt = extractPoint(event, canvasRef.current, window.innerWidth, window.innerHeight);
+      const index = topStampIndexAtPoint(strokes, pt);
+      if (index === -1) return;
+      const anchor = strokes[index].points[0];
+      draggingRef.current = { index, offsetX: pt.x - anchor.x, offsetY: pt.y - anchor.y };
+      dragStrokesRef.current = strokes;
+      if (event.pointerId !== undefined) {
+        activePointerRef.current = event.pointerId;
+        canvasRef.current?.setPointerCapture?.(event.pointerId);
+      }
+      return;
+    }
     drawingRef.current = true;
     if (event.pointerId !== undefined) {
       activePointerRef.current = event.pointerId;
@@ -142,6 +170,17 @@ export default function ScratchpadOverlay({
   }
 
   function moveStroke(event) {
+    if (draggingRef.current) {
+      if (activePointerRef.current !== null && event.pointerId !== undefined && event.pointerId !== activePointerRef.current) return;
+      event.preventDefault();
+      const pt = extractPoint(event, canvasRef.current, window.innerWidth, window.innerHeight);
+      const { index, offsetX, offsetY } = draggingRef.current;
+      const base = dragStrokesRef.current || strokes;
+      const next = moveStampInStrokes(base, index, pt.x - offsetX, pt.y - offsetY);
+      dragStrokesRef.current = next;
+      redraw(next);
+      return;
+    }
     if (!drawingRef.current) return;
     if (activePointerRef.current !== null && event.pointerId !== undefined && event.pointerId !== activePointerRef.current) return;
     event.preventDefault();
@@ -156,6 +195,17 @@ export default function ScratchpadOverlay({
   }
 
   function endStroke(event) {
+    if (draggingRef.current) {
+      if (activePointerRef.current !== null && event?.pointerId !== undefined && event.pointerId !== activePointerRef.current) return;
+      if (event?.pointerId !== undefined) canvasRef.current?.releasePointerCapture?.(event.pointerId);
+      activePointerRef.current = null;
+      const next = dragStrokesRef.current || strokes;
+      draggingRef.current = null;
+      dragStrokesRef.current = null;
+      setStrokes(next);
+      onChange?.(next);
+      return;
+    }
     if (!drawingRef.current) return;
     if (activePointerRef.current !== null && event?.pointerId !== undefined && event.pointerId !== activePointerRef.current) return;
     if (event?.pointerId !== undefined) canvasRef.current?.releasePointerCapture?.(event.pointerId);
@@ -279,7 +329,7 @@ export default function ScratchpadOverlay({
           stays visible because the canvas itself is transparent (no fill). */}
       <canvas
         ref={canvasRef}
-        className="fixed inset-0 z-40 select-none cursor-crosshair"
+        className={`fixed inset-0 z-40 select-none ${tool === 'move' ? 'cursor-move' : 'cursor-crosshair'}`}
         style={{ touchAction: 'none', WebkitTouchCallout: 'none' }}
         aria-label="Scratchpad canvas — write to think"
         onContextMenu={(e) => e.preventDefault()}
@@ -297,6 +347,9 @@ export default function ScratchpadOverlay({
         <button type="button" onClick={() => setTool('eraser')} className={toolBtn(tool === 'eraser')} title="Eraser" aria-label="Eraser">
           <Eraser className="h-4 w-4" />
         </button>
+        <button type="button" onClick={() => setTool('move')} className={toolBtn(tool === 'move')} title="Move symbols" aria-label="Move symbols">
+          <Move className="h-4 w-4" />
+        </button>
         <button
           type="button"
           onClick={() => { setShowMath((v) => !v); setMathDraft(null); }}
@@ -305,6 +358,15 @@ export default function ScratchpadOverlay({
           aria-label="Math symbols"
         >
           <Sigma className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowFourOps((v) => !v)}
+          className={toolBtn(showFourOps)}
+          title="Four Ops (column working)"
+          aria-label="Four Ops column working"
+        >
+          <Calculator className="h-4 w-4" />
         </button>
         <div className="my-1 border-t border-line-soft" />
         {/* Colours — only when pen is active so the eraser doesn't look colourful. */}
@@ -345,6 +407,27 @@ export default function ScratchpadOverlay({
           <X className="h-4 w-4" />
         </button>
       </div>
+
+      {/* Four Ops — a floating column-arithmetic panel (the same grid the practice
+          working canvas uses). It sits on the LEFT so the right-side palette, the
+          question, and the answer box stay reachable. Being its own element above
+          the canvas, taps land on the grid inputs, not the ink layer. */}
+      {showFourOps && (
+        <div className="fixed left-4 top-24 z-50 max-h-[72vh] w-[min(92vw,440px)] overflow-auto rounded-2xl border border-line-soft bg-white/97 p-3 shadow-card backdrop-blur">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Column working</span>
+            <button
+              type="button"
+              onClick={() => setShowFourOps(false)}
+              className="grid h-7 w-7 place-items-center rounded-lg text-ink-400 transition hover:bg-line-soft hover:text-ink-700"
+              aria-label="Close column working"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <ColumnOperationsGrid grid={columnGrid} onChange={setColumnGrid} />
+        </div>
+      )}
 
       {/* Math symbols toolbar — appears to the LEFT of the main palette when
           enabled, so it doesn't crowd the right-side controls. */}

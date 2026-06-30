@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { drawStroke } from './drawingUtils';
+import { drawStroke, stampContainsPoint, topStampIndexAtPoint, moveStampInStrokes } from './drawingUtils';
 
 function mockCtx() {
   const ops = [];
@@ -80,5 +80,49 @@ describe('drawStroke — operator stamps', () => {
     ctx.fillText = (t) => texts.push(t);
     drawStroke(ctx, { tool: 'stamp', template, colour: '#000', points: [{ x: 10, y: 10 }] });
     expect(texts).toContain(symbol);
+  });
+});
+
+// Backs the ScratchpadOverlay "Move" tool: a placed math stamp must be grabbable
+// by a tap near its anchor and re-anchored to where the student drags it.
+describe('stamp drag geometry', () => {
+  const stamp = { tool: 'stamp', template: 'plus', points: [{ x: 100, y: 100 }] };
+
+  it('hits a stamp within its box and misses outside it', () => {
+    expect(stampContainsPoint(stamp, { x: 100, y: 100 })).toBe(true); // on anchor
+    expect(stampContainsPoint(stamp, { x: 160, y: 120 })).toBe(true); // right/below (box extends there)
+    expect(stampContainsPoint(stamp, { x: 400, y: 400 })).toBe(false); // far away
+    expect(stampContainsPoint(stamp, { x: 100, y: 200 })).toBe(false); // below the box
+  });
+
+  it('ignores non-stamp strokes and missing points', () => {
+    expect(stampContainsPoint({ tool: 'pen', points: [{ x: 100, y: 100 }] }, { x: 100, y: 100 })).toBe(false);
+    expect(stampContainsPoint({ tool: 'stamp', points: [] }, { x: 0, y: 0 })).toBe(false);
+    expect(stampContainsPoint(null, { x: 0, y: 0 })).toBe(false);
+  });
+
+  it('returns the topmost (last-drawn) stamp under the point, -1 when none', () => {
+    const strokes = [
+      { tool: 'pen', points: [{ x: 100, y: 100 }] },
+      { tool: 'stamp', template: 'plus', points: [{ x: 100, y: 100 }] },   // index 1
+      { tool: 'stamp', template: 'minus', points: [{ x: 105, y: 102 }] },  // index 2 — overlaps, drawn later
+    ];
+    expect(topStampIndexAtPoint(strokes, { x: 105, y: 102 })).toBe(2);
+    expect(topStampIndexAtPoint(strokes, { x: 500, y: 500 })).toBe(-1);
+    expect(topStampIndexAtPoint([], { x: 0, y: 0 })).toBe(-1);
+  });
+
+  it('re-anchors only the dragged stamp and leaves a new array (no mutation)', () => {
+    const strokes = [
+      { tool: 'pen', points: [{ x: 1, y: 1 }] },
+      { tool: 'stamp', template: 'plus', colour: '#f97316', numerator: 'a', points: [{ x: 100, y: 100 }] },
+    ];
+    const moved = moveStampInStrokes(strokes, 1, 250, 175);
+    expect(moved).not.toBe(strokes);
+    expect(moved[1].points[0]).toEqual({ x: 250, y: 175 });
+    expect(moved[1].numerator).toBe('a');     // other stamp fields preserved
+    expect(moved[1].colour).toBe('#f97316');
+    expect(moved[0]).toBe(strokes[0]);        // untouched strokes kept by reference
+    expect(strokes[1].points[0]).toEqual({ x: 100, y: 100 }); // original not mutated
   });
 });

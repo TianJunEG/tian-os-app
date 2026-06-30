@@ -14,6 +14,7 @@ export default defineConfig({
       'shared/mathpath/**/*.test.js',
       'scripts/**/*.test.js',
       'shared/englishpath/**/*.test.js',
+      'shared/rewards/**/*.test.js',
     ],
   },
 });

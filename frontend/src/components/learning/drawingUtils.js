@@ -345,6 +345,39 @@ export function drawMathStamp(ctx, stroke, options = {}) {
   ctx.restore();
 }
 
+// ─── Stamp hit-testing (for dragging placed math stamps) ─────────────────
+
+// A math stamp anchors at points[0] and renders to the right of / around that
+// anchor (see drawMathStamp). This box is the draggable hit area — generous so
+// small symbols stay easy to grab on a tablet. Kept here next to the renderer so
+// the two stay in sync if stamp sizing changes.
+export const STAMP_HIT_BOX = { left: -18, right: 116, top: -42, bottom: 48 };
+
+export function stampContainsPoint(stamp, pt) {
+  if (!stamp || stamp.tool !== 'stamp' || !pt) return false;
+  const a = stamp.points?.[0];
+  if (!a) return false;
+  return (
+    pt.x >= a.x + STAMP_HIT_BOX.left && pt.x <= a.x + STAMP_HIT_BOX.right &&
+    pt.y >= a.y + STAMP_HIT_BOX.top && pt.y <= a.y + STAMP_HIT_BOX.bottom
+  );
+}
+
+// Index of the topmost (last-drawn) stamp under the point, or -1.
+export function topStampIndexAtPoint(strokes = [], pt) {
+  for (let i = strokes.length - 1; i >= 0; i--) {
+    if (stampContainsPoint(strokes[i], pt)) return i;
+  }
+  return -1;
+}
+
+// Return a new strokes array with the stamp at `index` re-anchored to (x, y).
+export function moveStampInStrokes(strokes = [], index, x, y) {
+  return strokes.map((s, i) => (
+    i === index ? { ...s, points: [{ ...(s.points?.[0] || {}), x, y }] } : s
+  ));
+}
+
 // ─── Background painting ────────────────────────────────────────────────
 
 /**

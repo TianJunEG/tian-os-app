@@ -591,6 +591,17 @@ export default function StudentDashboard() {
             .map(masteryCodeFor),
           ...(persistedMastery.weakSkills || []).map((row) => row?.skillCode || row?.frameworkSkillId || row?.skillId),
         ].filter(Boolean);
+        // Fluent/retained come from passing a fluency drill / retention recheck (the
+        // only writers of those statuses). Derive them so the headline isn't stuck at
+        // 0% fluent/retained once a student progresses past plain practice.
+        const persistedFluentSkillIds = persistedRecords
+          .filter((record) => ['fluent', 'retained'].includes(String(record.status || record.masteryState || '').toLowerCase()))
+          .map(masteryCodeFor)
+          .filter(Boolean);
+        const persistedRetainedSkillIds = persistedRecords
+          .filter((record) => String(record.status || record.masteryState || '').toLowerCase() === 'retained')
+          .map(masteryCodeFor)
+          .filter(Boolean);
         const masteredSkillIds = [
           ...(diagnosticResult.masteredSkillIds || []),
           ...persistedMasteredSkillIds,
@@ -614,10 +625,11 @@ export default function StudentDashboard() {
               practiceState: {
                 currentSkillId: persistedCurrentSkillId,
                 masteredSkillIds,
-                fluentSkillIds: [],
+                fluentSkillIds: persistedFluentSkillIds,
                 weakSkillIds,
                 lastSessionAt: diagnosticResult.completedAt || diagnosticResult.diagnosticCompletedAt || null,
               },
+              retentionState: { retainedSkillIds: persistedRetainedSkillIds },
             });
         if (active) {
           const domains = (domainsResponse?.data?.domains || [])

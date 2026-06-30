@@ -820,11 +820,31 @@ function regularPolygon(spec) {
   return svgShell(spec, body, `${n}-sided polygon`);
 }
 
+// A near-square grid of unit cells (e.g. a 10×10 hundred-grid) with the first
+// `shaded` cells filled — for "N squares out of 100 are shaded" percentage and
+// fraction-of-a-grid questions.
+function hundredGrid(spec) {
+  const cells = Math.max(1, Math.round(Number(spec.data?.cells) || 100));
+  const shaded = Math.max(0, Math.min(cells, Math.round(Number(spec.data?.shaded) || 0)));
+  const cols = Math.ceil(Math.sqrt(cells));
+  const rows = Math.ceil(cells / cols);
+  const w = spec.width || 320; const h = spec.height || 320;
+  const size = Math.max(6, Math.min((w - 40) / cols, (h - 40) / rows));
+  const gx = (w - cols * size) / 2; const gy = (h - rows * size) / 2;
+  let body = '';
+  for (let i = 0; i < cells; i += 1) {
+    const r = Math.floor(i / cols); const c = i % cols;
+    body += `<rect x="${gx + c * size}" y="${gy + r * size}" width="${size}" height="${size}" fill="${i < shaded ? SHADED_FILL : UNSHADED_FILL}" stroke="${PARTITION_STROKE}" stroke-width="1"/>`;
+  }
+  return svgShell(spec, body, `${shaded} of ${cells} squares shaded`);
+}
+
 export const renderers = {
   ...sharedRenderers,
   circle,
   semicircle,
   quarter_circle: quarterCircle,
+  hundred_grid: hundredGrid,
   fraction_bar: fractionBar,
   fraction_bar_pair: fractionBarPair,
   fraction_circle: fractionCircle,
