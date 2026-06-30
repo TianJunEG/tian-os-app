@@ -26,6 +26,9 @@ import PSLAttempt from '../models/psl/PSLAttempt.js';
 import multer from 'multer';
 import r2 from '../services/storage/r2.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
+import Announcement from '../models/Announcement.js';
+import AnnouncementComment from '../models/AnnouncementComment.js';
+import { notifyNewAnnouncement, publicAnnouncement } from '../services/announcements/announcementService.js';
 
 const router = express.Router();
 const audioUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
@@ -601,6 +604,45 @@ router.get('/students/:id/psl/dashboard', asyncHandler(async (req, res) => {
     topMisconceptions,
     recentSessions,
   });
+}));
+
+// ── Announcements to parents (tutor-scoped) ──────────────────────────────
+// Post an announcement to the parents of all the tutor's active students.
+router.post('/announcements', asyncHandler(async (req, res) => {
+  if (!ensureTutorWorkspace(req, res)) return;
+  const title = String(req.body?.title || '').trim();
+  if (!title) return res.status(400).json({ error: 'A title is required.' });
+  const author = await User.findById(req.user.id).select('name');
+  const announcement = await Announcement.create({
+    workspaceId: req.workspaceId,
+    authorId: req.user.id,
+    authorName: author?.name || 'Tutor',
+    sourceType: 'tutor',
+    sourceId: String(req.user.id), // recipient fan-out keys off the tutorUserId
+    title,
+    body: String(req.body?.body || '').trim().slice(0, 5000),
+    allowComments: req.body?.allowComments !== false,
+  });
+  notifyNewAnnouncement(announcement).catch(() => {});
+  return res.status(201).json({ announcement: publicAnnouncement(announcement) });
+}));
+
+// List the tutor's announcements.
+router.get('/announcements', asyncHandler(async (req, res) => {
+  if (!ensureTutorWorkspace(req, res)) return;
+  const list = await Announcement.find({ sourceType: 'tutor', sourceId: String(req.user.id) })
+    .sort({ createdAt: -1 }).limit(50).lean();
+  return res.json({ announcements: list.map(publicAnnouncement) });
+}));
+
+// Delete an announcement (author only) + its comments.
+router.delete('/announcements/:aid', asyncHandler(async (req, res) => {
+  if (!ensureTutorWorkspace(req, res)) return;
+  const a = await Announcement.findOne({ _id: req.params.aid, sourceType: 'tutor', authorId: req.user.id });
+  if (!a) return res.status(404).json({ error: 'Announcement not found.' });
+  await AnnouncementComment.deleteMany({ announcementId: a._id });
+  await a.deleteOne();
+  return res.json({ ok: true });
 }));
 
 export default router;

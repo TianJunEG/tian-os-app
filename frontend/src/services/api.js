@@ -507,6 +507,10 @@ export const tutorAPI = {
     api.post(`/tutor/students/${studentId}/mistakes/${mistakeId}/explanation-audio`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
+  // Announcements to parents (all of the tutor's students)
+  createAnnouncement: (data) => api.post('/tutor/announcements', data),
+  listAnnouncements: () => api.get('/tutor/announcements'),
+  deleteAnnouncement: (aid) => api.delete(`/tutor/announcements/${aid}`),
 };
 
 export const tutorInviteAPI = {

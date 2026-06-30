@@ -243,6 +243,7 @@ const ClassQuickMark = lazy(() => import('./pages/teacher/ClassQuickMark'));
 const ClassAnnouncements = lazy(() => import('./pages/teacher/ClassAnnouncements'));
 const ParentAnnouncements = lazy(() => import('./pages/parent/ParentAnnouncements'));
 const ParentAnnouncementDetail = lazy(() => import('./pages/parent/ParentAnnouncementDetail'));
+const TutorAnnouncements = lazy(() => import('./pages/tutor/TutorAnnouncements'));
 const KioskLandingPage = lazy(() => import('./pages/kiosk/KioskLandingPage'));
 const KioskQuestionScreen = lazy(() => import('./pages/kiosk/KioskQuestionScreen'));
 const KioskResultPage = lazy(() => import('./pages/kiosk/KioskResultPage'));
@@ -811,6 +812,7 @@ function App() {
             {/* Tutor (Phase 4) */}
             <Route path="/tutor" element={<FeatureGuard feature="tutor"><TutorHome /></FeatureGuard>} />
             <Route path="/tutor/students" element={<FeatureGuard feature="tutor"><AssignedStudents /></FeatureGuard>} />
+            <Route path="/tutor/announcements" element={<FeatureGuard feature="tutor"><TutorAnnouncements /></FeatureGuard>} />
             <Route path="/tutor/students/:id" element={<FeatureGuard feature="tutor"><TutorStudentProfile /></FeatureGuard>} />
             <Route path="/tutor/students/:id/mathpath" element={<FeatureGuard feature="tutor"><TutorMathPathDashboardPage /></FeatureGuard>} />
             <Route path="/tutor/students/:id/psl" element={<FeatureGuard feature="tutor"><TutorPSLDashboardPage /></FeatureGuard>} />
