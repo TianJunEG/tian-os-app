@@ -839,12 +839,43 @@ function hundredGrid(spec) {
   return svgShell(spec, body, `${shaded} of ${cells} squares shaded`);
 }
 
+// A set of `total` objects partitioned into `groups` equal, visually-separated
+// groups (the "share into equal groups" model for fraction-of-a-set). Left
+// UNSHADED on purpose — the partition is the scaffold; shading the selected
+// groups would hand over the answer.
+function objectSet(spec) {
+  const total = Math.max(1, Math.round(Number(spec.data?.total) || 0));
+  const groups = Math.max(1, Math.round(Number(spec.data?.groups) || 1));
+  const perGroup = Math.max(1, Math.round(total / groups));
+  const w = spec.width || 540; const h = spec.height || 220;
+  const gap = 16;
+  const colW = (w - 40 - gap * (groups - 1)) / groups;
+  const boxTop = 20; const boxH = h - 56;
+  const cols = Math.ceil(Math.sqrt(perGroup));
+  const rows = Math.ceil(perGroup / cols);
+  const r = Math.max(5, Math.min(colW / (cols * 2.4), boxH / (rows * 2.4)));
+  let body = '';
+  for (let g = 0; g < groups; g += 1) {
+    const gx = 20 + g * (colW + gap);
+    body += `<rect x="${gx}" y="${boxTop}" width="${colW}" height="${boxH}" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>`;
+    for (let i = 0; i < perGroup; i += 1) {
+      const cc = i % cols; const rr = Math.floor(i / cols);
+      const cx = gx + (colW / cols) * (cc + 0.5);
+      const cy = boxTop + (boxH / rows) * (rr + 0.5);
+      body += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="#fde68a" stroke="#b45309" stroke-width="1.5"/>`;
+    }
+  }
+  body += `<text x="${w / 2}" y="${h - 12}" font-size="15" text-anchor="middle" fill="#475569">${total} objects shared into ${groups} equal groups</text>`;
+  return svgShell(spec, body, `${total} objects in ${groups} equal groups`);
+}
+
 export const renderers = {
   ...sharedRenderers,
   circle,
   semicircle,
   quarter_circle: quarterCircle,
   hundred_grid: hundredGrid,
+  object_set: objectSet,
   fraction_bar: fractionBar,
   fraction_bar_pair: fractionBarPair,
   fraction_circle: fractionCircle,

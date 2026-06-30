@@ -522,6 +522,7 @@ function normalizeVisualType(value = '') {
   const aliases = {
     fraction_bar: 'fraction_strip',
     fraction_bar_pair: 'fraction_strip',
+    object_set: 'shaded_fraction_model',
     fraction_model: 'shaded_fraction_model',
     shaded_shape: 'shaded_fraction_model',
     shaded_grid: 'shaded_fraction_model',
@@ -738,6 +739,12 @@ function templateForSkill(skillId, variant, ctx) {
         prompt: `A set has ${total} objects. ${n}/${d} of them are selected. How many are selected?`,
         answer: answerPayloadWhole(shaded),
         acceptedAnswers: [String(shaded)],
+        diagramSpec: {
+          type: 'object_set',
+          width: 540,
+          height: 220,
+          data: { total, groups: d },
+        },
         solutionSteps: [`Find 1/${d} of ${total}: ${total}/${d} = ${unit}.`, `Multiply by ${n}: ${shaded}.`],
       };
     }
@@ -895,6 +902,14 @@ function templateForSkill(skillId, variant, ctx) {
         prompt: `Order these fractions from smallest to largest: ${shown.map(fracStr).join(', ')}.`,
         answer: { type: 'list', value: arr, display: arr.join(', ') },
         acceptedAnswers: [arr.join(','), arr.join(', ')],
+        // Strips in the SHOWN (shuffled) order so the student compares lengths to
+        // work out the order — they are not pre-placed in sorted position.
+        diagramSpec: {
+          type: 'fraction_bar_pair',
+          width: 640,
+          height: 30 + shown.length * 110 + 20,
+          data: { bars: shown.map((f) => ({ parts: f.denominator, shaded: f.numerator, label: fracStr(f) })) },
+        },
         solutionSteps: ['Convert to comparable values (or common denominator).', `Order: ${arr.join(', ')}.`],
       };
     }

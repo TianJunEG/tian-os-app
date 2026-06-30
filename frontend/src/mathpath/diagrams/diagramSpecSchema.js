@@ -4,6 +4,7 @@ export const DIAGRAM_TYPES = [
   'fraction_bar',
   'fraction_circle',
   'hundred_grid',
+  'object_set',
   'number_line',
   'part_whole_bar',
   'comparison_bar',
