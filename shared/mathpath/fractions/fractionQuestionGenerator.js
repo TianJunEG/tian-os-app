@@ -521,6 +521,7 @@ function normalizeVisualType(value = '') {
   const raw = String(value || '').trim().toLowerCase();
   const aliases = {
     fraction_bar: 'fraction_strip',
+    fraction_bar_pair: 'fraction_strip',
     fraction_model: 'shaded_fraction_model',
     shaded_shape: 'shaded_fraction_model',
     shaded_grid: 'shaded_fraction_model',
@@ -788,6 +789,12 @@ function templateForSkill(skillId, variant, ctx) {
         prompt: `Write > or < to compare: 1/${a} and 1/${b}`,
         answer: { type: 'text', value: relation, display: relation },
         acceptedAnswers: [relation, greaterFrac],
+        diagramSpec: {
+          type: 'fraction_bar_pair',
+          width: 640,
+          height: 260,
+          data: { bars: [{ parts: a, shaded: 1, label: `1/${a}` }, { parts: b, shaded: 1, label: `1/${b}` }] },
+        },
         solutionSteps: ['For unit fractions, smaller denominator means larger value.', `So the sign is "${relation}".`],
       };
     }
@@ -801,6 +808,12 @@ function templateForSkill(skillId, variant, ctx) {
         prompt: `Write > or < to compare: ${a}/${d} and ${b}/${d}`,
         answer: { type: 'text', value: greater, display: greater },
         acceptedAnswers: [greater, greaterFrac],
+        diagramSpec: {
+          type: 'fraction_bar_pair',
+          width: 640,
+          height: 260,
+          data: { bars: [{ parts: d, shaded: a, label: `${a}/${d}` }, { parts: d, shaded: b, label: `${b}/${d}` }] },
+        },
         solutionSteps: ['Denominators are equal.', 'Compare numerators directly.', `The symbol is "${greater}".`],
       };
     }
@@ -857,6 +870,12 @@ function templateForSkill(skillId, variant, ctx) {
         prompt: `Write > or < to compare: ${n}/${a} and ${n}/${b}`,
         answer: { type: 'text', value: greater, display: greater },
         acceptedAnswers: [greater, greaterFrac],
+        diagramSpec: {
+          type: 'fraction_bar_pair',
+          width: 640,
+          height: 260,
+          data: { bars: [{ parts: a, shaded: n, label: `${n}/${a}` }, { parts: b, shaded: n, label: `${n}/${b}` }] },
+        },
         solutionSteps: ['Numerators are equal.', 'Smaller denominator gives larger fraction.', `The symbol is "${greater}".`],
       };
     }
