@@ -4,14 +4,21 @@ import { renderers } from '../../../../mathpath/diagrams/svgRenderers';
 export const DIAGRAM_LOAD_ERROR_MESSAGE = "This question could not load. Let's try another one.";
 
 function inferNumberLineDiagram(prompt = '') {
-  const match = String(prompt).match(
-    /number line from\s+(-?\d+(?:\.\d+)?)\s+to\s+(-?\d+(?:\.\d+)?)\s+(?:split|divided) into\s+(\d+)\s+equal parts.*?((?:\d+)(?:st|nd|rd|th)?|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth)\s+mark/i
+  // Number-line base: "from X to Y split/divided into N equal parts".
+  const base = String(prompt).match(
+    /number line from\s+(-?\d+(?:\.\d+)?)\s+to\s+(-?\d+(?:\.\d+)?)\b[^.]*?(?:split|divided)\s+into\s+(\d+)\s+equal parts/i
   );
-  if (!match) return null;
+  if (!base) return null;
+  // The mark is phrased several ways: "the 7th mark", "mark 7", "at mark 7",
+  // "seventh mark". Match any so the renderer isn't fragile to wording.
+  const markMatch = String(prompt).match(
+    /(\d+)(?:st|nd|rd|th)\s+mark|mark\s+(\d+)|\b(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth)\s+mark/i
+  );
+  if (!markMatch) return null;
 
-  const min = Number(match[1]);
-  const max = Number(match[2]);
-  const steps = Number(match[3]);
+  const min = Number(base[1]);
+  const max = Number(base[2]);
+  const steps = Number(base[3]);
   const markWords = {
     first: 1,
     second: 2,
@@ -26,8 +33,10 @@ function inferNumberLineDiagram(prompt = '') {
     eleventh: 11,
     twelfth: 12,
   };
-  const mark = markWords[String(match[4]).toLowerCase()] || Number(String(match[4]).replace(/\D/g, ''));
-  if (!Number.isFinite(min) || !Number.isFinite(max) || !steps || mark < 0 || mark > steps) return null;
+  const mark = markMatch[1] ? Number(markMatch[1])
+    : markMatch[2] ? Number(markMatch[2])
+    : markWords[String(markMatch[3]).toLowerCase()];
+  if (!Number.isFinite(min) || !Number.isFinite(max) || !steps || !Number.isFinite(mark) || mark < 0 || mark > steps) return null;
 
   const value = min + ((max - min) * mark) / steps;
   return {
@@ -78,6 +87,19 @@ function inferShadedFractionDiagramFromAnswer(question = {}) {
     height: 140,
     data: { parts: denominator, shaded: numerator, labelMode: 'none' },
   };
+}
+
+// "N squares out of M in a grid are shaded" → a near-square grid (10×10 for 100)
+// with N cells filled. Backs percentage-of-a-grid and fraction-of-a-grid items.
+function inferGridDiagram(prompt = '') {
+  const match = String(prompt).match(
+    /(\d+)\s+squares?\s+out of\s+(\d+)\s+(?:in a grid\s+)?(?:are|is)\s+shaded/i
+  );
+  if (!match) return null;
+  const shaded = Number(match[1]);
+  const cells = Number(match[2]);
+  if (!Number.isFinite(cells) || cells <= 0 || cells > 400 || shaded < 0 || shaded > cells) return null;
+  return { type: 'hundred_grid', width: 320, height: 320, data: { cells, shaded } };
 }
 
 // Kinds that have no renderer — questions with these will show without a diagram
@@ -216,6 +238,7 @@ function inferredDiagramCandidates(question = {}) {
   const prompt = question?.prompt || question?.stem || '';
   return [
     inferNumberLineDiagram(prompt),
+    inferGridDiagram(prompt),
     inferShadedFractionDiagram(prompt),
     inferShadedFractionDiagramFromAnswer(question),
   ].filter(Boolean);
