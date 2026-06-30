@@ -35,6 +35,7 @@ import User from '../models/User.js';
 import Announcement from '../models/Announcement.js';
 import AnnouncementComment from '../models/AnnouncementComment.js';
 import { notifyNewAnnouncement, publicAnnouncement } from '../services/announcements/announcementService.js';
+import { linkGuardianByEmail } from '../services/guardians/guardianLinkService.js';
 
 const quickMarkPhotoUpload = multer({
   storage: multer.memoryStorage(),
@@ -1090,6 +1091,24 @@ router.post('/classes/:id/import-roster', asyncHandler(async (req, res) => {
     createMissingClasses: false,
   });
   return res.json({ ...out, parseErrors });
+}));
+
+// Quick-link a parent to a class student (so announcements/notifications reach them).
+router.post('/classes/:id/students/:studentId/link-parent', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return undefined;
+  const klass = await getOwnedClass(req);
+  if (!klass) return res.status(404).json({ error: 'Class not found.' });
+  const inClass = await ClassStudent.findOne({ classId: klass._id, studentId: req.params.studentId, status: 'active' });
+  if (!inClass) return res.status(404).json({ error: 'Student is not in this class.' });
+  try {
+    const result = await linkGuardianByEmail({
+      studentId: req.params.studentId, workspaceId: req.workspaceId,
+      email: req.body?.email, name: req.body?.name,
+    });
+    return res.status(201).json(result);
+  } catch (err) {
+    return res.status(Number(err?.status) || 500).json({ error: err?.message || 'Could not link the parent.' });
+  }
 }));
 
 // ── Announcements to parents (class-scoped) ──────────────────────────────

@@ -29,6 +29,7 @@ import { asyncHandler } from '../middleware/errorHandler.js';
 import Announcement from '../models/Announcement.js';
 import AnnouncementComment from '../models/AnnouncementComment.js';
 import { notifyNewAnnouncement, publicAnnouncement } from '../services/announcements/announcementService.js';
+import { linkGuardianByEmail } from '../services/guardians/guardianLinkService.js';
 
 const router = express.Router();
 const audioUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
@@ -604,6 +605,21 @@ router.get('/students/:id/psl/dashboard', asyncHandler(async (req, res) => {
     topMisconceptions,
     recentSessions,
   });
+}));
+
+// Quick-link a parent to one of the tutor's students.
+router.post('/students/:id/link-parent', asyncHandler(async (req, res) => {
+  if (!ensureTutorWorkspace(req, res)) return;
+  const student = await requireLinkedStudent(req, res); if (!student) return;
+  try {
+    const result = await linkGuardianByEmail({
+      studentId: req.params.id, workspaceId: req.workspaceId,
+      email: req.body?.email, name: req.body?.name,
+    });
+    return res.status(201).json(result);
+  } catch (err) {
+    return res.status(Number(err?.status) || 500).json({ error: err?.message || 'Could not link the parent.' });
+  }
 }));
 
 // ── Announcements to parents (tutor-scoped) ──────────────────────────────

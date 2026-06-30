@@ -6,6 +6,53 @@ import { useClass } from './useClass';
 import ClassNav from './ClassNav';
 import { Card, Button, StatusBadge, Spinner, ErrorState, EmptyState } from '../../components/ui';
 
+// One roster row, with a quick "Link parent" action so announcements reach them.
+function StudentRow({ student: s, classId }) {
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState('');
+
+  async function link() {
+    if (!email.trim() || busy) return;
+    setBusy(true); setMsg('');
+    try {
+      const { data } = await teacherAPI.linkParent(classId, s.studentId, { email: email.trim(), name: name.trim() });
+      setMsg(`✓ Linked ${data.parentEmail}${data.created ? ' — new account; they set a password via “forgot password”.' : '.'}`);
+      setEmail(''); setName('');
+    } catch (e) {
+      setMsg(e?.response?.data?.error || 'Could not link the parent.');
+    } finally { setBusy(false); }
+  }
+
+  return (
+    <Card className="p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-medium text-ink-700">{s.name}</p>
+          <p className="text-sm text-ink-500">{s.level} · {s.overallMastery}%{s.weakestSkill ? ` · weak: ${s.weakestSkill}` : ''}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {s.interventionStatus && <StatusBadge status={s.interventionStatus} />}
+          <Button size="s" variant="secondary" onClick={() => setOpen((v) => !v)}>Link parent</Button>
+          <Button size="s" variant="secondary" to={`/teacher/students/${s.studentId}`}>View</Button>
+        </div>
+      </div>
+      {open && (
+        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border-subtle pt-3">
+          <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Parent email" type="email"
+            className="min-w-[180px] flex-1 rounded-md border border-border-subtle px-2 py-1 text-sm" />
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name (optional)"
+            className="w-36 rounded-md border border-border-subtle px-2 py-1 text-sm" />
+          <Button size="s" onClick={link} disabled={busy || !email.trim()}>{busy ? 'Linking…' : 'Link'}</Button>
+        </div>
+      )}
+      {msg && <p className="mt-2 text-sm text-ink-600">{msg}</p>}
+    </Card>
+  );
+}
+
 export default function ClassStudents() {
   const { id } = useParams();
   const meta = useClass(id);
@@ -89,18 +136,7 @@ export default function ClassStudents() {
 
       {students.length === 0 ? <EmptyState message="No students yet. Use “Add students” to paste or upload your roster." /> : (
         <div className="space-y-2">
-          {students.map((s) => (
-            <Card key={s.studentId} className="flex items-center justify-between gap-3 p-4">
-              <div className="min-w-0">
-                <p className="font-medium text-ink-700">{s.name}</p>
-                <p className="text-sm text-ink-500">{s.level} · {s.overallMastery}%{s.weakestSkill ? ` · weak: ${s.weakestSkill}` : ''}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                {s.interventionStatus && <StatusBadge status={s.interventionStatus} />}
-                <Button size="s" variant="secondary" to={`/teacher/students/${s.studentId}`}>View</Button>
-              </div>
-            </Card>
-          ))}
+          {students.map((s) => <StudentRow key={s.studentId} student={s} classId={id} />)}
         </div>
       )}
     </>

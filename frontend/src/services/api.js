@@ -511,6 +511,7 @@ export const tutorAPI = {
   createAnnouncement: (data) => api.post('/tutor/announcements', data),
   listAnnouncements: () => api.get('/tutor/announcements'),
   deleteAnnouncement: (aid) => api.delete(`/tutor/announcements/${aid}`),
+  linkParent: (studentId, data) => api.post(`/tutor/students/${studentId}/link-parent`, data),
 };
 
 export const tutorInviteAPI = {
@@ -614,6 +615,7 @@ export const teacherAPI = {
   createClass: (data) => api.post('/teacher/classes', data),
   addStudent: (id, data) => api.post(`/teacher/classes/${id}/students`, data),
   importRoster: (id, text) => api.post(`/teacher/classes/${id}/import-roster`, { text }),
+  linkParent: (id, studentId, data) => api.post(`/teacher/classes/${id}/students/${studentId}/link-parent`, data),
   // Quick Mark (triage a worksheet stack)
   createQuickMark: (id, data) => api.post(`/teacher/classes/${id}/quickmarks`, data),
   listQuickMarks: (id) => api.get(`/teacher/classes/${id}/quickmarks`),
