@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseCoinsDiagram, parseShapeChoice } from './ManipulativeDotArray';
+import { parseCoinsDiagram, parseShapeChoice, parseBondDiagram } from './ManipulativeDotArray';
 
 describe('parseCoinsDiagram', () => {
   it('parses the generator coins diagram (single denomination) into one token per coin', () => {
@@ -48,5 +48,15 @@ describe('parseShapeChoice', () => {
     expect(parseShapeChoice('5')).toBeNull();
     expect(parseShapeChoice('🔺')).toBeNull();
     expect(parseShapeChoice(null)).toBeNull();
+  });
+});
+
+describe('parseBondDiagram', () => {
+  it('reads whole/part from a bond diagram, else null', () => {
+    expect(parseBondDiagram({ diagram: { kind: 'bond', whole: 5, part: 2 } })).toEqual({ whole: 5, part: 2 });
+    expect(parseBondDiagram({ diagram: { kind: 'count', emoji: '🍎', count: 5 } })).toBeNull();
+    expect(parseBondDiagram({ diagram: { kind: 'bond', whole: 'x' } })).toBeNull();
+    expect(parseBondDiagram({})).toBeNull();
+    expect(parseBondDiagram(null)).toBeNull();
   });
 });

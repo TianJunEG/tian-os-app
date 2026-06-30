@@ -190,7 +190,8 @@ function genBonds(rng, skill) {
     prompt: `${whole} is made of ${part} and ___?`,
     correct: other,
     choices: numberChoices(rng, other, { min: 0, max: whole }),
-    diagram: { kind: 'count', emoji: pick(rng, FRUITS), count: whole },
+    // Part-whole bond frame: the child drags/taps the missing part into the slot.
+    diagram: { kind: 'bond', whole, part },
     misconceptionTag: 'en/part-whole-confusion',
   });
 }

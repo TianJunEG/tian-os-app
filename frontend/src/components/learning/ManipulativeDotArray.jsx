@@ -500,7 +500,7 @@ export function ManipulativePatternStrip({ items = [] }) {
         {items.map((item, i) => (
           <span
             key={i}
-            {...(item == null ? { 'data-pattern-slot': 'true' } : {})}
+            {...(item == null ? { 'data-drop-slot': 'true' } : {})}
             className="flex items-center justify-center rounded-xl"
             style={{
               width: item == null ? 52 : 48,
@@ -529,7 +529,7 @@ export function ManipulativePatternStrip({ items = [] }) {
 // Pointer events so it works on touch and mouse; a tiny floating "ghost"
 // follows the finger. Tap is the accessible fallback. The parent should pass
 // key={questionId} so drag state resets per question.
-export function DragAnswerChips({ choices = [], onAnswer, slotSelector = '[data-pattern-slot]', disabled = false }) {
+export function DragAnswerChips({ choices = [], onAnswer, slotSelector = '[data-drop-slot]', disabled = false }) {
   const [drag, setDrag] = useState(null); // { value, x, y } while dragging
   const start = useRef(null);
 
@@ -630,6 +630,52 @@ export function ManipulativePositionStack({ top, bottom }) {
     <div className="mx-auto max-w-xs rounded-2xl bg-violet-50 p-4 space-y-2">
       {Cell(top, 'top')}
       {Cell(bottom, 'bottom')}
+    </div>
+  );
+}
+
+// ── K2 number bonds: part-whole frame with a drop slot (Strand A) ────────────
+// Generator emits diagram:{kind:'bond', whole, part}; the missing part
+// (whole - part) is the answer dragged/tapped into the dashed slot.
+export function parseBondDiagram(question) {
+  const d = question?.diagram;
+  if (!d || d.kind !== 'bond') return null;
+  const whole = Number(d.whole);
+  const part = Number(d.part);
+  if (!Number.isFinite(whole) || !Number.isFinite(part)) return null;
+  return { whole, part };
+}
+
+function BondCircle({ content, slot = false }) {
+  return (
+    <span
+      {...(slot ? { 'data-drop-slot': 'true' } : {})}
+      className="flex items-center justify-center rounded-full font-bold"
+      style={{
+        width: 56, height: 56, fontSize: 24, lineHeight: 1,
+        background: slot ? '#faf5ff' : '#ede9fe',
+        border: slot ? '2px dashed #a78bfa' : '2px solid #c4b5fd',
+        color: '#6d28d9',
+      }}
+    >
+      {content}
+    </span>
+  );
+}
+
+export function ManipulativeBondFrame({ whole, part }) {
+  return (
+    <div className="flex flex-col items-center gap-1 rounded-2xl bg-violet-50 p-4">
+      <BondCircle content={whole} />
+      <svg width="120" height="22" viewBox="0 0 120 22" aria-hidden="true">
+        <line x1="60" y1="1" x2="26" y2="21" stroke="#c4b5fd" strokeWidth="3" strokeLinecap="round" />
+        <line x1="60" y1="1" x2="94" y2="21" stroke="#c4b5fd" strokeWidth="3" strokeLinecap="round" />
+      </svg>
+      <div className="flex gap-6">
+        <BondCircle content={part} />
+        <BondCircle content="?" slot />
+      </div>
+      <p className="mt-1 text-center text-xs text-ink-400">Drag or tap the missing part</p>
     </div>
   );
 }
