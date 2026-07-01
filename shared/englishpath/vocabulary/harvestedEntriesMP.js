@@ -1,7 +1,7 @@
 // AUTO-GENERATED — Middle Primary (P3/P4) vocabulary entries harvested from exam papers.
 // Do not hand-edit. Re-run the harvest pipeline to regenerate.
 // Generated: 2026-07-01
-// Entries: P3=164, P4=183, Total=347
+// Entries: P3=222, P4=216, Total=438
 
 export const harvestedEntriesMP = [
   {
@@ -5896,6 +5896,2065 @@ export const harvestedEntriesMP = [
       "vocab_mcq"
     ],
     "source": "River Valley 2019"
+  },
+  {
+    "id": "vw_p3_put_away",
+    "word": "put away",
+    "level": "P3",
+    "pos": "phrasal_verb",
+    "meaning": "to place something back where it belongs or to tidy it up",
+    "example": "The teacher told the pupils to ____ their books and prepare for the test.",
+    "answer": "put away",
+    "confusables": [
+      "put in",
+      "put on",
+      "put up"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "store",
+      "tidy"
+    ],
+    "collocations": [
+      "put away your things",
+      "put away the toys"
+    ],
+    "wordFamily": [
+      {
+        "word": "put",
+        "pos": "verb"
+      },
+      {
+        "word": "away",
+        "pos": "adverb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "ACSJ 2020"
+  },
+  {
+    "id": "vw_p3_thread",
+    "word": "thread",
+    "level": "P3",
+    "pos": "noun",
+    "meaning": "a thin string used for sewing cloth together",
+    "example": "There was a hole in my pocket so my mother helped me sew it up with a needle and ____.",
+    "answer": "thread",
+    "confusables": [
+      "glue",
+      "rake",
+      "hammer"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "string",
+      "yarn"
+    ],
+    "collocations": [
+      "needle and thread",
+      "a spool of thread"
+    ],
+    "wordFamily": [
+      {
+        "word": "thread",
+        "pos": "noun"
+      },
+      {
+        "word": "thread",
+        "pos": "verb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "ACSJ 2020"
+  },
+  {
+    "id": "vw_p3_farmer",
+    "word": "farmer",
+    "level": "P3",
+    "pos": "noun",
+    "meaning": "a person who grows crops or raises animals on a farm",
+    "example": "Mr Willy feeds his chickens and milks the cows daily. He is a very hardworking ____.",
+    "answer": "farmer",
+    "confusables": [
+      "painter",
+      "gardener",
+      "carpenter"
+    ],
+    "connotation": "neutral",
+    "synonyms": [],
+    "collocations": [
+      "hardworking farmer",
+      "farmer's market"
+    ],
+    "wordFamily": [
+      {
+        "word": "farm",
+        "pos": "noun"
+      },
+      {
+        "word": "farm",
+        "pos": "verb"
+      },
+      {
+        "word": "farming",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "ACSJ 2020"
+  },
+  {
+    "id": "vw_p3_outrageous",
+    "word": "outrageous",
+    "level": "P3",
+    "pos": "adjective",
+    "meaning": "shockingly bad or unacceptable",
+    "example": "The boy was scolded for his ____ behaviour. He promised not to run with scissors anymore.",
+    "answer": "outrageous",
+    "confusables": [
+      "gorgeous",
+      "contagious",
+      "courageous"
+    ],
+    "connotation": "negative",
+    "synonyms": [
+      "shocking",
+      "terrible",
+      "appalling"
+    ],
+    "collocations": [
+      "outrageous behaviour",
+      "outrageous act"
+    ],
+    "wordFamily": [
+      {
+        "word": "outrage",
+        "pos": "noun"
+      },
+      {
+        "word": "outrage",
+        "pos": "verb"
+      },
+      {
+        "word": "outrageously",
+        "pos": "adverb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "ACSJ 2020"
+  },
+  {
+    "id": "vw_p3_silly",
+    "word": "silly",
+    "level": "P3",
+    "pos": "adjective",
+    "meaning": "behaving in a foolish or playful way that is not sensible",
+    "example": "Xavier was acting like a clown in class. All his classmates thought that he was being really ____ and told him to stop.",
+    "answer": "silly",
+    "confusables": [
+      "funny",
+      "pleasing",
+      "entertaining"
+    ],
+    "connotation": "negative",
+    "synonyms": [
+      "foolish",
+      "ridiculous"
+    ],
+    "collocations": [
+      "silly behaviour",
+      "being silly"
+    ],
+    "wordFamily": [
+      {
+        "word": "silliness",
+        "pos": "noun"
+      },
+      {
+        "word": "sillier",
+        "pos": "adjective"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Catholic High 2020"
+  },
+  {
+    "id": "vw_p3_sipped",
+    "word": "sipped",
+    "level": "P3",
+    "pos": "verb",
+    "meaning": "drank something slowly in small amounts",
+    "example": "John's mother ____ her hot tea slowly as she gazed out the window.",
+    "answer": "sipped",
+    "confusables": [
+      "gulped",
+      "gobbled",
+      "swallowed"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "tasted",
+      "drank slowly"
+    ],
+    "collocations": [
+      "sipped tea",
+      "sipped her drink"
+    ],
+    "wordFamily": [
+      {
+        "word": "sip",
+        "pos": "verb"
+      },
+      {
+        "word": "sip",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Catholic High 2020"
+  },
+  {
+    "id": "vw_p3_bee",
+    "word": "bee",
+    "level": "P3",
+    "pos": "noun",
+    "meaning": "in the simile 'as busy as a bee', it means working very hard with lots to do",
+    "example": "Jim had so much homework to do. He was as busy as a ____.",
+    "answer": "bee",
+    "confusables": [
+      "bat",
+      "bug",
+      "bird"
+    ],
+    "connotation": "neutral",
+    "synonyms": [],
+    "collocations": [
+      "busy as a bee",
+      "busy bee"
+    ],
+    "wordFamily": [
+      {
+        "word": "bee",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Catholic High 2020"
+  },
+  {
+    "id": "vw_p3_delayed",
+    "word": "delayed",
+    "level": "P3",
+    "pos": "verb",
+    "meaning": "made to happen later than expected or planned",
+    "example": "The flight was ____ by a few hours due to bad weather.",
+    "answer": "delayed",
+    "confusables": [
+      "cancelled",
+      "interrupted",
+      "suspended"
+    ],
+    "connotation": "negative",
+    "synonyms": [
+      "held up",
+      "postponed"
+    ],
+    "collocations": [
+      "delayed flight",
+      "delayed by hours"
+    ],
+    "wordFamily": [
+      {
+        "word": "delay",
+        "pos": "noun"
+      },
+      {
+        "word": "delay",
+        "pos": "verb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Catholic High 2020"
+  },
+  {
+    "id": "vw_p3_brochure",
+    "word": "brochure",
+    "level": "P3",
+    "pos": "noun",
+    "meaning": "a small booklet with pictures and information about something",
+    "example": "I took a ____ from the information counter to look for events happening at the theatre next month.",
+    "answer": "brochure",
+    "confusables": [
+      "list",
+      "menu",
+      "receipt"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "pamphlet",
+      "leaflet"
+    ],
+    "collocations": [
+      "pick up a brochure",
+      "travel brochure"
+    ],
+    "wordFamily": [],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Catholic High 2020"
+  },
+  {
+    "id": "vw_p3_frantically",
+    "word": "frantically",
+    "level": "P3",
+    "pos": "adverb",
+    "meaning": "in a hurried, anxious, and panicked way",
+    "example": "He searched ____ for his wallet in his bag. He started to cry when he could not find it as he was anxious.",
+    "answer": "frantically",
+    "confusables": [
+      "swiftly",
+      "promptly",
+      "carelessly"
+    ],
+    "connotation": "negative",
+    "synonyms": [
+      "desperately",
+      "wildly"
+    ],
+    "collocations": [
+      "searched frantically",
+      "frantically looking"
+    ],
+    "wordFamily": [
+      {
+        "word": "frantic",
+        "pos": "adjective"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Catholic High 2020"
+  },
+  {
+    "id": "vw_p3_bunch",
+    "word": "bunch",
+    "level": "P3",
+    "pos": "noun",
+    "meaning": "a group of things held or tied together, especially keys or flowers",
+    "example": "Jane found a ____ of keys on the floor next to the entrance of the school hall.",
+    "answer": "bunch",
+    "confusables": [
+      "wad",
+      "pack",
+      "bundle"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "cluster",
+      "set"
+    ],
+    "collocations": [
+      "a bunch of keys",
+      "a bunch of flowers"
+    ],
+    "wordFamily": [],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Catholic High 2020"
+  },
+  {
+    "id": "vw_p3_disasters",
+    "word": "disasters",
+    "level": "P3",
+    "pos": "noun",
+    "meaning": "sudden events that cause great damage or suffering, like floods or fires",
+    "example": "The bush fire that happened in Australia last month was one of the worst ____ faced by the country in recent years.",
+    "answer": "disasters",
+    "confusables": [
+      "accidents",
+      "occasions",
+      "opportunities"
+    ],
+    "connotation": "negative",
+    "synonyms": [
+      "catastrophes",
+      "calamities"
+    ],
+    "collocations": [
+      "natural disasters",
+      "worst disasters"
+    ],
+    "wordFamily": [
+      {
+        "word": "disaster",
+        "pos": "noun"
+      },
+      {
+        "word": "disastrous",
+        "pos": "adjective"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Catholic High 2020"
+  },
+  {
+    "id": "vw_p3_broke_into",
+    "word": "broke into",
+    "level": "P3",
+    "pos": "phrasal_verb",
+    "meaning": "entered a place by force, usually to steal something",
+    "example": "Someone ____ Mr Lim's home when he was away on holidays.",
+    "answer": "broke into",
+    "confusables": [
+      "broke at",
+      "broke in",
+      "broke up"
+    ],
+    "connotation": "negative",
+    "synonyms": [
+      "burgled",
+      "robbed"
+    ],
+    "collocations": [
+      "broke into the house",
+      "broke into the shop"
+    ],
+    "wordFamily": [
+      {
+        "word": "break-in",
+        "pos": "noun"
+      },
+      {
+        "word": "break",
+        "pos": "verb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Catholic High 2020"
+  },
+  {
+    "id": "vw_p3_noisy",
+    "word": "noisy",
+    "level": "P3",
+    "pos": "adjective",
+    "meaning": "making a lot of loud, unpleasant sounds",
+    "example": "My father complained that our cat was so ____ that it kept him awake all night.",
+    "answer": "noisy",
+    "confusables": [
+      "weak",
+      "quiet",
+      "timid"
+    ],
+    "connotation": "negative",
+    "synonyms": [
+      "loud",
+      "rowdy"
+    ],
+    "collocations": [
+      "noisy neighbours",
+      "noisy classroom"
+    ],
+    "wordFamily": [
+      {
+        "word": "noise",
+        "pos": "noun"
+      },
+      {
+        "word": "noisily",
+        "pos": "adverb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Red Swastika 2019"
+  },
+  {
+    "id": "vw_p3_challenger",
+    "word": "challenger",
+    "level": "P3",
+    "pos": "noun",
+    "meaning": "a person who competes against a champion to try to win",
+    "example": "\"Tonight, the champion shall face his ____ in a match!\" announced the host.",
+    "answer": "challenger",
+    "confusables": [
+      "referee",
+      "spectator",
+      "timekeeper"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "opponent",
+      "rival",
+      "competitor"
+    ],
+    "collocations": [
+      "face the challenger",
+      "a worthy challenger"
+    ],
+    "wordFamily": [
+      {
+        "word": "challenge",
+        "pos": "noun"
+      },
+      {
+        "word": "challenge",
+        "pos": "verb"
+      },
+      {
+        "word": "challenging",
+        "pos": "adjective"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Red Swastika 2019"
+  },
+  {
+    "id": "vw_p3_blink",
+    "word": "blink",
+    "level": "P3",
+    "pos": "verb",
+    "meaning": "to quickly open and close your eyes, often without meaning to",
+    "example": "I had to ____ several times after putting the medication into my eyes.",
+    "answer": "blink",
+    "confusables": [
+      "wink",
+      "stare",
+      "squint"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "flutter"
+    ],
+    "collocations": [
+      "blink your eyes",
+      "blink rapidly"
+    ],
+    "wordFamily": [
+      {
+        "word": "blink",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Red Swastika 2019"
+  },
+  {
+    "id": "vw_p3_stilt",
+    "word": "stilt",
+    "level": "P3",
+    "pos": "noun",
+    "meaning": "a long pole that people stand on to walk high above the ground",
+    "example": "____ walking is a popular attraction at the local parades.",
+    "answer": "Stilt",
+    "confusables": [
+      "Pole",
+      "Stick",
+      "Pillar"
+    ],
+    "connotation": "neutral",
+    "synonyms": [],
+    "collocations": [
+      "stilt walking",
+      "walk on stilts"
+    ],
+    "wordFamily": [
+      {
+        "word": "stilts",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Red Swastika 2019"
+  },
+  {
+    "id": "vw_p3_sticky",
+    "word": "sticky",
+    "level": "P3",
+    "pos": "adjective",
+    "meaning": "able to stick to surfaces; covered in a substance that makes things cling to it",
+    "example": "The exterminator uses glue to make his traps as ____ as possible so that the pests will not get away.",
+    "answer": "sticky",
+    "confusables": [
+      "smelly",
+      "smooth",
+      "stylish"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "tacky",
+      "gluey"
+    ],
+    "collocations": [
+      "sticky tape",
+      "sticky surface"
+    ],
+    "wordFamily": [
+      {
+        "word": "stick",
+        "pos": "verb"
+      },
+      {
+        "word": "stickiness",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Red Swastika 2019"
+  },
+  {
+    "id": "vw_p3_endured",
+    "word": "endured",
+    "level": "P3",
+    "pos": "verb",
+    "meaning": "suffered through something painful or difficult without giving up",
+    "example": "The soldier ____ the harsh and cold nights in the mountain and hoped that the war would be over soon.",
+    "answer": "endured",
+    "confusables": [
+      "defeated",
+      "discovered",
+      "exchanged"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "withstood",
+      "tolerated",
+      "bore"
+    ],
+    "collocations": [
+      "endured hardship",
+      "endured the pain"
+    ],
+    "wordFamily": [
+      {
+        "word": "endure",
+        "pos": "verb"
+      },
+      {
+        "word": "endurance",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Maha Bodhi 2020"
+  },
+  {
+    "id": "vw_p3_chores",
+    "word": "chores",
+    "level": "P3",
+    "pos": "noun",
+    "meaning": "regular jobs around the house like cleaning, washing, and cooking",
+    "example": "Mother always complains that no one helps her with the household ____.",
+    "answer": "chores",
+    "confusables": [
+      "work",
+      "projects"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "duties",
+      "tasks"
+    ],
+    "collocations": [
+      "household chores",
+      "do the chores"
+    ],
+    "wordFamily": [
+      {
+        "word": "chore",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Maha Bodhi 2020"
+  },
+  {
+    "id": "vw_p3_frail",
+    "word": "frail",
+    "level": "P3",
+    "pos": "adjective",
+    "meaning": "physically weak, especially because of old age or illness",
+    "example": "Grandmother is old and ____, so she needs a walking stick to help her move about.",
+    "answer": "frail",
+    "confusables": [
+      "calm",
+      "meek",
+      "gentle"
+    ],
+    "connotation": "negative",
+    "synonyms": [
+      "weak",
+      "feeble",
+      "fragile"
+    ],
+    "collocations": [
+      "old and frail",
+      "frail body"
+    ],
+    "wordFamily": [
+      {
+        "word": "frailty",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Maha Bodhi 2020"
+  },
+  {
+    "id": "vw_p3_irresistible",
+    "word": "irresistible",
+    "level": "P3",
+    "pos": "adjective",
+    "meaning": "so tempting or attractive that you cannot resist it",
+    "example": "Peter followed the ____ scent and his mouth watered.",
+    "answer": "irresistible",
+    "confusables": [
+      "interesting",
+      "impressive",
+      "impossible"
+    ],
+    "connotation": "positive",
+    "synonyms": [
+      "tempting",
+      "enticing"
+    ],
+    "collocations": [
+      "irresistible scent",
+      "irresistible urge"
+    ],
+    "wordFamily": [
+      {
+        "word": "resist",
+        "pos": "verb"
+      },
+      {
+        "word": "irresistibly",
+        "pos": "adverb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Maha Bodhi 2020"
+  },
+  {
+    "id": "vw_p3_assembled",
+    "word": "assembled",
+    "level": "P3",
+    "pos": "verb",
+    "meaning": "gathered together in one place as a group",
+    "example": "During the fire drill, pupils walked briskly to the school field and ____ there.",
+    "answer": "assembled",
+    "confusables": [
+      "queued",
+      "wandered",
+      "organised"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "gathered",
+      "congregated"
+    ],
+    "collocations": [
+      "assembled in the hall",
+      "assembled quickly"
+    ],
+    "wordFamily": [
+      {
+        "word": "assemble",
+        "pos": "verb"
+      },
+      {
+        "word": "assembly",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Maha Bodhi 2020"
+  },
+  {
+    "id": "vw_p3_honest",
+    "word": "honest",
+    "level": "P3",
+    "pos": "adjective",
+    "meaning": "always telling the truth and not cheating or stealing",
+    "example": "Mrs Lim always reminds her students to tell the truth and be ____.",
+    "answer": "honest",
+    "confusables": [
+      "jealous",
+      "innocent",
+      "careless"
+    ],
+    "connotation": "positive",
+    "synonyms": [
+      "truthful",
+      "sincere"
+    ],
+    "collocations": [
+      "be honest",
+      "honest person"
+    ],
+    "wordFamily": [
+      {
+        "word": "honesty",
+        "pos": "noun"
+      },
+      {
+        "word": "honestly",
+        "pos": "adverb"
+      },
+      {
+        "word": "dishonest",
+        "pos": "adjective"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Nan Hua 2020"
+  },
+  {
+    "id": "vw_p3_stitch",
+    "word": "stitch",
+    "level": "P3",
+    "pos": "verb",
+    "meaning": "to sew something using a needle and thread",
+    "example": "Jamie used a needle and thread to ____ back the buttons onto his shirt.",
+    "answer": "stitch",
+    "confusables": [
+      "stick",
+      "mend",
+      "hammer"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "sew"
+    ],
+    "collocations": [
+      "stitch a button",
+      "stitch a tear"
+    ],
+    "wordFamily": [
+      {
+        "word": "stitch",
+        "pos": "noun"
+      },
+      {
+        "word": "stitching",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Nan Hua 2020"
+  },
+  {
+    "id": "vw_p3_canvas",
+    "word": "canvas",
+    "level": "P3",
+    "pos": "noun",
+    "meaning": "a strong piece of cloth used for painting on",
+    "example": "Johnny did a beautiful painting of a house on a piece of ____.",
+    "answer": "canvas",
+    "confusables": [
+      "paint",
+      "brush",
+      "photograph"
+    ],
+    "connotation": "neutral",
+    "synonyms": [],
+    "collocations": [
+      "paint on canvas",
+      "a blank canvas"
+    ],
+    "wordFamily": [],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Nan Hua 2020"
+  },
+  {
+    "id": "vw_p3_aroma",
+    "word": "aroma",
+    "level": "P3",
+    "pos": "noun",
+    "meaning": "a pleasant, strong smell, especially from food or drink",
+    "example": "Siti became hungry when she smelled the delicious ____ of her mother's cooking.",
+    "answer": "aroma",
+    "confusables": [
+      "perfume"
+    ],
+    "connotation": "positive",
+    "synonyms": [
+      "fragrance",
+      "scent"
+    ],
+    "collocations": [
+      "delicious aroma",
+      "aroma of cooking"
+    ],
+    "wordFamily": [
+      {
+        "word": "aromatic",
+        "pos": "adjective"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "ACSP 2023"
+  },
+  {
+    "id": "vw_p3_artist",
+    "word": "artist",
+    "level": "P3",
+    "pos": "noun",
+    "meaning": "a person who creates art, such as drawings and paintings",
+    "example": "George draws well. He wants to be an ____ when he grows up.",
+    "answer": "artist",
+    "confusables": [
+      "actor",
+      "author",
+      "astronaut"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "painter",
+      "illustrator"
+    ],
+    "collocations": [
+      "talented artist",
+      "become an artist"
+    ],
+    "wordFamily": [
+      {
+        "word": "art",
+        "pos": "noun"
+      },
+      {
+        "word": "artistic",
+        "pos": "adjective"
+      },
+      {
+        "word": "artistry",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "ACSP 2023"
+  },
+  {
+    "id": "vw_p3_delighted",
+    "word": "delighted",
+    "level": "P3",
+    "pos": "adjective",
+    "meaning": "very happy and pleased",
+    "example": "Ranjeet was ____ when he won the race. He could not stop smiling.",
+    "answer": "delighted",
+    "confusables": [
+      "upset",
+      "eager",
+      "disappointed"
+    ],
+    "connotation": "positive",
+    "synonyms": [
+      "overjoyed",
+      "thrilled",
+      "pleased"
+    ],
+    "collocations": [
+      "absolutely delighted",
+      "delighted to hear"
+    ],
+    "wordFamily": [
+      {
+        "word": "delight",
+        "pos": "noun"
+      },
+      {
+        "word": "delight",
+        "pos": "verb"
+      },
+      {
+        "word": "delightful",
+        "pos": "adjective"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "ACSP 2023"
+  },
+  {
+    "id": "vw_p3_bull",
+    "word": "bull",
+    "level": "P3",
+    "pos": "noun",
+    "meaning": "in the simile 'as angry as a bull', it describes someone who is extremely furious",
+    "example": "Mrs Chan was as angry as a ____ when her son broke her expensive vase.",
+    "answer": "bull",
+    "confusables": [
+      "lamb",
+      "snake",
+      "peacock"
+    ],
+    "connotation": "negative",
+    "synonyms": [],
+    "collocations": [
+      "angry as a bull",
+      "like a raging bull"
+    ],
+    "wordFamily": [],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "ACSP 2023"
+  },
+  {
+    "id": "vw_p3_hurriedly",
+    "word": "hurriedly",
+    "level": "P3",
+    "pos": "adverb",
+    "meaning": "in a quick, rushed way because you are in a hurry",
+    "example": "My sister walked ____ to the bus stop. She did not want to miss the bus.",
+    "answer": "hurriedly",
+    "confusables": [
+      "gently",
+      "carefully",
+      "gracefully"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "hastily",
+      "quickly",
+      "rapidly"
+    ],
+    "collocations": [
+      "walked hurriedly",
+      "hurriedly left"
+    ],
+    "wordFamily": [
+      {
+        "word": "hurry",
+        "pos": "verb"
+      },
+      {
+        "word": "hurry",
+        "pos": "noun"
+      },
+      {
+        "word": "hurried",
+        "pos": "adjective"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "ACSP 2023"
+  },
+  {
+    "id": "vw_p3_troop",
+    "word": "troop",
+    "level": "P3",
+    "pos": "noun",
+    "meaning": "a collective noun for a group of dancers or performers",
+    "example": "The children enjoyed watching the ____ of dancers perform during the concert.",
+    "answer": "troop",
+    "confusables": [
+      "gang",
+      "galaxy",
+      "school"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "troupe",
+      "group"
+    ],
+    "collocations": [
+      "a troop of dancers",
+      "a troop of performers"
+    ],
+    "wordFamily": [],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "ACSP 2023"
+  },
+  {
+    "id": "vw_p3_team",
+    "word": "team",
+    "level": "P3",
+    "pos": "noun",
+    "meaning": "a group of people who play a sport or work together",
+    "example": "The students cheered loudly when their school's ____ of football players won first place in the inter-school match.",
+    "answer": "team",
+    "confusables": [
+      "band",
+      "choir",
+      "troupe"
+    ],
+    "connotation": "positive",
+    "synonyms": [
+      "squad"
+    ],
+    "collocations": [
+      "football team",
+      "team of players"
+    ],
+    "wordFamily": [
+      {
+        "word": "teammate",
+        "pos": "noun"
+      },
+      {
+        "word": "teamwork",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Henry Park 2023"
+  },
+  {
+    "id": "vw_p3_growled",
+    "word": "growled",
+    "level": "P3",
+    "pos": "verb",
+    "meaning": "made a low, angry sound from the throat, like an angry dog",
+    "example": "The angry dog ____ at the boy when he pointed a stick at it.",
+    "answer": "growled",
+    "confusables": [
+      "roared",
+      "croaked",
+      "squeaked"
+    ],
+    "connotation": "negative",
+    "synonyms": [
+      "snarled"
+    ],
+    "collocations": [
+      "the dog growled",
+      "growled menacingly"
+    ],
+    "wordFamily": [
+      {
+        "word": "growl",
+        "pos": "noun"
+      },
+      {
+        "word": "growl",
+        "pos": "verb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Henry Park 2023"
+  },
+  {
+    "id": "vw_p3_quills",
+    "word": "quills",
+    "level": "P3",
+    "pos": "noun",
+    "meaning": "sharp, stiff spines on the body of a porcupine used for protection",
+    "example": "Porcupines have ____ on their bodies to prevent predators from attacking them.",
+    "answer": "quills",
+    "confusables": [
+      "beaks",
+      "talons",
+      "scales"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "spines",
+      "spikes"
+    ],
+    "collocations": [
+      "porcupine quills",
+      "sharp quills"
+    ],
+    "wordFamily": [
+      {
+        "word": "quill",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Henry Park 2023"
+  },
+  {
+    "id": "vw_p3_generous",
+    "word": "generous",
+    "level": "P3",
+    "pos": "adjective",
+    "meaning": "willing to give money, help, or time freely to others",
+    "example": "Sarah is a ____ girl. She donates to those who are less fortunate.",
+    "answer": "generous",
+    "confusables": [
+      "gentle",
+      "reliable",
+      "responsible"
+    ],
+    "connotation": "positive",
+    "synonyms": [
+      "giving",
+      "kind",
+      "charitable"
+    ],
+    "collocations": [
+      "generous person",
+      "generous donation"
+    ],
+    "wordFamily": [
+      {
+        "word": "generosity",
+        "pos": "noun"
+      },
+      {
+        "word": "generously",
+        "pos": "adverb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Henry Park 2023"
+  },
+  {
+    "id": "vw_p3_trudged",
+    "word": "trudged",
+    "level": "P3",
+    "pos": "verb",
+    "meaning": "walked slowly and heavily because of tiredness or reluctance",
+    "example": "The farmer ____ home as he was exhausted after a busy day in the fields.",
+    "answer": "trudged",
+    "confusables": [
+      "pranced",
+      "sprinted",
+      "marched"
+    ],
+    "connotation": "negative",
+    "synonyms": [
+      "plodded",
+      "dragged"
+    ],
+    "collocations": [
+      "trudged home",
+      "trudged along"
+    ],
+    "wordFamily": [
+      {
+        "word": "trudge",
+        "pos": "verb"
+      },
+      {
+        "word": "trudge",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Henry Park 2023"
+  },
+  {
+    "id": "vw_p3_dreadful",
+    "word": "dreadful",
+    "level": "P3",
+    "pos": "adjective",
+    "meaning": "causing great fear or terror; extremely bad or frightening",
+    "example": "The lost traveller trembled as he described his ____ encounter with the wild boar.",
+    "answer": "dreadful",
+    "confusables": [
+      "playful",
+      "peaceful",
+      "delightful"
+    ],
+    "connotation": "negative",
+    "synonyms": [
+      "terrible",
+      "frightening",
+      "horrifying"
+    ],
+    "collocations": [
+      "dreadful experience",
+      "dreadful encounter"
+    ],
+    "wordFamily": [
+      {
+        "word": "dread",
+        "pos": "noun"
+      },
+      {
+        "word": "dread",
+        "pos": "verb"
+      },
+      {
+        "word": "dreadfully",
+        "pos": "adverb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Henry Park 2023"
+  },
+  {
+    "id": "vw_p3_fleet",
+    "word": "fleet",
+    "level": "P3",
+    "pos": "noun",
+    "meaning": "a group of ships sailing together",
+    "example": "The exploration team set off on their journey by a ____ of ships.",
+    "answer": "fleet",
+    "confusables": [
+      "suite",
+      "group",
+      "collection"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "armada",
+      "flotilla"
+    ],
+    "collocations": [
+      "a fleet of ships",
+      "fishing fleet"
+    ],
+    "wordFamily": [],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "MGS 2023"
+  },
+  {
+    "id": "vw_p3_gave_out",
+    "word": "gave out",
+    "level": "P3",
+    "pos": "phrasal_verb",
+    "meaning": "distributed or handed something to several people",
+    "example": "Mrs Lim ____ colour papers for us to fold into paper cranes.",
+    "answer": "gave out",
+    "confusables": [
+      "gave in",
+      "gave off",
+      "gave away"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "distributed",
+      "handed out"
+    ],
+    "collocations": [
+      "gave out papers",
+      "gave out prizes"
+    ],
+    "wordFamily": [
+      {
+        "word": "give",
+        "pos": "verb"
+      },
+      {
+        "word": "giveaway",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "MGS 2023"
+  },
+  {
+    "id": "vw_p3_as_wise_as_an_owl",
+    "word": "as wise as an owl",
+    "level": "P3",
+    "pos": "idiom",
+    "meaning": "very wise, clever, and full of good judgment",
+    "example": "The students looked up to their Peer Support Leader as they felt that she was ____. She always had a solution to their problems.",
+    "answer": "as wise as an owl",
+    "confusables": [
+      "as busy as a bee",
+      "as strong as an ox",
+      "as proud as a peacock"
+    ],
+    "connotation": "positive",
+    "synonyms": [],
+    "collocations": [
+      "wise as an owl",
+      "as wise as"
+    ],
+    "wordFamily": [
+      {
+        "word": "wise",
+        "pos": "adjective"
+      },
+      {
+        "word": "wisdom",
+        "pos": "noun"
+      },
+      {
+        "word": "wisely",
+        "pos": "adverb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "MGS 2023"
+  },
+  {
+    "id": "vw_p3_cunning",
+    "word": "cunning",
+    "level": "P3",
+    "pos": "adjective",
+    "meaning": "clever in a sneaky or dishonest way to trick others",
+    "example": "The ____ boy tricked his classmates into believing that he did not have enough money to buy food that day.",
+    "answer": "cunning",
+    "confusables": [
+      "rowdy",
+      "suspicious",
+      "disrespectful"
+    ],
+    "connotation": "negative",
+    "synonyms": [
+      "sly",
+      "crafty",
+      "devious"
+    ],
+    "collocations": [
+      "cunning plan",
+      "cunning trick"
+    ],
+    "wordFamily": [
+      {
+        "word": "cunningly",
+        "pos": "adverb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "MGS 2023"
+  },
+  {
+    "id": "vw_p3_recklessly",
+    "word": "recklessly",
+    "level": "P3",
+    "pos": "adverb",
+    "meaning": "in a careless way without thinking about the danger",
+    "example": "The boy crossed the road ____ and nearly met with an accident.",
+    "answer": "recklessly",
+    "confusables": [
+      "roughly",
+      "carefully",
+      "accidentally"
+    ],
+    "connotation": "negative",
+    "synonyms": [
+      "carelessly",
+      "rashly"
+    ],
+    "collocations": [
+      "drove recklessly",
+      "behaved recklessly"
+    ],
+    "wordFamily": [
+      {
+        "word": "reckless",
+        "pos": "adjective"
+      },
+      {
+        "word": "recklessness",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "MGS 2023"
+  },
+  {
+    "id": "vw_p3_bob",
+    "word": "bob",
+    "level": "P3",
+    "pos": "verb",
+    "meaning": "to move quickly up and down repeatedly",
+    "example": "I could see Eric's head ____ up and down among the audience because he could not have a good view of the stage.",
+    "answer": "bob",
+    "confusables": [
+      "bang",
+      "bump"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "bounce",
+      "nod"
+    ],
+    "collocations": [
+      "bob up and down",
+      "bobbing head"
+    ],
+    "wordFamily": [
+      {
+        "word": "bobbing",
+        "pos": "adjective"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Maha Bodhi EOY 2023"
+  },
+  {
+    "id": "vw_p3_shrugged",
+    "word": "shrugged",
+    "level": "P3",
+    "pos": "verb",
+    "meaning": "raised and lowered the shoulders to show you do not know or care",
+    "example": "Sharifah ____ as she did not know the answer to the question.",
+    "answer": "shrugged",
+    "confusables": [
+      "shook",
+      "bowed",
+      "nodded"
+    ],
+    "connotation": "neutral",
+    "synonyms": [],
+    "collocations": [
+      "shrugged her shoulders",
+      "shrugged off"
+    ],
+    "wordFamily": [
+      {
+        "word": "shrug",
+        "pos": "noun"
+      },
+      {
+        "word": "shrug",
+        "pos": "verb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Maha Bodhi EOY 2023"
+  },
+  {
+    "id": "vw_p3_walked_off",
+    "word": "walked off",
+    "level": "P3",
+    "pos": "phrasal_verb",
+    "meaning": "left a place suddenly, especially because you are angry or upset",
+    "example": "After an argument with my best friend, I ____ angrily.",
+    "answer": "walked off",
+    "confusables": [
+      "walked in",
+      "walked over",
+      "walked through"
+    ],
+    "connotation": "negative",
+    "synonyms": [
+      "stormed off",
+      "left abruptly"
+    ],
+    "collocations": [
+      "walked off angrily",
+      "walked off in a huff"
+    ],
+    "wordFamily": [
+      {
+        "word": "walk",
+        "pos": "verb"
+      },
+      {
+        "word": "walk",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Maha Bodhi EOY 2023"
+  },
+  {
+    "id": "vw_p3_let_the_cat_out_of_the_bag",
+    "word": "let the cat out of the bag",
+    "level": "P3",
+    "pos": "idiom",
+    "meaning": "to accidentally reveal a secret",
+    "example": "We are planning a surprise party for Miss Lim on Teachers' Day. Promise us you will not ____.",
+    "answer": "let the cat out of the bag",
+    "confusables": [
+      "hold your horses",
+      "take the bull by the horns",
+      "kill two birds with one stone"
+    ],
+    "connotation": "negative",
+    "synonyms": [
+      "spill the beans",
+      "give the game away"
+    ],
+    "collocations": [
+      "let the cat out of the bag",
+      "don't let the cat out"
+    ],
+    "wordFamily": [],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Maha Bodhi EOY 2023"
+  },
+  {
+    "id": "vw_p3_as_cunning_as_a_fox",
+    "word": "as cunning as a fox",
+    "level": "P3",
+    "pos": "idiom",
+    "meaning": "very sly and clever in a tricky way, like a fox",
+    "example": "\"You shouldn't trust strangers. They can be ____,\" warned Father.",
+    "answer": "as cunning as a fox",
+    "confusables": [
+      "as fierce as a tiger",
+      "as playful as a dog",
+      "as stubborn as a mule"
+    ],
+    "connotation": "negative",
+    "synonyms": [],
+    "collocations": [
+      "cunning as a fox",
+      "sly as a fox"
+    ],
+    "wordFamily": [
+      {
+        "word": "cunning",
+        "pos": "adjective"
+      },
+      {
+        "word": "fox",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Maha Bodhi EOY 2023"
+  },
+  {
+    "id": "vw_p3_seriously",
+    "word": "seriously",
+    "level": "P3",
+    "pos": "adverb",
+    "meaning": "in a way that treats something as important or not as a joke",
+    "example": "I was just cracking a joke, but he took it ____ and stormed off.",
+    "answer": "seriously",
+    "confusables": [
+      "lightly",
+      "positively",
+      "completely"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "gravely",
+      "earnestly"
+    ],
+    "collocations": [
+      "took it seriously",
+      "seriously injured"
+    ],
+    "wordFamily": [
+      {
+        "word": "serious",
+        "pos": "adjective"
+      },
+      {
+        "word": "seriousness",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Maha Bodhi EOY 2023"
+  },
+  {
+    "id": "vw_p3_disappointed",
+    "word": "disappointed",
+    "level": "P3",
+    "pos": "adjective",
+    "meaning": "feeling sad because something you hoped for did not happen",
+    "example": "Farhan was ____ to hear that the soccer match was cancelled due to the rain. He was really looking forward to it.",
+    "answer": "disappointed",
+    "confusables": [
+      "dissatisfied",
+      "discouraged",
+      "disheartened"
+    ],
+    "connotation": "negative",
+    "synonyms": [
+      "let down",
+      "upset",
+      "crestfallen"
+    ],
+    "collocations": [
+      "deeply disappointed",
+      "disappointed to hear"
+    ],
+    "wordFamily": [
+      {
+        "word": "disappoint",
+        "pos": "verb"
+      },
+      {
+        "word": "disappointment",
+        "pos": "noun"
+      },
+      {
+        "word": "disappointing",
+        "pos": "adjective"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Maha Bodhi EOY 2023"
+  },
+  {
+    "id": "vw_p3_conclusion",
+    "word": "conclusion",
+    "level": "P3",
+    "pos": "noun",
+    "meaning": "a judgment or decision you come to after thinking about something",
+    "example": "At first, I thought the new boy was shy but I came to the ____ that he was simply unfriendly.",
+    "answer": "conclusion",
+    "confusables": [
+      "comment",
+      "commotion",
+      "conversation"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "decision",
+      "judgment"
+    ],
+    "collocations": [
+      "came to the conclusion",
+      "draw a conclusion"
+    ],
+    "wordFamily": [
+      {
+        "word": "conclude",
+        "pos": "verb"
+      },
+      {
+        "word": "conclusive",
+        "pos": "adjective"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Nan Hua EOY 2023"
+  },
+  {
+    "id": "vw_p3_angrily",
+    "word": "angrily",
+    "level": "P3",
+    "pos": "adverb",
+    "meaning": "in a way that shows you are very upset or angry",
+    "example": "Jonathan was so upset with his friend that he stormed out of the room ____.",
+    "answer": "angrily",
+    "confusables": [
+      "lazily",
+      "happily",
+      "sympathetically"
+    ],
+    "connotation": "negative",
+    "synonyms": [
+      "furiously",
+      "crossly"
+    ],
+    "collocations": [
+      "stormed out angrily",
+      "shouted angrily"
+    ],
+    "wordFamily": [
+      {
+        "word": "angry",
+        "pos": "adjective"
+      },
+      {
+        "word": "anger",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Nan Hua EOY 2023"
+  },
+  {
+    "id": "vw_p3_made_an_effort",
+    "word": "made an effort",
+    "level": "P3",
+    "pos": "idiom",
+    "meaning": "tried hard to do something, even though it was difficult",
+    "example": "Joshua ____ to help his mother by washing the dishes and cleaning the kitchen as she had been unwell lately.",
+    "answer": "made an effort",
+    "confusables": [
+      "took a break",
+      "broke the rule",
+      "took a deep breath"
+    ],
+    "connotation": "positive",
+    "synonyms": [
+      "tried hard",
+      "put in effort"
+    ],
+    "collocations": [
+      "made an effort to help",
+      "make an effort"
+    ],
+    "wordFamily": [
+      {
+        "word": "effort",
+        "pos": "noun"
+      },
+      {
+        "word": "effortless",
+        "pos": "adjective"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Nan Hua EOY 2023"
+  },
+  {
+    "id": "vw_p3_helpful",
+    "word": "helpful",
+    "level": "P3",
+    "pos": "adjective",
+    "meaning": "willing to help others; giving useful assistance",
+    "example": "My father thanked our ____ neighbours for looking after our house when we went on holiday last week.",
+    "answer": "helpful",
+    "confusables": [
+      "selfish",
+      "hostile",
+      "cunning"
+    ],
+    "connotation": "positive",
+    "synonyms": [
+      "kind",
+      "supportive",
+      "obliging"
+    ],
+    "collocations": [
+      "helpful neighbours",
+      "very helpful"
+    ],
+    "wordFamily": [
+      {
+        "word": "help",
+        "pos": "verb"
+      },
+      {
+        "word": "help",
+        "pos": "noun"
+      },
+      {
+        "word": "helpfully",
+        "pos": "adverb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Nan Hua EOY 2023"
+  },
+  {
+    "id": "vw_p3_eagerly",
+    "word": "eagerly",
+    "level": "P3",
+    "pos": "adverb",
+    "meaning": "in a keen, excited, and enthusiastic way",
+    "example": "The students waited ____ for the results of the Talent Show to be announced.",
+    "answer": "eagerly",
+    "confusables": [
+      "warily",
+      "recklessly",
+      "hurriedly"
+    ],
+    "connotation": "positive",
+    "synonyms": [
+      "enthusiastically",
+      "keenly"
+    ],
+    "collocations": [
+      "waited eagerly",
+      "eagerly anticipated"
+    ],
+    "wordFamily": [
+      {
+        "word": "eager",
+        "pos": "adjective"
+      },
+      {
+        "word": "eagerness",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Pei Hwa 2023"
+  },
+  {
+    "id": "vw_p3_carnivorous",
+    "word": "carnivorous",
+    "level": "P3",
+    "pos": "adjective",
+    "meaning": "feeding on meat or other animals; meat-eating",
+    "example": "Venus Fly Trap is a ____ plant as it feeds on the insects that are trapped in it.",
+    "answer": "carnivorous",
+    "confusables": [
+      "endangered",
+      "extinct",
+      "developed"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "meat-eating",
+      "predatory"
+    ],
+    "collocations": [
+      "carnivorous plant",
+      "carnivorous animal"
+    ],
+    "wordFamily": [
+      {
+        "word": "carnivore",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Pei Hwa 2023"
+  },
+  {
+    "id": "vw_p3_croaking",
+    "word": "croaking",
+    "level": "P3",
+    "pos": "noun",
+    "meaning": "the deep, rough sound made by frogs or toads",
+    "example": "Tim could not sleep well as the ____ of the frogs from a pond nearby kept him up all night.",
+    "answer": "croaking",
+    "confusables": [
+      "crowing",
+      "cooing",
+      "crooning"
+    ],
+    "connotation": "neutral",
+    "synonyms": [],
+    "collocations": [
+      "croaking of frogs",
+      "loud croaking"
+    ],
+    "wordFamily": [
+      {
+        "word": "croak",
+        "pos": "verb"
+      },
+      {
+        "word": "croak",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Pei Hwa 2023"
+  },
+  {
+    "id": "vw_p3_squealed",
+    "word": "squealed",
+    "level": "P3",
+    "pos": "verb",
+    "meaning": "made a high-pitched cry or sound, usually from excitement or delight",
+    "example": "Mary ____ in delight when she won the first prize in the Spelling Contest.",
+    "answer": "squealed",
+    "confusables": [
+      "shivered",
+      "stomped",
+      "squawked"
+    ],
+    "connotation": "positive",
+    "synonyms": [
+      "shrieked",
+      "exclaimed"
+    ],
+    "collocations": [
+      "squealed in delight",
+      "squealed with joy"
+    ],
+    "wordFamily": [
+      {
+        "word": "squeal",
+        "pos": "noun"
+      },
+      {
+        "word": "squeal",
+        "pos": "verb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Pei Hwa 2023"
   },
   {
     "id": "vw_p4_fawn",
@@ -12538,5 +14597,1184 @@ export const harvestedEntriesMP = [
       "vocab_mcq"
     ],
     "source": "St Nicholas EOY 2023"
+  },
+  {
+    "id": "vw_p4_convince",
+    "word": "convince",
+    "level": "P4",
+    "pos": "verb",
+    "meaning": "To make someone believe that something is true",
+    "example": "No matter how my little brother tried to ____ me that he saw a dinosaur in the park, I did not believe him.",
+    "answer": "convince",
+    "confusables": [
+      "motivate",
+      "encourage"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "persuade",
+      "assure"
+    ],
+    "collocations": [
+      "convince someone",
+      "hard to convince"
+    ],
+    "wordFamily": [
+      {
+        "word": "convincing",
+        "pos": "adjective"
+      },
+      {
+        "word": "convinced",
+        "pos": "adjective"
+      },
+      {
+        "word": "convincingly",
+        "pos": "adverb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Tao Nan 2023"
+  },
+  {
+    "id": "vw_p4_evidence",
+    "word": "evidence",
+    "level": "P4",
+    "pos": "noun",
+    "meaning": "Facts or signs that show something is true or happened",
+    "example": "The police provided photographic ____ of the thief breaking into the house when he was questioned.",
+    "answer": "evidence",
+    "confusables": [
+      "sign",
+      "signal",
+      "instruction"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "proof",
+      "clue"
+    ],
+    "collocations": [
+      "photographic evidence",
+      "provide evidence"
+    ],
+    "wordFamily": [
+      {
+        "word": "evident",
+        "pos": "adjective"
+      },
+      {
+        "word": "evidently",
+        "pos": "adverb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Tao Nan 2023"
+  },
+  {
+    "id": "vw_p4_towering",
+    "word": "towering",
+    "level": "P4",
+    "pos": "adjective",
+    "meaning": "Extremely tall or impressive in height",
+    "example": "Taking advantage of his ____ height, the goalkeeper punched the ball effortlessly over the goalpost.",
+    "answer": "towering",
+    "confusables": [
+      "surprising",
+      "disappointing",
+      "understanding"
+    ],
+    "connotation": "positive",
+    "synonyms": [
+      "lofty",
+      "imposing"
+    ],
+    "collocations": [
+      "towering height",
+      "towering figure"
+    ],
+    "wordFamily": [
+      {
+        "word": "tower",
+        "pos": "noun"
+      },
+      {
+        "word": "tower",
+        "pos": "verb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Tao Nan 2023"
+  },
+  {
+    "id": "vw_p4_regurgitate",
+    "word": "regurgitate",
+    "level": "P4",
+    "pos": "verb",
+    "meaning": "To bring swallowed food back up from the stomach to the mouth",
+    "example": "Some adult birds and animals ____ food from their stomachs to feed their young.",
+    "answer": "regurgitate",
+    "confusables": [
+      "restore",
+      "resolve",
+      "reproduce"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "bring up",
+      "disgorge"
+    ],
+    "collocations": [
+      "regurgitate food",
+      "regurgitate information"
+    ],
+    "wordFamily": [
+      {
+        "word": "regurgitation",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Tao Nan 2023"
+  },
+  {
+    "id": "vw_p4_extraction",
+    "word": "extraction",
+    "level": "P4",
+    "pos": "noun",
+    "meaning": "The process of removing or taking something out",
+    "example": "Beekeepers wear protective suits during the ____ of honey from the honeycombs.",
+    "answer": "extraction",
+    "confusables": [
+      "digestion",
+      "production",
+      "preparation"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "removal",
+      "withdrawal"
+    ],
+    "collocations": [
+      "extraction of honey",
+      "tooth extraction"
+    ],
+    "wordFamily": [
+      {
+        "word": "extract",
+        "pos": "verb"
+      },
+      {
+        "word": "extract",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Tao Nan 2023"
+  },
+  {
+    "id": "vw_p4_ingenious",
+    "word": "ingenious",
+    "level": "P4",
+    "pos": "adjective",
+    "meaning": "Very clever and creative; showing smart thinking",
+    "example": "As a result of Sanjay's clever thinking, his ____ plan solved the problem immediately.",
+    "answer": "ingenious",
+    "confusables": [
+      "steady",
+      "original",
+      "imaginative"
+    ],
+    "connotation": "positive",
+    "synonyms": [
+      "brilliant",
+      "inventive"
+    ],
+    "collocations": [
+      "ingenious plan",
+      "ingenious solution"
+    ],
+    "wordFamily": [
+      {
+        "word": "ingenuity",
+        "pos": "noun"
+      },
+      {
+        "word": "ingeniously",
+        "pos": "adverb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Tao Nan 2023"
+  },
+  {
+    "id": "vw_p4_scrambled",
+    "word": "scrambled",
+    "level": "P4",
+    "pos": "verb",
+    "meaning": "To climb or move quickly using hands and feet, especially in a hurry",
+    "example": "The fierce dog chased Lily so she ____ over the wall for safety.",
+    "answer": "scrambled",
+    "confusables": [
+      "hopped",
+      "stepped",
+      "bounced"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "clambered",
+      "climbed"
+    ],
+    "collocations": [
+      "scrambled over",
+      "scrambled up"
+    ],
+    "wordFamily": [
+      {
+        "word": "scramble",
+        "pos": "noun"
+      },
+      {
+        "word": "scrambling",
+        "pos": "verb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "ACSJ 2024"
+  },
+  {
+    "id": "vw_p4_raging",
+    "word": "raging",
+    "level": "P4",
+    "pos": "adjective",
+    "meaning": "Very powerful, violent, or intense",
+    "example": "The sailors braved the ____ storm as they sailed across the ocean.",
+    "answer": "raging",
+    "confusables": [
+      "blowing",
+      "pouring",
+      "showering"
+    ],
+    "connotation": "negative",
+    "synonyms": [
+      "fierce",
+      "furious"
+    ],
+    "collocations": [
+      "raging storm",
+      "raging fire"
+    ],
+    "wordFamily": [
+      {
+        "word": "rage",
+        "pos": "noun"
+      },
+      {
+        "word": "rage",
+        "pos": "verb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "ACSJ 2024"
+  },
+  {
+    "id": "vw_p4_challenge",
+    "word": "challenge",
+    "level": "P4",
+    "pos": "noun",
+    "meaning": "Something that is difficult and tests your ability",
+    "example": "Completing the puzzle was a ____ but Sam persevered and solved it!",
+    "answer": "challenge",
+    "confusables": [
+      "basic",
+      "breeze",
+      "victory"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "difficulty",
+      "test"
+    ],
+    "collocations": [
+      "a big challenge",
+      "face a challenge"
+    ],
+    "wordFamily": [
+      {
+        "word": "challenging",
+        "pos": "adjective"
+      },
+      {
+        "word": "challenger",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "ACSJ 2024"
+  },
+  {
+    "id": "vw_p4_limited",
+    "word": "limited",
+    "level": "P4",
+    "pos": "adjective",
+    "meaning": "Not much or not enough; only a small amount",
+    "example": "As he was only paying ____ attention in class, he missed some important instructions.",
+    "answer": "limited",
+    "confusables": [
+      "partial",
+      "imperfect",
+      "incomplete"
+    ],
+    "connotation": "negative",
+    "synonyms": [
+      "restricted",
+      "insufficient"
+    ],
+    "collocations": [
+      "limited attention",
+      "limited time"
+    ],
+    "wordFamily": [
+      {
+        "word": "limit",
+        "pos": "noun"
+      },
+      {
+        "word": "limit",
+        "pos": "verb"
+      },
+      {
+        "word": "limitation",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "ACSJ 2024"
+  },
+  {
+    "id": "vw_p4_creative",
+    "word": "creative",
+    "level": "P4",
+    "pos": "adjective",
+    "meaning": "Having the ability to come up with new and original ideas",
+    "example": "During art class, Sarah used her ____ ideas to build an amazing castle out of recycled materials.",
+    "answer": "creative",
+    "confusables": [
+      "reliable",
+      "tempting",
+      "predictable"
+    ],
+    "connotation": "positive",
+    "synonyms": [
+      "imaginative",
+      "inventive"
+    ],
+    "collocations": [
+      "creative ideas",
+      "creative thinking"
+    ],
+    "wordFamily": [
+      {
+        "word": "create",
+        "pos": "verb"
+      },
+      {
+        "word": "creativity",
+        "pos": "noun"
+      },
+      {
+        "word": "creatively",
+        "pos": "adverb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Henry Park 2024"
+  },
+  {
+    "id": "vw_p4_determined",
+    "word": "determined",
+    "level": "P4",
+    "pos": "adjective",
+    "meaning": "Having a strong will to do something, even when it is hard",
+    "example": "Even though Sally tripped, she picked herself up and was ____ to complete the race.",
+    "answer": "determined",
+    "confusables": [
+      "blissful",
+      "cautious",
+      "reluctant"
+    ],
+    "connotation": "positive",
+    "synonyms": [
+      "resolute",
+      "firm"
+    ],
+    "collocations": [
+      "determined to succeed",
+      "determined effort"
+    ],
+    "wordFamily": [
+      {
+        "word": "determine",
+        "pos": "verb"
+      },
+      {
+        "word": "determination",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Henry Park 2024"
+  },
+  {
+    "id": "vw_p4_discovered",
+    "word": "discovered",
+    "level": "P4",
+    "pos": "verb",
+    "meaning": "To find out or realise something for the first time",
+    "example": "Mrs Wong was about to pay for the blouse when she ____ that she had forgotten to bring her purse.",
+    "answer": "discovered",
+    "confusables": [
+      "believed",
+      "guessed",
+      "understood"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "realised",
+      "found out"
+    ],
+    "collocations": [
+      "discovered that",
+      "recently discovered"
+    ],
+    "wordFamily": [
+      {
+        "word": "discover",
+        "pos": "verb"
+      },
+      {
+        "word": "discovery",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Henry Park 2024"
+  },
+  {
+    "id": "vw_p4_rushed",
+    "word": "rushed",
+    "level": "P4",
+    "pos": "verb",
+    "meaning": "To move very quickly, often in a hurry",
+    "example": "Once the school bell rang, the students quickly ____ out of the classrooms.",
+    "answer": "rushed",
+    "confusables": [
+      "pushed",
+      "strolled",
+      "wandered"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "hurried",
+      "dashed"
+    ],
+    "collocations": [
+      "rushed out",
+      "rushed home"
+    ],
+    "wordFamily": [
+      {
+        "word": "rush",
+        "pos": "noun"
+      },
+      {
+        "word": "rushing",
+        "pos": "adjective"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Henry Park 2024"
+  },
+  {
+    "id": "vw_p4_donated",
+    "word": "donated",
+    "level": "P4",
+    "pos": "verb",
+    "meaning": "To give money or things to help people or a cause",
+    "example": "Many people ____ to the fund set up to help the tsunami victims. A lot of money was collected.",
+    "answer": "donated",
+    "confusables": [
+      "delivered",
+      "dispersed",
+      "distributed"
+    ],
+    "connotation": "positive",
+    "synonyms": [
+      "contributed",
+      "gave"
+    ],
+    "collocations": [
+      "donated money",
+      "donated to charity"
+    ],
+    "wordFamily": [
+      {
+        "word": "donation",
+        "pos": "noun"
+      },
+      {
+        "word": "donor",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Nan Chiau 2024"
+  },
+  {
+    "id": "vw_p4_jagged",
+    "word": "jagged",
+    "level": "P4",
+    "pos": "adjective",
+    "meaning": "Having rough, sharp, uneven edges that can cut",
+    "example": "The robber was cut by the sharp and ____ edges of the fence as he tried to jump over it.",
+    "answer": "jagged",
+    "confusables": [
+      "regular",
+      "smooth",
+      "rounded"
+    ],
+    "connotation": "negative",
+    "synonyms": [
+      "rough",
+      "serrated"
+    ],
+    "collocations": [
+      "jagged edges",
+      "jagged rocks"
+    ],
+    "wordFamily": [
+      {
+        "word": "jag",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Nan Chiau 2024"
+  },
+  {
+    "id": "vw_p4_attic",
+    "word": "attic",
+    "level": "P4",
+    "pos": "noun",
+    "meaning": "A room or space at the top of a house, just under the roof, often used for storage",
+    "example": "\"Why don't you go upstairs to sort out the items for your school's donation drive? I've placed everything in the ____,\" Mother suggested.",
+    "answer": "attic",
+    "confusables": [
+      "ceiling",
+      "chimney",
+      "basement"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "loft",
+      "garret"
+    ],
+    "collocations": [
+      "in the attic",
+      "dusty attic"
+    ],
+    "wordFamily": [],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Nan Hua 2024"
+  },
+  {
+    "id": "vw_p4_watery",
+    "word": "watery",
+    "level": "P4",
+    "pos": "adjective",
+    "meaning": "Too thin or diluted; containing too much water",
+    "example": "The soup was too ____, so we added more vegetables to make it thicker.",
+    "answer": "watery",
+    "confusables": [
+      "sticky",
+      "gooey",
+      "sugary"
+    ],
+    "connotation": "negative",
+    "synonyms": [
+      "diluted",
+      "thin"
+    ],
+    "collocations": [
+      "watery soup",
+      "watery eyes"
+    ],
+    "wordFamily": [
+      {
+        "word": "water",
+        "pos": "noun"
+      },
+      {
+        "word": "water",
+        "pos": "verb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Nan Hua 2024"
+  },
+  {
+    "id": "vw_p4_pounce",
+    "word": "pounce",
+    "level": "P4",
+    "pos": "verb",
+    "meaning": "To jump suddenly on something to catch it",
+    "example": "The tiger kept its eyes on its prey, waiting for its chance to ____.",
+    "answer": "pounce",
+    "confusables": [
+      "stalk",
+      "peer",
+      "crouch"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "leap",
+      "spring"
+    ],
+    "collocations": [
+      "pounce on",
+      "ready to pounce"
+    ],
+    "wordFamily": [
+      {
+        "word": "pounce",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Nan Hua 2024"
+  },
+  {
+    "id": "vw_p4_referee",
+    "word": "referee",
+    "level": "P4",
+    "pos": "noun",
+    "meaning": "A person who makes sure the rules are followed in a game or sport",
+    "example": "The basketball player was asked to leave the court by the ____, much to the displeasure of his team.",
+    "answer": "referee",
+    "confusables": [
+      "athlete",
+      "spectator",
+      "opponent"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "umpire",
+      "judge"
+    ],
+    "collocations": [
+      "the referee",
+      "referee's decision"
+    ],
+    "wordFamily": [
+      {
+        "word": "referee",
+        "pos": "verb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Nan Hua 2024"
+  },
+  {
+    "id": "vw_p4_reluctantly",
+    "word": "reluctantly",
+    "level": "P4",
+    "pos": "adverb",
+    "meaning": "Doing something unwillingly or without wanting to",
+    "example": "After some thought, Jack ____ accepted the role of the group leader because his teacher insisted that he took it up.",
+    "answer": "reluctantly",
+    "confusables": [
+      "eagerly",
+      "willingly",
+      "enthusiastically"
+    ],
+    "connotation": "negative",
+    "synonyms": [
+      "unwillingly",
+      "hesitantly"
+    ],
+    "collocations": [
+      "reluctantly agreed",
+      "reluctantly accepted"
+    ],
+    "wordFamily": [
+      {
+        "word": "reluctant",
+        "pos": "adjective"
+      },
+      {
+        "word": "reluctance",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Nan Hua 2024"
+  },
+  {
+    "id": "vw_p4_glinted",
+    "word": "glinted",
+    "level": "P4",
+    "pos": "verb",
+    "meaning": "To shine with small flashes of light",
+    "example": "While on a cruise, I stared at the sea as the waves ____ in the sunlight.",
+    "answer": "glinted",
+    "confusables": [
+      "flared",
+      "glared",
+      "blazed"
+    ],
+    "connotation": "positive",
+    "synonyms": [
+      "sparkled",
+      "glimmered"
+    ],
+    "collocations": [
+      "glinted in the sun",
+      "eyes glinted"
+    ],
+    "wordFamily": [
+      {
+        "word": "glint",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Nan Hua 2024"
+  },
+  {
+    "id": "vw_p4_measurements",
+    "word": "measurements",
+    "level": "P4",
+    "pos": "noun",
+    "meaning": "The exact amounts or sizes of something, often written as numbers",
+    "example": "She followed closely to the given ____ in the cake recipe for the required quantity of each ingredient.",
+    "answer": "measurements",
+    "confusables": [
+      "sizes",
+      "techniques",
+      "procedures"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "quantities",
+      "dimensions"
+    ],
+    "collocations": [
+      "take measurements",
+      "accurate measurements"
+    ],
+    "wordFamily": [
+      {
+        "word": "measure",
+        "pos": "verb"
+      },
+      {
+        "word": "measure",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Nanyang 2024"
+  },
+  {
+    "id": "vw_p4_chuckled",
+    "word": "chuckled",
+    "level": "P4",
+    "pos": "verb",
+    "meaning": "To laugh quietly or softly, usually because something is funny",
+    "example": "Mohamed ____ in delight as he read the funny story written by Priya.",
+    "answer": "chuckled",
+    "confusables": [
+      "hissed",
+      "howled",
+      "gasped"
+    ],
+    "connotation": "positive",
+    "synonyms": [
+      "giggled",
+      "laughed"
+    ],
+    "collocations": [
+      "chuckled softly",
+      "chuckled in delight"
+    ],
+    "wordFamily": [
+      {
+        "word": "chuckle",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Nanyang 2024"
+  },
+  {
+    "id": "vw_p4_heavy",
+    "word": "heavy",
+    "level": "P4",
+    "pos": "adjective",
+    "meaning": "A lot of something, especially rain or traffic; large in amount",
+    "example": "The river has overflowed due to the ____ rainfall over the week.",
+    "answer": "heavy",
+    "confusables": [
+      "rich",
+      "bulky",
+      "occasional"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "intense",
+      "torrential"
+    ],
+    "collocations": [
+      "heavy rainfall",
+      "heavy traffic"
+    ],
+    "wordFamily": [
+      {
+        "word": "heavily",
+        "pos": "adverb"
+      },
+      {
+        "word": "heaviness",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Nanyang 2024"
+  },
+  {
+    "id": "vw_p4_accommodation",
+    "word": "accommodation",
+    "level": "P4",
+    "pos": "noun",
+    "meaning": "A place to stay, like a house or hotel room",
+    "example": "To help Cindy's family save some money, Aunt Limei offered them her house as their ____ during their visit to China.",
+    "answer": "accommodation",
+    "confusables": [
+      "location",
+      "junction",
+      "transportation"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "lodging",
+      "shelter"
+    ],
+    "collocations": [
+      "find accommodation",
+      "temporary accommodation"
+    ],
+    "wordFamily": [
+      {
+        "word": "accommodate",
+        "pos": "verb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Nanyang 2024"
+  },
+  {
+    "id": "vw_p4_sensibly",
+    "word": "sensibly",
+    "level": "P4",
+    "pos": "adverb",
+    "meaning": "In a wise and practical way; using good judgement",
+    "example": "It will save you a lot of trouble if you do things ____.",
+    "answer": "sensibly",
+    "confusables": [
+      "rashly",
+      "wearily",
+      "frantically"
+    ],
+    "connotation": "positive",
+    "synonyms": [
+      "wisely",
+      "practically"
+    ],
+    "collocations": [
+      "act sensibly",
+      "spend sensibly"
+    ],
+    "wordFamily": [
+      {
+        "word": "sensible",
+        "pos": "adjective"
+      },
+      {
+        "word": "sense",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Nanyang 2024"
+  },
+  {
+    "id": "vw_p4_groceries",
+    "word": "groceries",
+    "level": "P4",
+    "pos": "noun",
+    "meaning": "Food and everyday items that you buy from a shop or supermarket",
+    "example": "At the supermarket, Mother bought a basket full of ____ to prepare meals for the next two weeks.",
+    "answer": "groceries",
+    "confusables": [
+      "tools",
+      "cutlery",
+      "utensils"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "provisions",
+      "supplies"
+    ],
+    "collocations": [
+      "buy groceries",
+      "grocery shopping"
+    ],
+    "wordFamily": [
+      {
+        "word": "grocery",
+        "pos": "noun"
+      },
+      {
+        "word": "grocer",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Pei Chun 2024"
+  },
+  {
+    "id": "vw_p4_responsibility",
+    "word": "responsibility",
+    "level": "P4",
+    "pos": "noun",
+    "meaning": "Being in charge of something or having to answer for what you did",
+    "example": "Mark damaged his classmate's water bottle and would have to take ____ for his action.",
+    "answer": "responsibility",
+    "confusables": [
+      "control",
+      "initiative",
+      "authority"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "accountability",
+      "duty"
+    ],
+    "collocations": [
+      "take responsibility",
+      "sense of responsibility"
+    ],
+    "wordFamily": [
+      {
+        "word": "responsible",
+        "pos": "adjective"
+      },
+      {
+        "word": "responsibly",
+        "pos": "adverb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Pei Chun 2024"
+  },
+  {
+    "id": "vw_p4_extinguish",
+    "word": "extinguish",
+    "level": "P4",
+    "pos": "verb",
+    "meaning": "To put out a fire or flame completely",
+    "example": "The brave firemen fought hard to ____ the flames of the forest fire.",
+    "answer": "extinguish",
+    "confusables": [
+      "drown",
+      "quench",
+      "suffocate"
+    ],
+    "connotation": "neutral",
+    "synonyms": [
+      "put out",
+      "douse"
+    ],
+    "collocations": [
+      "extinguish a fire",
+      "extinguish the flames"
+    ],
+    "wordFamily": [
+      {
+        "word": "extinguisher",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Pei Chun 2024"
+  },
+  {
+    "id": "vw_p4_aromatic",
+    "word": "aromatic",
+    "level": "P4",
+    "pos": "adjective",
+    "meaning": "Having a pleasant, strong smell",
+    "example": "The chef has used ____ spices to cook the rice. It smells delicious.",
+    "answer": "aromatic",
+    "confusables": [
+      "tempting",
+      "colourful",
+      "perfumed"
+    ],
+    "connotation": "positive",
+    "synonyms": [
+      "fragrant",
+      "sweet-smelling"
+    ],
+    "collocations": [
+      "aromatic spices",
+      "aromatic herbs"
+    ],
+    "wordFamily": [
+      {
+        "word": "aroma",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Pei Chun 2024"
+  },
+  {
+    "id": "vw_p4_cross",
+    "word": "cross",
+    "level": "P4",
+    "pos": "adjective",
+    "meaning": "Angry or annoyed about something",
+    "example": "The customer was ____ with the clumsy waitress when she tripped and spilled soup on him.",
+    "answer": "cross",
+    "confusables": [
+      "pleased",
+      "satisfied",
+      "disappointed"
+    ],
+    "connotation": "negative",
+    "synonyms": [
+      "angry",
+      "irritated"
+    ],
+    "collocations": [
+      "cross with someone",
+      "very cross"
+    ],
+    "wordFamily": [
+      {
+        "word": "crossly",
+        "pos": "adverb"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Pei Chun 2024"
+  },
+  {
+    "id": "vw_p4_shoved",
+    "word": "shoved",
+    "level": "P4",
+    "pos": "verb",
+    "meaning": "To push someone or something roughly and forcefully",
+    "example": "Pete was given a warning when he pushed and ____ his friends during the game.",
+    "answer": "shoved",
+    "confusables": [
+      "snapped",
+      "snatched",
+      "swarmed"
+    ],
+    "connotation": "negative",
+    "synonyms": [
+      "pushed",
+      "jostled"
+    ],
+    "collocations": [
+      "pushed and shoved",
+      "shoved aside"
+    ],
+    "wordFamily": [
+      {
+        "word": "shove",
+        "pos": "noun"
+      }
+    ],
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "source": "Pei Chun 2024"
   }
 ];
