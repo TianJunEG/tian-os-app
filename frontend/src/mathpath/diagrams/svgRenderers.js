@@ -52,7 +52,7 @@ function fractionBar(spec) {
 }
 
 function fractionCircle(spec) {
-  const { parts, shaded } = spec.data;
+  const { parts, shaded, labelMode = 'fraction' } = spec.data;
   const w = spec.width; const h = spec.height;
   const cx = w / 2; const cy = h / 2; const r = Math.min(w, h) * 0.32;
   if (REDUCE_MOTION) {
@@ -64,7 +64,7 @@ function fractionCircle(spec) {
       const x1 = cx + r * Math.cos(a1); const y1 = cy + r * Math.sin(a1);
       body += `<path d="M ${cx} ${cy} L ${x0} ${y0} A ${r} ${r} 0 0 1 ${x1} ${y1} Z" fill="${i < shaded ? SHADED_FILL : UNSHADED_FILL}" stroke="${BORDER_STROKE}"/>`;
     }
-    body += `<text x="${cx}" y="${cy + r + 28}" font-size="18" text-anchor="middle" fill="#111">${shaded}/${parts}</text>`;
+    if (labelMode !== 'none') body += `<text x="${cx}" y="${cy + r + 28}" font-size="18" text-anchor="middle" fill="#111">${shaded}/${parts}</text>`;
     return svgShell(spec, body, 'fraction circle');
   }
   const perSlice = Math.min(0.18, 1.2 / (shaded || 1));
@@ -82,13 +82,15 @@ function fractionCircle(spec) {
       body += `<path d="M ${cx} ${cy} L ${x0} ${y0} A ${r} ${r} 0 0 1 ${x1} ${y1} Z" fill="${UNSHADED_FILL}" stroke="${BORDER_STROKE}"/>`;
     }
   }
-  const labelDelay = (shadeEnd + 0.15).toFixed(2);
-  body += `<text x="${cx}" y="${cy + r + 28}" font-size="18" text-anchor="middle" fill="#111" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.3s" begin="${labelDelay}s" fill="freeze"/>${shaded}/${parts}</text>`;
+  if (labelMode !== 'none') {
+    const labelDelay = (shadeEnd + 0.15).toFixed(2);
+    body += `<text x="${cx}" y="${cy + r + 28}" font-size="18" text-anchor="middle" fill="#111" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.3s" begin="${labelDelay}s" fill="freeze"/>${shaded}/${parts}</text>`;
+  }
   return svgShell(spec, body, 'fraction circle');
 }
 
 function fractionTriangle(spec) {
-  const { parts, shaded } = spec.data;
+  const { parts, shaded, labelMode = 'fraction' } = spec.data;
   const w = spec.width || 640;
   const h = spec.height || 220;
   const cx = w / 2;
@@ -151,10 +153,12 @@ function fractionTriangle(spec) {
     }
   });
 
-  const labelDelay = REDUCE_MOTION ? 0 : (shaded * 0.1 + 0.15).toFixed(2);
-  body += REDUCE_MOTION
-    ? `<text x="${cx}" y="${baseY + 24}" font-size="18" text-anchor="middle" fill="#111">${shaded}/${parts}</text>`
-    : `<text x="${cx}" y="${baseY + 24}" font-size="18" text-anchor="middle" fill="#111" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.3s" begin="${labelDelay}s" fill="freeze"/>${shaded}/${parts}</text>`;
+  if (labelMode !== 'none') {
+    const labelDelay = REDUCE_MOTION ? 0 : (shaded * 0.1 + 0.15).toFixed(2);
+    body += REDUCE_MOTION
+      ? `<text x="${cx}" y="${baseY + 24}" font-size="18" text-anchor="middle" fill="#111">${shaded}/${parts}</text>`
+      : `<text x="${cx}" y="${baseY + 24}" font-size="18" text-anchor="middle" fill="#111" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.3s" begin="${labelDelay}s" fill="freeze"/>${shaded}/${parts}</text>`;
+  }
 
   return svgShell({ ...spec, width: w, height: h }, body, 'fraction triangle');
 }
