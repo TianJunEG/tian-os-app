@@ -16,6 +16,7 @@
 
 import { normalizeWordEntry } from './vocabularyModel.js';
 import { harvestedEntries } from './harvestedEntries.js';
+import { harvestedEntriesMP } from './harvestedEntriesMP.js';
 
 const RAW_ENTRIES = [
   // — Cluster: encroachment (environment / "moving onto") — Nanyang Prelim 2024 Q11
@@ -578,7 +579,7 @@ function mergeEntries(seed, harvested) {
 // The curated seed only (the harvest pipeline dedupes against this).
 export const seedEntries = RAW_ENTRIES.map(normalizeWordEntry);
 
-export const vocabularyWordBank = mergeEntries(RAW_ENTRIES, harvestedEntries).map(normalizeWordEntry);
+export const vocabularyWordBank = mergeEntries(RAW_ENTRIES, [...harvestedEntries, ...harvestedEntriesMP]).map(normalizeWordEntry);
 
 export const wordBankById = Object.fromEntries(vocabularyWordBank.map((w) => [w.id, w]));
 
