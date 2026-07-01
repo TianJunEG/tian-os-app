@@ -123,9 +123,10 @@ function normalizeDiagramKind(diagram) {
         data: { radius: diagram.radius, show: diagram.label === 'diameter' ? 'diameter' : 'radius' },
       };
     case 'circle-part':
-      if (diagram.part === 'quarter')
+      // Generators use 'quarter'/'half' OR 'quarter-circle'/'semicircle'.
+      if (diagram.part === 'quarter' || diagram.part === 'quarter-circle')
         return { type: 'quarter_circle', width: 320, height: 280, data: { radius: diagram.radius, label: `${diagram.radius} cm` } };
-      if (diagram.part === 'half')
+      if (diagram.part === 'half' || diagram.part === 'semicircle')
         return { type: 'semicircle', width: 360, height: 220, data: { diameter: (diagram.radius || 0) * 2, label: `${(diagram.radius || 0) * 2} cm` } };
       return null;
     case 'rectangle':
