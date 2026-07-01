@@ -97,7 +97,7 @@ export default function KioskQuestionScreen() {
 
         <div style={{ background: '#fff', borderRadius: 18, padding: 24, boxShadow: '0 2px 14px rgba(28,36,51,0.06)' }}>
           <div style={{ fontSize: 22, fontWeight: 600, color: '#1c2433', lineHeight: 1.4 }}>
-            <MathText>{stem}</MathText>
+            <MathText text={stem} />
           </div>
 
           {canRenderQuestionDiagram(question) && (
@@ -120,7 +120,7 @@ export default function KioskQuestionScreen() {
                       background: answer === c ? '#eaf5ef' : '#fff', color: '#1c2433',
                     }}
                   >
-                    <MathText>{String(c)}</MathText>
+                    <MathText text={String(c)} />
                   </button>
                 ))}
               </div>
