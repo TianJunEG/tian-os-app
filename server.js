@@ -128,6 +128,20 @@ if (fs.existsSync(path.join(clientDist, 'index.html'))) {
   app.use(express.static(clientDist));
 }
 
+// Standalone Vocabulary Builder (lead-gen app) — served at /vocab. It is a
+// static ES-module app whose app.js imports the self-contained vocabulary
+// engine via `../shared/englishpath/vocabulary/index.js`, so both the app dir
+// and that engine dir must be reachable. Mounted here (before CORS / rate-limit,
+// like frontend/dist) so its JS/CSS/ESM load cleanly and aren't rate-limited.
+const vocabAppDir = path.resolve(__dirname, 'englishpath-vocab-app');
+if (fs.existsSync(path.join(vocabAppDir, 'index.html'))) {
+  app.use('/vocab', express.static(vocabAppDir));
+  app.use(
+    '/shared/englishpath/vocabulary',
+    express.static(path.resolve(__dirname, 'shared', 'englishpath', 'vocabulary'))
+  );
+}
+
 // Allowed origins come from CORS_ORIGIN (comma-separated); defaults to local dev.
 // Vercel preview domains are also allowed by pattern.
 const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173')
