@@ -11578,6 +11578,38 @@ export const harvestedEntries = [
     "source": "St Hilda EOY 2025"
   },
   {
+    "id": "vw_a_tall_order",
+    "word": "a tall order",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "idioms",
+    "cluster": null,
+    "meaning": "a task that is very difficult or demanding to accomplish",
+    "example": "\"This project is ____ ,\" Jay told his manager. \"I would need help from Subash and Alice if you want me to complete it by the end of the week.\"",
+    "answer": "a tall order",
+    "synonyms": [
+      "a big ask",
+      "a tough challenge"
+    ],
+    "confusables": [
+      "a free hand",
+      "a wet blanket",
+      "an arm and a leg"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "a tall order to complete",
+      "prove a tall order"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Pei Chun CA1 2020"
+  },
+  {
     "id": "vw_abrupt",
     "word": "abrupt",
     "pos": "adjective",
@@ -11619,6 +11651,44 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "St Nicholas Prelim 2021"
+  },
+  {
+    "id": "vw_acceded_to",
+    "word": "accede to",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "actions",
+    "cluster": null,
+    "meaning": "to agree to a request; to say yes to what someone asks for",
+    "example": "The shopkeeper ____ the customer's request for an exchange as the product was defective.",
+    "answer": "acceded to",
+    "synonyms": [
+      "agreed to",
+      "granted",
+      "approved"
+    ],
+    "confusables": [
+      "conceded to",
+      "proceeded with",
+      "succeeded with"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "accede to a request",
+      "accede to demands"
+    ],
+    "wordFamily": [
+      {
+        "word": "accession",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan SA1 2024"
   },
   {
     "id": "vw_accumulated",
@@ -11663,6 +11733,38 @@ export const harvestedEntries = [
     "source": "RedSwastika Prelim 2024"
   },
   {
+    "id": "vw_weakness",
+    "word": "Achilles heel",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "character traits",
+    "cluster": null,
+    "meaning": "a weak point; something a person is not good at",
+    "example": "Math had always been my ____, a subject I struggled greatly to manage because of my poor understanding of the concepts.",
+    "answer": "weakness",
+    "synonyms": [
+      "shortcoming",
+      "vulnerable point"
+    ],
+    "confusables": [
+      "hatred",
+      "enemy",
+      "downfall"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "Achilles heel",
+      "weak point"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "AiTong SA1 2021"
+  },
+  {
     "id": "vw_acknowledge",
     "word": "acknowledge",
     "pos": "verb",
@@ -11675,12 +11777,16 @@ export const harvestedEntries = [
     "synonyms": [
       "admit",
       "accept",
-      "recognise"
+      "recognise",
+      "honour",
+      "commend"
     ],
     "confusables": [
       "affirm",
       "announce",
-      "accommodate"
+      "accommodate",
+      "remember",
+      "appreciate"
     ],
     "connotation": "positive",
     "collocations": [
@@ -11779,6 +11885,48 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Temasek Prelim 2023"
+  },
+  {
+    "id": "vw_adequately",
+    "word": "adequately",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "sufficiency & protection",
+    "cluster": null,
+    "meaning": "in a way that is enough or satisfactory for a particular purpose",
+    "example": "With my long sleeve shirt, wide brim hat and big sunglasses, I am ____ protected against the sun rays.",
+    "answer": "adequately",
+    "synonyms": [
+      "sufficiently",
+      "satisfactorily",
+      "properly"
+    ],
+    "confusables": [
+      "acceptably",
+      "accurately",
+      "appropriately"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "adequately protected",
+      "adequately prepared"
+    ],
+    "wordFamily": [
+      {
+        "word": "adequate",
+        "pos": "adjective"
+      },
+      {
+        "word": "adequacy",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Maha Bodhi SA1 2021"
   },
   {
     "id": "vw_decorated",
@@ -11899,6 +12047,50 @@ export const harvestedEntries = [
     "source": "SCGS Prelim 2022"
   },
   {
+    "id": "vw_aid",
+    "word": "aid",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "community and support",
+    "cluster": null,
+    "meaning": "help or support given to someone who needs it, especially money or supplies",
+    "example": "With the ____ of donations from the public, the flood victims managed to rebuild their lives.",
+    "answer": "aid",
+    "synonyms": [
+      "help",
+      "assistance",
+      "support"
+    ],
+    "confusables": [
+      "favour",
+      "benefit",
+      "sponsor",
+      "sustain",
+      "comfort"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "humanitarian aid",
+      "with the aid of"
+    ],
+    "wordFamily": [
+      {
+        "word": "aid",
+        "pos": "verb"
+      },
+      {
+        "word": "aide",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan SA1 2021"
+  },
+  {
     "id": "vw_alleviate",
     "word": "alleviate",
     "pos": "verb",
@@ -11911,12 +12103,15 @@ export const harvestedEntries = [
     "synonyms": [
       "relieve",
       "ease",
-      "soothe"
+      "soothe",
+      "reduce"
     ],
     "confusables": [
       "lighten",
       "vanish",
-      "deduct"
+      "deduct",
+      "sustain",
+      "increase"
     ],
     "connotation": "positive",
     "collocations": [
@@ -11935,6 +12130,47 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Pei Chun Prelim 2023"
+  },
+  {
+    "id": "vw_ally",
+    "word": "ally",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "relationships",
+    "cluster": null,
+    "meaning": "a person or thing that helps and supports you",
+    "example": "The light from the moon became Ali's ____.",
+    "answer": "ally",
+    "synonyms": [
+      "companion",
+      "helper"
+    ],
+    "confusables": [
+      "friend",
+      "family",
+      "acquaintance"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "trusted ally",
+      "unlikely ally"
+    ],
+    "wordFamily": [
+      {
+        "word": "alliance",
+        "pos": "noun"
+      },
+      {
+        "word": "allied",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan SA2 2020"
   },
   {
     "id": "vw_ambiguous",
@@ -12059,6 +12295,50 @@ export const harvestedEntries = [
     "source": "Nan Hua Prelim 2022"
   },
   {
+    "id": "vw_amplify",
+    "word": "amplify",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "technology",
+    "cluster": null,
+    "meaning": "to make a sound louder using equipment",
+    "example": "The speaker should use the microphone to ____ her voice as the audience at the back can hardly hear her.",
+    "answer": "amplify",
+    "synonyms": [
+      "increase",
+      "boost",
+      "project"
+    ],
+    "confusables": [
+      "fortify",
+      "magnify",
+      "intensify",
+      "enlarge",
+      "escalate"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "amplify a voice",
+      "amplify sound"
+    ],
+    "wordFamily": [
+      {
+        "word": "amplification",
+        "pos": "noun"
+      },
+      {
+        "word": "amplifier",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan SA1 2024"
+  },
+  {
     "id": "vw_animated",
     "word": "animate",
     "pos": "verb",
@@ -12155,12 +12435,15 @@ export const harvestedEntries = [
     "synonyms": [
       "unnamed",
       "unidentified",
-      "nameless"
+      "nameless",
+      "unknown"
     ],
     "confusables": [
       "unseen",
       "disguised",
-      "concealed"
+      "concealed",
+      "obscure",
+      "indistinct"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -12198,12 +12481,16 @@ export const harvestedEntries = [
     "synonyms": [
       "expect",
       "foresee",
-      "predict"
+      "predict",
+      "expected",
+      "predicted"
     ],
     "confusables": [
       "imagine",
       "precede",
-      "prophesise"
+      "prophesise",
+      "imagined",
+      "concluded"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -12226,6 +12513,92 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Rosyth Prelim 2022"
+  },
+  {
+    "id": "vw_anticipation",
+    "word": "anticipation",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "emotions and feelings",
+    "cluster": null,
+    "meaning": "a feeling of excitement or nervousness about something that is going to happen",
+    "example": "Maggie was filled with ____ as she knew that the result of the competition was going to be announced any moment.",
+    "answer": "anticipation",
+    "synonyms": [
+      "excitement",
+      "expectation",
+      "suspense"
+    ],
+    "confusables": [
+      "affection",
+      "aggression",
+      "appreciation",
+      "anxiety",
+      "satisfaction"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "filled with anticipation",
+      "in anticipation of"
+    ],
+    "wordFamily": [
+      {
+        "word": "anticipate",
+        "pos": "verb"
+      },
+      {
+        "word": "anticipated",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Henry Park SA1 2021"
+  },
+  {
+    "id": "vw_anxious",
+    "word": "anxious",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "emotions and feelings",
+    "cluster": null,
+    "meaning": "feeling worried and nervous, especially about something uncertain",
+    "example": "To his surprise, there was already a snaking queue of ____ buyers.",
+    "answer": "anxious",
+    "synonyms": [
+      "eager",
+      "nervous",
+      "apprehensive"
+    ],
+    "confusables": [
+      "agitated",
+      "decisive",
+      "influential"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "anxious wait",
+      "feel anxious"
+    ],
+    "wordFamily": [
+      {
+        "word": "anxiety",
+        "pos": "noun"
+      },
+      {
+        "word": "anxiously",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Henry Park SA1 2021"
   },
   {
     "id": "vw_appalled",
@@ -12268,6 +12641,366 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Red Swastika Prelim 2021"
+  },
+  {
+    "id": "vw_appalling",
+    "word": "appalling",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "behaviour",
+    "cluster": null,
+    "meaning": "extremely shocking and upsetting; very bad",
+    "example": "A young man beat up an elderly lady on the street and the public was horrified by the ____ act.",
+    "answer": "appalling",
+    "synonyms": [
+      "horrifying",
+      "shocking",
+      "disgraceful"
+    ],
+    "confusables": [
+      "risky",
+      "destructive",
+      "invigorating"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "appalling act",
+      "appalling behaviour"
+    ],
+    "wordFamily": [
+      {
+        "word": "appall",
+        "pos": "verb"
+      },
+      {
+        "word": "appallingly",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "MGS SA1 2021"
+  },
+  {
+    "id": "vw_apparent",
+    "word": "apparent",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "reasoning",
+    "cluster": null,
+    "meaning": "clearly seen or understood; obvious",
+    "example": "Everything became too difficult to bear and it became ____ that I would need to find a washroom.",
+    "answer": "apparent",
+    "synonyms": [
+      "obvious",
+      "clear",
+      "evident"
+    ],
+    "confusables": [
+      "likely",
+      "possible",
+      "noticeable"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "become apparent",
+      "it was apparent that"
+    ],
+    "wordFamily": [
+      {
+        "word": "apparently",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2022"
+  },
+  {
+    "id": "vw_apparently",
+    "word": "apparently",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "reasoning",
+    "cluster": null,
+    "meaning": "used to say that something seems to be true based on what is known, though not certain",
+    "example": "He ____ committed the crime as the evidence suggests that he was at the crime scene but we cannot be sure.",
+    "answer": "apparently",
+    "synonyms": [
+      "seemingly",
+      "supposedly",
+      "ostensibly"
+    ],
+    "confusables": [
+      "clearly",
+      "evidently",
+      "definitively"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "apparently so",
+      "apparently true"
+    ],
+    "wordFamily": [
+      {
+        "word": "apparent",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Red Swastika SA1 2021"
+  },
+  {
+    "id": "vw_appease",
+    "word": "appease",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "behaviour",
+    "cluster": null,
+    "meaning": "to make someone less angry or upset by giving them what they want",
+    "example": "The soldiers scrambled to get all sorts of toys to ____ the princess who was in a bad mood.",
+    "answer": "appease",
+    "synonyms": [
+      "pacify",
+      "calm",
+      "placate"
+    ],
+    "confusables": [
+      "anoint",
+      "acclaim",
+      "aggrieve"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "appease someone",
+      "appease anger"
+    ],
+    "wordFamily": [
+      {
+        "word": "appeasement",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "SCGS SA1 2021"
+  },
+  {
+    "id": "vw_delectable",
+    "word": "appetising",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "food",
+    "cluster": null,
+    "meaning": "very attractive and delicious-looking; making you want to eat it",
+    "example": "They work with food stylists to make the food look as ____ and appealing as possible.",
+    "answer": "delectable",
+    "synonyms": [
+      "mouth-watering",
+      "tempting"
+    ],
+    "confusables": [
+      "edible",
+      "likeable",
+      "agreeable"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "appetising food",
+      "look appetising"
+    ],
+    "wordFamily": [
+      {
+        "word": "appetite",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Henry Park SA2 2020"
+  },
+  {
+    "id": "vw_application",
+    "word": "application",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "work and career",
+    "cluster": null,
+    "meaning": "a formal request for a job or place, usually written on a form",
+    "example": "Winston's ____ for the role of the manager at the company was successful and he was elated.",
+    "answer": "application",
+    "synonyms": [
+      "request",
+      "bid",
+      "submission"
+    ],
+    "confusables": [
+      "audition",
+      "nomination",
+      "proposal"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "job application",
+      "submit an application"
+    ],
+    "wordFamily": [
+      {
+        "word": "apply",
+        "pos": "verb"
+      },
+      {
+        "word": "applicant",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA2 2020"
+  },
+  {
+    "id": "vw_apprehensive",
+    "word": "apprehensive",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "emotion",
+    "cluster": null,
+    "meaning": "worried or nervous about something that is going to happen",
+    "example": "The young villager was ____ about having to cross the rapid river alone on a narrow shaky bridge.",
+    "answer": "apprehensive",
+    "synonyms": [
+      "anxious",
+      "nervous"
+    ],
+    "confusables": [
+      "attentive",
+      "abashed",
+      "awkward"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "apprehensive about",
+      "feel apprehensive"
+    ],
+    "wordFamily": [
+      {
+        "word": "apprehension",
+        "pos": "noun"
+      },
+      {
+        "word": "apprehensively",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2021"
+  },
+  {
+    "id": "vw_approached",
+    "word": "approached",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "movement",
+    "cluster": null,
+    "meaning": "to move towards someone or something",
+    "example": "Jake's sister ____ Jake curiously and asked him what he was up to.",
+    "answer": "approached",
+    "synonyms": [
+      "walked towards",
+      "came near",
+      "moved towards"
+    ],
+    "confusables": [
+      "ran into",
+      "ran over",
+      "ran around"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "approach cautiously",
+      "approach a person"
+    ],
+    "wordFamily": [
+      {
+        "word": "approach",
+        "pos": "noun"
+      },
+      {
+        "word": "approachable",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan SA1 2021"
+  },
+  {
+    "id": "vw_arduous",
+    "word": "arduous",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "difficulty",
+    "cluster": null,
+    "meaning": "involving a lot of effort and difficulty; very demanding and tiring",
+    "example": "The 47000-kilometre journey around the globe would be ____.",
+    "answer": "arduous",
+    "synonyms": [
+      "gruelling",
+      "strenuous",
+      "exhausting"
+    ],
+    "confusables": [
+      "lengthy",
+      "unbearable",
+      "painstaking"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "arduous journey",
+      "arduous task"
+    ],
+    "wordFamily": [
+      {
+        "word": "arduously",
+        "pos": "adverb"
+      },
+      {
+        "word": "arduousness",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nan Hua SA1 2020"
   },
   {
     "id": "vw_artefacts",
@@ -12345,6 +13078,47 @@ export const harvestedEntries = [
     "source": "Catholic High Prelim 2021"
   },
   {
+    "id": "vw_assisted",
+    "word": "assist",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "support",
+    "cluster": null,
+    "meaning": "to help someone do something or to make a task easier",
+    "example": "The writing ____ in remembering such things as how many parcels of grain went to which destination.",
+    "answer": "assisted",
+    "synonyms": [
+      "aided",
+      "helped"
+    ],
+    "confusables": [
+      "stalled",
+      "yielded",
+      "benefited"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "assist in a task",
+      "assist with memory"
+    ],
+    "wordFamily": [
+      {
+        "word": "assistance",
+        "pos": "noun"
+      },
+      {
+        "word": "assistant",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Raffles SA2 2020"
+  },
+  {
     "id": "vw_astray",
     "word": "astray",
     "pos": "adverb",
@@ -12378,6 +13152,113 @@ export const harvestedEntries = [
     "source": "Ai Tong Prelim 2023"
   },
   {
+    "id": "vw_at_least",
+    "word": "at least",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "quantity",
+    "cluster": null,
+    "meaning": "not less than a certain number or amount; a minimum of",
+    "example": "Her many photos which added up to ____ a few thousands.",
+    "answer": "at least",
+    "synonyms": [
+      "no fewer than",
+      "a minimum of"
+    ],
+    "confusables": [
+      "at most",
+      "scarcely",
+      "barely"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "at least a few",
+      "at least once"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan SA1 2024"
+  },
+  {
+    "id": "vw_at_loggerheads",
+    "word": "at loggerheads",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "idioms",
+    "cluster": null,
+    "meaning": "in strong disagreement with someone; unable to agree",
+    "example": "James and his group members were ____ as they could not agree with one another's ideas.",
+    "answer": "at loggerheads",
+    "synonyms": [
+      "at odds",
+      "in conflict",
+      "in disagreement"
+    ],
+    "confusables": [
+      "on cloud nine",
+      "over the moon",
+      "barking up the wrong tree"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "at loggerheads over",
+      "remain at loggerheads"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Rosyth SA1 2021"
+  },
+  {
+    "id": "vw_at_their_disposal",
+    "word": "at one's disposal",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "resources",
+    "cluster": null,
+    "meaning": "available to be used whenever needed",
+    "example": "Using whatever tools at their ____, they lifted a concrete slab before pulling the baby out.",
+    "answer": "at their disposal",
+    "synonyms": [
+      "available",
+      "on hand",
+      "accessible"
+    ],
+    "confusables": [
+      "attainable",
+      "affordable",
+      "achievable"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "at one's disposal",
+      "tools at their disposal"
+    ],
+    "wordFamily": [
+      {
+        "word": "dispose",
+        "pos": "verb"
+      },
+      {
+        "word": "disposal",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Rosyth SA2 2020"
+  },
+  {
     "id": "vw_promptly",
     "word": "at the drop of a hat",
     "pos": "adverb",
@@ -12405,6 +13286,48 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Nan Hua Prelim 2022"
+  },
+  {
+    "id": "vw_attained",
+    "word": "attain",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "achievement",
+    "cluster": null,
+    "meaning": "to successfully reach or gain something through effort",
+    "example": "I finally ____ my driving license after two failed attempts.",
+    "answer": "attained",
+    "synonyms": [
+      "obtained",
+      "achieved",
+      "secured"
+    ],
+    "confusables": [
+      "fulfilled",
+      "accomplished",
+      "completed"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "attain a goal",
+      "attain success"
+    ],
+    "wordFamily": [
+      {
+        "word": "attainment",
+        "pos": "noun"
+      },
+      {
+        "word": "attainable",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2020"
   },
   {
     "id": "vw_avidly",
@@ -12503,12 +13426,15 @@ export const harvestedEntries = [
     "synonyms": [
       "concede",
       "yield",
-      "relent"
+      "relent",
+      "give in"
     ],
     "confusables": [
       "backed up",
       "backed out",
-      "backed into"
+      "backed into",
+      "put down",
+      "mow down"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -12555,6 +13481,43 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Ai Tong Prelim 2025"
+  },
+  {
+    "id": "vw_joked",
+    "word": "banter",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "communication",
+    "cluster": null,
+    "meaning": "to exchange friendly and amusing remarks; to joke and chat in a playful way",
+    "example": "I ____ with my fellow dog enthusiasts, laughing and keeping our eyes on our furry children.",
+    "answer": "joked",
+    "synonyms": [
+      "chatted",
+      "teased"
+    ],
+    "confusables": [
+      "argued",
+      "gossiped",
+      "discussed"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "banter with friends",
+      "friendly banter"
+    ],
+    "wordFamily": [
+      {
+        "word": "banter",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nan Hua SA1 2021"
   },
   {
     "id": "vw_bashfully",
@@ -12632,6 +13595,40 @@ export const harvestedEntries = [
     "source": "Ai Tong Prelim 2025"
   },
   {
+    "id": "vw_having",
+    "word": "bearing",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "objects & descriptions",
+    "cluster": null,
+    "meaning": "carrying or showing something written or printed on it",
+    "example": "He found an envelope ____ the words 'Dr Henry Jekyll's Will.'",
+    "answer": "having",
+    "synonyms": [],
+    "confusables": [
+      "taking",
+      "posting",
+      "keeping"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "bearing a message",
+      "bearing fruit"
+    ],
+    "wordFamily": [
+      {
+        "word": "bear",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Maha Bodhi SA1 2021"
+  },
+  {
     "id": "vw_bewildered",
     "word": "bewildered",
     "pos": "adjective",
@@ -12693,12 +13690,15 @@ export const harvestedEntries = [
     "synonyms": [
       "confusion",
       "bafflement",
-      "puzzlement"
+      "puzzlement",
+      "perplexity"
     ],
     "confusables": [
       "amusement",
       "desperation",
-      "exasperation"
+      "exasperation",
+      "shock",
+      "doubt"
     ],
     "connotation": "negative",
     "collocations": [
@@ -12725,6 +13725,38 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Nanyang Prelim 2021"
+  },
+  {
+    "id": "vw_bite_the_bullet",
+    "word": "bite the bullet",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "character",
+    "cluster": null,
+    "meaning": "to force yourself to do something difficult or unpleasant that cannot be avoided",
+    "example": "Having finally decided to ____, I admitted my mistake to my teacher.",
+    "answer": "bite the bullet",
+    "synonyms": [
+      "face the music",
+      "grin and bear it"
+    ],
+    "confusables": [
+      "cut corners",
+      "beat around the bush",
+      "go on a wild goose chase"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "bite the bullet and admit",
+      "bite the bullet and face"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "St Nicholas SA1 2021"
   },
   {
     "id": "vw_bizarre",
@@ -12982,6 +14014,44 @@ export const harvestedEntries = [
     "source": "Rosyth Prelim 2024"
   },
   {
+    "id": "vw_boundaries",
+    "word": "boundaries",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "behaviour",
+    "cluster": null,
+    "meaning": "limits of acceptable behaviour; the line between what is allowed and what is not",
+    "example": "He overstepped his ____ when he shouted rudely at the person-in-charge and insisted on his way.",
+    "answer": "boundaries",
+    "synonyms": [
+      "limits",
+      "lines",
+      "bounds"
+    ],
+    "confusables": [
+      "rules",
+      "constraints",
+      "parameters"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "overstep boundaries",
+      "set boundaries"
+    ],
+    "wordFamily": [
+      {
+        "word": "boundary",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "SCGS SA1 2021"
+  },
+  {
     "id": "vw_inexhaustible",
     "word": "boundless",
     "pos": "adjective",
@@ -13018,6 +14088,43 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Nan Hua Prelim 2025"
+  },
+  {
+    "id": "vw_prepared",
+    "word": "brace",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "actions",
+    "cluster": null,
+    "meaning": "to prepare yourself for something difficult or unpleasant",
+    "example": "I ____ for impact as Tootsie jumped at me.",
+    "answer": "prepared",
+    "synonyms": [
+      "steeled oneself",
+      "readied oneself"
+    ],
+    "confusables": [
+      "bent over",
+      "leaned back",
+      "crouched down"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "brace for impact",
+      "brace yourself"
+    ],
+    "wordFamily": [
+      {
+        "word": "brace",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nan Hua SA1 2021"
   },
   {
     "id": "vw_broke_in",
@@ -13086,6 +14193,44 @@ export const harvestedEntries = [
     "source": "SCGS Prelim 2021"
   },
   {
+    "id": "vw_breakthrough",
+    "word": "breakthrough",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "achievements",
+    "cluster": null,
+    "meaning": "an important development or discovery that helps to achieve something previously difficult",
+    "example": "It was also a significant ____ of Mandai Wildlife Reserve's breeding programme.",
+    "answer": "breakthrough",
+    "synonyms": [
+      "development",
+      "milestone",
+      "advance"
+    ],
+    "confusables": [
+      "step",
+      "process",
+      "importance"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "major breakthrough",
+      "scientific breakthrough"
+    ],
+    "wordFamily": [
+      {
+        "word": "break through",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "St Nicholas SA1 2022"
+  },
+  {
     "id": "vw_brought_back",
     "word": "bring back",
     "pos": "verb",
@@ -13131,12 +14276,14 @@ export const harvestedEntries = [
     "synonyms": [
       "caused",
       "triggered",
-      "produced"
+      "produced",
+      "led to"
     ],
     "confusables": [
       "brought along",
       "brought out",
-      "brought in"
+      "brought in",
+      "brought forward"
     ],
     "connotation": "negative",
     "collocations": [
@@ -13197,12 +14344,15 @@ export const harvestedEntries = [
     "synonyms": [
       "quickly",
       "energetically",
-      "swiftly"
+      "swiftly",
+      "smartly"
     ],
     "confusables": [
       "promptly",
       "laboriously",
-      "enthusiastically"
+      "enthusiastically",
+      "rapidly",
+      "instantly"
     ],
     "connotation": "positive",
     "collocations": [
@@ -13225,6 +14375,114 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Rosyth Prelim 2023"
+  },
+  {
+    "id": "vw_broken_down",
+    "word": "broken down",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "technology",
+    "cluster": null,
+    "meaning": "stopped working properly; failed to function",
+    "example": "The lift had ____ and he had to climb up eight flights of stairs to get to Mrs Lee's unit.",
+    "answer": "broken down",
+    "synonyms": [
+      "malfunctioned",
+      "failed",
+      "stopped working"
+    ],
+    "confusables": [
+      "spoilt",
+      "glitched",
+      "given up"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "lift broke down",
+      "car broke down"
+    ],
+    "wordFamily": [
+      {
+        "word": "breakdown",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Maha Bodhi SA2 2020"
+  },
+  {
+    "id": "vw_brought_about",
+    "word": "brought about",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "change & cause",
+    "cluster": null,
+    "meaning": "caused something to happen or made something occur",
+    "example": "The king ____ some changes in the country. It became more peaceful and stable than before.",
+    "answer": "brought about",
+    "synonyms": [
+      "caused",
+      "produced",
+      "resulted in"
+    ],
+    "confusables": [
+      "brought along",
+      "brought across",
+      "brought around"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "brought about change",
+      "brought about peace"
+    ],
+    "wordFamily": [
+      {
+        "word": "bring about",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "ACS SA1 2021"
+  },
+  {
+    "id": "vw_burnt_their_fingers",
+    "word": "burn one's fingers",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "consequences",
+    "cluster": null,
+    "meaning": "to suffer a bad result from doing something foolish or risky",
+    "example": "The foolish people ____ after gambling away thousands of dollars.",
+    "answer": "burnt their fingers",
+    "synonyms": [
+      "suffered the consequences",
+      "paid the price"
+    ],
+    "confusables": [
+      "bent backwards",
+      "let their hair down",
+      "gave the cold shoulder"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "burnt their fingers",
+      "burn one's fingers"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nan Hua SA1 2021"
   },
   {
     "id": "vw_call",
@@ -13272,12 +14530,16 @@ export const harvestedEntries = [
     "synonyms": [
       "cancelled",
       "scrapped",
-      "abandoned"
+      "abandoned",
+      "cancel",
+      "abandon"
     ],
     "confusables": [
       "called for",
       "called up",
-      "called out"
+      "called out",
+      "call on",
+      "call back"
     ],
     "connotation": "negative",
     "collocations": [
@@ -13328,6 +14590,39 @@ export const harvestedEntries = [
     "source": "ACSJ Prelim 2025"
   },
   {
+    "id": "vw_camaraderie",
+    "word": "camaraderie",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "relationships",
+    "cluster": null,
+    "meaning": "a friendly feeling of trust and loyalty between people who spend time together",
+    "example": "The basketball players had built strong bonds with one another and enjoyed a great sense of ____.",
+    "answer": "camaraderie",
+    "synonyms": [
+      "fellowship",
+      "companionship",
+      "solidarity"
+    ],
+    "confusables": [
+      "pride",
+      "obligation",
+      "patriotism"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "sense of camaraderie",
+      "spirit of camaraderie"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2020"
+  },
+  {
     "id": "vw_cancelled",
     "word": "cancel",
     "pos": "verb",
@@ -13368,6 +14663,48 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Nanyang Prelim 2021"
+  },
+  {
+    "id": "vw_candid",
+    "word": "candid",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "character traits",
+    "cluster": null,
+    "meaning": "truthful and straightforward; honest even when it may be uncomfortable",
+    "example": "____ by nature, Woody never fails to speak honestly in all situations.",
+    "answer": "Candid",
+    "synonyms": [
+      "frank",
+      "honest",
+      "forthright"
+    ],
+    "confusables": [
+      "Inspiring",
+      "Talkative",
+      "Optimistic"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "candid person",
+      "candid opinion"
+    ],
+    "wordFamily": [
+      {
+        "word": "candidly",
+        "pos": "adverb"
+      },
+      {
+        "word": "candour",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "AiTong SA1 2021"
   },
   {
     "id": "vw_candour",
@@ -13492,6 +14829,43 @@ export const harvestedEntries = [
     "source": "Nan Hua Prelim 2025"
   },
   {
+    "id": "vw_take",
+    "word": "capture",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "photography",
+    "cluster": null,
+    "meaning": "to record or photograph something successfully",
+    "example": "Food photographers work to create and ____ these beautiful and enticing images of food.",
+    "answer": "take",
+    "synonyms": [
+      "record",
+      "photograph"
+    ],
+    "confusables": [
+      "hook",
+      "catch",
+      "seize"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "capture images",
+      "capture a photo"
+    ],
+    "wordFamily": [
+      {
+        "word": "capture",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Henry Park SA2 2020"
+  },
+  {
     "id": "vw_captivate",
     "word": "capture attention",
     "pos": "verb",
@@ -13570,6 +14944,39 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Pei Chun Prelim 2024"
+  },
+  {
+    "id": "vw_carry_on",
+    "word": "carry on",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "actions",
+    "cluster": null,
+    "meaning": "to continue doing something",
+    "example": "Even though she was sick, Stephie told her cousins to ____ with the meeting.",
+    "answer": "carry on",
+    "synonyms": [
+      "continue",
+      "proceed",
+      "press on"
+    ],
+    "confusables": [
+      "carry off",
+      "carry out",
+      "carry through"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "carry on with",
+      "carry on regardless"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nan Hua SA1 2021"
   },
   {
     "id": "vw_casualties",
@@ -13679,6 +15086,44 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "RedSwastika Prelim 2024"
+  },
+  {
+    "id": "vw_caught_on",
+    "word": "caught on",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "trends & popularity",
+    "cluster": null,
+    "meaning": "became popular or fashionable among people",
+    "example": "The craze for Rubik's Cube has ____ with the students in school recently.",
+    "answer": "caught on",
+    "synonyms": [
+      "took off",
+      "spread",
+      "became popular"
+    ],
+    "confusables": [
+      "caught by",
+      "caught up",
+      "caught out"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "caught on with students",
+      "trend caught on"
+    ],
+    "wordFamily": [
+      {
+        "word": "catch on",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Pei Chun CA1 2020"
   },
   {
     "id": "vw_caught_up",
@@ -13792,6 +15237,76 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "ACS Prelim 2021"
+  },
+  {
+    "id": "vw_chance",
+    "word": "chance",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "health",
+    "cluster": null,
+    "meaning": "the probability or possibility of something happening",
+    "example": "Moving more appears to lower the ____ of memory loss.",
+    "answer": "chance",
+    "synonyms": [
+      "likelihood",
+      "possibility",
+      "probability"
+    ],
+    "confusables": [
+      "effect",
+      "result",
+      "consequence"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "lower the chance",
+      "chance of recovery"
+    ],
+    "wordFamily": [
+      {
+        "word": "chance",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "MGS SA1 2021"
+  },
+  {
+    "id": "vw_chanced_upon",
+    "word": "chance upon",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "discovery",
+    "cluster": null,
+    "meaning": "to find or come across something by luck or accident",
+    "example": "After much walking, he finally ____ a familiar path.",
+    "answer": "chanced upon",
+    "synonyms": [
+      "discovered",
+      "stumbled upon"
+    ],
+    "confusables": [
+      "reached",
+      "attained",
+      "observed"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "chance upon a discovery",
+      "chance upon an old friend"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan SA2 2020"
   },
   {
     "id": "vw_charred",
@@ -13911,6 +15426,81 @@ export const harvestedEntries = [
     "source": "Temasek Prelim 2023"
   },
   {
+    "id": "vw_giggling",
+    "word": "chuckling",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "expressions",
+    "cluster": null,
+    "meaning": "laughing quietly to oneself in an amused way",
+    "example": "The class started ____ to themselves.",
+    "answer": "giggling",
+    "synonyms": [
+      "sniggering",
+      "tittering"
+    ],
+    "confusables": [
+      "cackling",
+      "chortling",
+      "guffawing"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "chuckling to themselves",
+      "chuckling softly"
+    ],
+    "wordFamily": [
+      {
+        "word": "chuckle",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "SCGS SA1 2021"
+  },
+  {
+    "id": "vw_cited",
+    "word": "cite",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "research",
+    "cluster": null,
+    "meaning": "to mention something as an example or proof to support what you are saying",
+    "example": "Experts have long ____ studies that give insight into why exercise works.",
+    "answer": "cited",
+    "synonyms": [
+      "mentioned",
+      "referenced",
+      "referred to"
+    ],
+    "confusables": [
+      "display",
+      "concede",
+      "recognise"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "cite evidence",
+      "cite a source"
+    ],
+    "wordFamily": [
+      {
+        "word": "citation",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "MGS SA1 2021"
+  },
+  {
     "id": "vw_civic",
     "word": "civic",
     "pos": "adjective",
@@ -13963,12 +15553,17 @@ export const harvestedEntries = [
     "answer": "clambering",
     "synonyms": [
       "scramble",
-      "climb awkwardly"
+      "climb awkwardly",
+      "scrambling",
+      "climbing",
+      "hauling oneself"
     ],
     "confusables": [
       "mounting",
       "ascending",
-      "manoeuvring"
+      "manoeuvring",
+      "Flitting",
+      "Darting"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -13982,6 +15577,82 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Rosyth Prelim 2024"
+  },
+  {
+    "id": "vw_classic",
+    "word": "classic",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "description",
+    "cluster": null,
+    "meaning": "very typical of its kind; well known and used or done in the usual way",
+    "example": "Students expected that she would ask the ____ 'is the glass half full or half empty' question.",
+    "answer": "classic",
+    "synonyms": [
+      "typical",
+      "traditional",
+      "familiar"
+    ],
+    "confusables": [
+      "usual",
+      "universal",
+      "common"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "classic question",
+      "classic example"
+    ],
+    "wordFamily": [
+      {
+        "word": "classically",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Red Swastika SA1 2021"
+  },
+  {
+    "id": "vw_clenched",
+    "word": "clench",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "body language",
+    "cluster": null,
+    "meaning": "to close or press together tightly, especially teeth or a fist",
+    "example": "\"Stop making so much noise!\" the teacher hissed through ____ teeth, clearly irate.",
+    "answer": "clenched",
+    "synonyms": [
+      "gritted",
+      "tightened",
+      "pressed together"
+    ],
+    "confusables": [
+      "crushed",
+      "clutched",
+      "crunched"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "clenched teeth",
+      "clenched fist"
+    ],
+    "wordFamily": [
+      {
+        "word": "clench",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "ACS CA1 2020"
   },
   {
     "id": "vw_customers",
@@ -14147,6 +15818,70 @@ export const harvestedEntries = [
     "source": "ACS(P) Prelim 2024"
   },
   {
+    "id": "vw_come_by",
+    "word": "come by",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "acquisition",
+    "cluster": null,
+    "meaning": "to get or obtain something, especially with some difficulty",
+    "example": "\"How did you ____ this priceless item?\" asked the jeweller.",
+    "answer": "come by",
+    "synonyms": [
+      "obtain",
+      "acquire"
+    ],
+    "confusables": [
+      "possess",
+      "discover",
+      "encounter"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "come by money",
+      "hard to come by"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Maris Stella CA1 2022"
+  },
+  {
+    "id": "vw_came_to",
+    "word": "come to",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "health",
+    "cluster": null,
+    "meaning": "to regain consciousness after being unconscious",
+    "example": "When I ____, I was unable to walk and my movement was restricted.",
+    "answer": "came to",
+    "synonyms": [
+      "regained consciousness",
+      "became conscious"
+    ],
+    "confusables": [
+      "became sensible",
+      "became determined",
+      "became courageous"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "came to after fainting",
+      "come to one's senses"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "MGS SA2 2020"
+  },
+  {
     "id": "vw_come_up",
     "word": "come up with",
     "pos": "verb",
@@ -14220,6 +15955,47 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Nan Chiau Prelim 2022"
+  },
+  {
+    "id": "vw_commute",
+    "word": "commute",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "movement",
+    "cluster": null,
+    "meaning": "to travel regularly between home and a place of work or study",
+    "example": "Many residents have already started using the new paths to ____ to amenities like MRT stations from their homes.",
+    "answer": "commute",
+    "synonyms": [
+      "travel",
+      "journey"
+    ],
+    "confusables": [
+      "shift",
+      "transfer",
+      "relocate"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "commute to work",
+      "daily commute"
+    ],
+    "wordFamily": [
+      {
+        "word": "commuter",
+        "pos": "noun"
+      },
+      {
+        "word": "commute",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Rosyth SA1 2022"
   },
   {
     "id": "vw_compelled",
@@ -14306,6 +16082,44 @@ export const harvestedEntries = [
     "source": "Nanyang Prelim 2025"
   },
   {
+    "id": "vw_proficiency",
+    "word": "competence",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "skills & ability",
+    "cluster": null,
+    "meaning": "the ability to do something adequately and satisfactorily; having sufficient skill",
+    "example": "Within this group, there are considerable differences in their English ____.",
+    "answer": "proficiency",
+    "synonyms": [],
+    "confusables": [
+      "talent",
+      "power",
+      "dexterity"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "English proficiency",
+      "proficiency level"
+    ],
+    "wordFamily": [
+      {
+        "word": "proficient",
+        "pos": "adjective"
+      },
+      {
+        "word": "proficiently",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2024"
+  },
+  {
     "id": "vw_complacent",
     "word": "complacent",
     "pos": "adjective",
@@ -14346,6 +16160,130 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Raffles Prelim 2022"
+  },
+  {
+    "id": "vw_complicated",
+    "word": "complicated",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "difficulty",
+    "cluster": null,
+    "meaning": "involving many different parts or steps; difficult to understand",
+    "example": "Ali was trying to find his way out of the forest which seemed to resemble a ____ maze.",
+    "answer": "complicated",
+    "synonyms": [
+      "complex",
+      "intricate"
+    ],
+    "confusables": [
+      "perilous",
+      "problematic",
+      "troublesome"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "complicated maze",
+      "complicated problem"
+    ],
+    "wordFamily": [
+      {
+        "word": "complicate",
+        "pos": "verb"
+      },
+      {
+        "word": "complication",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan SA2 2020"
+  },
+  {
+    "id": "vw_comply_with",
+    "word": "comply with",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "rules and authority",
+    "cluster": null,
+    "meaning": "to act in accordance with a rule, order or request",
+    "example": "Students who fail to ____ the Stay-Home Notice may be subject to disciplinary action.",
+    "answer": "comply with",
+    "synonyms": [
+      "obey",
+      "follow",
+      "adhere to"
+    ],
+    "confusables": [
+      "submit to",
+      "agree with",
+      "conform to"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "comply with rules",
+      "comply with regulations"
+    ],
+    "wordFamily": [
+      {
+        "word": "compliance",
+        "pos": "noun"
+      },
+      {
+        "word": "compliant",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nan Hua SA1 2020"
+  },
+  {
+    "id": "vw_calm",
+    "word": "compose",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "emotions",
+    "cluster": null,
+    "meaning": "to calm oneself or make oneself feel ready",
+    "example": "I took a deep breath to ____ myself for the Math examination.",
+    "answer": "calm",
+    "synonyms": [
+      "steady",
+      "prepare"
+    ],
+    "confusables": [
+      "ready",
+      "support",
+      "challenge"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "compose oneself",
+      "calm oneself"
+    ],
+    "wordFamily": [
+      {
+        "word": "composed",
+        "pos": "adjective"
+      },
+      {
+        "word": "composure",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "AiTong SA1 2021"
   },
   {
     "id": "vw_composed",
@@ -14485,12 +16423,16 @@ export const harvestedEntries = [
     "synonyms": [
       "undermine",
       "jeopardise",
-      "weaken"
+      "weaken",
+      "negotiate",
+      "give in"
     ],
     "confusables": [
       "guard",
       "oppose",
-      "degrade"
+      "degrade",
+      "insist",
+      "bargain"
     ],
     "connotation": "negative",
     "collocations": [
@@ -14555,6 +16497,48 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "HenryPark Prelim 2025"
+  },
+  {
+    "id": "vw_concealed",
+    "word": "concealed",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "secrecy & hiding",
+    "cluster": null,
+    "meaning": "hid something so that it could not be seen or found",
+    "example": "The detective ____ a small camera in his hat to record his surroundings as he went on his undercover mission.",
+    "answer": "concealed",
+    "synonyms": [
+      "hid",
+      "tucked away",
+      "disguised"
+    ],
+    "confusables": [
+      "packed",
+      "showcased",
+      "brandished"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "concealed a weapon",
+      "concealed his identity"
+    ],
+    "wordFamily": [
+      {
+        "word": "conceal",
+        "pos": "verb"
+      },
+      {
+        "word": "concealment",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2024"
   },
   {
     "id": "vw_final",
@@ -14634,6 +16618,43 @@ export const harvestedEntries = [
     "source": "ACSJ Prelim 2025"
   },
   {
+    "id": "vw_bestowed",
+    "word": "confer",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "awards",
+    "cluster": null,
+    "meaning": "to formally give an honour or award to someone",
+    "example": "The importance of her work was reflected in the numerous awards ____ on her.",
+    "answer": "bestowed",
+    "synonyms": [
+      "awarded",
+      "granted"
+    ],
+    "confusables": [
+      "approved",
+      "rewarded",
+      "reinforced"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "confer an award",
+      "confer an honour"
+    ],
+    "wordFamily": [
+      {
+        "word": "conference",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA2 2020"
+  },
+  {
     "id": "vw_conscious",
     "word": "conscious",
     "pos": "adjective",
@@ -14688,12 +16709,15 @@ export const harvestedEntries = [
     "synonyms": [
       "noticeable",
       "prominent",
-      "eye-catching"
+      "eye-catching",
+      "obvious"
     ],
     "confusables": [
       "quaint",
       "secluded",
-      "recognisable"
+      "recognisable",
+      "confused",
+      "convincing"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -15095,6 +17119,48 @@ export const harvestedEntries = [
     "source": "ACSP Prelim 2023"
   },
   {
+    "id": "vw_convoluted",
+    "word": "convoluted",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "communication",
+    "cluster": null,
+    "meaning": "extremely complicated and difficult to follow; not straightforward",
+    "example": "My classmate related such a ____ account of what had happened during recess that it took Mrs Tan a long time before she understood what he had said.",
+    "answer": "convoluted",
+    "synonyms": [
+      "complicated",
+      "complex",
+      "muddled"
+    ],
+    "confusables": [
+      "concurred",
+      "congested",
+      "concentrated"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "convoluted explanation",
+      "convoluted story"
+    ],
+    "wordFamily": [
+      {
+        "word": "convolution",
+        "pos": "noun"
+      },
+      {
+        "word": "convolutedly",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "ACS(J) BA1 2022"
+  },
+  {
     "id": "vw_cooped_up",
     "word": "cooped up",
     "pos": "adjective",
@@ -15216,6 +17282,90 @@ export const harvestedEntries = [
     "source": "ACS Prelim 2021"
   },
   {
+    "id": "vw_crippling",
+    "word": "crippling",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "health",
+    "cluster": null,
+    "meaning": "causing very severe pain or damage; so bad it stops you from functioning normally",
+    "example": "I doubled over in pain from a ____ cramp in my stomach that came from absolutely nowhere.",
+    "answer": "crippling",
+    "synonyms": [
+      "severe",
+      "debilitating",
+      "agonising"
+    ],
+    "confusables": [
+      "menacing",
+      "detrimental",
+      "devastating"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "crippling pain",
+      "crippling cramp"
+    ],
+    "wordFamily": [
+      {
+        "word": "cripple",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2022"
+  },
+  {
+    "id": "vw_cultivated",
+    "word": "cultivated",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "nature and environment",
+    "cluster": null,
+    "meaning": "grown or farmed in an area of land for a particular purpose",
+    "example": "Chillis were first ____ in South America.",
+    "answer": "cultivated",
+    "synonyms": [
+      "grown",
+      "farmed",
+      "raised",
+      "developed",
+      "fostered"
+    ],
+    "confusables": [
+      "tilled",
+      "planted",
+      "ploughed",
+      "formed",
+      "cultured"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "cultivated crops",
+      "cultivated land"
+    ],
+    "wordFamily": [
+      {
+        "word": "cultivate",
+        "pos": "verb"
+      },
+      {
+        "word": "cultivation",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Red Swastika SA2 2020"
+  },
+  {
     "id": "vw_curt",
     "word": "curt",
     "pos": "adjective",
@@ -15296,6 +17446,38 @@ export const harvestedEntries = [
     "source": "ACSP Prelim 2023"
   },
   {
+    "id": "vw_cut_down",
+    "word": "cut down",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "behaviour",
+    "cluster": null,
+    "meaning": "to reduce the amount of something you do or use",
+    "example": "The man told his family to ____ on their spending as he had lost his job.",
+    "answer": "cut down",
+    "synonyms": [
+      "reduce",
+      "decrease"
+    ],
+    "confusables": [
+      "cut up",
+      "cut off",
+      "cut out"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "cut down on spending",
+      "cut down on sugar"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "St Nicholas SA1 2021"
+  },
+  {
     "id": "vw_dampened",
     "word": "dampen",
     "pos": "verb",
@@ -15336,6 +17518,122 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "MGS Prelim 2025"
+  },
+  {
+    "id": "vw_intimidated",
+    "word": "daunted",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "emotions",
+    "cluster": null,
+    "meaning": "made to feel nervous or less confident by something difficult or frightening",
+    "example": "Mrs Li was once ____ by technology.",
+    "answer": "intimidated",
+    "synonyms": [
+      "frightened off",
+      "discouraged"
+    ],
+    "confusables": [
+      "baffled",
+      "defeated",
+      "distressed"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "daunted by",
+      "feel daunted"
+    ],
+    "wordFamily": [
+      {
+        "word": "daunting",
+        "pos": "adjective"
+      },
+      {
+        "word": "daunt",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan SA1 2024"
+  },
+  {
+    "id": "vw_daunting",
+    "word": "daunting",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "challenge",
+    "cluster": null,
+    "meaning": "seeming difficult and likely to make you feel nervous or discouraged",
+    "example": "The distance is ____ and completing it seems like an almost impossible mission.",
+    "answer": "daunting",
+    "synonyms": [
+      "intimidating",
+      "overwhelming",
+      "frightening"
+    ],
+    "confusables": [
+      "frustrating",
+      "exasperating",
+      "overpowering"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "daunting task",
+      "daunting challenge"
+    ],
+    "wordFamily": [
+      {
+        "word": "daunt",
+        "pos": "verb"
+      },
+      {
+        "word": "dauntless",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2020"
+  },
+  {
+    "id": "vw_debris",
+    "word": "debris",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "disaster",
+    "cluster": null,
+    "meaning": "broken pieces and rubbish left after something has been destroyed",
+    "example": "Peter and his team pulled two families out of the ____ scattered pieces of remains.",
+    "answer": "debris",
+    "synonyms": [
+      "rubble",
+      "wreckage",
+      "ruins"
+    ],
+    "confusables": [
+      "refuse",
+      "scraps",
+      "garbage"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "search through debris",
+      "clear the debris"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Rosyth SA2 2020"
   },
   {
     "id": "vw_debunk",
@@ -15414,6 +17712,48 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "MGS Prelim 2025"
+  },
+  {
+    "id": "vw_demolished",
+    "word": "demolished",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "buildings and places",
+    "cluster": null,
+    "meaning": "completely knocked down or destroyed, especially a building",
+    "example": "The old house was ____ and a new one was built on the same site.",
+    "answer": "demolished",
+    "synonyms": [
+      "torn down",
+      "pulled down",
+      "razed"
+    ],
+    "confusables": [
+      "toppled",
+      "exploded",
+      "dismantled"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "demolished a building",
+      "demolished the structure"
+    ],
+    "wordFamily": [
+      {
+        "word": "demolition",
+        "pos": "noun"
+      },
+      {
+        "word": "demolish",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan SA1 2021"
   },
   {
     "id": "vw_depicts",
@@ -15583,6 +17923,128 @@ export const harvestedEntries = [
     "source": "Henry Park Prelim 2021"
   },
   {
+    "id": "vw_deserted",
+    "word": "deserted",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "places & spaces",
+    "cluster": null,
+    "meaning": "completely empty of people; abandoned",
+    "example": "When I entered the café, it was ____ except for a middle-aged lady sitting by the window.",
+    "answer": "deserted",
+    "synonyms": [],
+    "confusables": [
+      "void",
+      "clear",
+      "abandoned"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "deserted café",
+      "deserted street"
+    ],
+    "wordFamily": [
+      {
+        "word": "desert",
+        "pos": "verb"
+      },
+      {
+        "word": "desertion",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "ACS SA1 2021"
+  },
+  {
+    "id": "vw_desperately",
+    "word": "desperately",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "emotions",
+    "cluster": null,
+    "meaning": "in a way that shows great anxiety, urgency, or hopelessness",
+    "example": "One of the mothers cried out ____ that her two-week-old baby was missing.",
+    "answer": "desperately",
+    "synonyms": [
+      "helplessly",
+      "frantically",
+      "urgently"
+    ],
+    "confusables": [
+      "excitedly",
+      "dejectedly",
+      "animatedly"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "cry out desperately",
+      "desperately need"
+    ],
+    "wordFamily": [
+      {
+        "word": "desperate",
+        "pos": "adjective"
+      },
+      {
+        "word": "desperation",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Rosyth SA2 2020"
+  },
+  {
+    "id": "vw_deter",
+    "word": "deter",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "actions and effort",
+    "cluster": null,
+    "meaning": "to discourage or prevent someone from doing something",
+    "example": "Many people admired Andy's determination because he did not let his poor health ____ him from pursuing his passion.",
+    "answer": "deter",
+    "synonyms": [
+      "discourage",
+      "stop",
+      "put off"
+    ],
+    "confusables": [
+      "detach",
+      "exempt",
+      "withdraw"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "deter crime",
+      "deter from pursuing"
+    ],
+    "wordFamily": [
+      {
+        "word": "deterrent",
+        "pos": "noun"
+      },
+      {
+        "word": "deterrence",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nan Hua SA1 2022"
+  },
+  {
     "id": "vw_deteriorated",
     "word": "deteriorate",
     "pos": "verb",
@@ -15665,6 +18127,47 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "MGS Prelim 2025"
+  },
+  {
+    "id": "vw_deterioration",
+    "word": "deterioration",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "health",
+    "cluster": null,
+    "meaning": "the process of becoming worse or of lesser quality over time",
+    "example": "The doctor had reminded me that taking part in the competition would mean a ____ of my condition.",
+    "answer": "deterioration",
+    "synonyms": [
+      "worsening",
+      "decline"
+    ],
+    "confusables": [
+      "depletion",
+      "disruption",
+      "disintegration"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "deterioration of health",
+      "prevent deterioration"
+    ],
+    "wordFamily": [
+      {
+        "word": "deteriorate",
+        "pos": "verb"
+      },
+      {
+        "word": "deteriorating",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "MGS SA2 2020"
   },
   {
     "id": "vw_determination",
@@ -15922,6 +18425,44 @@ export const harvestedEntries = [
     "source": "Catholic High Prelim 2023"
   },
   {
+    "id": "vw_dilapidated",
+    "word": "dilapidated",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "buildings and places",
+    "cluster": null,
+    "meaning": "in a very bad condition because of age or neglect; falling apart",
+    "example": "Jared shudders every time he sees the house that has been ____ for decades.",
+    "answer": "dilapidated",
+    "synonyms": [
+      "rundown",
+      "decrepit",
+      "crumbling"
+    ],
+    "confusables": [
+      "mangled",
+      "remarkable",
+      "picturesque"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "dilapidated building",
+      "dilapidated house"
+    ],
+    "wordFamily": [
+      {
+        "word": "dilapidation",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nan Hua SA1 2021"
+  },
+  {
     "id": "vw_disapproval",
     "word": "disapproval",
     "pos": "noun",
@@ -16042,6 +18583,94 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Tao Nan Prelim 2024"
+  },
+  {
+    "id": "vw_disgust",
+    "word": "disgust",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "emotions",
+    "cluster": null,
+    "meaning": "a strong feeling of dislike or disapproval, often caused by something offensive",
+    "example": "Trevon snorted in ____ when his brother tossed his filthy socks onto his bed.",
+    "answer": "disgust",
+    "synonyms": [
+      "revulsion",
+      "distaste",
+      "loathing"
+    ],
+    "confusables": [
+      "disgrace",
+      "discontent",
+      "disappointment"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "in disgust",
+      "feeling of disgust"
+    ],
+    "wordFamily": [
+      {
+        "word": "disgust",
+        "pos": "verb"
+      },
+      {
+        "word": "disgusting",
+        "pos": "adjective"
+      },
+      {
+        "word": "disgusted",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2022"
+  },
+  {
+    "id": "vw_dispensed",
+    "word": "dispense",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "health",
+    "cluster": null,
+    "meaning": "to prepare and give out medicine to someone",
+    "example": "The pharmacist at the hospital ____ some medicine for me.",
+    "answer": "dispensed",
+    "synonyms": [
+      "gave out",
+      "administered",
+      "distributed"
+    ],
+    "confusables": [
+      "injected",
+      "diagnosed",
+      "prescribed"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "dispense medicine",
+      "dispense advice"
+    ],
+    "wordFamily": [
+      {
+        "word": "dispensary",
+        "pos": "noun"
+      },
+      {
+        "word": "dispenser",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "ACS CA1 2020"
   },
   {
     "id": "vw_displaced",
@@ -16204,6 +18833,44 @@ export const harvestedEntries = [
     "source": "Catholic High Prelim 2025"
   },
   {
+    "id": "vw_disqualified",
+    "word": "disqualify",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "competition",
+    "cluster": null,
+    "meaning": "to prevent someone from taking part in something because they have broken a rule",
+    "example": "He was ____ from the competition because he broke the rules.",
+    "answer": "disqualified",
+    "synonyms": [
+      "barred",
+      "excluded",
+      "removed"
+    ],
+    "confusables": [
+      "evicted",
+      "eliminated",
+      "discharged"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "disqualified from a competition",
+      "be disqualified"
+    ],
+    "wordFamily": [
+      {
+        "word": "disqualification",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Red Swastika SA1 2021"
+  },
+  {
     "id": "vw_disseminated",
     "word": "disseminate",
     "pos": "verb",
@@ -16284,6 +18951,88 @@ export const harvestedEntries = [
     "source": "Pei Chun Prelim 2023"
   },
   {
+    "id": "vw_distorted",
+    "word": "distorted",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "appearance",
+    "cluster": null,
+    "meaning": "changed from the normal or true shape or meaning; unclear or twisted",
+    "example": "The cold murky water offered a ____ reflection of what lay ahead.",
+    "answer": "distorted",
+    "synonyms": [
+      "twisted",
+      "warped"
+    ],
+    "confusables": [
+      "falsified",
+      "crooked",
+      "magnified"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "distorted image",
+      "distorted reflection"
+    ],
+    "wordFamily": [
+      {
+        "word": "distort",
+        "pos": "verb"
+      },
+      {
+        "word": "distortion",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2021"
+  },
+  {
+    "id": "vw_worrying",
+    "word": "distressing",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "emotions",
+    "cluster": null,
+    "meaning": "causing worry or upset; making someone feel troubled",
+    "example": "Immediately, all ____ thoughts left my mind as a smile found its way across my face.",
+    "answer": "worrying",
+    "synonyms": [
+      "upsetting",
+      "troubling"
+    ],
+    "confusables": [
+      "regretful",
+      "gratifying",
+      "optimistic"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "distressing thoughts",
+      "distressing news"
+    ],
+    "wordFamily": [
+      {
+        "word": "distress",
+        "pos": "noun"
+      },
+      {
+        "word": "distress",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nan Hua SA1 2021"
+  },
+  {
     "id": "vw_disturbances",
     "word": "disturbance",
     "pos": "noun",
@@ -16338,12 +19087,15 @@ export const harvestedEntries = [
     "synonyms": [
       "detour",
       "rerouting",
-      "redirection"
+      "redirection",
+      "redirect"
     ],
     "confusables": [
       "distraction",
       "digression",
-      "disturbance"
+      "disturbance",
+      "division",
+      "deviation"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -16421,12 +19173,17 @@ export const harvestedEntries = [
     "example": "A cameraman decided to amuse himself by ____ attention away from the live sports coverage to close-up images of the cockroach.",
     "answer": "diverting",
     "synonyms": [
-      "redirecting"
+      "redirecting",
+      "redirected",
+      "rerouted",
+      "turned away"
     ],
     "confusables": [
       "veering",
       "straying",
-      "digressing"
+      "digressing",
+      "divided",
+      "deviated"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -16469,7 +19226,9 @@ export const harvestedEntries = [
     "confusables": [
       "flaunt",
       "exhibit",
-      "advertise"
+      "advertise",
+      "betray",
+      "explain"
     ],
     "connotation": "negative",
     "collocations": [
@@ -16559,6 +19318,39 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "ACS Prelim 2021"
+  },
+  {
+    "id": "vw_drawback",
+    "word": "drawback",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "opinions and views",
+    "cluster": null,
+    "meaning": "a disadvantage or problem that makes something less good",
+    "example": "Margaret feels that the greatest ____ of living in a big city is the pollution.",
+    "answer": "drawback",
+    "synonyms": [
+      "disadvantage",
+      "downside",
+      "problem"
+    ],
+    "confusables": [
+      "burden",
+      "obstacle",
+      "weakness"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "major drawback",
+      "one drawback"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan SA1 2024"
   },
   {
     "id": "vw_attracting",
@@ -16718,6 +19510,47 @@ export const harvestedEntries = [
     "source": "ACS(P) Prelim 2024"
   },
   {
+    "id": "vw_eloquence",
+    "word": "eloquence",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "communication",
+    "cluster": null,
+    "meaning": "the ability to express ideas clearly and persuasively in spoken or written language",
+    "example": "The judges were impressed by Aminah's ____ and awarded her first prize in the speech competition.",
+    "answer": "eloquence",
+    "synonyms": [
+      "articulation",
+      "expressiveness"
+    ],
+    "confusables": [
+      "elegance",
+      "diligence",
+      "dramatisation"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "speak with eloquence",
+      "admire one's eloquence"
+    ],
+    "wordFamily": [
+      {
+        "word": "eloquent",
+        "pos": "adjective"
+      },
+      {
+        "word": "eloquently",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "MGS SA2 2020"
+  },
+  {
     "id": "vw_embarked_on",
     "word": "embark on",
     "pos": "verb",
@@ -16730,12 +19563,16 @@ export const harvestedEntries = [
     "synonyms": [
       "set out on",
       "undertake",
-      "begin"
+      "begin",
+      "began",
+      "undertook"
     ],
     "confusables": [
       "entered into",
       "emerged from",
-      "experimented with"
+      "experimented with",
+      "tried out",
+      "dreamt up"
     ],
     "connotation": "positive",
     "collocations": [
@@ -16754,6 +19591,47 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Pei Chun Prelim 2023"
+  },
+  {
+    "id": "vw_empathy",
+    "word": "empathy",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "emotion",
+    "cluster": null,
+    "meaning": "the ability to understand and share the feelings of another person",
+    "example": "His ____ for the environment led him to found an organisation dedicated to conservation.",
+    "answer": "empathy",
+    "synonyms": [
+      "concern",
+      "compassion"
+    ],
+    "confusables": [
+      "disdain",
+      "admiration",
+      "apathy"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "empathy for others",
+      "show empathy"
+    ],
+    "wordFamily": [
+      {
+        "word": "empathise",
+        "pos": "verb"
+      },
+      {
+        "word": "empathetic",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2025"
   },
   {
     "id": "vw_enclosed",
@@ -16796,6 +19674,43 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "ACSP Prelim 2023"
+  },
+  {
+    "id": "vw_encroach",
+    "word": "encroach",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "environment",
+    "cluster": null,
+    "meaning": "to gradually intrude on or take over a place or area that belongs to others",
+    "example": "Animals become endangered when humans ____ into their habitat.",
+    "answer": "encroach",
+    "synonyms": [
+      "intrude",
+      "invade"
+    ],
+    "confusables": [
+      "enrol",
+      "enlist",
+      "engage"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "encroach on land",
+      "encroach into habitat"
+    ],
+    "wordFamily": [
+      {
+        "word": "encroachment",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Rosyth SA1 2022"
   },
   {
     "id": "vw_engaging",
@@ -16877,6 +19792,48 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "St Nicholas Prelim 2021"
+  },
+  {
+    "id": "vw_enlivened",
+    "word": "enlivened",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "community",
+    "cluster": null,
+    "meaning": "made more lively, cheerful or better",
+    "example": "The upgrades carried out by Hilltop Town Council have ____ the neighbourhood and contributed to a better quality of life for the residents.",
+    "answer": "enlivened",
+    "synonyms": [
+      "improved",
+      "brightened",
+      "rejuvenated"
+    ],
+    "confusables": [
+      "deprived",
+      "regulated",
+      "deteriorated"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "enliven a community",
+      "enliven a place"
+    ],
+    "wordFamily": [
+      {
+        "word": "lively",
+        "pos": "adjective"
+      },
+      {
+        "word": "enliven",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "SCGS SA2 2020"
   },
   {
     "id": "vw_enraptured",
@@ -16967,6 +19924,43 @@ export const harvestedEntries = [
     "source": "Nanyang Prelim 2021"
   },
   {
+    "id": "vw_erratically",
+    "word": "erratically",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "behaviour",
+    "cluster": null,
+    "meaning": "in an unpredictable or irregular way; not following a normal pattern",
+    "example": "The fan blades are spinning ____ which might be a safety hazard.",
+    "answer": "erratically",
+    "synonyms": [
+      "unpredictably",
+      "irregularly"
+    ],
+    "confusables": [
+      "serenely",
+      "frantically",
+      "unappealingly"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "behave erratically",
+      "spin erratically"
+    ],
+    "wordFamily": [
+      {
+        "word": "erratic",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2025"
+  },
+  {
     "id": "vw_founded",
     "word": "established",
     "pos": "verb",
@@ -17049,6 +20043,48 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Pei Hwa Prelim 2023"
+  },
+  {
+    "id": "vw_estimated",
+    "word": "estimated",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "data and facts",
+    "cluster": null,
+    "meaning": "to make a careful guess about the amount, size or value of something",
+    "example": "It is ____ that one in four people eats chillis every day.",
+    "answer": "estimated",
+    "synonyms": [
+      "calculated",
+      "predicted",
+      "reckoned"
+    ],
+    "confusables": [
+      "projected",
+      "expected",
+      "assessed"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "estimated at",
+      "widely estimated"
+    ],
+    "wordFamily": [
+      {
+        "word": "estimate",
+        "pos": "noun"
+      },
+      {
+        "word": "estimation",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Red Swastika SA2 2020"
   },
   {
     "id": "vw_etiquette",
@@ -17162,6 +20198,135 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "SCGS Prelim 2021"
+  },
+  {
+    "id": "vw_exasperation",
+    "word": "exasperation",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "emotions",
+    "cluster": null,
+    "meaning": "a feeling of intense irritation or frustration",
+    "example": "Mr Lim threw his hands up in ____ when the class could not understand him despite the repeated explanations.",
+    "answer": "exasperation",
+    "synonyms": [
+      "frustration",
+      "irritation",
+      "vexation"
+    ],
+    "confusables": [
+      "adoration",
+      "explosion",
+      "admiration"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "in exasperation",
+      "sigh of exasperation"
+    ],
+    "wordFamily": [
+      {
+        "word": "exasperate",
+        "pos": "verb"
+      },
+      {
+        "word": "exasperated",
+        "pos": "adjective"
+      },
+      {
+        "word": "exasperating",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "ACS CA1 2020"
+  },
+  {
+    "id": "vw_exertion",
+    "word": "exertion",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "health",
+    "cluster": null,
+    "meaning": "great physical or mental effort put into doing something",
+    "example": "Gary's muscles were starting to ache from all that ____.",
+    "answer": "exertion",
+    "synonyms": [
+      "effort",
+      "strain",
+      "toil"
+    ],
+    "confusables": [
+      "struggle",
+      "exercise"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "physical exertion",
+      "excessive exertion"
+    ],
+    "wordFamily": [
+      {
+        "word": "exert",
+        "pos": "verb"
+      },
+      {
+        "word": "exerted",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Maha Bodhi SA2 2020"
+  },
+  {
+    "id": "vw_expenses",
+    "word": "expenses",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "money & finance",
+    "cluster": null,
+    "meaning": "the amount of money that is spent on something; costs",
+    "example": "As Jimmy only eats at home and seldom spends on the unnecessary, his monthly ____ are very low.",
+    "answer": "expenses",
+    "synonyms": [
+      "costs",
+      "expenditure",
+      "outgoings"
+    ],
+    "confusables": [
+      "funds",
+      "currencies",
+      "surcharges"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "monthly expenses",
+      "living expenses"
+    ],
+    "wordFamily": [
+      {
+        "word": "expense",
+        "pos": "noun"
+      },
+      {
+        "word": "expensive",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2024"
   },
   {
     "id": "vw_exquisite",
@@ -17366,6 +20531,80 @@ export const harvestedEntries = [
     "source": "Ai Tong Prelim 2023"
   },
   {
+    "id": "vw_face_the_music",
+    "word": "face the music",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "consequences",
+    "cluster": null,
+    "meaning": "to accept the unpleasant consequences of your actions; to deal with punishment or criticism bravely",
+    "example": "As a result of his actions, James had to ____ and accept the punishment handed to him by his parents.",
+    "answer": "face the music",
+    "synonyms": [
+      "accept the consequences",
+      "take responsibility",
+      "own up"
+    ],
+    "confusables": [
+      "spin a yarn",
+      "save his skin",
+      "bury the hatchet"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "face the music bravely",
+      "time to face the music"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Maha Bodhi SA2 2020"
+  },
+  {
+    "id": "vw_encountering",
+    "word": "facing",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "challenges",
+    "cluster": null,
+    "meaning": "to be dealing with a problem or difficulty",
+    "example": "Mrs Li told her grandson that she was ____ trouble storing her many photos.",
+    "answer": "encountering",
+    "synonyms": [
+      "experiencing",
+      "dealing with"
+    ],
+    "confusables": [
+      "tackling",
+      "addressing",
+      "approaching"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "facing trouble",
+      "facing difficulty"
+    ],
+    "wordFamily": [
+      {
+        "word": "face",
+        "pos": "noun"
+      },
+      {
+        "word": "face",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan SA1 2024"
+  },
+  {
     "id": "vw_fad",
     "word": "fad",
     "pos": "noun",
@@ -17404,6 +20643,38 @@ export const harvestedEntries = [
     "source": "Catholic High Prelim 2021"
   },
   {
+    "id": "vw_fallen_for",
+    "word": "fall for",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "judgement",
+    "cluster": null,
+    "meaning": "to be tricked or deceived by someone's scheme or lie",
+    "example": "We could not believe how Gopal had ____ Zack's tricks again.",
+    "answer": "fallen for",
+    "synonyms": [
+      "be tricked by",
+      "be deceived by"
+    ],
+    "confusables": [
+      "fallen on",
+      "fallen into",
+      "fallen over"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "fall for a trick",
+      "fall for a lie"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "MGS SA2 2020"
+  },
+  {
     "id": "vw_fell_through",
     "word": "fall through",
     "pos": "verb",
@@ -17416,12 +20687,16 @@ export const harvestedEntries = [
     "synonyms": [
       "collapse",
       "fail",
-      "come to nothing"
+      "come to nothing",
+      "collapsed",
+      "failed"
     ],
     "confusables": [
       "fell in",
       "fell off",
-      "fell out"
+      "fell out",
+      "fell down",
+      "fell behind"
     ],
     "connotation": "negative",
     "collocations": [
@@ -17484,6 +20759,52 @@ export const harvestedEntries = [
     "source": "SCGS Prelim 2024"
   },
   {
+    "id": "vw_fascination",
+    "word": "fascination",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "emotions and feelings",
+    "cluster": null,
+    "meaning": "a very strong interest in or attraction to something",
+    "example": "She developed a ____ with flying at a young age.",
+    "answer": "fascination",
+    "synonyms": [
+      "passion for",
+      "obsession with",
+      "love of"
+    ],
+    "confusables": [
+      "habit of",
+      "reliance on",
+      "preference for"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "fascination with",
+      "developed a fascination"
+    ],
+    "wordFamily": [
+      {
+        "word": "fascinate",
+        "pos": "verb"
+      },
+      {
+        "word": "fascinating",
+        "pos": "adjective"
+      },
+      {
+        "word": "fascinated",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nan Hua SA1 2020"
+  },
+  {
     "id": "vw_fatalities",
     "word": "fatality",
     "pos": "noun",
@@ -17526,6 +20847,38 @@ export const harvestedEntries = [
     "source": "Pei Chun Prelim 2024"
   },
   {
+    "id": "vw_fathom",
+    "word": "fathom",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "understanding",
+    "cluster": null,
+    "meaning": "to understand something that is difficult or puzzling",
+    "example": "Ali could finally make out the path ahead but could not ____ how he had got himself into such a situation.",
+    "answer": "fathom",
+    "synonyms": [
+      "understand",
+      "comprehend"
+    ],
+    "confusables": [
+      "reveal",
+      "unravel",
+      "imagine"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "fathom the reason",
+      "hard to fathom"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan SA2 2020"
+  },
+  {
     "id": "vw_fatigue",
     "word": "fatigue",
     "pos": "noun",
@@ -17566,6 +20919,81 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Henry Park Prelim 2022"
+  },
+  {
+    "id": "vw_feat",
+    "word": "feat",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "achievements",
+    "cluster": null,
+    "meaning": "an impressive achievement that requires great skill, strength or courage",
+    "example": "She clocked 500 hours of solo flying time, a ____ for someone in the early decades of the 20th century.",
+    "answer": "feat",
+    "synonyms": [
+      "achievement",
+      "accomplishment",
+      "exploit"
+    ],
+    "confusables": [
+      "stunt",
+      "record",
+      "challenge"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "remarkable feat",
+      "no mean feat"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nan Hua SA1 2020"
+  },
+  {
+    "id": "vw_feeble",
+    "word": "feeble",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "character and behaviour",
+    "cluster": null,
+    "meaning": "lacking strength or conviction; not convincing or effective",
+    "example": "When confronted by her friends, Lisa made a ____ attempt to explain her odd behaviour at the party.",
+    "answer": "feeble",
+    "synonyms": [
+      "weak",
+      "unconvincing",
+      "inadequate"
+    ],
+    "confusables": [
+      "frail",
+      "weary",
+      "flimsy"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "feeble attempt",
+      "feeble excuse"
+    ],
+    "wordFamily": [
+      {
+        "word": "feebly",
+        "pos": "adverb"
+      },
+      {
+        "word": "feebleness",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "ACS(J) BA1 2022"
   },
   {
     "id": "vw_fell_out",
@@ -17618,12 +21046,15 @@ export const harvestedEntries = [
     "synonyms": [
       "failed",
       "collapsed",
-      "did not materialise"
+      "did not materialise",
+      "came to nothing"
     ],
     "confusables": [
       "fell out",
       "fell apart",
-      "fell behind"
+      "fell behind",
+      "fell in",
+      "fell off"
     ],
     "connotation": "negative",
     "collocations": [
@@ -17678,6 +21109,79 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Nanyang Prelim 2022"
+  },
+  {
+    "id": "vw_fictitious",
+    "word": "fictitious",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "truth",
+    "cluster": null,
+    "meaning": "not real; invented or made up, especially a name or identity",
+    "example": "John le Carré, is a ____ name used by the famous author for his spy thrillers.",
+    "answer": "fictitious",
+    "synonyms": [
+      "made-up",
+      "invented"
+    ],
+    "confusables": [
+      "romantic",
+      "pretended",
+      "counterfeit"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "fictitious name",
+      "fictitious character"
+    ],
+    "wordFamily": [
+      {
+        "word": "fiction",
+        "pos": "noun"
+      },
+      {
+        "word": "fictitiously",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Raffles SA2 2020"
+  },
+  {
+    "id": "vw_identify",
+    "word": "figure out",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "thinking",
+    "cluster": null,
+    "meaning": "to understand or work out what something is or means",
+    "example": "She could not ____ what it was.",
+    "answer": "identify",
+    "synonyms": [
+      "recognise",
+      "understand"
+    ],
+    "confusables": [
+      "reveal",
+      "unravel",
+      "interpret"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "figure out",
+      "work out"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan SA1 2024"
   },
   {
     "id": "vw_file",
@@ -17754,6 +21258,48 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Tao Nan Prelim 2024"
+  },
+  {
+    "id": "vw_fixated",
+    "word": "fixated",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "observation",
+    "cluster": null,
+    "meaning": "having your eyes or attention locked on something without moving away",
+    "example": "The tiger's eyes were ____ on the deer grazing in the forest as it prepared to pounce.",
+    "answer": "fixated",
+    "synonyms": [
+      "locked",
+      "focused",
+      "riveted"
+    ],
+    "confusables": [
+      "gripped",
+      "obsessed",
+      "consumed"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "eyes fixated on",
+      "fixated on a target"
+    ],
+    "wordFamily": [
+      {
+        "word": "fixation",
+        "pos": "noun"
+      },
+      {
+        "word": "fix",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Henry Park SA1 2021"
   },
   {
     "id": "vw_flattering",
@@ -17869,6 +21415,43 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Rosyth Prelim 2025"
+  },
+  {
+    "id": "vw_recoil",
+    "word": "flinch",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "reactions & emotions",
+    "cluster": null,
+    "meaning": "to make a sudden small backward movement because of pain, shock, or fear",
+    "example": "The loud swishing sound made me ____ back in fright, quivering all over like an aspen leaf in a storm.",
+    "answer": "recoil",
+    "synonyms": [
+      "wince",
+      "shrink back"
+    ],
+    "confusables": [
+      "jerk",
+      "lunge",
+      "squirm"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "flinch back",
+      "flinch at pain"
+    ],
+    "wordFamily": [
+      {
+        "word": "flinch",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Catholic High SA1 2022"
   },
   {
     "id": "vw_flurry",
@@ -18017,6 +21600,90 @@ export const harvestedEntries = [
     "source": "Nanyang Prelim 2025"
   },
   {
+    "id": "vw_frugal",
+    "word": "frugal",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "lifestyle",
+    "cluster": null,
+    "meaning": "careful not to spend too much money or use too many resources; simple and not wasteful",
+    "example": "Harry lived a ____ life but he always gave generously to his neighbours who needed food.",
+    "answer": "frugal",
+    "synonyms": [
+      "thrifty",
+      "economical",
+      "simple"
+    ],
+    "confusables": [
+      "lavish",
+      "modest",
+      "prudent"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "frugal lifestyle",
+      "frugal living"
+    ],
+    "wordFamily": [
+      {
+        "word": "frugality",
+        "pos": "noun"
+      },
+      {
+        "word": "frugally",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Red Swastika SA1 2021"
+  },
+  {
+    "id": "vw_frumpy",
+    "word": "frumpy",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "appearance and lifestyle",
+    "cluster": null,
+    "meaning": "looking old-fashioned and unattractive, especially in clothing",
+    "example": "The size of the blouse is not suitable for Gina as it makes her look ____.",
+    "answer": "frumpy",
+    "synonyms": [
+      "dowdy",
+      "unflattering",
+      "drab"
+    ],
+    "confusables": [
+      "tacky",
+      "sloppy",
+      "haphazard"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "look frumpy",
+      "frumpy outfit"
+    ],
+    "wordFamily": [
+      {
+        "word": "frumpily",
+        "pos": "adverb"
+      },
+      {
+        "word": "frumpiness",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Maha Bodhi SA2 2020"
+  },
+  {
     "id": "vw_futile",
     "word": "futile",
     "pos": "adjective",
@@ -18029,12 +21696,15 @@ export const harvestedEntries = [
     "synonyms": [
       "pointless",
       "useless",
-      "vain"
+      "vain",
+      "hopeless"
     ],
     "confusables": [
       "fertile",
       "fruitful",
-      "frivolous"
+      "frivolous",
+      "worthless",
+      "wasted"
     ],
     "connotation": "negative",
     "collocations": [
@@ -18101,6 +21771,47 @@ export const harvestedEntries = [
     "source": "SCGS Prelim 2022"
   },
   {
+    "id": "vw_generations",
+    "word": "generations",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "family & society",
+    "cluster": null,
+    "meaning": "groups of people who are all about the same age within a family or society",
+    "example": "We live with three ____ of women under one roof. They are my grandmother, my mother and my sister.",
+    "answer": "generations",
+    "synonyms": [
+      "age groups",
+      "lineages"
+    ],
+    "confusables": [
+      "ages",
+      "heirs",
+      "eras"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "three generations",
+      "generation gap"
+    ],
+    "wordFamily": [
+      {
+        "word": "generate",
+        "pos": "verb"
+      },
+      {
+        "word": "generational",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "ACS SA1 2021"
+  },
+  {
     "id": "vw_gesture",
     "word": "gesture",
     "pos": "noun",
@@ -18137,6 +21848,173 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "MGS Prelim 2024"
+  },
+  {
+    "id": "vw_think_creatively",
+    "word": "get creative juices flowing",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "creativity",
+    "cluster": null,
+    "meaning": "to start thinking in a creative and imaginative way",
+    "example": "These artists ____ to make their audience crave a dish without the help of the food's actual presence.",
+    "answer": "think creatively",
+    "synonyms": [
+      "think productively",
+      "generate ideas"
+    ],
+    "confusables": [
+      "think profitably",
+      "think ingeniously",
+      "think constructively"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "get creative juices flowing",
+      "creative thinking"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Henry Park SA2 2020"
+  },
+  {
+    "id": "vw_got_into",
+    "word": "get into",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "hobbies",
+    "cluster": null,
+    "meaning": "to start becoming interested in and regularly doing an activity",
+    "example": "An avid cyclist, Wilbur ____ the hobby of photography when he cycled through scenic routes and wanted to capture the beauty of what he saw.",
+    "answer": "got into",
+    "synonyms": [
+      "took up",
+      "picked up"
+    ],
+    "confusables": [
+      "got on",
+      "got over",
+      "got through"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "get into a hobby",
+      "get into trouble"
+    ],
+    "wordFamily": [
+      {
+        "word": "into",
+        "pos": "preposition"
+      }
+    ],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Maris Stella CA1 2022"
+  },
+  {
+    "id": "vw_get_over",
+    "word": "get over",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "emotions",
+    "cluster": null,
+    "meaning": "to recover from an upsetting or difficult experience",
+    "example": "\"I will try to ____ the disappointment from losing the competition,\" May said.",
+    "answer": "get over",
+    "synonyms": [
+      "recover from",
+      "move on from",
+      "overcome"
+    ],
+    "confusables": [
+      "get round",
+      "get through",
+      "get away from"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "get over a loss",
+      "get over disappointment"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2020"
+  },
+  {
+    "id": "vw_get_round",
+    "word": "get round",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "problem-solving",
+    "cluster": null,
+    "meaning": "to find a way to deal with or overcome a problem or difficulty",
+    "example": "The children managed to ____ the problem, and they found a solution after a long discussion.",
+    "answer": "get round",
+    "synonyms": [
+      "overcome",
+      "resolve"
+    ],
+    "confusables": [
+      "get by",
+      "get away with",
+      "get along with"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "get round a problem",
+      "get round the rules"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2021"
+  },
+  {
+    "id": "vw_got_round",
+    "word": "get round to",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "actions and effort",
+    "cluster": null,
+    "meaning": "to finally find the time or manage to do something you have been delaying",
+    "example": "My sister has finally ____ to completing her application for university after a two week delay.",
+    "answer": "got round",
+    "synonyms": [
+      "managed",
+      "found time for",
+      "got to"
+    ],
+    "confusables": [
+      "got up",
+      "got over",
+      "got together"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "get round to doing",
+      "got round to it"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "ACS(J) BA1 2022"
   },
   {
     "id": "vw_get_through",
@@ -18281,6 +22159,89 @@ export const harvestedEntries = [
     "source": "Catholic High Prelim 2024"
   },
   {
+    "id": "vw_glamorous",
+    "word": "glamorous",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "appearance and lifestyle",
+    "cluster": null,
+    "meaning": "exciting, attractive and associated with wealth and success",
+    "example": "While it may sound impressive, it was not a ____ job.",
+    "answer": "glamorous",
+    "synonyms": [
+      "prestigious",
+      "dazzling",
+      "impressive"
+    ],
+    "confusables": [
+      "revered",
+      "eminent",
+      "important"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "glamorous lifestyle",
+      "glamorous career"
+    ],
+    "wordFamily": [
+      {
+        "word": "glamour",
+        "pos": "noun"
+      },
+      {
+        "word": "glamorously",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "ACS(J) BA1 2022"
+  },
+  {
+    "id": "vw_glared",
+    "word": "glare",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "emotion",
+    "cluster": null,
+    "meaning": "to stare at someone in an angry or fierce way",
+    "example": "The man ____ angrily at the jeweller.",
+    "answer": "glared",
+    "synonyms": [
+      "scowled",
+      "stared angrily"
+    ],
+    "confusables": [
+      "stared",
+      "gazed",
+      "peered"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "glare at someone",
+      "glare with anger"
+    ],
+    "wordFamily": [
+      {
+        "word": "glare",
+        "pos": "noun"
+      },
+      {
+        "word": "glaring",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Maris Stella CA1 2022"
+  },
+  {
     "id": "vw_glistening",
     "word": "glisten",
     "pos": "verb",
@@ -18317,6 +22278,85 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Rosyth Prelim 2024"
+  },
+  {
+    "id": "vw_glittered",
+    "word": "glitter",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "light",
+    "cluster": null,
+    "meaning": "to shine brightly with many small flashes of light",
+    "example": "The jeweller lifted the diamond ring closer to the lamp. It ____ in the light.",
+    "answer": "glittered",
+    "synonyms": [
+      "sparkled",
+      "gleamed"
+    ],
+    "confusables": [
+      "flashed",
+      "blinked",
+      "dazzled"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "glitter in the light",
+      "eyes glittered"
+    ],
+    "wordFamily": [
+      {
+        "word": "glitter",
+        "pos": "noun"
+      },
+      {
+        "word": "glittering",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Maris Stella CA1 2022"
+  },
+  {
+    "id": "vw_gradually",
+    "word": "gradually",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "manner",
+    "cluster": null,
+    "meaning": "slowly and steadily, a little at a time",
+    "example": "Running a marathon ____ builds up resilience.",
+    "answer": "gradually",
+    "synonyms": [
+      "progressively",
+      "steadily",
+      "slowly"
+    ],
+    "confusables": [
+      "ultimately",
+      "frequently",
+      "eventually"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "gradually improve",
+      "gradually build up"
+    ],
+    "wordFamily": [
+      {
+        "word": "gradual",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2020"
   },
   {
     "id": "vw_grasp",
@@ -18393,6 +22433,123 @@ export const harvestedEntries = [
     "source": "ACS Prelim 2021"
   },
   {
+    "id": "vw_appreciation",
+    "word": "gratitude",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "feelings & emotions",
+    "cluster": null,
+    "meaning": "a feeling of being thankful and showing thanks for something kind done for you",
+    "example": "He looked at me with ____.",
+    "answer": "appreciation",
+    "synonyms": [],
+    "confusables": [
+      "sincerity",
+      "kindness",
+      "recognition"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "show gratitude",
+      "filled with gratitude"
+    ],
+    "wordFamily": [
+      {
+        "word": "grateful",
+        "pos": "adjective"
+      },
+      {
+        "word": "gratefully",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "ACS SA1 2021"
+  },
+  {
+    "id": "vw_gravely",
+    "word": "gravely",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "health",
+    "cluster": null,
+    "meaning": "in a very serious or worrying way",
+    "example": "Due to her worsening health condition, the doctors were ____ concerned.",
+    "answer": "gravely",
+    "synonyms": [
+      "seriously",
+      "deeply",
+      "severely"
+    ],
+    "confusables": [
+      "slowly",
+      "viciously",
+      "grudgingly"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "gravely concerned",
+      "gravely ill"
+    ],
+    "wordFamily": [
+      {
+        "word": "grave",
+        "pos": "adjective"
+      },
+      {
+        "word": "graveness",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Henry Park SA1 2021"
+  },
+  {
+    "id": "vw_gregarious",
+    "word": "gregarious",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "character",
+    "cluster": null,
+    "meaning": "very friendly and enjoying being with other people; sociable",
+    "example": "Having a ____ nature, Sally was soon surrounded by her new-found friends at the party.",
+    "answer": "gregarious",
+    "synonyms": [
+      "sociable",
+      "outgoing"
+    ],
+    "confusables": [
+      "hospitable",
+      "introverted",
+      "harmonious"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "gregarious nature",
+      "gregarious personality"
+    ],
+    "wordFamily": [
+      {
+        "word": "gregariousness",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Maris Stella CA1 2022"
+  },
+  {
     "id": "vw_grudgingly",
     "word": "grudgingly",
     "pos": "adverb",
@@ -18405,12 +22562,15 @@ export const harvestedEntries = [
     "synonyms": [
       "reluctantly",
       "unwillingly",
-      "resentfully"
+      "resentfully",
+      "half-heartedly"
     ],
     "confusables": [
       "warily",
       "earnestly",
-      "deliberately"
+      "deliberately",
+      "negligently",
+      "rebelliously"
     ],
     "connotation": "negative",
     "collocations": [
@@ -18479,12 +22639,15 @@ export const harvestedEntries = [
     "answer": "hand in",
     "synonyms": [
       "submit",
-      "turn in"
+      "turn in",
+      "present"
     ],
     "confusables": [
       "hand up",
       "hand over",
-      "hand down"
+      "hand down",
+      "hand out",
+      "hand around"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -18500,6 +22663,38 @@ export const harvestedEntries = [
     "source": "Raffles Prelim 2022"
   },
   {
+    "id": "vw_hand_over",
+    "word": "hand over",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "action",
+    "cluster": null,
+    "meaning": "to give something to someone else, especially when asked or required to do so",
+    "example": "The teacher told Tom to ____ his phone after he was caught using it in class.",
+    "answer": "hand over",
+    "synonyms": [
+      "give up",
+      "surrender"
+    ],
+    "confusables": [
+      "hand in",
+      "hand out",
+      "hand down"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "hand over a phone",
+      "hand over control"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2025"
+  },
+  {
     "id": "vw_harsh",
     "word": "harsh",
     "pos": "adjective",
@@ -18512,12 +22707,15 @@ export const harvestedEntries = [
     "synonyms": [
       "severe",
       "extreme",
-      "brutal"
+      "brutal",
+      "strict"
     ],
     "confusables": [
       "bitter",
       "cruel",
-      "vicious"
+      "vicious",
+      "blunt",
+      "stark"
     ],
     "connotation": "negative",
     "collocations": [
@@ -18580,6 +22778,48 @@ export const harvestedEntries = [
     "source": "Maris Stella Prelim 2023"
   },
   {
+    "id": "vw_hazardous",
+    "word": "hazardous",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "safety",
+    "cluster": null,
+    "meaning": "dangerous, especially to people's health or safety",
+    "example": "Speeding on the road is ____ and can cost lives.",
+    "answer": "hazardous",
+    "synonyms": [
+      "dangerous",
+      "risky",
+      "perilous"
+    ],
+    "confusables": [
+      "harmless",
+      "unoffending",
+      "unfavourable"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "hazardous conditions",
+      "hazardous waste"
+    ],
+    "wordFamily": [
+      {
+        "word": "hazard",
+        "pos": "noun"
+      },
+      {
+        "word": "hazardously",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Red Swastika SA1 2021"
+  },
+  {
     "id": "vw_heart_wrenching",
     "word": "heart-wrenching",
     "pos": "adjective",
@@ -18616,6 +22856,43 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Red Swastika Prelim 2021"
+  },
+  {
+    "id": "vw_held_to",
+    "word": "held to",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "standards & expectations",
+    "cluster": null,
+    "meaning": "expected to meet or kept to a certain standard or rule",
+    "example": "As class monitor, Sarah's conduct was ____ a higher standard compared to her peers.",
+    "answer": "held to",
+    "synonyms": [
+      "expected to meet",
+      "required to maintain"
+    ],
+    "confusables": [
+      "held up",
+      "held on",
+      "held with"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "held to a standard",
+      "held to account"
+    ],
+    "wordFamily": [
+      {
+        "word": "hold to",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2024"
   },
   {
     "id": "vw_helplessness",
@@ -18660,6 +22937,88 @@ export const harvestedEntries = [
     "source": "PLMGS Prelim 2022"
   },
   {
+    "id": "vw_regard",
+    "word": "high esteem",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "attitudes",
+    "cluster": null,
+    "meaning": "great respect and admiration for someone",
+    "example": "Marie Curie was admired by scientists throughout the world and held in high ____.",
+    "answer": "regard",
+    "synonyms": [
+      "respect",
+      "admiration"
+    ],
+    "confusables": [
+      "praise",
+      "concern",
+      "mention"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "hold in high esteem",
+      "esteem for someone"
+    ],
+    "wordFamily": [
+      {
+        "word": "esteem",
+        "pos": "verb"
+      },
+      {
+        "word": "esteemed",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA2 2020"
+  },
+  {
+    "id": "vw_highlight",
+    "word": "highlight",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "communication",
+    "cluster": null,
+    "meaning": "to draw attention to something important; to make something stand out",
+    "example": "Signboards that ____ key amenities, like the library and community club, have been placed at a few traffic junctions.",
+    "answer": "highlight",
+    "synonyms": [
+      "feature",
+      "emphasise"
+    ],
+    "confusables": [
+      "reveal",
+      "express",
+      "demonstrate"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "highlight key points",
+      "highlight amenities"
+    ],
+    "wordFamily": [
+      {
+        "word": "highlight",
+        "pos": "noun"
+      },
+      {
+        "word": "highlighted",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Rosyth SA1 2022"
+  },
+  {
     "id": "vw_hindered",
     "word": "hindered",
     "pos": "verb",
@@ -18700,6 +23059,38 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Ai Tong Prelim 2023"
+  },
+  {
+    "id": "vw_hit_the_nail_on_the_head",
+    "word": "hit the nail on the head",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "communication",
+    "cluster": null,
+    "meaning": "to say or do exactly the right thing; to be completely correct about something",
+    "example": "Mr Bala was pleased that his students had ____ when one of them answered that the extreme weather conditions was due to climate change.",
+    "answer": "hit the nail on the head",
+    "synonyms": [
+      "got it exactly right",
+      "be spot on"
+    ],
+    "confusables": [
+      "thrown in the towel",
+      "burnt the midnight oil",
+      "let the cat out of the bag"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "hit the nail on the head with",
+      "really hit the nail on the head"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Rosyth SA1 2022"
   },
   {
     "id": "vw_a_well_known_figure",
@@ -18769,6 +23160,44 @@ export const harvestedEntries = [
     "source": "Rosyth Prelim 2022"
   },
   {
+    "id": "vw_hastily",
+    "word": "hurriedly",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "speed & manner",
+    "cluster": null,
+    "meaning": "done quickly and in a rush, often without much care",
+    "example": "As I approached the café ____ , I noticed an old gentleman covered in a blanket near the door.",
+    "answer": "hastily",
+    "synonyms": [],
+    "confusables": [
+      "rashly",
+      "suddenly",
+      "frenziedly"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "walked hurriedly",
+      "left hurriedly"
+    ],
+    "wordFamily": [
+      {
+        "word": "hurried",
+        "pos": "adjective"
+      },
+      {
+        "word": "hurry",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "ACS SA1 2021"
+  },
+  {
     "id": "vw_hypocrisy",
     "word": "hypocrisy",
     "pos": "noun",
@@ -18809,6 +23238,47 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Ai Tong Prelim 2025"
+  },
+  {
+    "id": "vw_hysterical",
+    "word": "hysterical",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "emotion",
+    "cluster": null,
+    "meaning": "in an extreme state of uncontrolled excitement or emotion",
+    "example": "Screaming at the top of their voices, the fans were ____ when the famous singer appeared on stage.",
+    "answer": "hysterical",
+    "synonyms": [
+      "frenzied",
+      "frantic"
+    ],
+    "confusables": [
+      "devoted",
+      "vigorous",
+      "committed"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "hysterical fans",
+      "hysterical laughter"
+    ],
+    "wordFamily": [
+      {
+        "word": "hysteria",
+        "pos": "noun"
+      },
+      {
+        "word": "hysterically",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Maris Stella CA1 2022"
   },
   {
     "id": "vw_hysterically",
@@ -18953,7 +23423,9 @@ export const harvestedEntries = [
     "confusables": [
       "foreigners",
       "pilgrims",
-      "travellers"
+      "travellers",
+      "visitors",
+      "tourists"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -19021,6 +23493,89 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Catholic High Prelim 2023"
+  },
+  {
+    "id": "vw_immobile",
+    "word": "immobile",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "health",
+    "cluster": null,
+    "meaning": "not able to move; unable to get around",
+    "example": "Senior citizens who are ____ can apply for financial assistance to pay for their wheelchairs.",
+    "answer": "immobile",
+    "synonyms": [
+      "unable to move",
+      "bedridden",
+      "disabled"
+    ],
+    "confusables": [
+      "zestful",
+      "dynamic",
+      "energetic"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "become immobile",
+      "immobile patients"
+    ],
+    "wordFamily": [
+      {
+        "word": "mobile",
+        "pos": "adjective"
+      },
+      {
+        "word": "mobility",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "SCGS SA2 2020"
+  },
+  {
+    "id": "vw_immobilise",
+    "word": "immobilise",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "action",
+    "cluster": null,
+    "meaning": "to prevent something or someone from moving or acting",
+    "example": "Some spiders ____ their prey by injecting venom, so the prey is unable to escape and can be carried away easily.",
+    "answer": "immobilise",
+    "synonyms": [
+      "paralyse",
+      "incapacitate"
+    ],
+    "confusables": [
+      "abuse",
+      "destroy",
+      "damage"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "immobilise prey",
+      "immobilise a vehicle"
+    ],
+    "wordFamily": [
+      {
+        "word": "immobilisation",
+        "pos": "noun"
+      },
+      {
+        "word": "immobile",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Maris Stella CA1 2022"
   },
   {
     "id": "vw_impacts",
@@ -19183,6 +23738,44 @@ export const harvestedEntries = [
     "source": "Catholic High Prelim 2021"
   },
   {
+    "id": "vw_vital",
+    "word": "important",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "importance & necessity",
+    "cluster": null,
+    "meaning": "having great value or significance; necessary or needed",
+    "example": "These individuals typically find jobs in the service industry where reading or writing is not that ____.",
+    "answer": "vital",
+    "synonyms": [],
+    "confusables": [
+      "core",
+      "basic",
+      "complex"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "vital role",
+      "vital information"
+    ],
+    "wordFamily": [
+      {
+        "word": "vitally",
+        "pos": "adverb"
+      },
+      {
+        "word": "vitality",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2024"
+  },
+  {
     "id": "vw_impress",
     "word": "impress",
     "pos": "verb",
@@ -19195,12 +23788,16 @@ export const harvestedEntries = [
     "synonyms": [
       "dazzle",
       "wow",
-      "astound"
+      "astound",
+      "marked",
+      "stamped"
     ],
     "confusables": [
       "soothe",
       "ascertain",
-      "reassure"
+      "reassure",
+      "labelled",
+      "stressed"
     ],
     "connotation": "positive",
     "collocations": [
@@ -19227,6 +23824,38 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Henry Park Prelim 2022"
+  },
+  {
+    "id": "vw_impromptu",
+    "word": "impromptu",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "character",
+    "cluster": null,
+    "meaning": "done without planning or preparation; made up on the spot",
+    "example": "Meredith was having butterflies in her stomach as she had been asked to give an ____ speech on stage.",
+    "answer": "impromptu",
+    "synonyms": [
+      "unrehearsed",
+      "spontaneous"
+    ],
+    "confusables": [
+      "impatient",
+      "impulsive",
+      "immediate"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "impromptu speech",
+      "impromptu performance"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2021"
   },
   {
     "id": "vw_elevate",
@@ -19437,6 +24066,47 @@ export const harvestedEntries = [
     "source": "Nanyang Prelim 2024"
   },
   {
+    "id": "vw_inappropriate",
+    "word": "inappropriate",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "behaviour",
+    "cluster": null,
+    "meaning": "not suitable or right for a particular situation or occasion",
+    "example": "His casual clothes were ____ for such a formal occasion.",
+    "answer": "inappropriate",
+    "synonyms": [
+      "unsuitable",
+      "unfit"
+    ],
+    "confusables": [
+      "inexpensive",
+      "insensitive",
+      "inaccurate"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "inappropriate attire",
+      "inappropriate behaviour"
+    ],
+    "wordFamily": [
+      {
+        "word": "appropriate",
+        "pos": "adjective"
+      },
+      {
+        "word": "inappropriately",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "St Nicholas SA1 2021"
+  },
+  {
     "id": "vw_inappropriately",
     "word": "inappropriately",
     "pos": "adverb",
@@ -19609,12 +24279,15 @@ export const harvestedEntries = [
     "synonyms": [
       "continuously",
       "constantly",
-      "relentlessly"
+      "relentlessly",
+      "non-stop"
     ],
     "confusables": [
       "permanently",
       "eventually",
-      "suddenly"
+      "suddenly",
+      "instantly",
+      "furiously"
     ],
     "connotation": "negative",
     "collocations": [
@@ -19676,6 +24349,89 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Rosyth Prelim 2022"
+  },
+  {
+    "id": "vw_disbelief",
+    "word": "incredulity",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "emotions",
+    "cluster": null,
+    "meaning": "the feeling of being unable to believe something; great surprise",
+    "example": "Eyes wide with ____, Jasmine took her place beside Maggie.",
+    "answer": "disbelief",
+    "synonyms": [
+      "astonishment",
+      "shock"
+    ],
+    "confusables": [
+      "disgust",
+      "disdain",
+      "dismay"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "with incredulity",
+      "wide-eyed incredulity"
+    ],
+    "wordFamily": [
+      {
+        "word": "incredulous",
+        "pos": "adjective"
+      },
+      {
+        "word": "incredulously",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "SCGS SA1 2021"
+  },
+  {
+    "id": "vw_incredulous",
+    "word": "incredulous",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "emotions",
+    "cluster": null,
+    "meaning": "unable to believe something; showing disbelief or shock",
+    "example": "Jane sulked as she was ____ that her brother had gotten away with his misbehaviour yet again.",
+    "answer": "incredulous",
+    "synonyms": [
+      "disbelieving",
+      "shocked",
+      "astonished"
+    ],
+    "confusables": [
+      "hesitant",
+      "indifferent",
+      "nonchalant"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "incredulous look",
+      "feel incredulous"
+    ],
+    "wordFamily": [
+      {
+        "word": "incredulously",
+        "pos": "adverb"
+      },
+      {
+        "word": "incredulity",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2020"
   },
   {
     "id": "vw_incredulously",
@@ -19884,6 +24640,46 @@ export const harvestedEntries = [
     "source": "Raffles Prelim 2021"
   },
   {
+    "id": "vw_infect",
+    "word": "infect",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "health",
+    "cluster": null,
+    "meaning": "to pass a disease or harmful program to a person, animal or device",
+    "example": "The purpose is to ____ computers or devices with viruses, delete files, steal personal information or spy on a victim.",
+    "answer": "infect",
+    "synonyms": [
+      "contaminate"
+    ],
+    "confusables": [
+      "effect",
+      "distort",
+      "destroy"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "infect a device",
+      "infect with a virus"
+    ],
+    "wordFamily": [
+      {
+        "word": "infection",
+        "pos": "noun"
+      },
+      {
+        "word": "infectious",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2025"
+  },
+  {
     "id": "vw_infested",
     "word": "infest",
     "pos": "verb",
@@ -19922,6 +24718,51 @@ export const harvestedEntries = [
     "source": "ACSJ Prelim 2025"
   },
   {
+    "id": "vw_infested",
+    "word": "infested",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "housing",
+    "cluster": null,
+    "meaning": "full of unwanted or harmful creatures that are hard to get rid of",
+    "example": "That dilapidated apartment is ____ with cockroaches.",
+    "answer": "infested",
+    "synonyms": [
+      "overrun",
+      "plagued",
+      "swarming",
+      "teeming"
+    ],
+    "confusables": [
+      "grown",
+      "infected",
+      "overgrown",
+      "polluted",
+      "contaminated"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "infested with pests",
+      "rat-infested"
+    ],
+    "wordFamily": [
+      {
+        "word": "infestation",
+        "pos": "noun"
+      },
+      {
+        "word": "infest",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "ACS CA1 2020"
+  },
+  {
     "id": "vw_ingenious",
     "word": "ingenious",
     "pos": "adjective",
@@ -19939,7 +24780,9 @@ export const harvestedEntries = [
     "confusables": [
       "intuitive",
       "insightful",
-      "indomitable"
+      "indomitable",
+      "indefinite",
+      "infamous"
     ],
     "connotation": "positive",
     "collocations": [
@@ -20007,6 +24850,90 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Raffles Prelim 2024"
+  },
+  {
+    "id": "vw_inquisitive",
+    "word": "inquisitive",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "character and behaviour",
+    "cluster": null,
+    "meaning": "very eager to find out information and learn new things; curious",
+    "example": "The ____ boys wondered why and wanted to ask her about it.",
+    "answer": "inquisitive",
+    "synonyms": [
+      "curious",
+      "questioning",
+      "eager to know"
+    ],
+    "confusables": [
+      "intrusive",
+      "distrustful",
+      "flabbergasted"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "inquisitive mind",
+      "inquisitive child"
+    ],
+    "wordFamily": [
+      {
+        "word": "inquisitively",
+        "pos": "adverb"
+      },
+      {
+        "word": "inquisitiveness",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nan Hua SA1 2022"
+  },
+  {
+    "id": "vw_inseparable",
+    "word": "inseparable",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "relationships",
+    "cluster": null,
+    "meaning": "so close that it is impossible to separate; always together",
+    "example": "The twins are so ____ that they insist on doing all the activities together.",
+    "answer": "inseparable",
+    "synonyms": [
+      "always together",
+      "close-knit",
+      "attached"
+    ],
+    "confusables": [
+      "indivisible",
+      "indispensable",
+      "undependable"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "inseparable friends",
+      "virtually inseparable"
+    ],
+    "wordFamily": [
+      {
+        "word": "separate",
+        "pos": "verb"
+      },
+      {
+        "word": "separation",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA2 2020"
   },
   {
     "id": "vw_insisted",
@@ -20212,6 +25139,48 @@ export const harvestedEntries = [
     "source": "Henry Park Prelim 2021"
   },
   {
+    "id": "vw_integral",
+    "word": "integral",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "importance",
+    "cluster": null,
+    "meaning": "forming a necessary and important part of something; essential",
+    "example": "They are ____ in diets around the world.",
+    "answer": "integral",
+    "synonyms": [
+      "essential",
+      "fundamental",
+      "central"
+    ],
+    "confusables": [
+      "relevant",
+      "pertinent",
+      "significant"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "integral part",
+      "integral role"
+    ],
+    "wordFamily": [
+      {
+        "word": "integrate",
+        "pos": "verb"
+      },
+      {
+        "word": "integration",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Red Swastika SA2 2020"
+  },
+  {
     "id": "vw_intensely",
     "word": "intensely",
     "pos": "adverb",
@@ -20252,6 +25221,168 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Temasek Prelim 2023"
+  },
+  {
+    "id": "vw_intentionally",
+    "word": "intentionally",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "behaviour",
+    "cluster": null,
+    "meaning": "done on purpose; not by accident",
+    "example": "Sue Mei has been ignoring her best friend, Tom, since their quarrel. She will continue to do so ____.",
+    "answer": "intentionally",
+    "synonyms": [
+      "deliberately",
+      "purposely",
+      "on purpose"
+    ],
+    "confusables": [
+      "recklessly",
+      "unwittingly",
+      "spontaneously"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "act intentionally",
+      "intentionally ignore"
+    ],
+    "wordFamily": [
+      {
+        "word": "intentional",
+        "pos": "adjective"
+      },
+      {
+        "word": "intention",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "MGS SA1 2021"
+  },
+  {
+    "id": "vw_attentively",
+    "word": "intently",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "focus & listening",
+    "cluster": null,
+    "meaning": "with great concentration and close attention",
+    "example": "Abraham then accompanied him for a walk and listened ____ as he talked about his younger days.",
+    "answer": "attentively",
+    "synonyms": [
+      "carefully",
+      "keenly"
+    ],
+    "confusables": [
+      "warily",
+      "quizzically",
+      "approvingly"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "listened intently",
+      "watched intently"
+    ],
+    "wordFamily": [
+      {
+        "word": "intent",
+        "pos": "adjective"
+      },
+      {
+        "word": "intent",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Rosyth SA1 2021"
+  },
+  {
+    "id": "vw_intermittently",
+    "word": "intermittently",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "pattern",
+    "cluster": null,
+    "meaning": "stopping and starting at irregular intervals; not continuous",
+    "example": "Due to the floods, the power supply was affected and our electricity only came on ____.",
+    "answer": "intermittently",
+    "synonyms": [
+      "irregularly",
+      "on and off"
+    ],
+    "confusables": [
+      "easily",
+      "shockingly",
+      "consequently"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "work intermittently",
+      "available intermittently"
+    ],
+    "wordFamily": [
+      {
+        "word": "intermittent",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan SA2 2020"
+  },
+  {
+    "id": "vw_intervene",
+    "word": "intervene",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "conflict and competition",
+    "cluster": null,
+    "meaning": "to get involved in a situation to try to stop a problem or argument",
+    "example": "Although Miss Lim tried to ____ when she saw the two boys arguing, she was unable to stop the quarrel from escalating to a fight.",
+    "answer": "intervene",
+    "synonyms": [
+      "step in",
+      "intercede",
+      "mediate"
+    ],
+    "confusables": [
+      "interject",
+      "interrupt",
+      "intercept"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "intervene in a dispute",
+      "intervene to stop"
+    ],
+    "wordFamily": [
+      {
+        "word": "intervention",
+        "pos": "noun"
+      },
+      {
+        "word": "intervening",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Red Swastika SA2 2020"
   },
   {
     "id": "vw_intrepid",
@@ -20380,6 +25511,47 @@ export const harvestedEntries = [
     "source": "SCGS Prelim 2024"
   },
   {
+    "id": "vw_intriguing",
+    "word": "intriguing",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "interest",
+    "cluster": null,
+    "meaning": "very interesting and making you want to know more",
+    "example": "Ravi found the story so ____ that he had to continue reading it from start to end.",
+    "answer": "intriguing",
+    "synonyms": [
+      "fascinating",
+      "captivating"
+    ],
+    "confusables": [
+      "stunning",
+      "ravishing",
+      "bedazzling"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "intriguing story",
+      "intriguing mystery"
+    ],
+    "wordFamily": [
+      {
+        "word": "intrigue",
+        "pos": "noun"
+      },
+      {
+        "word": "intrigue",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2021"
+  },
+  {
     "id": "vw_invaluable",
     "word": "invaluable",
     "pos": "adjective",
@@ -20422,6 +25594,86 @@ export const harvestedEntries = [
     "source": "Pei Hwa Prelim 2023"
   },
   {
+    "id": "vw_appealing",
+    "word": "inviting",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "feelings & attraction",
+    "cluster": null,
+    "meaning": "attractive and tempting; making you want to have or do something",
+    "example": "A cup of hot coffee and a toasted sandwich seemed ____ .",
+    "answer": "appealing",
+    "synonyms": [],
+    "confusables": [
+      "intriguing",
+      "fascinating",
+      "depressing"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "seemed inviting",
+      "looked inviting"
+    ],
+    "wordFamily": [
+      {
+        "word": "invite",
+        "pos": "verb"
+      },
+      {
+        "word": "invitation",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "ACS SA1 2021"
+  },
+  {
+    "id": "vw_involuntarily",
+    "word": "involuntarily",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "actions and effort",
+    "cluster": null,
+    "meaning": "done without intending to; happening without conscious control",
+    "example": "The boys ____ gasped in unison.",
+    "answer": "involuntarily",
+    "synonyms": [
+      "unintentionally",
+      "instinctively",
+      "automatically"
+    ],
+    "confusables": [
+      "suddenly",
+      "impulsively",
+      "thoughtlessly"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "involuntarily gasped",
+      "reacted involuntarily"
+    ],
+    "wordFamily": [
+      {
+        "word": "involuntary",
+        "pos": "adjective"
+      },
+      {
+        "word": "voluntary",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nan Hua SA1 2022"
+  },
+  {
     "id": "vw_jump_on_the_bandwagon",
     "word": "jump on the bandwagon",
     "pos": "verb",
@@ -20452,6 +25704,39 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Pei Chun Prelim 2023"
+  },
+  {
+    "id": "vw_kept_an_eye_on",
+    "word": "keep an eye on",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "observation",
+    "cluster": null,
+    "meaning": "to watch something or someone carefully to see what happens",
+    "example": "Peter ____ the sky until the last fighter plane flew past him.",
+    "answer": "kept an eye on",
+    "synonyms": [
+      "watched carefully",
+      "monitored",
+      "observed"
+    ],
+    "confusables": [
+      "had an eye for",
+      "turned a blind eye to",
+      "saw a bird's eye view of"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "keep an eye on",
+      "keep watch"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Rosyth SA2 2020"
   },
   {
     "id": "vw_keep_up",
@@ -20519,6 +25804,47 @@ export const harvestedEntries = [
     "source": "PLMGS Prelim 2022"
   },
   {
+    "id": "vw_strenuously",
+    "word": "laboriously",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "effort",
+    "cluster": null,
+    "meaning": "with a great deal of hard work and effort",
+    "example": "I made the effort to practise countless problem sums ____ in the past few months.",
+    "answer": "strenuously",
+    "synonyms": [
+      "diligently",
+      "painstakingly"
+    ],
+    "confusables": [
+      "enthusiastically",
+      "carefully",
+      "wearily"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "work laboriously",
+      "practise laboriously"
+    ],
+    "wordFamily": [
+      {
+        "word": "laborious",
+        "pos": "adjective"
+      },
+      {
+        "word": "labour",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "AiTong SA1 2021"
+  },
+  {
     "id": "vw_landed_up",
     "word": "land up",
     "pos": "verb",
@@ -20550,6 +25876,44 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Henry Park Prelim 2022"
+  },
+  {
+    "id": "vw_landscape",
+    "word": "landscape",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "nature",
+    "cluster": null,
+    "meaning": "the visible features of an area of land, especially in the countryside",
+    "example": "My dizziness worsened as I stared at the palm-fringed ____ that raced past the window of our tour bus.",
+    "answer": "landscape",
+    "synonyms": [
+      "scenery",
+      "countryside",
+      "environment"
+    ],
+    "confusables": [
+      "picture",
+      "painting",
+      "background"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "beautiful landscape",
+      "tropical landscape"
+    ],
+    "wordFamily": [
+      {
+        "word": "landscaping",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2022"
   },
   {
     "id": "vw_lapse",
@@ -20631,6 +25995,81 @@ export const harvestedEntries = [
     "source": "Rosyth Prelim 2021"
   },
   {
+    "id": "vw_launch",
+    "word": "launch",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "events",
+    "cluster": null,
+    "meaning": "the first time a new product or service is made available to the public",
+    "example": "The morning of its ____, he arrived at their store three hours before the operating hours.",
+    "answer": "launch",
+    "synonyms": [
+      "debut",
+      "release",
+      "introduction"
+    ],
+    "confusables": [
+      "display",
+      "delivery",
+      "dispersal"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "product launch",
+      "official launch"
+    ],
+    "wordFamily": [
+      {
+        "word": "launch",
+        "pos": "verb"
+      },
+      {
+        "word": "launcher",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Henry Park SA1 2021"
+  },
+  {
+    "id": "vw_leafed_through",
+    "word": "leafed through",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "reading & documents",
+    "cluster": null,
+    "meaning": "turned over pages quickly to look through them",
+    "example": "He ____ them until he found an envelope bearing the words 'Dr Henry Jekyll's Will.'",
+    "answer": "leafed through",
+    "synonyms": [
+      "flipped through",
+      "browsed",
+      "skimmed through"
+    ],
+    "confusables": [
+      "combed",
+      "searched",
+      "rummaged"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "leafed through pages",
+      "leafed through a book"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Maha Bodhi SA1 2021"
+  },
+  {
     "id": "vw_left_no_stone_unturned",
     "word": "leave no stone unturned",
     "pos": "verb",
@@ -20697,6 +26136,48 @@ export const harvestedEntries = [
     "source": "RedSwastika Prelim 2024"
   },
   {
+    "id": "vw_lenient",
+    "word": "lenient",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "discipline",
+    "cluster": null,
+    "meaning": "not strict; willing to forgive or let someone off without harsh punishment",
+    "example": "The discipline master was being ____ when he let Greg off with a warning instead of punishing him.",
+    "answer": "lenient",
+    "synonyms": [
+      "easy-going",
+      "merciful",
+      "forgiving"
+    ],
+    "confusables": [
+      "gentle",
+      "generous",
+      "accommodating"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "lenient punishment",
+      "be lenient with someone"
+    ],
+    "wordFamily": [
+      {
+        "word": "leniently",
+        "pos": "adverb"
+      },
+      {
+        "word": "leniency",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2022"
+  },
+  {
     "id": "vw_let_up",
     "word": "let up",
     "pos": "verb",
@@ -20709,12 +26190,16 @@ export const harvestedEntries = [
     "synonyms": [
       "ease up",
       "relax",
-      "slacken"
+      "slacken",
+      "stop",
+      "subside"
     ],
     "confusables": [
       "give up",
       "cut down",
-      "back down"
+      "back down",
+      "let off",
+      "let out"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -20774,6 +26259,47 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Ai Tong Prelim 2025"
+  },
+  {
+    "id": "vw_link",
+    "word": "link",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "connection",
+    "cluster": null,
+    "meaning": "to join or connect two or more things or places together",
+    "example": "Cycling paths have been built to ____ homes, schools and parks.",
+    "answer": "link",
+    "synonyms": [
+      "connect",
+      "join"
+    ],
+    "confusables": [
+      "unite",
+      "attach",
+      "bridge"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "link homes to parks",
+      "link roads"
+    ],
+    "wordFamily": [
+      {
+        "word": "link",
+        "pos": "noun"
+      },
+      {
+        "word": "linkage",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Rosyth SA1 2022"
   },
   {
     "id": "vw_livelihoods",
@@ -20918,6 +26444,44 @@ export const harvestedEntries = [
     "source": "Rosyth Prelim 2025"
   },
   {
+    "id": "vw_lugged",
+    "word": "lugged",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "actions and effort",
+    "cluster": null,
+    "meaning": "to carry something heavy with a lot of effort",
+    "example": "Gary muttered under his breath as he ____ his neighbour's box of books.",
+    "answer": "lugged",
+    "synonyms": [
+      "carried",
+      "hauled",
+      "dragged"
+    ],
+    "confusables": [
+      "took",
+      "bore",
+      "moved"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "lug a heavy bag",
+      "lug boxes"
+    ],
+    "wordFamily": [
+      {
+        "word": "lug",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Maha Bodhi SA2 2020"
+  },
+  {
     "id": "vw_first",
     "word": "maiden",
     "pos": "adjective",
@@ -20961,12 +26525,15 @@ export const harvestedEntries = [
     "example": "Malware is often downloaded from ____ websites, created to serve the purpose of cyber criminals with bad intentions.",
     "answer": "malicious",
     "synonyms": [
-      "spiteful"
+      "spiteful",
+      "vindictive"
     ],
     "confusables": [
       "benign",
       "hostile",
-      "believable"
+      "believable",
+      "ambiguous",
+      "suspicious"
     ],
     "connotation": "negative",
     "collocations": [
@@ -20989,6 +26556,86 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Nanyang Prelim 2024"
+  },
+  {
+    "id": "vw_mandatory",
+    "word": "mandatory",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "rules and authority",
+    "cluster": null,
+    "meaning": "required by a law or rule; not optional",
+    "example": "It is ____ to submit a medical certificate if we are sick on an examination day or we will be given a zero mark for the paper.",
+    "answer": "mandatory",
+    "synonyms": [
+      "compulsory",
+      "required",
+      "obligatory"
+    ],
+    "confusables": [
+      "right",
+      "optional",
+      "preferable"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "mandatory attendance",
+      "mandatory requirement"
+    ],
+    "wordFamily": [
+      {
+        "word": "mandate",
+        "pos": "noun"
+      },
+      {
+        "word": "mandate",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "St Nicholas SA1 2022"
+  },
+  {
+    "id": "vw_means",
+    "word": "means",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "money & finance",
+    "cluster": null,
+    "meaning": "the amount of money or resources a person has available to spend",
+    "example": "Since young, I was told to spend within my ____.",
+    "answer": "means",
+    "synonyms": [
+      "budget",
+      "income",
+      "resources"
+    ],
+    "confusables": [
+      "life",
+      "ends",
+      "ways"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "live within one's means",
+      "beyond one's means"
+    ],
+    "wordFamily": [
+      {
+        "word": "mean",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "ACS SA1 2021"
   },
   {
     "id": "vw_menacingly",
@@ -21031,6 +26678,123 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Temasek Prelim 2023"
+  },
+  {
+    "id": "vw_only",
+    "word": "merely",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "degree & qualification",
+    "cluster": null,
+    "meaning": "used to say that something is no more than what is being described; nothing more than",
+    "example": "My apprehensive handling ____ resulted in the forceful jet forming random figures in foam on the wall.",
+    "answer": "only",
+    "synonyms": [],
+    "confusables": [
+      "singly",
+      "mainly",
+      "possibly"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "merely a suggestion",
+      "merely trying"
+    ],
+    "wordFamily": [
+      {
+        "word": "mere",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Catholic High SA1 2022"
+  },
+  {
+    "id": "vw_mess",
+    "word": "mess",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "actions and effort",
+    "cluster": null,
+    "meaning": "a state of untidiness or disorder; things scattered and mixed up",
+    "example": "He moaned in pain as he grabbed his twisted ankle and stared at the ____.",
+    "answer": "mess",
+    "synonyms": [
+      "disorder",
+      "shambles",
+      "clutter"
+    ],
+    "confusables": [
+      "wreck",
+      "debris",
+      "jumble"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "make a mess",
+      "terrible mess"
+    ],
+    "wordFamily": [
+      {
+        "word": "messy",
+        "pos": "adjective"
+      },
+      {
+        "word": "messily",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Maha Bodhi SA2 2020"
+  },
+  {
+    "id": "vw_methodical",
+    "word": "methodical",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "character",
+    "cluster": null,
+    "meaning": "done or working in a careful, organised and systematic way",
+    "example": "The team adopted a ____ approach to finding a solution so that all the possibilities would be covered.",
+    "answer": "methodical",
+    "synonyms": [
+      "systematic",
+      "thorough"
+    ],
+    "confusables": [
+      "resilient",
+      "animated",
+      "instinctive"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "methodical approach",
+      "methodical process"
+    ],
+    "wordFamily": [
+      {
+        "word": "methodically",
+        "pos": "adverb"
+      },
+      {
+        "word": "method",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2025"
   },
   {
     "id": "vw_meticulous",
@@ -21120,6 +26884,44 @@ export const harvestedEntries = [
     "source": "Nanyang Prelim 2025"
   },
   {
+    "id": "vw_mince",
+    "word": "mince",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "communication",
+    "cluster": null,
+    "meaning": "to soften or weaken the force of one's words; to speak indirectly to avoid offence",
+    "example": "Ayden has never been one to ____ his words. He is sure to always speak the truth in love.",
+    "answer": "mince",
+    "synonyms": [
+      "soften",
+      "sugarcoat",
+      "water down"
+    ],
+    "confusables": [
+      "amend",
+      "articulate",
+      "reassess"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "mince words",
+      "not mince words"
+    ],
+    "wordFamily": [
+      {
+        "word": "mincing",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "ACS CA1 2020"
+  },
+  {
     "id": "vw_minimal",
     "word": "minimal",
     "pos": "adjective",
@@ -21160,6 +26962,47 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "SCGS Prelim 2023"
+  },
+  {
+    "id": "vw_misleading",
+    "word": "misleading",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "truth",
+    "cluster": null,
+    "meaning": "giving a wrong impression or causing someone to believe something that is not true",
+    "example": "The information on this poster is ____ as only the positive aspects of the product have been highlighted.",
+    "answer": "misleading",
+    "synonyms": [
+      "deceptive",
+      "false"
+    ],
+    "confusables": [
+      "intuitive",
+      "unstable",
+      "disorganised"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "misleading information",
+      "misleading advertisement"
+    ],
+    "wordFamily": [
+      {
+        "word": "mislead",
+        "pos": "verb"
+      },
+      {
+        "word": "misleadingly",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan SA2 2020"
   },
   {
     "id": "vw_mitigate",
@@ -21241,6 +27084,48 @@ export const harvestedEntries = [
     "source": "PLMGS Prelim 2022"
   },
   {
+    "id": "vw_moaned",
+    "word": "moaned",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "health",
+    "cluster": null,
+    "meaning": "to make a long low sound that expresses pain or suffering",
+    "example": "Gary ____ in pain as he grabbed his twisted ankle.",
+    "answer": "moaned",
+    "synonyms": [
+      "groaned",
+      "cried out",
+      "whimpered"
+    ],
+    "confusables": [
+      "wailed",
+      "whined",
+      "growled"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "moaned in pain",
+      "moaned softly"
+    ],
+    "wordFamily": [
+      {
+        "word": "moan",
+        "pos": "noun"
+      },
+      {
+        "word": "moan",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Maha Bodhi SA2 2020"
+  },
+  {
     "id": "vw_achievement",
     "word": "moment of glory",
     "pos": "noun",
@@ -21280,6 +27165,123 @@ export const harvestedEntries = [
     "source": "Rosyth Prelim 2023"
   },
   {
+    "id": "vw_motivated",
+    "word": "motivated",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "emotions and feelings",
+    "cluster": null,
+    "meaning": "caused someone to want to do something or take action",
+    "example": "It ____ her to study at the National University of Singapore.",
+    "answer": "motivated",
+    "synonyms": [
+      "prompted",
+      "inspired",
+      "drove"
+    ],
+    "confusables": [
+      "excited",
+      "deterred",
+      "impeded"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "motivated by",
+      "highly motivated"
+    ],
+    "wordFamily": [
+      {
+        "word": "motivation",
+        "pos": "noun"
+      },
+      {
+        "word": "motivating",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "ACS(J) BA1 2022"
+  },
+  {
+    "id": "vw_motive",
+    "word": "motive",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "reasoning",
+    "cluster": null,
+    "meaning": "the reason behind a person's action, especially when it involves doing something wrong",
+    "example": "After a thorough investigation, the detective discovered that revenge was the ____ for the murder.",
+    "answer": "motive",
+    "synonyms": [
+      "reason",
+      "driving force",
+      "rationale"
+    ],
+    "confusables": [
+      "purpose",
+      "intention",
+      "incentive"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "motive for a crime",
+      "underlying motive"
+    ],
+    "wordFamily": [
+      {
+        "word": "motivate",
+        "pos": "verb"
+      },
+      {
+        "word": "motivation",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan SA1 2021"
+  },
+  {
+    "id": "vw_moved_up",
+    "word": "move up",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "school life",
+    "cluster": null,
+    "meaning": "to advance to a higher level, class or school",
+    "example": "When Irfan ____ to Secondary One, it took him some time to get used to the new school routine.",
+    "answer": "moved up",
+    "synonyms": [
+      "advanced",
+      "progressed",
+      "transitioned"
+    ],
+    "confusables": [
+      "moved in",
+      "moved over",
+      "moved along"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "move up to secondary school",
+      "move up a level"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan SA1 2024"
+  },
+  {
     "id": "vw_mundane",
     "word": "mundane",
     "pos": "adjective",
@@ -21315,6 +27317,244 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Tao Nan Prelim 2024"
+  },
+  {
+    "id": "vw_mustered",
+    "word": "muster",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "emotions and feelings",
+    "cluster": null,
+    "meaning": "to gather or summon enough courage, energy or strength to do something difficult",
+    "example": "Finally, one day, they ____ the courage to go to her.",
+    "answer": "mustered",
+    "synonyms": [
+      "summoned",
+      "gathered",
+      "plucked up"
+    ],
+    "confusables": [
+      "took up",
+      "called up",
+      "picked up"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "muster courage",
+      "muster strength"
+    ],
+    "wordFamily": [
+      {
+        "word": "muster",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nan Hua SA1 2022"
+  },
+  {
+    "id": "vw_mystery",
+    "word": "mystery",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "detective",
+    "cluster": null,
+    "meaning": "something that is not fully understood or that cannot be explained",
+    "example": "The detective unravelled the ____ of the missing gold.",
+    "answer": "mystery",
+    "synonyms": [
+      "puzzle",
+      "enigma",
+      "riddle"
+    ],
+    "confusables": [
+      "story",
+      "history",
+      "memory"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "unravel a mystery",
+      "shrouded in mystery"
+    ],
+    "wordFamily": [
+      {
+        "word": "mysterious",
+        "pos": "adjective"
+      },
+      {
+        "word": "mysteriously",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Red Swastika SA1 2021"
+  },
+  {
+    "id": "vw_natives",
+    "word": "natives",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "people and society",
+    "cluster": null,
+    "meaning": "people who were born in or originally belong to a particular place",
+    "example": "The ____ living in countries enjoyed chilli in their food.",
+    "answer": "natives",
+    "synonyms": [
+      "inhabitants",
+      "locals",
+      "indigenous people"
+    ],
+    "confusables": [
+      "citizens",
+      "residents",
+      "occupants"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "local natives",
+      "native people"
+    ],
+    "wordFamily": [
+      {
+        "word": "native",
+        "pos": "adjective"
+      },
+      {
+        "word": "nativity",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Red Swastika SA2 2020"
+  },
+  {
+    "id": "vw_nausea",
+    "word": "nausea",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "health",
+    "cluster": null,
+    "meaning": "a feeling of sickness in the stomach that makes you want to vomit",
+    "example": "When the ____ passed over him, Zheng Nian could not resist leaning forward again.",
+    "answer": "nausea",
+    "synonyms": [
+      "queasiness",
+      "sickness"
+    ],
+    "confusables": [
+      "dizziness",
+      "numbness",
+      "bloatedness"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "waves of nausea",
+      "feeling of nausea"
+    ],
+    "wordFamily": [
+      {
+        "word": "nauseous",
+        "pos": "adjective"
+      },
+      {
+        "word": "nauseate",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "ACS CA1 2020"
+  },
+  {
+    "id": "vw_negligence",
+    "word": "negligence",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "responsibility",
+    "cluster": null,
+    "meaning": "failure to take proper care or responsibility; carelessness that causes harm",
+    "example": "The employer was fined for his ____ as he did not ensure that the safety procedures were followed.",
+    "answer": "negligence",
+    "synonyms": [
+      "carelessness",
+      "irresponsibility",
+      "neglect"
+    ],
+    "confusables": [
+      "ignorance",
+      "indifference",
+      "nonchalance"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "gross negligence",
+      "charged with negligence"
+    ],
+    "wordFamily": [
+      {
+        "word": "negligent",
+        "pos": "adjective"
+      },
+      {
+        "word": "negligently",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA2 2020"
+  },
+  {
+    "id": "vw_nerve_racking",
+    "word": "nerve-racking",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "feelings & emotions",
+    "cluster": null,
+    "meaning": "making you feel extremely anxious, stressed, or worried",
+    "example": "Having to cook for my family was extremely ____ , but my sister promised to help me so I stopped worrying.",
+    "answer": "nerve-racking",
+    "synonyms": [
+      "stressful",
+      "anxiety-inducing",
+      "tense"
+    ],
+    "confusables": [
+      "hair-raising",
+      "gut-wrenching",
+      "heart-stopping"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "nerve-racking experience",
+      "nerve-racking task"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Maha Bodhi SA1 2021"
   },
   {
     "id": "vw_nimbly",
@@ -21401,6 +27641,127 @@ export const harvestedEntries = [
     "source": "Pei Chun Prelim 2023"
   },
   {
+    "id": "vw_noticed",
+    "word": "noticed",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "observation",
+    "cluster": null,
+    "meaning": "to become aware of something by seeing or paying attention",
+    "example": "Since then, the boys ____ that his wife, Mrs Tan, had begun feeding birds every day without fail at their void deck.",
+    "answer": "noticed",
+    "synonyms": [
+      "observed",
+      "detected",
+      "spotted"
+    ],
+    "confusables": [
+      "identified",
+      "discovered",
+      "confirmed"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "noticed a change",
+      "noticed the difference"
+    ],
+    "wordFamily": [
+      {
+        "word": "notice",
+        "pos": "noun"
+      },
+      {
+        "word": "noticeable",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nan Hua SA1 2022"
+  },
+  {
+    "id": "vw_obliged",
+    "word": "obliged",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "helpfulness & duty",
+    "cluster": null,
+    "meaning": "did something as a favour or to help when asked; complied with a request",
+    "example": "When I asked to borrow some money from Bala, he ____ by offering me $2.",
+    "answer": "obliged",
+    "synonyms": [
+      "complied",
+      "helped out",
+      "assisted"
+    ],
+    "confusables": [
+      "donated",
+      "indulged",
+      "accepted"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "happy to oblige",
+      "obliged by helping"
+    ],
+    "wordFamily": [
+      {
+        "word": "oblige",
+        "pos": "verb"
+      },
+      {
+        "word": "obligation",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Catholic High SA2 2020"
+  },
+  {
+    "id": "vw_oblivion",
+    "word": "oblivion",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "awareness",
+    "cluster": null,
+    "meaning": "a state of being completely unaware of what is happening around you",
+    "example": "I could no longer hear or see my crew. I swam in ____, desperately seeking safety.",
+    "answer": "oblivion",
+    "synonyms": [
+      "unawareness",
+      "unconsciousness"
+    ],
+    "confusables": [
+      "disregard",
+      "indifference",
+      "nonchalance"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "sink into oblivion",
+      "swim in oblivion"
+    ],
+    "wordFamily": [
+      {
+        "word": "oblivious",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2021"
+  },
+  {
     "id": "vw_oblivious",
     "word": "oblivious",
     "pos": "adjective",
@@ -21413,12 +27774,15 @@ export const harvestedEntries = [
     "synonyms": [
       "unaware",
       "unconscious",
-      "ignorant"
+      "ignorant",
+      "heedless"
     ],
     "confusables": [
       "attuned",
       "receptive",
-      "sensitive"
+      "sensitive",
+      "blind",
+      "negligent"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -21527,6 +27891,46 @@ export const harvestedEntries = [
     "source": "Catholic High Prelim 2021"
   },
   {
+    "id": "vw_occasion",
+    "word": "occasion",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "celebrations & time",
+    "cluster": null,
+    "meaning": "a special time or happening; an event",
+    "example": "Every culture in Singapore has its own festival to usher in the new year. For my family, it is the Chinese New Year and I am excited each time the ____ comes around.",
+    "answer": "occasion",
+    "synonyms": [
+      "event"
+    ],
+    "confusables": [
+      "moment",
+      "situation",
+      "circumstance"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "on this occasion",
+      "special occasion"
+    ],
+    "wordFamily": [
+      {
+        "word": "occasional",
+        "pos": "adjective"
+      },
+      {
+        "word": "occasionally",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nan Hua SA2 2020"
+  },
+  {
     "id": "vw_off_the_hook",
     "word": "off the hook",
     "pos": "adjective",
@@ -21557,6 +27961,244 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Raffles Prelim 2021"
+  },
+  {
+    "id": "vw_offenders",
+    "word": "offenders",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "law & order",
+    "cluster": null,
+    "meaning": "people who break the law or commit an offence",
+    "example": "It is illegal to feed any animal at a nature reserve. ____ can be fined up to $50,000.",
+    "answer": "offenders",
+    "synonyms": [
+      "violators",
+      "lawbreakers",
+      "wrongdoers"
+    ],
+    "confusables": [
+      "culprits",
+      "abusers",
+      "suspects"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "repeat offenders",
+      "first-time offender"
+    ],
+    "wordFamily": [
+      {
+        "word": "offend",
+        "pos": "verb"
+      },
+      {
+        "word": "offence",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Maha Bodhi SA1 2021"
+  },
+  {
+    "id": "vw_on_pins_and_needles",
+    "word": "on pins and needles",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "emotions and feelings",
+    "cluster": null,
+    "meaning": "feeling very nervous and anxious while waiting for something to happen",
+    "example": "He was waiting for the results of the competition to be announced. He could feel his heart pounding in his chest. He was ____.",
+    "answer": "on pins and needles",
+    "synonyms": [
+      "anxious",
+      "on tenterhooks",
+      "nervous"
+    ],
+    "confusables": [
+      "in hot soup",
+      "out of character",
+      "at sixes and sevens"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "on pins and needles waiting",
+      "kept on pins and needles"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nan Hua SA1 2020"
+  },
+  {
+    "id": "vw_on_tenterhooks",
+    "word": "on tenterhooks",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "emotion",
+    "cluster": null,
+    "meaning": "feeling very nervous, excited or worried while waiting for something to happen",
+    "example": "I was ____ even before the race began.",
+    "answer": "on tenterhooks",
+    "synonyms": [
+      "anxious",
+      "on edge"
+    ],
+    "confusables": [
+      "doubtful",
+      "confused",
+      "terrorised"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "on tenterhooks waiting",
+      "keep someone on tenterhooks"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "MGS SA2 2020"
+  },
+  {
+    "id": "vw_on_the_mend",
+    "word": "on the mend",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "health",
+    "cluster": null,
+    "meaning": "recovering from an illness or injury and getting better",
+    "example": "\"After a few days of rest, you should be ____,\" the doctor told her patient.",
+    "answer": "on the mend",
+    "synonyms": [
+      "recovering",
+      "improving",
+      "getting better"
+    ],
+    "confusables": [
+      "under the weather",
+      "as red as a beetroot",
+      "pulling yourself together"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "on the mend after surgery",
+      "finally on the mend"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "ACS(J) BA1 2022"
+  },
+  {
+    "id": "vw_out_of_the_woods",
+    "word": "out of the woods",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "health",
+    "cluster": null,
+    "meaning": "past the most difficult or dangerous part of a situation; no longer in danger",
+    "example": "Aisah's surgery was successful but she is still not ____, so the doctors are keeping a close watch on her in the Intensive Care Unit.",
+    "answer": "out of the woods",
+    "synonyms": [
+      "in the clear",
+      "out of danger",
+      "safe"
+    ],
+    "confusables": [
+      "out of the picture",
+      "out of the running",
+      "out of the question"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "not out of the woods yet",
+      "be out of the woods"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "MGS SA1 2021"
+  },
+  {
+    "id": "vw_ovation",
+    "word": "ovation",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "performance",
+    "cluster": null,
+    "meaning": "enthusiastic applause from an audience to show appreciation",
+    "example": "The ballerina's performance was enchanting and she was given a standing ____ by the audience when it ended.",
+    "answer": "ovation",
+    "synonyms": [
+      "applause",
+      "acclaim",
+      "cheers"
+    ],
+    "confusables": [
+      "award",
+      "honour",
+      "tribute"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "standing ovation",
+      "receive an ovation"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA2 2020"
+  },
+  {
+    "id": "vw_overbearing",
+    "word": "overbearing",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "character",
+    "cluster": null,
+    "meaning": "trying to control others in an unpleasant, bossy way; too dominant",
+    "example": "Su Ling resigned because she could no longer tolerate her manager's domineering ways and his ____ behaviour.",
+    "answer": "overbearing",
+    "synonyms": [
+      "domineering",
+      "bossy"
+    ],
+    "confusables": [
+      "overriding",
+      "overacting",
+      "overwhelming"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "overbearing behaviour",
+      "overbearing manner"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "MGS SA2 2020"
   },
   {
     "id": "vw_override",
@@ -21860,6 +28502,39 @@ export const harvestedEntries = [
     "source": "Red Swastika Prelim 2021"
   },
   {
+    "id": "vw_paid_off",
+    "word": "pay off",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "plans and outcomes",
+    "cluster": null,
+    "meaning": "to be successful as a result of hard work or effort",
+    "example": "My sister's hard work before the art competition finally ____ when she won the top prize.",
+    "answer": "paid off",
+    "synonyms": [
+      "succeeded",
+      "proved worthwhile",
+      "bore fruit"
+    ],
+    "confusables": [
+      "paid up",
+      "paid out",
+      "paid back"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "hard work paid off",
+      "effort paid off"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan SA1 2021"
+  },
+  {
     "id": "vw_peered",
     "word": "peered",
     "pos": "verb",
@@ -21925,6 +28600,44 @@ export const harvestedEntries = [
     "source": "Raffles Prelim 2021"
   },
   {
+    "id": "vw_suppressed",
+    "word": "pent-up",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "feelings & emotions",
+    "cluster": null,
+    "meaning": "held back or kept inside; not allowed to be expressed",
+    "example": "A quick look at Mr Gauss's face revealed it to be forebodingly dark with ____ rage.",
+    "answer": "suppressed",
+    "synonyms": [],
+    "confusables": [
+      "subtle",
+      "subdued",
+      "smothered"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "pent-up anger",
+      "pent-up emotions"
+    ],
+    "wordFamily": [
+      {
+        "word": "suppress",
+        "pos": "verb"
+      },
+      {
+        "word": "suppression",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Catholic High SA1 2022"
+  },
+  {
     "id": "vw_permanent",
     "word": "permanent",
     "pos": "adjective",
@@ -21979,12 +28692,16 @@ export const harvestedEntries = [
     "synonyms": [
       "stubborn",
       "lingering",
-      "relentless"
+      "relentless",
+      "habitual",
+      "repeat"
     ],
     "confusables": [
       "drastic",
       "consistent",
-      "continuous"
+      "continuous",
+      "insistent",
+      "competent"
     ],
     "connotation": "negative",
     "collocations": [
@@ -22127,6 +28844,109 @@ export const harvestedEntries = [
     "source": "ACS Prelim 2021"
   },
   {
+    "id": "vw_pick_up",
+    "word": "pick up",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "learning & skills",
+    "cluster": null,
+    "meaning": "to learn or acquire a skill or habit, usually without formal lessons",
+    "example": "My grandmother wants to ____ digital skills so that she can buy groceries online.",
+    "answer": "pick up",
+    "synonyms": [
+      "learn",
+      "acquire",
+      "master"
+    ],
+    "confusables": [
+      "pick on",
+      "pick off",
+      "pick out"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "pick up skills",
+      "pick up a language"
+    ],
+    "wordFamily": [
+      {
+        "word": "pickup",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Maha Bodhi SA1 2021"
+  },
+  {
+    "id": "vw_victimised",
+    "word": "picked on",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "social behaviour",
+    "cluster": null,
+    "meaning": "to be treated unfairly or bullied repeatedly",
+    "example": "She was often ____ due to her small stature.",
+    "answer": "victimised",
+    "synonyms": [
+      "bullied",
+      "targeted"
+    ],
+    "confusables": [
+      "favoured",
+      "ostracised",
+      "designated"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "picked on",
+      "singled out"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "SCGS SA1 2021"
+  },
+  {
+    "id": "vw_pitch_in",
+    "word": "pitch in",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "community and support",
+    "cluster": null,
+    "meaning": "to join in and help with something, especially by contributing money or effort",
+    "example": "After learning about the old lady's plight, we decided to ____ to pay for her medical fee.",
+    "answer": "pitch in",
+    "synonyms": [
+      "chip in",
+      "contribute",
+      "help out"
+    ],
+    "confusables": [
+      "dig in",
+      "cave in",
+      "throw in"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "pitch in together",
+      "pitch in to help"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "St Nicholas SA1 2022"
+  },
+  {
     "id": "vw_placated",
     "word": "placate",
     "pos": "verb",
@@ -22138,12 +28958,17 @@ export const harvestedEntries = [
     "answer": "placated",
     "synonyms": [
       "appeased",
-      "mollified"
+      "mollified",
+      "appease",
+      "pacify",
+      "calm"
     ],
     "confusables": [
       "soothed",
       "mitigated",
-      "provoked"
+      "provoked",
+      "allay",
+      "relieve"
     ],
     "connotation": "positive",
     "collocations": [
@@ -22162,6 +28987,193 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "SCGS Prelim 2024"
+  },
+  {
+    "id": "vw_plummeted",
+    "word": "plummet",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "movement",
+    "cluster": null,
+    "meaning": "to fall suddenly and very quickly from a high position",
+    "example": "With snow whirling around me, I fought to grab the boat, but I missed and ____ deeper into the sea.",
+    "answer": "plummeted",
+    "synonyms": [
+      "plunged",
+      "dropped"
+    ],
+    "confusables": [
+      "slipped",
+      "descended",
+      "sank"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "plummet into the sea",
+      "prices plummeted"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2021"
+  },
+  {
+    "id": "vw_plunging",
+    "word": "plunge",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "movement",
+    "cluster": null,
+    "meaning": "to fall suddenly and steeply downward",
+    "example": "At the thought of his body ____ accidentally down the point of no return, cold sweat broke his skin.",
+    "answer": "plunging",
+    "synonyms": [
+      "falling",
+      "dropping",
+      "tumbling"
+    ],
+    "confusables": [
+      "rolling",
+      "sliding",
+      "crawling"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "plunge down",
+      "plunge into darkness"
+    ],
+    "wordFamily": [
+      {
+        "word": "plunge",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "ACS CA1 2020"
+  },
+  {
+    "id": "vw_point_of_view",
+    "word": "point of view",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "opinion",
+    "cluster": null,
+    "meaning": "a particular way of thinking about or judging something; a person's opinion or attitude",
+    "example": "From my ____, the weight of this glass doesn't matter.",
+    "answer": "point of view",
+    "synonyms": [
+      "perspective",
+      "standpoint",
+      "viewpoint"
+    ],
+    "confusables": [
+      "belief",
+      "position",
+      "direction"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "from my point of view",
+      "different points of view"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Red Swastika SA1 2021"
+  },
+  {
+    "id": "vw_pointless",
+    "word": "pointless",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "reasoning",
+    "cluster": null,
+    "meaning": "having no purpose or use; not worth doing",
+    "example": "Ming Ming realised that it was ____ to argue with the invigilators since he had been caught red-handed cheating during the exam.",
+    "answer": "pointless",
+    "synonyms": [
+      "useless",
+      "futile",
+      "fruitless"
+    ],
+    "confusables": [
+      "guiltless",
+      "careless",
+      "doubtless"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "pointless argument",
+      "pointless exercise"
+    ],
+    "wordFamily": [
+      {
+        "word": "pointlessly",
+        "pos": "adverb"
+      },
+      {
+        "word": "pointlessness",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Henry Park SA1 2021"
+  },
+  {
+    "id": "vw_poked",
+    "word": "poked",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "actions and effort",
+    "cluster": null,
+    "meaning": "to push or prod something sharply with a pointed object",
+    "example": "To see if it was still alive, Jake ____ it with a stick.",
+    "answer": "poked",
+    "synonyms": [
+      "jabbed",
+      "prodded",
+      "nudged"
+    ],
+    "confusables": [
+      "tickled",
+      "pushed",
+      "stroked"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "poke with a stick",
+      "poke someone in the ribs"
+    ],
+    "wordFamily": [
+      {
+        "word": "poke",
+        "pos": "noun"
+      },
+      {
+        "word": "poke",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan SA1 2021"
   },
   {
     "id": "vw_pondered",
@@ -22328,6 +29340,44 @@ export const harvestedEntries = [
     "source": "PLMGS Prelim 2022"
   },
   {
+    "id": "vw_problems",
+    "word": "problems",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "life challenges",
+    "cluster": null,
+    "meaning": "difficulties or troubles that need to be dealt with",
+    "example": "Your ____ are like this glass of water. If you hold on to them for too long, it will only get worse.",
+    "answer": "problems",
+    "synonyms": [
+      "burdens",
+      "troubles",
+      "difficulties"
+    ],
+    "confusables": [
+      "obstacles",
+      "weakness",
+      "disadvantages"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "hold on to problems",
+      "face problems"
+    ],
+    "wordFamily": [
+      {
+        "word": "problematic",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Red Swastika SA1 2021"
+  },
+  {
     "id": "vw_procrastinates",
     "word": "procrastinate",
     "pos": "verb",
@@ -22412,6 +29462,48 @@ export const harvestedEntries = [
     "source": "MGS Prelim 2025"
   },
   {
+    "id": "vw_progressively",
+    "word": "progressively",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "change and development",
+    "cluster": null,
+    "meaning": "in a way that happens gradually or in stages over a period of time",
+    "example": "My grandfather's eyesight got worse ____ over the months.",
+    "answer": "progressively",
+    "synonyms": [
+      "gradually",
+      "steadily",
+      "increasingly"
+    ],
+    "confusables": [
+      "regularly",
+      "subsequently",
+      "consequently"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "progressively worse",
+      "progressively better"
+    ],
+    "wordFamily": [
+      {
+        "word": "progressive",
+        "pos": "adjective"
+      },
+      {
+        "word": "progress",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Maha Bodhi SA2 2020"
+  },
+  {
     "id": "vw_promote",
     "word": "promote",
     "pos": "verb",
@@ -22452,6 +29544,44 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Raffles Girls' Prelim 2025"
+  },
+  {
+    "id": "vw_immediately",
+    "word": "promptly",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "speed & time",
+    "cluster": null,
+    "meaning": "without any delay; right away",
+    "example": "Back in his own house, Utterson ____ retrieved some documents from his safe.",
+    "answer": "immediately",
+    "synonyms": [],
+    "confusables": [
+      "rapidly",
+      "directly",
+      "punctually"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "replied promptly",
+      "acted promptly"
+    ],
+    "wordFamily": [
+      {
+        "word": "prompt",
+        "pos": "adjective"
+      },
+      {
+        "word": "promptness",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Maha Bodhi SA1 2021"
   },
   {
     "id": "vw_prone",
@@ -22531,6 +29661,89 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Nanyang Prelim 2023"
+  },
+  {
+    "id": "vw_provide",
+    "word": "provide",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "actions and effort",
+    "cluster": null,
+    "meaning": "to give or supply something that someone needs",
+    "example": "She wanted to ____ the less fortunate access to justice.",
+    "answer": "provide",
+    "synonyms": [
+      "give",
+      "supply",
+      "offer"
+    ],
+    "confusables": [
+      "issue",
+      "award",
+      "dispense"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "provide access",
+      "provide support"
+    ],
+    "wordFamily": [
+      {
+        "word": "provision",
+        "pos": "noun"
+      },
+      {
+        "word": "provider",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "ACS(J) BA1 2022"
+  },
+  {
+    "id": "vw_sensible",
+    "word": "prudent",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "character traits",
+    "cluster": null,
+    "meaning": "showing good judgement; acting carefully and wisely",
+    "example": "She decided it would be ____ to leave her war-torn city to continue her studies in Paris where it was safer.",
+    "answer": "sensible",
+    "synonyms": [
+      "wise",
+      "cautious"
+    ],
+    "confusables": [
+      "sensitive",
+      "respectable",
+      "responsible"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "prudent decision",
+      "prudent advice"
+    ],
+    "wordFamily": [
+      {
+        "word": "prudence",
+        "pos": "noun"
+      },
+      {
+        "word": "prudently",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA2 2020"
   },
   {
     "id": "vw_pseudonym",
@@ -22642,6 +29855,44 @@ export const harvestedEntries = [
     "source": "MGS Prelim 2024"
   },
   {
+    "id": "vw_put_across",
+    "word": "put across",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "communication",
+    "cluster": null,
+    "meaning": "to communicate or explain an idea clearly to others",
+    "example": "The group leader was trying to ____ his ideas clearly to his teammates.",
+    "answer": "put across",
+    "synonyms": [
+      "convey",
+      "express",
+      "communicate"
+    ],
+    "confusables": [
+      "put up",
+      "put off",
+      "put through"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "put across ideas",
+      "put across a message"
+    ],
+    "wordFamily": [
+      {
+        "word": "put across",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Rosyth SA1 2021"
+  },
+  {
     "id": "vw_put_aside",
     "word": "put aside",
     "pos": "verb",
@@ -22675,6 +29926,44 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Catholic High Prelim 2023"
+  },
+  {
+    "id": "vw_put_down",
+    "word": "put down",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "conflict and competition",
+    "cluster": null,
+    "meaning": "to criticise or humiliate someone in a way that makes them feel embarrassed or inferior",
+    "example": "Jennifer was upset as she had been ____ in front of her friends by her mother. She felt very embarrassed.",
+    "answer": "put down",
+    "synonyms": [
+      "belittled",
+      "humiliated",
+      "criticised"
+    ],
+    "confusables": [
+      "put up",
+      "put off",
+      "put out"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "put someone down",
+      "feel put down"
+    ],
+    "wordFamily": [
+      {
+        "word": "put-down",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Red Swastika SA2 2020"
   },
   {
     "id": "vw_put_off",
@@ -22745,6 +30034,77 @@ export const harvestedEntries = [
     "source": "ACS(P) Prelim 2024"
   },
   {
+    "id": "vw_charming",
+    "word": "quaint",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "places",
+    "cluster": null,
+    "meaning": "attractively unusual or old-fashioned in a charming way",
+    "example": "This curved road with ____ shophouses on both sides used to face the sea.",
+    "answer": "charming",
+    "synonyms": [
+      "picturesque",
+      "old-fashioned"
+    ],
+    "confusables": [
+      "busy",
+      "narrow",
+      "unattractive"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "quaint shophouses",
+      "quaint village"
+    ],
+    "wordFamily": [
+      {
+        "word": "quaintly",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "SCGS SA2 2020"
+  },
+  {
+    "id": "vw_glance",
+    "word": "quick look",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "vision & observation",
+    "cluster": null,
+    "meaning": "a quick look at something",
+    "example": "A ____ at Mr Gauss's face revealed it to be forebodingly dark with pent-up rage.",
+    "answer": "glance",
+    "synonyms": [],
+    "confusables": [
+      "gaze",
+      "stare",
+      "squint"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "quick glance",
+      "take a glance"
+    ],
+    "wordFamily": [
+      {
+        "word": "glance",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Catholic High SA1 2022"
+  },
+  {
     "id": "vw_quickened",
     "word": "quicken",
     "pos": "verb",
@@ -22783,6 +30143,48 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Henry Park Prelim 2022"
+  },
+  {
+    "id": "vw_quirky",
+    "word": "quirky",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "character and behaviour",
+    "cluster": null,
+    "meaning": "unusual or strange in an interesting or amusing way",
+    "example": "James has a ____ eating habit that attracts attention whenever he eats.",
+    "answer": "quirky",
+    "synonyms": [
+      "unusual",
+      "eccentric",
+      "odd"
+    ],
+    "confusables": [
+      "faulty",
+      "haywire",
+      "nonchalant"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "quirky habit",
+      "quirky personality"
+    ],
+    "wordFamily": [
+      {
+        "word": "quirkily",
+        "pos": "adverb"
+      },
+      {
+        "word": "quirkiness",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "St Nicholas SA1 2022"
   },
   {
     "id": "vw_raised",
@@ -22825,6 +30227,119 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Raffles Girls' Prelim 2025"
+  },
+  {
+    "id": "vw_rather",
+    "word": "rather",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "degree",
+    "cluster": null,
+    "meaning": "to a moderate degree; fairly but not extremely",
+    "example": "If I hold it for a minute, it's ____ light.",
+    "answer": "rather",
+    "synonyms": [
+      "fairly",
+      "quite",
+      "somewhat"
+    ],
+    "confusables": [
+      "very",
+      "really",
+      "extremely"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "rather light",
+      "rather heavy"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Red Swastika SA1 2021"
+  },
+  {
+    "id": "vw_reap",
+    "word": "reap",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "achievement",
+    "cluster": null,
+    "meaning": "to receive something, especially something good, as a result of what you have done",
+    "example": "The health benefits that one can ____ from it are many.",
+    "answer": "reap",
+    "synonyms": [
+      "gain",
+      "obtain",
+      "harvest"
+    ],
+    "confusables": [
+      "gather",
+      "recover",
+      "achieve"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "reap benefits",
+      "reap rewards"
+    ],
+    "wordFamily": [
+      {
+        "word": "reaper",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2020"
+  },
+  {
+    "id": "vw_reasonable",
+    "word": "reasonable",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "value and demand",
+    "cluster": null,
+    "meaning": "fair and not too expensive or extreme; sensible and acceptable",
+    "example": "Radley hoped that someone would resell the console at a ____ price.",
+    "answer": "reasonable",
+    "synonyms": [
+      "decent",
+      "fair",
+      "moderate"
+    ],
+    "confusables": [
+      "steep",
+      "logical",
+      "rational"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "reasonable price",
+      "reasonable request"
+    ],
+    "wordFamily": [
+      {
+        "word": "reasonably",
+        "pos": "adverb"
+      },
+      {
+        "word": "reason",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Henry Park SA1 2021"
   },
   {
     "id": "vw_recalled",
@@ -22906,6 +30421,114 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Raffles Prelim 2024"
+  },
+  {
+    "id": "vw_recipes",
+    "word": "recipe",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "food and cooking",
+    "cluster": null,
+    "meaning": "a set of instructions that describes how to prepare and cook a particular dish",
+    "example": "Mrs Lee likes to buy cookbooks as they contain ____ that describe how to cook a particular dish and what to put in it.",
+    "answer": "recipes",
+    "synonyms": [
+      "instructions",
+      "directions",
+      "formula"
+    ],
+    "confusables": [
+      "lists",
+      "menus",
+      "ingredients"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "follow a recipe",
+      "recipe book"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan SA1 2021"
+  },
+  {
+    "id": "vw_known",
+    "word": "recognised",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "reputation & knowledge",
+    "cluster": null,
+    "meaning": "officially accepted or identified as having a particular quality or status",
+    "example": "Singapore is ____ as the most English-literate country in Asia.",
+    "answer": "known",
+    "synonyms": [],
+    "confusables": [
+      "judged",
+      "treated",
+      "defined"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "recognised as",
+      "widely recognised"
+    ],
+    "wordFamily": [
+      {
+        "word": "recognition",
+        "pos": "noun"
+      },
+      {
+        "word": "recognisable",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2024"
+  },
+  {
+    "id": "vw_recollected",
+    "word": "recollect",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "memory",
+    "cluster": null,
+    "meaning": "to remember something from the past",
+    "example": "The moment he revealed a face with a thick beard, Michael ____ a news report he had come across earlier.",
+    "answer": "recollected",
+    "synonyms": [
+      "recalled",
+      "remembered"
+    ],
+    "confusables": [
+      "brought into play",
+      "brought into view",
+      "brought in the open"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "recollect a memory",
+      "recollect the details"
+    ],
+    "wordFamily": [
+      {
+        "word": "recollection",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "St Nicholas SA1 2021"
   },
   {
     "id": "vw_recollection",
@@ -23029,6 +30652,48 @@ export const harvestedEntries = [
     "source": "Henry Park Prelim 2021"
   },
   {
+    "id": "vw_reduce",
+    "word": "reduce",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "health",
+    "cluster": null,
+    "meaning": "to make something smaller or less in amount or degree",
+    "example": "Simple mind-body exercises can ____ inflammation.",
+    "answer": "reduce",
+    "synonyms": [
+      "cut down",
+      "decrease",
+      "lower"
+    ],
+    "confusables": [
+      "cut in",
+      "cut off",
+      "cut out"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "reduce inflammation",
+      "reduce stress"
+    ],
+    "wordFamily": [
+      {
+        "word": "reduction",
+        "pos": "noun"
+      },
+      {
+        "word": "reduced",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "MGS SA1 2021"
+  },
+  {
     "id": "vw_regarded",
     "word": "referred to as",
     "pos": "verb",
@@ -23063,6 +30728,81 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Catholic High Prelim 2024"
+  },
+  {
+    "id": "vw_refrain",
+    "word": "refrain",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "behaviour & restraint",
+    "cluster": null,
+    "meaning": "to stop yourself from doing something, usually out of consideration for others",
+    "example": "We were told to ____ from passing any remarks when we entered the home for the visually handicapped.",
+    "answer": "refrain",
+    "synonyms": [
+      "hold back",
+      "desist",
+      "avoid"
+    ],
+    "confusables": [
+      "withhold",
+      "restrain",
+      "prevent"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "refrain from speaking",
+      "refrain from action"
+    ],
+    "wordFamily": [
+      {
+        "word": "refrain",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Catholic High SA1 2022"
+  },
+  {
+    "id": "vw_rekindled",
+    "word": "rekindle",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "emotion",
+    "cluster": null,
+    "meaning": "to make someone feel a strong interest or enthusiasm again after it has faded",
+    "example": "My mother's passion for knitting was ____ after she attended a knitting class organised by the community centre.",
+    "answer": "rekindled",
+    "synonyms": [
+      "revived",
+      "reignited"
+    ],
+    "confusables": [
+      "revised",
+      "revisited",
+      "recollected"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "rekindle a passion",
+      "rekindle interest"
+    ],
+    "wordFamily": [
+      {
+        "word": "kindle",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Rosyth SA1 2022"
   },
   {
     "id": "vw_relating",
@@ -23105,6 +30845,48 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Maris Stella Prelim 2024"
+  },
+  {
+    "id": "vw_relented",
+    "word": "relented",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "decisions & attitudes",
+    "cluster": null,
+    "meaning": "finally agreed to do something after refusing or being strict about it",
+    "example": "After much pleading, Father finally ____ and agreed to let me go on the overseas school trip.",
+    "answer": "relented",
+    "synonyms": [
+      "gave in",
+      "yielded",
+      "backed down"
+    ],
+    "confusables": [
+      "defeated",
+      "permitted",
+      "surrendered"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "finally relented",
+      "relented and allowed"
+    ],
+    "wordFamily": [
+      {
+        "word": "relent",
+        "pos": "verb"
+      },
+      {
+        "word": "relentless",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Catholic High SA2 2020"
   },
   {
     "id": "vw_intense",
@@ -23237,6 +31019,48 @@ export const harvestedEntries = [
     "source": "HenryPark Prelim 2024"
   },
   {
+    "id": "vw_relief",
+    "word": "relief",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "emotions",
+    "cluster": null,
+    "meaning": "a feeling of comfort or ease after worry, pain or sadness goes away",
+    "example": "Her soothing voice offered me some ____ amid my sadness and I felt better.",
+    "answer": "relief",
+    "synonyms": [
+      "comfort",
+      "solace",
+      "ease"
+    ],
+    "confusables": [
+      "agony",
+      "misery",
+      "aggravation"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "offer relief",
+      "sense of relief"
+    ],
+    "wordFamily": [
+      {
+        "word": "relieve",
+        "pos": "verb"
+      },
+      {
+        "word": "relieved",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "SCGS SA2 2020"
+  },
+  {
     "id": "vw_relished",
     "word": "relish",
     "pos": "verb",
@@ -23285,12 +31109,15 @@ export const harvestedEntries = [
     "synonyms": [
       "guilt",
       "regret",
-      "contrition"
+      "contrition",
+      "repentance"
     ],
     "confusables": [
       "trauma",
       "awareness",
-      "discernment"
+      "discernment",
+      "grief",
+      "sympathy"
     ],
     "connotation": "negative",
     "collocations": [
@@ -23327,12 +31154,16 @@ export const harvestedEntries = [
     "synonyms": [
       "deflect",
       "drive away",
-      "push back"
+      "push back",
+      "resist",
+      "ward off"
     ],
     "confusables": [
       "retains",
       "reduces",
-      "releases"
+      "releases",
+      "reject",
+      "refuse"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -23355,6 +31186,132 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Nan Hua Prelim 2024"
+  },
+  {
+    "id": "vw_replica",
+    "word": "replica",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "art and creativity",
+    "cluster": null,
+    "meaning": "an exact copy of something, made to look identical to the original",
+    "example": "The painting on the wall is not genuine. It is a/an ____ of the original.",
+    "answer": "replica",
+    "synonyms": [
+      "copy",
+      "duplicate",
+      "reproduction"
+    ],
+    "confusables": [
+      "adoption",
+      "adaptation",
+      "restoration"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "exact replica",
+      "replica of the original"
+    ],
+    "wordFamily": [
+      {
+        "word": "replicate",
+        "pos": "verb"
+      },
+      {
+        "word": "replication",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nan Hua SA1 2022"
+  },
+  {
+    "id": "vw_replicate",
+    "word": "replicate",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "science",
+    "cluster": null,
+    "meaning": "to make or do something again in exactly the same way",
+    "example": "It is very difficult to ____ the exact conditions for the science experiment in order to get identical results.",
+    "answer": "replicate",
+    "synonyms": [
+      "reproduce",
+      "duplicate",
+      "copy"
+    ],
+    "confusables": [
+      "revert",
+      "review",
+      "reiterate"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "replicate results",
+      "replicate conditions"
+    ],
+    "wordFamily": [
+      {
+        "word": "replication",
+        "pos": "noun"
+      },
+      {
+        "word": "replica",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2020"
+  },
+  {
+    "id": "vw_reputation",
+    "word": "reputation",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "character and behaviour",
+    "cluster": null,
+    "meaning": "the general opinion that people have about someone based on their past actions",
+    "example": "Her ____ as the world's greatest female pilot was sealed.",
+    "answer": "reputation",
+    "synonyms": [
+      "name",
+      "standing",
+      "renown"
+    ],
+    "confusables": [
+      "rank",
+      "persona",
+      "condition"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "good reputation",
+      "build a reputation"
+    ],
+    "wordFamily": [
+      {
+        "word": "reputable",
+        "pos": "adjective"
+      },
+      {
+        "word": "reputably",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nan Hua SA1 2020"
   },
   {
     "id": "vw_resistance",
@@ -23411,12 +31368,16 @@ export const harvestedEntries = [
     "synonyms": [
       "settle",
       "sort out",
-      "overcome"
+      "overcome",
+      "willpower",
+      "commitment"
     ],
     "confusables": [
       "restore",
       "recharge",
-      "reconnect"
+      "reconnect",
+      "responsibility",
+      "patience"
     ],
     "connotation": "positive",
     "collocations": [
@@ -23515,6 +31476,130 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Maris Stella Prelim 2023"
+  },
+  {
+    "id": "vw_restored",
+    "word": "restored",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "utilities & services",
+    "cluster": null,
+    "meaning": "brought back to its original working condition after it was lost or damaged",
+    "example": "There was a power failure in our neighbourhood. The power was only ____ a few hours later.",
+    "answer": "restored",
+    "synonyms": [
+      "reinstated",
+      "resumed",
+      "re-established"
+    ],
+    "confusables": [
+      "renewed",
+      "recovered",
+      "replenished"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "restore power",
+      "restore order"
+    ],
+    "wordFamily": [
+      {
+        "word": "restoration",
+        "pos": "noun"
+      },
+      {
+        "word": "restorative",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Pei Chun CA1 2020"
+  },
+  {
+    "id": "vw_restrict",
+    "word": "restrict",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "control",
+    "cluster": null,
+    "meaning": "to set limits on something; to control or reduce what is allowed",
+    "example": "To protect against malware, parents can ____ their children's access to the internet.",
+    "answer": "restrict",
+    "synonyms": [
+      "limit",
+      "control"
+    ],
+    "confusables": [
+      "object",
+      "impose",
+      "monitor"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "restrict access",
+      "restrict movement"
+    ],
+    "wordFamily": [
+      {
+        "word": "restriction",
+        "pos": "noun"
+      },
+      {
+        "word": "restricted",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2025"
+  },
+  {
+    "id": "vw_result",
+    "word": "result",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "achievements",
+    "cluster": null,
+    "meaning": "something that happens as a consequence of an action or effort",
+    "example": "It was the ____ of years of hard work and dedication from the animal care teams of the Singapore Zoo.",
+    "answer": "result",
+    "synonyms": [
+      "outcome",
+      "product"
+    ],
+    "confusables": [
+      "effort",
+      "essence",
+      "condition"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "end result",
+      "result of hard work"
+    ],
+    "wordFamily": [
+      {
+        "word": "result",
+        "pos": "verb"
+      },
+      {
+        "word": "resultant",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "St Nicholas SA1 2022"
   },
   {
     "id": "vw_retain",
@@ -23692,12 +31777,16 @@ export const harvestedEntries = [
     "synonyms": [
       "demanding",
       "intensive",
-      "thorough"
+      "thorough",
+      "tough",
+      "strenuous"
     ],
     "confusables": [
       "severe",
       "stringent",
-      "exhaustive"
+      "exhaustive",
+      "swift",
+      "sluggish"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -23909,12 +31998,15 @@ export const harvestedEntries = [
     "synonyms": [
       "doubtful",
       "unconvinced",
-      "disbelieving"
+      "disbelieving",
+      "uncertain"
     ],
     "confusables": [
       "hesitant",
       "undecided",
-      "suspicious"
+      "suspicious",
+      "cautious",
+      "resentful"
     ],
     "connotation": "negative",
     "collocations": [
@@ -23974,6 +32066,48 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Nan Chiau Prelim 2022"
+  },
+  {
+    "id": "vw_scorching",
+    "word": "scorching",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "weather",
+    "cluster": null,
+    "meaning": "extremely hot, hot enough to burn",
+    "example": "Zheng Nian wondered if the ground forty-storey below him was as ____ as lava.",
+    "answer": "scorching",
+    "synonyms": [
+      "blazing",
+      "searing",
+      "sweltering"
+    ],
+    "confusables": [
+      "freezing",
+      "warm",
+      "cool"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "scorching heat",
+      "scorching sun"
+    ],
+    "wordFamily": [
+      {
+        "word": "scorch",
+        "pos": "verb"
+      },
+      {
+        "word": "scorched",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "ACS CA1 2020"
   },
   {
     "id": "vw_scrutinised",
@@ -24096,6 +32230,38 @@ export const harvestedEntries = [
     "source": "St Nicholas Prelim 2022"
   },
   {
+    "id": "vw_set_off",
+    "word": "set off",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "movement",
+    "cluster": null,
+    "meaning": "to begin a journey or trip",
+    "example": "Once the travel restrictions have been lifted, I will pack my bags and ____ on a long and well-deserved vacation.",
+    "answer": "set off",
+    "synonyms": [
+      "depart",
+      "head off"
+    ],
+    "confusables": [
+      "set in",
+      "set up",
+      "set about"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "set off on a journey",
+      "set off early"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan SA2 2020"
+  },
+  {
     "id": "vw_severity",
     "word": "severity",
     "pos": "noun",
@@ -24138,6 +32304,88 @@ export const harvestedEntries = [
     "source": "Nan Chiau Prelim 2022"
   },
   {
+    "id": "vw_shelters",
+    "word": "shelter",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "animals",
+    "cluster": null,
+    "meaning": "a place that provides a temporary home and care for animals without owners",
+    "example": "Since we wanted to adopt a pet, we went to numerous animal ____ looking for the right one.",
+    "answer": "shelters",
+    "synonyms": [
+      "refuge",
+      "rescue centre"
+    ],
+    "confusables": [
+      "dwellings",
+      "residences",
+      "accommodations"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "animal shelter",
+      "seek shelter"
+    ],
+    "wordFamily": [
+      {
+        "word": "shelter",
+        "pos": "verb"
+      },
+      {
+        "word": "sheltered",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan SA2 2020"
+  },
+  {
+    "id": "vw_shortly",
+    "word": "shortly",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "time",
+    "cluster": null,
+    "meaning": "a short time after; not long afterwards",
+    "example": "____ after, they viewed the import as their own.",
+    "answer": "shortly",
+    "synonyms": [
+      "soon after",
+      "not long after"
+    ],
+    "confusables": [
+      "Quickly",
+      "Promptly",
+      "Immediately"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "shortly after",
+      "shortly before"
+    ],
+    "wordFamily": [
+      {
+        "word": "short",
+        "pos": "adjective"
+      },
+      {
+        "word": "shortness",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Red Swastika SA2 2020"
+  },
+  {
     "id": "vw_signalled",
     "word": "signalled",
     "pos": "verb",
@@ -24178,6 +32426,47 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "HenryPark Prelim 2025"
+  },
+  {
+    "id": "vw_significant",
+    "word": "significant",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "quantity and degree",
+    "cluster": null,
+    "meaning": "large or important enough to have a noticeable effect",
+    "example": "The compassionate millionaire donated a/an ____ amount of money to the recent catastrophic event and met all the needs of the victims.",
+    "answer": "significant",
+    "synonyms": [
+      "substantial",
+      "considerable"
+    ],
+    "confusables": [
+      "excessive",
+      "reasonable",
+      "economical"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "significant amount",
+      "significant contribution"
+    ],
+    "wordFamily": [
+      {
+        "word": "significance",
+        "pos": "noun"
+      },
+      {
+        "word": "significantly",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nan Hua SA1 2020"
   },
   {
     "id": "vw_significantly",
@@ -24261,6 +32550,39 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Rosyth Prelim 2025"
+  },
+  {
+    "id": "vw_skim",
+    "word": "skim",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "reading",
+    "cluster": null,
+    "meaning": "to read something quickly to get the main ideas without reading every word",
+    "example": "Mr Lee will quickly ____ through the newspaper every morning to get an overview of the news for that day.",
+    "answer": "skim",
+    "synonyms": [
+      "scan",
+      "glance through",
+      "browse"
+    ],
+    "confusables": [
+      "study",
+      "survey",
+      "scrutinise"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "skim through",
+      "skim the surface"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2020"
   },
   {
     "id": "vw_skyrocketed",
@@ -24450,6 +32772,124 @@ export const harvestedEntries = [
     "source": "Nan Hua Prelim 2024"
   },
   {
+    "id": "vw_looked_for",
+    "word": "sought",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "searching & finding",
+    "cluster": null,
+    "meaning": "tried to find or obtain something",
+    "example": "By the flickering light of the candle, he saw the sentence he had ____ .",
+    "answer": "looked for",
+    "synonyms": [],
+    "confusables": [
+      "aimed at",
+      "gone after",
+      "enquired about"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "sought after",
+      "sought help"
+    ],
+    "wordFamily": [
+      {
+        "word": "seek",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Maha Bodhi SA1 2021"
+  },
+  {
+    "id": "vw_sought_after",
+    "word": "sought-after",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "value and demand",
+    "cluster": null,
+    "meaning": "wanted or desired by many people; very popular or in high demand",
+    "example": "This highly ____ game console was sold out completely on their official website and in their retail store.",
+    "answer": "sought-after",
+    "synonyms": [
+      "popular",
+      "in demand",
+      "coveted"
+    ],
+    "confusables": [
+      "useful",
+      "enriching",
+      "successful"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "highly sought-after",
+      "most sought-after"
+    ],
+    "wordFamily": [
+      {
+        "word": "seek",
+        "pos": "verb"
+      },
+      {
+        "word": "sought",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Henry Park SA1 2021"
+  },
+  {
+    "id": "vw_specific",
+    "word": "specific",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "description",
+    "cluster": null,
+    "meaning": "clearly defined and detailed; relating to a particular thing",
+    "example": "Recent research has shown that there are ____ changes that happen to your body before, during and after a workout.",
+    "answer": "specific",
+    "synonyms": [
+      "particular",
+      "precise",
+      "definite"
+    ],
+    "confusables": [
+      "clear",
+      "thorough",
+      "beneficial"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "specific details",
+      "be specific about"
+    ],
+    "wordFamily": [
+      {
+        "word": "specifically",
+        "pos": "adverb"
+      },
+      {
+        "word": "specification",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "MGS SA1 2021"
+  },
+  {
     "id": "vw_speculated",
     "word": "speculate",
     "pos": "verb",
@@ -24613,6 +33053,123 @@ export const harvestedEntries = [
     "source": "Nan Hua Prelim 2024"
   },
   {
+    "id": "vw_motivated",
+    "word": "spurred",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "motivation & action",
+    "cluster": null,
+    "meaning": "encouraged or inspired someone to take action",
+    "example": "On returning home, he was ____ to set up a volunteer group, 'Hearts of Singapore', to aid the homeless.",
+    "answer": "motivated",
+    "synonyms": [],
+    "confusables": [
+      "nudged",
+      "triggered",
+      "provoked"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "spurred into action",
+      "spurred on"
+    ],
+    "wordFamily": [
+      {
+        "word": "spur",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Rosyth SA1 2021"
+  },
+  {
+    "id": "vw_stagnated",
+    "word": "stagnate",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "progress",
+    "cluster": null,
+    "meaning": "to stop developing, growing or improving; to remain unchanged at a low level",
+    "example": "Bob's academic progress has ____ causing his parents to be worried.",
+    "answer": "stagnated",
+    "synonyms": [
+      "plateaued",
+      "stood still"
+    ],
+    "confusables": [
+      "deviated",
+      "staggered",
+      "developed"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "progress stagnated",
+      "economy stagnated"
+    ],
+    "wordFamily": [
+      {
+        "word": "stagnant",
+        "pos": "adjective"
+      },
+      {
+        "word": "stagnation",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2025"
+  },
+  {
+    "id": "vw_stealthily",
+    "word": "stealthily",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "movement",
+    "cluster": null,
+    "meaning": "moving quietly and secretly so as not to be seen or heard",
+    "example": "Not wanting to alert the burglars of their presence, the police surrounded the crime scene ____.",
+    "answer": "stealthily",
+    "synonyms": [
+      "secretly",
+      "silently",
+      "furtively"
+    ],
+    "confusables": [
+      "steadily",
+      "securely",
+      "speedily"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "move stealthily",
+      "approach stealthily"
+    ],
+    "wordFamily": [
+      {
+        "word": "stealthy",
+        "pos": "adjective"
+      },
+      {
+        "word": "stealth",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "AiTong SA1 2021"
+  },
+  {
     "id": "vw_stick_with",
     "word": "stick with",
     "pos": "verb",
@@ -24644,6 +33201,48 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Raffles Prelim 2023"
+  },
+  {
+    "id": "vw_strained",
+    "word": "strained",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "health and fitness",
+    "cluster": null,
+    "meaning": "feeling very tired or unwell after too much physical effort",
+    "example": "Having been inactive for months during the lockdown, Gary, who was panting, felt ____ five minutes into the basketball game.",
+    "answer": "strained",
+    "synonyms": [
+      "exhausted",
+      "worn out",
+      "fatigued"
+    ],
+    "confusables": [
+      "satisfied",
+      "spectacular",
+      "spontaneous"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "feel strained",
+      "strained muscles"
+    ],
+    "wordFamily": [
+      {
+        "word": "strain",
+        "pos": "noun"
+      },
+      {
+        "word": "strain",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nan Hua SA1 2021"
   },
   {
     "id": "vw_strengthen",
@@ -24688,6 +33287,46 @@ export const harvestedEntries = [
     "source": "HenryPark Prelim 2025"
   },
   {
+    "id": "vw_emphasise",
+    "word": "stress",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "communication",
+    "cluster": null,
+    "meaning": "to give special importance to something when speaking or writing",
+    "example": "Abraham was quick to ____ that besides providing the homeless with food and shelter, it was also important to build relationships with them.",
+    "answer": "emphasise",
+    "synonyms": [],
+    "confusables": [
+      "say",
+      "affirm",
+      "repeat",
+      "prioritise",
+      "overstate"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "stress the importance",
+      "stress a point"
+    ],
+    "wordFamily": [
+      {
+        "word": "stress",
+        "pos": "noun"
+      },
+      {
+        "word": "stressed",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Rosyth SA1 2021"
+  },
+  {
     "id": "vw_strike_out",
     "word": "strike out",
     "pos": "verb",
@@ -24724,6 +33363,40 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Nanyang Prelim 2022"
+  },
+  {
+    "id": "vw_grapple",
+    "word": "struggle",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "difficulty & challenge",
+    "cluster": null,
+    "meaning": "to work hard to deal with something difficult",
+    "example": "There are still about 283,000 Singapore residents who ____ with reading and writing basic English.",
+    "answer": "grapple",
+    "synonyms": [],
+    "confusables": [
+      "settle",
+      "comply",
+      "scramble"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "struggle with reading",
+      "struggle to understand"
+    ],
+    "wordFamily": [
+      {
+        "word": "struggle",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2024"
   },
   {
     "id": "vw_stupefied",
@@ -24806,6 +33479,48 @@ export const harvestedEntries = [
     "source": "ACSJ Prelim 2024"
   },
   {
+    "id": "vw_subsiding",
+    "word": "subsiding",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "nature and environment",
+    "cluster": null,
+    "meaning": "becoming less strong or intense; gradually decreasing",
+    "example": "After months of continuous rainfall, the flood waters ____ gave the villagers hope that they could soon return to their homes.",
+    "answer": "subsiding",
+    "synonyms": [
+      "decreasing",
+      "diminishing",
+      "receding"
+    ],
+    "confusables": [
+      "waning",
+      "alleviating",
+      "depleting"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "floods subsiding",
+      "pain subsiding"
+    ],
+    "wordFamily": [
+      {
+        "word": "subside",
+        "pos": "verb"
+      },
+      {
+        "word": "subsidence",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Red Swastika SA2 2020"
+  },
+  {
     "id": "vw_succession",
     "word": "succession",
     "pos": "noun",
@@ -24845,6 +33560,76 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Raffles Girls' Prelim 2025"
+  },
+  {
+    "id": "vw_succumbed",
+    "word": "succumb",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "resilience",
+    "cluster": null,
+    "meaning": "to give in to a stronger force; to be unable to resist pressure, illness or defeat",
+    "example": "My kneecap ____ to pressure.",
+    "answer": "succumbed",
+    "synonyms": [
+      "yielded",
+      "gave way"
+    ],
+    "confusables": [
+      "bowed",
+      "subjected",
+      "surrendered"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "succumb to pressure",
+      "succumb to illness"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "MGS SA2 2020"
+  },
+  {
+    "id": "vw_surge",
+    "word": "surge",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "economics & commerce",
+    "cluster": null,
+    "meaning": "a sudden large increase in something",
+    "example": "Whenever there is wet weather, there will be a ____ in demand for umbrellas and the demand falls when the weather turns good.",
+    "answer": "surge",
+    "synonyms": [
+      "spike",
+      "upsurge",
+      "leap"
+    ],
+    "confusables": [
+      "rush",
+      "climb",
+      "boost"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "surge in demand",
+      "surge in prices"
+    ],
+    "wordFamily": [
+      {
+        "word": "surge",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Maha Bodhi SA1 2021"
   },
   {
     "id": "vw_surpassing",
@@ -24924,6 +33709,48 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Nan Chiau Prelim 2022"
+  },
+  {
+    "id": "vw_surveying",
+    "word": "survey",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "observation",
+    "cluster": null,
+    "meaning": "to look carefully at something over a wide area",
+    "example": "Zheng Nian could not resist leaning forward again from where he squatted, ____ the foreign world below him.",
+    "answer": "surveying",
+    "synonyms": [
+      "checking out",
+      "scanning",
+      "observing"
+    ],
+    "confusables": [
+      "checking in",
+      "checking on",
+      "checking with"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "survey the scene",
+      "survey the damage"
+    ],
+    "wordFamily": [
+      {
+        "word": "survey",
+        "pos": "noun"
+      },
+      {
+        "word": "surveyor",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "ACS CA1 2020"
   },
   {
     "id": "vw_sustain",
@@ -25042,6 +33869,40 @@ export const harvestedEntries = [
     "source": "RedSwastika Prelim 2024"
   },
   {
+    "id": "vw_smoothly",
+    "word": "swimmingly",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "progress & outcomes",
+    "cluster": null,
+    "meaning": "without any problems or difficulties; very well",
+    "example": "This year, things went ____ until we arrived at the restaurant.",
+    "answer": "smoothly",
+    "synonyms": [],
+    "confusables": [
+      "practically",
+      "predictably",
+      "effortlessly"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "went swimmingly",
+      "all went swimmingly"
+    ],
+    "wordFamily": [
+      {
+        "word": "swimming",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nan Hua SA2 2020"
+  },
+  {
     "id": "vw_managing",
     "word": "tackle",
     "pos": "verb",
@@ -25110,6 +33971,81 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "MGS Prelim 2025"
+  },
+  {
+    "id": "vw_takes_after",
+    "word": "take after",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "family",
+    "cluster": null,
+    "meaning": "to look or behave like an older member of your family",
+    "example": "Seeing that Bel has a keen interest in food, everyone agrees that she ____ her father who is the head chef of a famous restaurant.",
+    "answer": "takes after",
+    "synonyms": [
+      "resembles",
+      "is like",
+      "follows in the footsteps of",
+      "is similar to",
+      "follows"
+    ],
+    "confusables": [
+      "takes on",
+      "takes over",
+      "takes down",
+      "takes in",
+      "takes to"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "take after a parent",
+      "takes after her mother"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2022"
+  },
+  {
+    "id": "vw_take_over",
+    "word": "take over",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "roles & responsibilities",
+    "cluster": null,
+    "meaning": "to take control of or responsibility for something from someone else",
+    "example": "Melanie has agreed to ____ the post of head prefect from Jeremy.",
+    "answer": "take over",
+    "synonyms": [
+      "assume",
+      "inherit",
+      "succeed to"
+    ],
+    "confusables": [
+      "take up",
+      "take on",
+      "take out"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "take over a role",
+      "take over responsibility"
+    ],
+    "wordFamily": [
+      {
+        "word": "takeover",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Catholic High SA2 2020"
   },
   {
     "id": "vw_took_to",
@@ -25263,6 +34199,90 @@ export const harvestedEntries = [
     "source": "SCGS Prelim 2024"
   },
   {
+    "id": "vw_tenacity",
+    "word": "tenacity",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "character",
+    "cluster": null,
+    "meaning": "determination and refusal to give up, even when things are difficult",
+    "example": "The very challenging nature of running a marathon could also develop a person's ____ to overcome setbacks.",
+    "answer": "tenacity",
+    "synonyms": [
+      "perseverance",
+      "determination",
+      "persistence"
+    ],
+    "confusables": [
+      "purpose",
+      "flexibility",
+      "stubbornness"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "show tenacity",
+      "tenacity of purpose"
+    ],
+    "wordFamily": [
+      {
+        "word": "tenacious",
+        "pos": "adjective"
+      },
+      {
+        "word": "tenaciously",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2020"
+  },
+  {
+    "id": "vw_tension",
+    "word": "tension",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "emotions",
+    "cluster": null,
+    "meaning": "a feeling of worry or nervousness between people who do not get along well",
+    "example": "Wanting to ease the ____ between the siblings after their heated argument, Holly told a hilarious joke.",
+    "answer": "tension",
+    "synonyms": [
+      "strain",
+      "friction",
+      "unease"
+    ],
+    "confusables": [
+      "conflict",
+      "unhappiness",
+      "disagreement"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "ease the tension",
+      "tension between"
+    ],
+    "wordFamily": [
+      {
+        "word": "tense",
+        "pos": "adjective"
+      },
+      {
+        "word": "tense",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "AiTong SA1 2021"
+  },
+  {
     "id": "vw_think_over",
     "word": "think over",
     "pos": "verb",
@@ -25296,6 +34316,44 @@ export const harvestedEntries = [
     "source": "Nan Hua Prelim 2024"
   },
   {
+    "id": "vw_thrive",
+    "word": "thrive",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "nature & growth",
+    "cluster": null,
+    "meaning": "to grow or develop well and be healthy or successful",
+    "example": "Cacti can ____ in the harsh climate of the desert, growing well unlike most other plants.",
+    "answer": "thrive",
+    "synonyms": [
+      "flourish",
+      "prosper",
+      "grow well"
+    ],
+    "confusables": [
+      "develop",
+      "advance",
+      "progress"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "thrive in harsh conditions",
+      "thrive under pressure"
+    ],
+    "wordFamily": [
+      {
+        "word": "thriving",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2024"
+  },
+  {
     "id": "vw_throw_in_the_towel",
     "word": "throw in the towel",
     "pos": "verb",
@@ -25313,7 +34371,9 @@ export const harvestedEntries = [
     "confusables": [
       "give in",
       "give off",
-      "give away"
+      "give away",
+      "stop struggling",
+      "take a breather"
     ],
     "connotation": "negative",
     "collocations": [
@@ -25400,6 +34460,44 @@ export const harvestedEntries = [
     "source": "Nanyang Prelim 2022"
   },
   {
+    "id": "vw_transcend",
+    "word": "transcend",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "communication",
+    "cluster": null,
+    "meaning": "to go beyond the usual limits; to rise above or overcome something",
+    "example": "I presented him with a look of fear that seemed to ____ all communication barriers.",
+    "answer": "transcend",
+    "synonyms": [
+      "overcome",
+      "surpass",
+      "rise above"
+    ],
+    "confusables": [
+      "eclipse",
+      "exceed",
+      "outweigh"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "transcend barriers",
+      "transcend language"
+    ],
+    "wordFamily": [
+      {
+        "word": "transcendence",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2022"
+  },
+  {
     "id": "vw_transmitted",
     "word": "transmit",
     "pos": "verb",
@@ -25440,6 +34538,88 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Raffles Prelim 2023"
+  },
+  {
+    "id": "vw_treacherous",
+    "word": "treacherous",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "danger & safety",
+    "cluster": null,
+    "meaning": "extremely dangerous and likely to cause harm, especially in a hidden way",
+    "example": "Strong winds and loose rocks from recent thunderstorms have made the trail ____. Hikers are advised against climbing the mountain.",
+    "answer": "treacherous",
+    "synonyms": [
+      "hazardous",
+      "perilous",
+      "dangerous"
+    ],
+    "confusables": [
+      "dire",
+      "remote",
+      "obscure",
+      "destructive",
+      "exhilarating"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "treacherous trail",
+      "treacherous conditions"
+    ],
+    "wordFamily": [
+      {
+        "word": "treachery",
+        "pos": "noun"
+      },
+      {
+        "word": "treacherously",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Rosyth SA1 2021"
+  },
+  {
+    "id": "vw_tremendous",
+    "word": "tremendous",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "quantity and degree",
+    "cluster": null,
+    "meaning": "very great, large or impressive",
+    "example": "The school musical is a ____ success as all the tickets have been sold out.",
+    "answer": "tremendous",
+    "synonyms": [
+      "enormous",
+      "remarkable",
+      "outstanding"
+    ],
+    "confusables": [
+      "minor",
+      "global",
+      "moderate"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "tremendous success",
+      "tremendous effort"
+    ],
+    "wordFamily": [
+      {
+        "word": "tremendously",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nan Hua SA1 2022"
   },
   {
     "id": "vw_trepidation",
@@ -25522,6 +34702,318 @@ export const harvestedEntries = [
     "source": "Rosyth Prelim 2022"
   },
   {
+    "id": "vw_triumphant",
+    "word": "triumphant",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "emotions and feelings",
+    "cluster": null,
+    "meaning": "feeling or showing great happiness because of a success or victory",
+    "example": "Sherry had put a lot of effort into her project. No wonder she could not suppress her ____ smile when she won the competition.",
+    "answer": "triumphant",
+    "synonyms": [
+      "victorious",
+      "elated",
+      "jubilant"
+    ],
+    "confusables": [
+      "bashful",
+      "glorious",
+      "arrogant"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "triumphant smile",
+      "triumphant return"
+    ],
+    "wordFamily": [
+      {
+        "word": "triumph",
+        "pos": "noun"
+      },
+      {
+        "word": "triumph",
+        "pos": "verb"
+      },
+      {
+        "word": "triumphantly",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nan Hua SA1 2020"
+  },
+  {
+    "id": "vw_trivial",
+    "word": "trivial",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "value",
+    "cluster": null,
+    "meaning": "not important; having little value or significance",
+    "example": "She thinks window shopping is a ____ activity. She prefers spending her time more meaningfully.",
+    "answer": "trivial",
+    "synonyms": [
+      "unimportant",
+      "insignificant"
+    ],
+    "confusables": [
+      "weak",
+      "minute",
+      "reckless"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "trivial matter",
+      "trivial activity"
+    ],
+    "wordFamily": [
+      {
+        "word": "triviality",
+        "pos": "noun"
+      },
+      {
+        "word": "trivially",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "St Nicholas SA1 2021"
+  },
+  {
+    "id": "vw_trudged",
+    "word": "trudged",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "movement & action",
+    "cluster": null,
+    "meaning": "walked slowly and with great effort, especially when tired or carrying something heavy",
+    "example": "My aunt ____ up the hill with her heavy grocery bags. She was panting by the time she reached her house.",
+    "answer": "trudged",
+    "synonyms": [
+      "plodded",
+      "slogged",
+      "laboured"
+    ],
+    "confusables": [
+      "bolted",
+      "paced",
+      "strolled"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "trudged up the hill",
+      "trudged through the mud"
+    ],
+    "wordFamily": [
+      {
+        "word": "trudge",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "ACS SA1 2021"
+  },
+  {
+    "id": "vw_turn_out",
+    "word": "turn out",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "outcome",
+    "cluster": null,
+    "meaning": "to happen or develop in a particular way; to prove to be something in the end",
+    "example": "When Joe's business failed many years ago, he did not know that his misfortune would eventually ____ to have great benefits.",
+    "answer": "turn out",
+    "synonyms": [
+      "prove",
+      "end up",
+      "emerge"
+    ],
+    "confusables": [
+      "turn in",
+      "turn up",
+      "turn over"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "turn out well",
+      "turn out to be"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "MGS SA1 2021"
+  },
+  {
+    "id": "vw_turned_away",
+    "word": "turned away",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "actions and effort",
+    "cluster": null,
+    "meaning": "to be refused entry or told to leave without getting what you came for",
+    "example": "Just as he reached the front of the queue, he was ____ as all stocks of the game console had been sold out.",
+    "answer": "turned away",
+    "synonyms": [
+      "rejected",
+      "refused",
+      "sent away"
+    ],
+    "confusables": [
+      "misled",
+      "despised",
+      "neglected"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "turned away at the door",
+      "turned away empty-handed"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Henry Park SA1 2021"
+  },
+  {
+    "id": "vw_commonly",
+    "word": "typically",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "manner",
+    "cluster": null,
+    "meaning": "in a way that is usual or expected; normally",
+    "example": "Such jobs are ____ freelance-based and highly competitive.",
+    "answer": "commonly",
+    "synonyms": [
+      "usually",
+      "generally"
+    ],
+    "confusables": [
+      "continually",
+      "persistently",
+      "occasionally",
+      "originally",
+      "eventually"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "typically found",
+      "typically takes"
+    ],
+    "wordFamily": [
+      {
+        "word": "typical",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Henry Park SA2 2020"
+  },
+  {
+    "id": "vw_modest",
+    "word": "unassuming",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "character traits",
+    "cluster": null,
+    "meaning": "not trying to draw attention to oneself; humble and not showing off",
+    "example": "The ____ Marie Curie was admired by scientists throughout the world.",
+    "answer": "modest",
+    "synonyms": [
+      "humble",
+      "unpretentious"
+    ],
+    "confusables": [
+      "bold",
+      "assertive",
+      "confident"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "unassuming manner",
+      "quiet and unassuming"
+    ],
+    "wordFamily": [
+      {
+        "word": "assume",
+        "pos": "verb"
+      },
+      {
+        "word": "assuming",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA2 2020"
+  },
+  {
+    "id": "vw_undaunted",
+    "word": "undaunted",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "character",
+    "cluster": null,
+    "meaning": "not discouraged or put off by danger, difficulty or setback; still determined",
+    "example": "Despite countless failures, Sara remained ____, always willing to take up new challenges.",
+    "answer": "undaunted",
+    "synonyms": [
+      "unfazed",
+      "undeterred"
+    ],
+    "confusables": [
+      "loyal",
+      "worthy",
+      "reckless"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "remain undaunted",
+      "undaunted by failure"
+    ],
+    "wordFamily": [
+      {
+        "word": "daunt",
+        "pos": "verb"
+      },
+      {
+        "word": "daunting",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Raffles SA2 2020"
+  },
+  {
     "id": "vw_certainly",
     "word": "undeniably",
     "pos": "adverb",
@@ -25560,6 +35052,76 @@ export const harvestedEntries = [
     "source": "Nan Hua Prelim 2025"
   },
   {
+    "id": "vw_under_his_breath",
+    "word": "under one's breath",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "communication",
+    "cluster": null,
+    "meaning": "speaking very quietly so that others can barely or cannot hear",
+    "example": "The heavily scarred man did not meet his gaze. He muttered something ____.",
+    "answer": "under his breath",
+    "synonyms": [
+      "inaudibly",
+      "in a whisper"
+    ],
+    "confusables": [
+      "secretly",
+      "sneakily",
+      "unconsciously"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "mutter under one's breath",
+      "whisper under one's breath"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Maris Stella CA1 2022"
+  },
+  {
+    "id": "vw_undue",
+    "word": "undue",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "health",
+    "cluster": null,
+    "meaning": "more than is necessary, reasonable, or appropriate; excessive",
+    "example": "____ stress can lead to inflammation, which is the body's painful response to injury and overuse.",
+    "answer": "undue",
+    "synonyms": [
+      "excessive",
+      "unnecessary",
+      "unreasonable"
+    ],
+    "confusables": [
+      "minimal",
+      "adequate",
+      "moderate"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "undue stress",
+      "undue pressure"
+    ],
+    "wordFamily": [
+      {
+        "word": "unduly",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "MGS SA1 2021"
+  },
+  {
     "id": "vw_unfazed",
     "word": "unfazed",
     "pos": "adjective",
@@ -25572,12 +35134,15 @@ export const harvestedEntries = [
     "synonyms": [
       "unruffled",
       "unperturbed",
-      "undisturbed"
+      "undisturbed",
+      "calm"
     ],
     "confusables": [
       "unnerved",
       "unsettled",
-      "unimpressed"
+      "unimpressed",
+      "horrified",
+      "dismayed"
     ],
     "connotation": "positive",
     "collocations": [
@@ -25638,6 +35203,48 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Nanyang Prelim 2022"
+  },
+  {
+    "id": "vw_unlikely",
+    "word": "unlikely",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "character traits",
+    "cluster": null,
+    "meaning": "not expected to succeed or happen; not probable",
+    "example": "Even though John was deemed as a/an ____ competitor to win the race, he surprised everyone by clinching the gold medal.",
+    "answer": "unlikely",
+    "synonyms": [
+      "improbable",
+      "unexpected",
+      "doubtful"
+    ],
+    "confusables": [
+      "wrong",
+      "feeble",
+      "impossible"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "unlikely winner",
+      "unlikely candidate"
+    ],
+    "wordFamily": [
+      {
+        "word": "likelihood",
+        "pos": "noun"
+      },
+      {
+        "word": "likely",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "AiTong SA1 2021"
   },
   {
     "id": "vw_unmoved",
@@ -25724,6 +35331,48 @@ export const harvestedEntries = [
     "source": "Nanyang Prelim 2022"
   },
   {
+    "id": "vw_unremarkable",
+    "word": "unremarkable",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "description",
+    "cluster": null,
+    "meaning": "not special or interesting; ordinary and not worth noticing",
+    "example": "Zheng Nian took in the ____ sight below him — hundreds of men in yellow helmets packed in the construction site.",
+    "answer": "unremarkable",
+    "synonyms": [
+      "average",
+      "ordinary",
+      "unexceptional"
+    ],
+    "confusables": [
+      "rare",
+      "peculiar",
+      "exceptional"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "unremarkable sight",
+      "unremarkable appearance"
+    ],
+    "wordFamily": [
+      {
+        "word": "remarkable",
+        "pos": "adjective"
+      },
+      {
+        "word": "remarkably",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "ACS CA1 2020"
+  },
+  {
     "id": "vw_unsettling",
     "word": "unsettling",
     "pos": "adjective",
@@ -25805,6 +35454,38 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Raffles Prelim 2023"
+  },
+  {
+    "id": "vw_uphill_task",
+    "word": "uphill task",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "challenges",
+    "cluster": null,
+    "meaning": "a task that is very difficult and requires a lot of effort to accomplish",
+    "example": "This was definitely an ____ as I had to overcome many challenges in my revision.",
+    "answer": "uphill task",
+    "synonyms": [
+      "formidable challenge",
+      "daunting challenge"
+    ],
+    "confusables": [
+      "scary ordeal",
+      "boring exercise",
+      "painful experience"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "uphill task",
+      "uphill battle"
+    ],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "AiTong SA1 2021"
   },
   {
     "id": "vw_guided",
@@ -25927,6 +35608,47 @@ export const harvestedEntries = [
     "source": "Pei Hwa Prelim 2023"
   },
   {
+    "id": "vw_verified",
+    "word": "verified",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "reliability",
+    "cluster": null,
+    "meaning": "confirmed to be true, accurate or reliable; officially approved",
+    "example": "They can also ensure that their children seek their permission before downloading files from ____ sources.",
+    "answer": "verified",
+    "synonyms": [
+      "established",
+      "authenticated"
+    ],
+    "confusables": [
+      "fallible",
+      "popular",
+      "dubious"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "verified sources",
+      "verified information"
+    ],
+    "wordFamily": [
+      {
+        "word": "verify",
+        "pos": "verb"
+      },
+      {
+        "word": "verification",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2025"
+  },
+  {
     "id": "vw_verify",
     "word": "verify",
     "pos": "verb",
@@ -26001,6 +35723,48 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Pei Hwa Prelim 2023"
+  },
+  {
+    "id": "vw_vigilant",
+    "word": "vigilant",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "safety & awareness",
+    "cluster": null,
+    "meaning": "keeping careful watch for possible danger or problems",
+    "example": "Upon receiving the news that the enemy may launch an attack, the soldiers remained ____ throughout the night.",
+    "answer": "vigilant",
+    "synonyms": [
+      "alert",
+      "watchful",
+      "on guard"
+    ],
+    "confusables": [
+      "diligent",
+      "negligent",
+      "conscious"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "remain vigilant",
+      "stay vigilant"
+    ],
+    "wordFamily": [
+      {
+        "word": "vigilance",
+        "pos": "noun"
+      },
+      {
+        "word": "vigilantly",
+        "pos": "adverb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Catholic High SA1 2022"
   },
   {
     "id": "vw_vintage",
@@ -26166,6 +35930,43 @@ export const harvestedEntries = [
     "source": "ACS Prelim 2021"
   },
   {
+    "id": "vw_wane",
+    "word": "wane",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "change",
+    "cluster": null,
+    "meaning": "to gradually become weaker, smaller or less important",
+    "example": "Ali's interest in rugby has begun to ____ ever since his friends introduced him to soccer.",
+    "answer": "wane",
+    "synonyms": [
+      "diminish",
+      "fade"
+    ],
+    "confusables": [
+      "dim",
+      "vanish",
+      "grow"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "interest waned",
+      "enthusiasm waned"
+    ],
+    "wordFamily": [
+      {
+        "word": "waning",
+        "pos": "adjective"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "MGS SA2 2020"
+  },
+  {
     "id": "vw_warily",
     "word": "warily",
     "pos": "adverb",
@@ -26178,12 +35979,15 @@ export const harvestedEntries = [
     "synonyms": [
       "cautiously",
       "carefully",
-      "watchfully"
+      "watchfully",
+      "guardedly"
     ],
     "confusables": [
       "deliberately",
       "suspiciously",
-      "nonchalantly"
+      "nonchalantly",
+      "earnestly",
+      "meticulously"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -26292,6 +36096,40 @@ export const harvestedEntries = [
     "source": "Rosyth Prelim 2024"
   },
   {
+    "id": "vw_gesture",
+    "word": "welcoming motion",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "body language & communication",
+    "cluster": null,
+    "meaning": "a movement of the body, especially the hands or head, to express something",
+    "example": "Uncle Lawrence, who was once homeless, turned to greet Abraham with a welcoming ____.",
+    "answer": "gesture",
+    "synonyms": [],
+    "confusables": [
+      "signal",
+      "reaction",
+      "expression"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "welcoming gesture",
+      "friendly gesture"
+    ],
+    "wordFamily": [
+      {
+        "word": "gesture",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "Rosyth SA1 2021"
+  },
+  {
     "id": "vw_eagerly",
     "word": "with bated breath",
     "pos": "adverb",
@@ -26319,6 +36157,86 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "Maris Stella Prelim 2023"
+  },
+  {
+    "id": "vw_witnessed",
+    "word": "witnessed",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "observation",
+    "cluster": null,
+    "meaning": "to see something happen with your own eyes",
+    "example": "\"I ____ how little power and voice those without resources have,\" Madam Halimah said.",
+    "answer": "witnessed",
+    "synonyms": [
+      "observed",
+      "saw",
+      "beheld"
+    ],
+    "confusables": [
+      "confirmed",
+      "scrutinized",
+      "perceived"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "witnessed an accident",
+      "witness a crime"
+    ],
+    "wordFamily": [
+      {
+        "word": "witness",
+        "pos": "noun"
+      },
+      {
+        "word": "witness",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_cloze"
+    ],
+    "mnemonic": "",
+    "source": "ACS(J) BA1 2022"
+  },
+  {
+    "id": "vw_wore_off",
+    "word": "wore off",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "feelings & attitudes",
+    "cluster": null,
+    "meaning": "gradually faded or disappeared over time",
+    "example": "The novelty of owning a parrot soon ____ and Bala began pursuing other activities.",
+    "answer": "wore off",
+    "synonyms": [
+      "faded",
+      "diminished",
+      "subsided"
+    ],
+    "confusables": [
+      "wore out",
+      "wore down",
+      "wore through"
+    ],
+    "connotation": "neutral",
+    "collocations": [
+      "novelty wore off",
+      "excitement wore off"
+    ],
+    "wordFamily": [
+      {
+        "word": "wear off",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Pei Chun CA1 2020"
   },
   {
     "id": "vw_worldwide",
@@ -26398,6 +36316,47 @@ export const harvestedEntries = [
     "source": "Maris Stella Prelim 2023"
   },
   {
+    "id": "vw_wreckage",
+    "word": "wreckage",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "disaster",
+    "cluster": null,
+    "meaning": "the broken pieces left after a vehicle, building or aircraft has been destroyed",
+    "example": "After a plane crashed into the sea, rescue divers searched for the ____, but they were unsuccessful.",
+    "answer": "wreckage",
+    "synonyms": [
+      "debris",
+      "remains"
+    ],
+    "confusables": [
+      "rubble",
+      "carnage",
+      "leftovers"
+    ],
+    "connotation": "negative",
+    "collocations": [
+      "search the wreckage",
+      "plane wreckage"
+    ],
+    "wordFamily": [
+      {
+        "word": "wreck",
+        "pos": "noun"
+      },
+      {
+        "word": "wreck",
+        "pos": "verb"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang SA1 2021"
+  },
+  {
     "id": "vw_yielded",
     "word": "yield",
     "pos": "verb",
@@ -26434,5 +36393,47 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "MGS Prelim 2024"
+  },
+  {
+    "id": "vw_zealously",
+    "word": "zealously",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "character traits",
+    "cluster": null,
+    "meaning": "with great energy and enthusiasm in support of a cause",
+    "example": "The animal enthusiast ____ fought for a ban on the killing of sharks for their fins.",
+    "answer": "zealously",
+    "synonyms": [
+      "passionately",
+      "fervently",
+      "enthusiastically"
+    ],
+    "confusables": [
+      "inactively",
+      "lethargically",
+      "half-heartedly"
+    ],
+    "connotation": "positive",
+    "collocations": [
+      "fight zealously",
+      "work zealously"
+    ],
+    "wordFamily": [
+      {
+        "word": "zealous",
+        "pos": "adjective"
+      },
+      {
+        "word": "zeal",
+        "pos": "noun"
+      }
+    ],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "SCGS SA2 2020"
   }
 ];
