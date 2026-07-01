@@ -26,4 +26,23 @@ describe('fraction compare questions carry a renderable strip-pair', () => {
       expect(renderers.number_line(q.diagramSpec)).toContain('<svg');
     }
   });
+
+  it('F003 (fraction of a set) emits a renderable bar model', () => {
+    const qs = generateFractionQuestionSet({ skillId: 'F003', count: 6 });
+    expect(qs.length).toBeGreaterThan(0);
+    for (const q of qs) {
+      expect(q.diagramSpec?.type, `F003: "${q.prompt}"`).toBe('fraction_bar');
+      expect(renderers.fraction_bar(q.diagramSpec)).toContain('<svg');
+    }
+  });
+
+  it('F009 (order fractions) emits an N-bar strip set that renders', () => {
+    const qs = generateFractionQuestionSet({ skillId: 'F009', count: 6 });
+    expect(qs.length).toBeGreaterThan(0);
+    for (const q of qs) {
+      expect(q.diagramSpec?.type, `F009: "${q.prompt}"`).toBe('fraction_bar_pair');
+      expect(q.diagramSpec.data.bars.length).toBeGreaterThanOrEqual(3);
+      expect(renderers.fraction_bar_pair(q.diagramSpec)).toContain('<svg');
+    }
+  });
 });

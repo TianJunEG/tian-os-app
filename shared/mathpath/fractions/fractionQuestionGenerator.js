@@ -738,6 +738,14 @@ function templateForSkill(skillId, variant, ctx) {
         prompt: `A set has ${total} objects. ${n}/${d} of them are selected. How many are selected?`,
         answer: answerPayloadWhole(shaded),
         acceptedAnswers: [String(shaded)],
+        diagramSpec: {
+          // Bar model: the whole set split into d equal parts, n shaded — the
+          // standard scaffold for "n/d of a quantity".
+          type: 'fraction_bar',
+          width: 640,
+          height: 180,
+          data: { parts: d, shaded: n, labelMode: 'none' },
+        },
         solutionSteps: [`Find 1/${d} of ${total}: ${total}/${d} = ${unit}.`, `Multiply by ${n}: ${shaded}.`],
       };
     }
@@ -895,6 +903,14 @@ function templateForSkill(skillId, variant, ctx) {
         prompt: `Order these fractions from smallest to largest: ${shown.map(fracStr).join(', ')}.`,
         answer: { type: 'list', value: arr, display: arr.join(', ') },
         acceptedAnswers: [arr.join(','), arr.join(', ')],
+        diagramSpec: {
+          // Aligned bars (in the order shown) so magnitudes are comparable by length
+          // — the standard scaffold for ordering fractions. fractionBarPair renders N bars.
+          type: 'fraction_bar_pair',
+          width: 640,
+          height: 30 + shown.length * 110 + 20,
+          data: { bars: shown.map((f) => ({ parts: f.denominator, shaded: f.numerator, label: fracStr(f) })) },
+        },
         solutionSteps: ['Convert to comparable values (or common denominator).', `Order: ${arr.join(', ')}.`],
       };
     }
