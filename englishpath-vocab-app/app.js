@@ -270,6 +270,7 @@ function renderSession() {
         ${c.example ? `<div class="ex">${markup(c.example)}</div>` : ''}
         <div class="meta">
           ${c.synonyms && c.synonyms.length ? `<p style="margin:0 0 4px"><b>Similar:</b> ${esc(c.synonyms.join(', '))}</p>` : ''}
+          ${c.wordFamily ? `<p style="margin:0 0 4px"><b>Word family:</b> ${esc(c.wordFamily)}</p>` : ''}
           ${c.mnemonic ? `<p style="margin:0">💡 ${esc(c.mnemonic)}</p>` : ''}
         </div>
         <div class="spacer"><button class="btn full" data-next>Got it →</button></div>

@@ -130,6 +130,9 @@ const GENERATORS = {
         synonyms: entry.synonyms,
         connotation: entry.connotation,
         mnemonic: entry.mnemonic,
+        wordFamily: entry.wordFamily.length
+          ? entry.wordFamily.map((f) => `${f.word} (${f.pos})`).join(', ')
+          : '',
       },
     };
   },
@@ -176,6 +179,53 @@ const GENERATORS = {
       prompt: `Which word is closest in meaning to **${entry.word}**?`,
       options,
       rationale: `“${entry.word}” means ${entry.meaning}, so it is closest to “${correct}”.`,
+    };
+  },
+
+  context_infer(entry, bank, rng) {
+    if (!entry.example) return null;
+    const sentence = hasBlank(entry.example)
+      ? fillBlank(entry.example, `**${entry.answer}**`)
+      : entry.example.replace(
+          new RegExp(`\\b(${entry.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})\\b`, 'i'),
+          '**$1**',
+        );
+    const confusableMeanings = entry.confusables
+      .map((c) => bank.find((w) => norm(w.word) === norm(c) || norm(w.answer) === norm(c)))
+      .filter(Boolean)
+      .map((w) => w.meaning);
+    const options = buildOptions({
+      correct: entry.meaning,
+      distractors: confusableMeanings,
+      padPool: poolMeanings(entry, bank),
+      rng,
+    });
+    if (!options) return null;
+    return {
+      kind: 'mcq',
+      prompt: `What does the bold word most likely mean?\n\n${sentence}`,
+      options,
+      rationale: `"${entry.word}" means: ${entry.meaning}. The sentence gives clues to its meaning.`,
+    };
+  },
+
+  morphology_match(entry, bank, rng) {
+    if (!entry.wordFamily.length) return null;
+    const member = entry.wordFamily[Math.floor(rng() * entry.wordFamily.length)];
+    const distractors = [
+      ...entry.confusables,
+      ...otherWords(entry, bank)
+        .filter((w) => !entry.wordFamily.some((f) => norm(f.word) === norm(w.word)))
+        .map((w) => w.word),
+    ];
+    const options = buildOptions({ correct: member.word, distractors, rng });
+    if (!options) return null;
+    const posLabel = member.pos !== 'other' ? ` (${member.pos})` : '';
+    return {
+      kind: 'mcq',
+      prompt: `Which word belongs to the same word family as **${entry.word}**?`,
+      options,
+      rationale: `"${member.word}"${posLabel} and "${entry.word}" (${entry.pos}) are in the same word family.`,
     };
   },
 

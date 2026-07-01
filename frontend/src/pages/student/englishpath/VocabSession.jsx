@@ -206,6 +206,9 @@ function TeachCard({ task, onNext }) {
         {c.synonyms?.length > 0 && (
           <p><span className="font-semibold text-ink-700">Similar:</span> <span className="text-ink-500">{c.synonyms.join(', ')}</span></p>
         )}
+        {c.wordFamily && (
+          <p><span className="font-semibold text-ink-700">Word family:</span> <span className="text-ink-500">{c.wordFamily}</span></p>
+        )}
         {c.mnemonic && (
           <p className="flex gap-2 text-ink-500"><Lightbulb className="h-4 w-4 flex-none translate-y-0.5 text-gold-deep" />{c.mnemonic}</p>
         )}
