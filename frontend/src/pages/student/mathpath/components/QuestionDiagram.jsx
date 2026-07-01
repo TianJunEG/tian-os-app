@@ -176,7 +176,7 @@ function normalizeDiagramKind(diagram) {
     }
     case 'polygon':
       if (!diagram.sides) return null;
-      return { type: 'regular_polygon', width: 300, height: 300, data: { sides: diagram.sides } };
+      return { type: 'regular_polygon', width: 300, height: 300, data: { sides: diagram.sides, labelMode: diagram.labelMode } };
     case 'composite': {
       // Same geometry as an L-shape: an outer rectangle [w,h] with a corner
       // notch [cw,ch] removed.
