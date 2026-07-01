@@ -617,6 +617,7 @@ export const teacherAPI = {
   deleteAssessment: (id) => api.delete(`/teacher/assessments/${id}`),
   // Class & roster management
   createClass: (data) => api.post('/teacher/classes', data),
+  deleteClass: (id) => api.delete(`/teacher/classes/${id}`),
   addStudent: (id, data) => api.post(`/teacher/classes/${id}/students`, data),
   importRoster: (id, text) => api.post(`/teacher/classes/${id}/import-roster`, { text }),
   linkParent: (id, studentId, data) => api.post(`/teacher/classes/${id}/students/${studentId}/link-parent`, data),

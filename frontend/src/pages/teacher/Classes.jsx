@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { LayoutGrid, Plus } from 'lucide-react';
+import { LayoutGrid, Plus, Trash2 } from 'lucide-react';
 import { teacherAPI } from '../../services/api';
 import { Card, Badge, ProgressBar, PageHeader, Spinner, ErrorState, EmptyState, Button } from '../../components/ui';
 
@@ -70,9 +70,24 @@ export default function Classes() {
           {classes.map((c) => (
             <Link key={c.classId} to={`/teacher/classes/${c.classId}`} className="block">
               <Card interactive className="p-5">
-                <div className="mb-2 flex items-center justify-between">
+                <div className="mb-2 flex items-start justify-between gap-2">
                   <div><h3 className="font-semibold text-ink-700">{c.name}</h3><p className="text-sm text-ink-500">{c.level} · {c.studentCount} students</p></div>
-                  <Badge tone="navy">{c.overallMastery}%</Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge tone="navy">{c.overallMastery}%</Badge>
+                    <button
+                      type="button"
+                      title="Delete class"
+                      className="text-ink-300 hover:text-rose-600"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (!window.confirm(`Delete “${c.name}”? Its announcements and quick-marks are removed; students are kept.`)) return;
+                        teacherAPI.deleteClass(c.classId).then(load).catch(() => {});
+                      }}
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
                 </div>
                 <ProgressBar value={c.overallMastery} />
                 <div className="mt-2 flex items-center justify-between text-xs text-ink-400">

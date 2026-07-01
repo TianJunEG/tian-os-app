@@ -1093,6 +1093,26 @@ router.post('/classes/:id/import-roster', asyncHandler(async (req, res) => {
   return res.json({ ...out, parseErrors });
 }));
 
+// Delete a class the teacher owns, cascading its enrolments, announcements
+// (+comments), and Quick-Mark / kiosk sessions. Students themselves are shared
+// (workspace-scoped) and are kept.
+router.delete('/classes/:id', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return undefined;
+  const klass = await getOwnedClass(req);
+  if (!klass) return res.status(404).json({ error: 'Class not found.' });
+  const classId = String(klass._id);
+  const anns = await Announcement.find({ sourceType: 'class', sourceId: classId }).select('_id').lean();
+  await Promise.all([
+    ClassStudent.deleteMany({ classId: klass._id }),
+    Announcement.deleteMany({ sourceType: 'class', sourceId: classId }),
+    AnnouncementComment.deleteMany({ announcementId: { $in: anns.map((a) => a._id) } }),
+    QuickMarkSession.deleteMany({ classId: klass._id }),
+    ClassDiagnosticSession.deleteMany({ classId: klass._id }),
+  ]);
+  await klass.deleteOne();
+  return res.json({ ok: true });
+}));
+
 // Quick-link a parent to a class student (so announcements/notifications reach them).
 router.post('/classes/:id/students/:studentId/link-parent', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return undefined;
