@@ -5,6 +5,8 @@ import {
   selectNextDescriptor,
   selectNextTask,
   buildSession,
+  buildFocusSession,
+  weakWords,
   summarize,
   examReadiness,
 } from './vocabularyAdaptiveEngine.js';
@@ -143,5 +145,47 @@ describe('vocabulary adaptive engine', () => {
     let s = completeLadder(initState(), 'vw_irrefutably', T0, SMALL_BANK); // vocab_cloze word
     const after = examReadiness(s, SMALL_BANK);
     expect(after.vocab_cloze).toBeGreaterThan(before.vocab_cloze);
+  });
+
+  it('weakWords lists only words the student got wrong, most-missed first', () => {
+    let s = initState();
+    // vw_resist: two misses; vw_facade: one miss; vw_consent: answered correctly
+    s = recordResult(s, { wordId: 'vw_resist', taskType: 'meet_word', correct: true }, { now: T0, bank: SMALL_BANK });
+    s = recordResult(s, { wordId: 'vw_resist', taskType: 'meaning_match', correct: false, chosenText: 'x' }, { now: T0, bank: SMALL_BANK });
+    s = recordResult(s, { wordId: 'vw_resist', taskType: 'word_recall', correct: false, chosenText: 'y' }, { now: T0, bank: SMALL_BANK });
+    s = recordResult(s, { wordId: 'vw_facade', taskType: 'meet_word', correct: true }, { now: T0, bank: SMALL_BANK });
+    s = recordResult(s, { wordId: 'vw_facade', taskType: 'meaning_match', correct: false, chosenText: 'z' }, { now: T0, bank: SMALL_BANK });
+    s = completeLadder(s, 'vw_consent', T0, SMALL_BANK);
+
+    const weak = weakWords(s, { bank: SMALL_BANK });
+    const ids = weak.map((w) => w.wordId);
+    expect(ids).toContain('vw_resist');
+    expect(ids).toContain('vw_facade');
+    expect(ids).not.toContain('vw_consent'); // all-correct word is never weak
+    expect(ids[0]).toBe('vw_resist'); // most misses first
+  });
+
+  it('a word leaves the weak list once answered correctly again', () => {
+    let s = initState();
+    s = recordResult(s, { wordId: 'vw_facade', taskType: 'meet_word', correct: true }, { now: T0, bank: SMALL_BANK });
+    s = recordResult(s, { wordId: 'vw_facade', taskType: 'meaning_match', correct: false, chosenText: 'z' }, { now: T0, bank: SMALL_BANK });
+    expect(weakWords(s, { bank: SMALL_BANK }).some((w) => w.wordId === 'vw_facade')).toBe(true);
+    s = recordResult(s, { wordId: 'vw_facade', taskType: 'meaning_match', correct: true }, { now: T0, bank: SMALL_BANK });
+    expect(weakWords(s, { bank: SMALL_BANK }).some((w) => w.wordId === 'vw_facade')).toBe(false);
+  });
+
+  it('buildFocusSession drills only weak words and introduces none', () => {
+    let s = initState();
+    s = recordResult(s, { wordId: 'vw_resist', taskType: 'meet_word', correct: true }, { now: T0, bank: SMALL_BANK });
+    s = recordResult(s, { wordId: 'vw_resist', taskType: 'meaning_match', correct: false, chosenText: 'x' }, { now: T0, bank: SMALL_BANK });
+    const focus = buildFocusSession(s, { size: 6, now: T0, bank: SMALL_BANK });
+    expect(focus.length).toBe(1);
+    expect(focus.every((t) => t.mode === 'focus')).toBe(true);
+    expect(focus.every((t) => t.kind !== 'teach')).toBe(true); // no new-word teach cards
+  });
+
+  it('buildFocusSession is empty when nothing is weak', () => {
+    const s = completeLadder(initState(), 'vw_encroachment', T0, SMALL_BANK);
+    expect(buildFocusSession(s, { size: 6, now: T0, bank: SMALL_BANK })).toEqual([]);
   });
 });

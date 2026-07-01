@@ -16,6 +16,8 @@
 import {
   initState,
   buildSession,
+  buildFocusSession,
+  weakWords,
   recordResult,
   summarize,
   vocabularyWordBank,
@@ -150,6 +152,7 @@ function renderHome() {
   const b = bank();
   const s = premium ? summarize(state, { bank: b }) : null;
 
+  const weak = premium ? weakWords(state, { bank: b }) : [];
   const ctaEyebrow = premium ? (s.counts.dueNow ? 'Review due' : 'Your practice') : 'Free · no sign-up';
   const sessionLabel = group.sessionSize === 10 ? '10-question' : '6-question';
   const ctaHeading =
@@ -164,6 +167,13 @@ function renderHome() {
         <div class="stat"><div class="n">${s.counts.mastered}</div><div class="l">Mastered</div></div>
         <div class="stat"><div class="n">${s.counts.dueNow}</div><div class="l">Due to review</div></div>
       </div>
+      ${weak.length ? `<div class="card focus">
+        <div class="eyebrow warn">Your tricky words · ${weak.length}</div>
+        <h3 style="margin:2px 0 8px">Words you keep getting wrong</h3>
+        <div class="chips">${weak.slice(0, 8).map((w) => `<span class="chip">${esc(w.word)}</span>`).join('')}${weak.length > 8 ? `<span class="chip more">+${weak.length - 8}</span>` : ''}</div>
+        <button class="btn full mt" data-focus>Drill these ${weak.length} word${weak.length === 1 ? '' : 's'} →</button>
+        <p class="hint center mt">A focused session — just your weak words, no new ones.</p>
+      </div>` : ''}
       <div class="card">
         <h3>Exam-section readiness</h3>
         ${readinessRow('vocab_mcq', 'Vocabulary MCQ', s.examReadiness)}
@@ -220,6 +230,8 @@ function renderHome() {
 
   const goBtn = app.querySelector('[data-go="practice"]');
   if (goBtn) goBtn.onclick = startSession;
+  const focusBtn = app.querySelector('[data-focus]');
+  if (focusBtn) focusBtn.onclick = startFocusSession;
   for (const btn of app.querySelectorAll('[data-group]')) {
     btn.onclick = () => {
       const g = LEVEL_GROUP_LIST.find((x) => x.id === btn.dataset.group);
@@ -260,7 +272,15 @@ function startSession() {
   const group = currentGroup();
   const sessionBank = isPremium() ? bank() : shuffle(bank());
   const tasks = buildSession(state, { size: group.sessionSize, bank: sessionBank });
-  session = { tasks, idx: 0, answered: false, log: [] };
+  session = { tasks, idx: 0, answered: false, log: [], focus: false };
+  renderSession();
+}
+
+function startFocusSession() {
+  const group = currentGroup();
+  const tasks = buildFocusSession(state, { size: group.sessionSize, bank: bank() });
+  if (!tasks.length) return renderHome();
+  session = { tasks, idx: 0, answered: false, log: [], focus: true };
   renderSession();
 }
 
@@ -285,7 +305,7 @@ function renderSession() {
     <button class="btn ghost" data-home>← Home</button>
     <div class="sessionbar">
       <span class="mono">${counter}</span>
-      <span>${t.mode === 'review' ? '<span class="tag gold">Review</span> ' : ''}${t.kind === 'teach' ? '' : `<span class="tag">${tier ? tier.name : ''}</span>`}</span>
+      <span>${session.focus ? '<span class="tag warn">Focus</span> ' : t.mode === 'review' ? '<span class="tag gold">Review</span> ' : ''}${t.kind === 'teach' ? '' : `<span class="tag">${tier ? tier.name : ''}</span>`}</span>
     </div>
     <div class="bar" style="margin-bottom:18px"><span style="width:${(progressUnits / session.tasks.length) * 100}%"></span></div>`;
 

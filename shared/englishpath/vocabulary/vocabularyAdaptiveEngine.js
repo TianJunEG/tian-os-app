@@ -291,6 +291,87 @@ function firstGradedRung(entry, bank) {
   return ladderFor(entry, bank)[0] || 'meaning_match';
 }
 
+// ---- weak-word focus mode --------------------------------------------------
+
+/** Total wrong answers across every rung this word has been tried on. */
+function missCount(wp) {
+  let wrong = 0;
+  for (const s of Object.values(wp.taskStats)) wrong += Math.max(0, s.attempts - s.correct);
+  return wrong;
+}
+
+/**
+ * Words the student is currently struggling with — the material for a focused
+ * remediation drill. A word qualifies when it has an unresolved slip (its last
+ * answer on some rung was wrong) or it lapsed in spaced review and is not yet
+ * re-mastered. Getting it right again clears it, so the list shrinks as the
+ * student improves rather than remembering every historical mistake forever.
+ */
+export function weakWords(state, { bank = vocabularyWordBank } = {}) {
+  const out = [];
+  for (const wp of Object.values(state.words)) {
+    if (!wp.introduced) continue;
+    const struggling = hasFreshSlip(wp) || (wp.lapses > 0 && !wp.mastered);
+    if (!struggling) continue;
+    const entry = entryFor(wp.wordId, bank);
+    if (!entry) continue;
+    const attempts = Object.values(wp.taskStats).reduce((n, s) => n + s.attempts, 0);
+    const misses = missCount(wp) + wp.lapses;
+    out.push({
+      wordId: wp.wordId,
+      word: entry.word,
+      misses,
+      lapses: wp.lapses,
+      accuracy: attempts ? (attempts - missCount(wp)) / attempts : 0,
+      topConfusion: topKey(wp.confusions),
+      mastered: wp.mastered,
+    });
+  }
+  // Most-missed first, then lowest accuracy, then alphabetical for stability.
+  return out.sort(
+    (a, b) => b.misses - a.misses || a.accuracy - b.accuracy || String(a.word).localeCompare(String(b.word))
+  );
+}
+
+/** The rung this word is weakest on — most misses, else its exam-form rung. */
+function weakestTaskType(wp, entry, bank) {
+  const ladder = ladderFor(entry, bank);
+  let worst = null;
+  let worstMiss = 0;
+  for (const tt of ladder) {
+    const s = wp.taskStats[tt];
+    if (!s || s.attempts === 0) continue;
+    const miss = s.attempts - s.correct;
+    if (miss > worstMiss) {
+      worstMiss = miss;
+      worst = tt;
+    }
+  }
+  return worst || reviewTaskType(wp, entry, bank);
+}
+
+/**
+ * Build a session made only of the student's weak words, each re-tested on the
+ * rung it was weakest on. Unlike buildSession this introduces no new words — it
+ * is a concentrated drill of exactly the gaps before an exam.
+ */
+export function buildFocusSession(
+  state,
+  { size, bank = vocabularyWordBank, now = Date.now(), rng = makeRng(now >>> 0 || 1) } = {}
+) {
+  const limit = size || state.config.sessionSize;
+  const weak = weakWords(state, { bank });
+  return weak
+    .slice(0, limit)
+    .map((w) => {
+      const entry = entryFor(w.wordId, bank);
+      const wp = state.words[w.wordId];
+      const task = generateTask(entry, weakestTaskType(wp, entry, bank), { bank, rng });
+      return task ? { ...task, mode: 'focus' } : null;
+    })
+    .filter(Boolean);
+}
+
 // ---- progress summary ------------------------------------------------------
 
 /** A learner-facing snapshot: counts, per-word progress and exam-section readiness. */

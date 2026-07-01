@@ -106,6 +106,14 @@ h3 { font-size: 15px; margin: 0 0 12px; }
 .sessionbar { display: flex; justify-content: space-between; align-items: center; color: var(--ink-500); font-size: 14px; margin-bottom: 8px; }
 .tag { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: #eef0f3; color: var(--ink-700); }
 .tag.gold { background: #f6ecda; color: var(--gold); }
+.tag.warn { background: var(--error-bg); color: var(--error); }
+
+/* weak-word focus card */
+.eyebrow.warn { color: var(--error); }
+.card.focus { border-color: #f3d6cd; background: linear-gradient(180deg, #fdf4f1 0%, var(--paper) 60%); }
+.card.focus .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 2px; }
+.card.focus .chip { font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 99px; background: var(--paper); border: 1px solid #f0d3ca; color: var(--ink-700); }
+.card.focus .chip.more { background: transparent; border-style: dashed; color: var(--ink-500); }
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 
 .prompt { font-size: 18px; margin: 6px 0 18px; }
