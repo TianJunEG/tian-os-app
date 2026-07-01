@@ -156,6 +156,10 @@ h3 { font-size: 15px; margin: 0 0 12px; }
 .hero h1 { font-size: 30px; line-height: 1.15; letter-spacing: -0.5px; margin: 0 0 8px; }
 .hero .sub { margin: 0; font-size: 16px; }
 
+/* level-group toggle */
+.group-toggle { display: flex; gap: 8px; margin-bottom: 14px; }
+.grp-btn { flex: 1; padding: 10px 8px; font-size: 14px; border-radius: 10px; }
+
 /* primary call-to-action card */
 .card.cta { background: linear-gradient(180deg, var(--emerald-tint) 0%, var(--paper) 72%); border-color: #d8ece1; }
 .card.cta h2 { margin: 4px 0 4px; color: var(--ink-900); }

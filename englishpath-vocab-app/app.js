@@ -19,7 +19,10 @@ import {
   recordResult,
   summarize,
   vocabularyWordBank,
+  bankForLevels,
   TIERS,
+  LEVEL_GROUPS,
+  LEVEL_GROUP_LIST,
 } from '../shared/englishpath/vocabulary/index.js';
 import { CONFIG } from './config.js';
 
@@ -33,7 +36,8 @@ const K = {
   unlocked: 'vb.unlocked', // entitlement stub (Premium)
   lead: 'vb.lead', // captured lead (email + level)
   level: 'vb.level',
-  progress: 'vb.progress', // only written when Premium
+  levelGroup: 'vb.levelGroup',
+  progress: 'vb.progress', // only written when Premium (namespaced by group)
 };
 const app = document.getElementById('app');
 
@@ -86,7 +90,7 @@ function consumePaymentReturn() {
 function loadProgress() {
   if (!isPremium()) return initState(); // free = always fresh, nothing saved
   try {
-    const raw = localStorage.getItem(K.progress);
+    const raw = localStorage.getItem(progressKey());
     if (raw) {
       const p = JSON.parse(raw);
       if (p && p.words) return { ...initState(p.config), words: p.words };
@@ -97,7 +101,7 @@ function loadProgress() {
 function saveProgress(s) {
   if (!isPremium()) return; // free progress is intentionally not saved
   try {
-    localStorage.setItem(K.progress, JSON.stringify(s));
+    localStorage.setItem(progressKey(), JSON.stringify(s));
   } catch (_) {}
 }
 
@@ -120,25 +124,38 @@ function markup(text) {
 }
 
 // ---- app state ------------------------------------------------------------
+function currentGroup() {
+  const saved = localStorage.getItem(K.levelGroup);
+  return LEVEL_GROUP_LIST.find((g) => g.id === saved) || LEVEL_GROUPS.UPPER;
+}
+function setGroup(group) {
+  localStorage.setItem(K.levelGroup, group.id);
+  state = loadProgress();
+}
+function progressKey() {
+  return `${K.progress}.${currentGroup().id}`;
+}
 let state = loadProgress();
 let session = null;
 
-// One combined Primary 5 & 6 vocabulary pool.
 function bank() {
-  return vocabularyWordBank;
+  return bankForLevels(currentGroup().levels);
 }
 
 // ---- views ----------------------------------------------------------------
 function renderHome() {
   state = loadProgress();
   const premium = isPremium();
-  const s = premium ? summarize(state, { bank: bank() }) : null;
+  const group = currentGroup();
+  const b = bank();
+  const s = premium ? summarize(state, { bank: b }) : null;
 
   const ctaEyebrow = premium ? (s.counts.dueNow ? 'Review due' : 'Your practice') : 'Free · no sign-up';
+  const sessionLabel = group.sessionSize === 10 ? '10-question' : '6-question';
   const ctaHeading =
     premium && s.counts.dueNow
       ? `${s.counts.dueNow} word${s.counts.dueNow === 1 ? '' : 's'} to review + new`
-      : 'Start a 10-question session';
+      : `Start a ${sessionLabel} session`;
 
   const premiumBlock = premium
     ? `
@@ -166,19 +183,26 @@ function renderHome() {
         <p class="hint center mt">Free to practise · progress is saved only with Premium.</p>
       </div>`;
 
+  const groupToggle = LEVEL_GROUP_LIST.map((g) =>
+    `<button class="btn ${g.id === group.id ? '' : 'secondary'} grp-btn" data-group="${g.id}">${g.label}</button>`
+  ).join('');
+
   app.innerHTML = `
     <div class="hero">
-      <div class="eyebrow">Primary 5 &amp; 6 English</div>
+      <div class="group-toggle">${groupToggle}</div>
       <h1>Master the words the exam tests</h1>
-      <p class="sub">The real vocabulary MCQ and cloze words — learned step by step, in 5-minute sessions.</p>
+      <p class="sub">${b.length} real vocabulary words — learned step by step, in 5-minute sessions.</p>
     </div>
 
-    <div class="card cta">
+    ${b.length ? `<div class="card cta">
       <div class="eyebrow">${ctaEyebrow}</div>
       <h2>${ctaHeading}</h2>
       <p class="muted">Meet a few new words, then test yourself. About 5 minutes.</p>
       <button class="btn full mt" data-go="practice">${premium ? 'Continue' : 'Start practice'} →</button>
-    </div>
+    </div>` : `<div class="card" style="text-align:center;padding:32px 22px">
+      <h2 style="color:var(--ink-700)">Coming soon</h2>
+      <p class="muted">We're building the ${group.label} word bank from real exam papers. Switch to Upper Primary to start practising now.</p>
+    </div>`}
 
     ${premium ? premiumBlock : ''}
 
@@ -194,14 +218,21 @@ function renderHome() {
     ${premium ? '<button class="btn ghost" data-reset>↺ Reset my progress</button>' : ''}
   `;
 
-  app.querySelector('[data-go="practice"]').onclick = startSession;
+  const goBtn = app.querySelector('[data-go="practice"]');
+  if (goBtn) goBtn.onclick = startSession;
+  for (const btn of app.querySelectorAll('[data-group]')) {
+    btn.onclick = () => {
+      const g = LEVEL_GROUP_LIST.find((x) => x.id === btn.dataset.group);
+      if (g && g.id !== group.id) { setGroup(g); renderHome(); }
+    };
+  }
   const unlock = app.querySelector('[data-unlock]');
   if (unlock) unlock.onclick = () => openPaywall('home');
   const reset = app.querySelector('[data-reset]');
   if (reset)
     reset.onclick = () => {
       if (confirm('Reset your saved progress?')) {
-        localStorage.removeItem(K.progress);
+        localStorage.removeItem(progressKey());
         state = initState();
         renderHome();
       }
@@ -226,10 +257,9 @@ function shuffle(arr) {
 }
 
 function startSession() {
-  // Free sessions aren't saved, so vary the words each time rather than always
-  // starting from the top of the list. Premium follows the adaptive order.
+  const group = currentGroup();
   const sessionBank = isPremium() ? bank() : shuffle(bank());
-  const tasks = buildSession(state, { size: 10, bank: sessionBank });
+  const tasks = buildSession(state, { size: group.sessionSize, bank: sessionBank });
   session = { tasks, idx: 0, answered: false, log: [] };
   renderSession();
 }

@@ -592,3 +592,8 @@ export const wordBankByCluster = vocabularyWordBank.reduce((acc, w) => {
 export function getWord(id) {
   return wordBankById[id] || null;
 }
+
+export function bankForLevels(levels) {
+  const set = new Set(levels.map((l) => l.toUpperCase()));
+  return vocabularyWordBank.filter((w) => set.has((w.level || 'P6').toUpperCase()));
+}

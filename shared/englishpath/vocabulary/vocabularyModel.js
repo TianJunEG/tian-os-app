@@ -208,6 +208,13 @@ export const TIERS = [
   { tier: 5, name: 'Exam form', summary: 'Answer the question exactly as the paper asks it.' },
 ];
 
+export const LEVEL_GROUPS = {
+  UPPER: { id: 'upper', label: 'Upper Primary', levels: ['P5', 'P6'], sessionSize: 10 },
+  MIDDLE: { id: 'middle', label: 'Middle Primary', levels: ['P3', 'P4'], sessionSize: 6 },
+};
+
+export const LEVEL_GROUP_LIST = Object.values(LEVEL_GROUPS);
+
 const REQUIRED_ENTRY_FIELDS = ['id', 'word', 'meaning'];
 
 /**
