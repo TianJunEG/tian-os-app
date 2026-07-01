@@ -69,31 +69,31 @@ describe('CirclesQuestionGenerator', () => {
   });
 
   it('word-problem families (_003) cycle in at every 3rd position', () => {
-    // CI001W: real object radius/diameter (no diagram)
+    // CI001W: real object radius/diameter — now shows the labelled circle figure
     const ci1 = generateCirclesQuestionSet({ skillId: 'CI001', count: 9 });
     for (const i of [2, 5, 8]) {
-      expect(ci1[i].diagram).toBeUndefined();
+      expect(ci1[i].diagram).toBeTruthy();
       expect(ci1[i].prompt).toMatch(/circular/);
       expect(Number(dig(ci1[i].answer.display))).toBeGreaterThan(0);
     }
     // CI002W: circumference real-world context
     const ci2 = generateCirclesQuestionSet({ skillId: 'CI002', count: 9 });
     for (const i of [2, 5, 8]) {
-      expect(ci2[i].diagram).toBeUndefined();
+      expect(ci2[i].diagram).toBeTruthy();
       expect(ci2[i].prompt).toMatch(/circumference of a circle/);
       expect(Number(dig(ci2[i].answer.display))).toBeGreaterThan(0);
     }
     // CI003W: area real-world context
     const ci3 = generateCirclesQuestionSet({ skillId: 'CI003', count: 9 });
     for (const i of [2, 5, 8]) {
-      expect(ci3[i].diagram).toBeUndefined();
+      expect(ci3[i].diagram).toBeTruthy();
       expect(ci3[i].prompt).toMatch(/area of a circle/);
       expect(Number(dig(ci3[i].answer.display))).toBeGreaterThan(0);
     }
     // CI004W: semicircle/quarter-circle real-world context
     const ci4 = generateCirclesQuestionSet({ skillId: 'CI004', count: 9 });
     for (const i of [2, 5, 8]) {
-      expect(ci4[i].diagram).toBeUndefined();
+      expect(ci4[i].diagram).toBeTruthy();
       expect(ci4[i].prompt).toMatch(/semicircle|quarter-circle/);
       expect(Number(dig(ci4[i].answer.display))).toBeGreaterThan(0);
     }
