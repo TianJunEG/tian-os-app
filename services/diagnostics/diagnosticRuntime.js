@@ -169,6 +169,13 @@ function sessionCodeFor(domainId = 'diagnostic') {
   return `${safe}diag_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
+// Cap client-supplied arrays so a hostile request (notably on the unauthenticated
+// kiosk path) can't persist unbounded working evidence. Generous limits — real
+// usage never approaches them; the express 10mb body limit is the primary bound.
+function boundedArray(value, cap) {
+  return Array.isArray(value) ? value.slice(0, cap) : [];
+}
+
 function normalizeResponseBody(body = {}, question = {}) {
   const answer = String(body.answer ?? body.studentAnswer ?? '');
   const skipped = Boolean(body.skipped);
@@ -189,21 +196,21 @@ function normalizeResponseBody(body = {}, question = {}) {
     workingSubmitted: Boolean(body.workingSubmitted || body.workingUploaded || body.fullscreenWorkingSubmitted),
     workingSubmittedAt: toDateLike(body.workingSubmittedAt),
     workingImage: String(body.workingImage || ''),
-    workingStrokes: Array.isArray(body.workingStrokes) ? body.workingStrokes : [],
+    workingStrokes: boundedArray(body.workingStrokes, 10000),
     workingNotNeeded: Boolean(body.workingNotNeeded),
     workingRequirementLevel: ['LOW', 'MEDIUM', 'HIGH'].includes(String(body.workingRequirementLevel || '').toUpperCase())
       ? String(body.workingRequirementLevel).toUpperCase()
       : '',
-    workingMathObjects: Array.isArray(body.workingMathObjects) ? body.workingMathObjects : [],
+    workingMathObjects: boundedArray(body.workingMathObjects, 2000),
     fullscreenWorkingImage: String(body.fullscreenWorkingImage || ''),
-    fullscreenWorkingStrokes: Array.isArray(body.fullscreenWorkingStrokes) ? body.fullscreenWorkingStrokes : [],
-    fullscreenWorkingMathObjects: Array.isArray(body.fullscreenWorkingMathObjects) ? body.fullscreenWorkingMathObjects : [],
+    fullscreenWorkingStrokes: boundedArray(body.fullscreenWorkingStrokes, 10000),
+    fullscreenWorkingMathObjects: boundedArray(body.fullscreenWorkingMathObjects, 2000),
     fullscreenWorkingSubmitted: Boolean(body.fullscreenWorkingSubmitted),
     fullscreenWorkingSubmittedAt: toDateLike(body.fullscreenWorkingSubmittedAt),
-    workingEvidence: Array.isArray(body.workingEvidence) ? body.workingEvidence : [],
+    workingEvidence: boundedArray(body.workingEvidence, 500),
     helpRequested: Boolean(body.helpRequested),
     timedOut: Boolean(body.timedOut),
-    detectedErrorTags: Array.isArray(body.detectedErrorTags) ? body.detectedErrorTags : [],
+    detectedErrorTags: boundedArray(body.detectedErrorTags, 200),
   };
 }
 
