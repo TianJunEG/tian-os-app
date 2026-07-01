@@ -44,7 +44,13 @@ const K = {
 const app = document.getElementById('app');
 
 // ---- entitlement + lead (stubs) -------------------------------------------
-const isPremium = () => localStorage.getItem(K.unlocked) === '1';
+// Premium is currently FREE FOR EVERYONE — the Stripe paywall and email gate
+// are disabled while we run open. Every learner gets saved progress, spaced
+// review, weak-word focus and readiness. To re-enable the funnel later, restore
+// the entitlement check: `localStorage.getItem(K.unlocked) === '1'`. The paywall
+// / lead-capture / checkout code below is left dormant (never reached while this
+// returns true) so re-enabling is a one-line change.
+const isPremium = () => true;
 
 function captureLead(lead) {
   const record = { ...lead, app: 'vocab-builder', at: new Date().toISOString() };
