@@ -229,6 +229,30 @@ const GENERATORS = {
     };
   },
 
+  collocation_natural(entry, bank, rng) {
+    const real = entry.collocations.find((c) => norm(c).includes(norm(entry.word)));
+    if (!real) return null;
+    const others = otherWords(entry, bank).filter((w) => w.collocations?.length);
+    const fakes = [];
+    for (const w of shuffle(others, rng)) {
+      for (const col of w.collocations) {
+        if (!norm(col).includes(norm(w.word))) continue;
+        const fake = col.replace(new RegExp(w.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), entry.word);
+        if (norm(fake) !== norm(real) && norm(fake) !== norm(col)) { fakes.push(fake); break; }
+      }
+      if (fakes.length >= 3) break;
+    }
+    if (fakes.length < 2) return null;
+    const options = buildOptions({ correct: real, distractors: fakes.slice(0, 3), rng });
+    if (!options) return null;
+    return {
+      kind: 'mcq',
+      prompt: `Which phrase uses **${entry.word}** naturally?`,
+      options,
+      rationale: `"${real}" is the natural pairing — these words collocate.`,
+    };
+  },
+
   odd_one_out(entry, bank, rng) {
     // The odd word must be a genuine non-synonym, so exclude any confusable that
     // also appears among the synonyms.

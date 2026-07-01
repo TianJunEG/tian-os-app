@@ -167,7 +167,7 @@ function renderHome() {
       <div class="card">
         <h3>Exam-section readiness</h3>
         ${readinessRow('vocab_mcq', 'Vocabulary MCQ', s.examReadiness)}
-        ${readinessRow('vocab_cloze', 'Vocabulary Cloze', s.examReadiness)}
+        ${group.id === 'upper' ? readinessRow('vocab_cloze', 'Vocabulary Cloze', s.examReadiness) : ''}
       </div>`
     : `
       <div class="card locked">

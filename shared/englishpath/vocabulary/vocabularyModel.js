@@ -114,6 +114,16 @@ export const TASK_TYPES = [
     instruction: 'Choose the word that belongs to the same word family.',
   },
   {
+    id: 'collocation_natural',
+    label: 'Natural pairing',
+    tier: 3,
+    kind: 'mcq',
+    subskills: [VOCAB_SUBSKILLS.COLLOCATION],
+    examSection: VOCAB_EXAM_SECTIONS.VOCAB_MCQ,
+    requires: ['collocations'],
+    instruction: 'Choose the phrase that uses the word naturally.',
+  },
+  {
     id: 'odd_one_out',
     label: 'Odd one out',
     tier: 3,
