@@ -29,6 +29,7 @@ import {
 } from '../services/mathpath/mathPathAssignmentService.js';
 import { getQueue, isQueueEnabled, QUEUE_NAMES } from '../config/queue.js';
 import { putUpload } from '../services/storage/objectStore.js';
+import { recordMistakesFromPaperAnalysis } from '../services/mathpath/paperAnalysisMistakeRecorder.js';
 
 const router = express.Router();
 
@@ -386,6 +387,9 @@ router.patch('/:id/review', protect, asyncHandler(async (req, res) => {
     analysis.reviewedAt = new Date();
     analysis.analysisNotes = req.body?.analysisNotes || analysis.analysisNotes || '';
     await analysis.save();
+    // Surface the adult-confirmed wrong questions in the student's Mistakes review
+    // (idempotent + best-effort — never blocks the review response).
+    recordMistakesFromPaperAnalysis(analysis).catch(() => {});
     return res.json({ analysis });
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not review paper analysis.' });
