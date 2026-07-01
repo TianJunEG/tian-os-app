@@ -808,9 +808,11 @@ function pieChart(spec) {
   return svgShell(spec, body, 'pie chart');
 }
 
-// Regular polygon. data: { sides }. Draws an n-sided regular polygon.
+// Regular polygon. data: { sides, labelMode }. Draws an n-sided regular polygon.
+// labelMode 'none' suppresses the "N sides" caption — "how many sides does a
+// hexagon have?" questions pass it so the figure doesn't print its own answer.
 function regularPolygon(spec) {
-  const { sides = 3 } = spec.data;
+  const { sides = 3, labelMode = 'count' } = spec.data;
   const n = Math.max(3, Number(sides) || 3);
   const W = spec.width; const H = spec.height;
   const cx = W / 2; const cy = H / 2 + 6; const r = Math.min(W, H) / 2 - 30;
@@ -820,7 +822,7 @@ function regularPolygon(spec) {
     pts.push(`${cx + r * Math.cos(a)},${cy + r * Math.sin(a)}`);
   }
   let body = `<polygon points="${pts.join(' ')}" fill="#eff6ff" stroke="#111" stroke-width="2"/>`;
-  body += `<text x="${cx}" y="${H - 12}" text-anchor="middle" font-size="13" fill="#475569">${n} sides</text>`;
+  if (labelMode !== 'none') body += `<text x="${cx}" y="${H - 12}" text-anchor="middle" font-size="13" fill="#475569">${n} sides</text>`;
   return svgShell(spec, body, `${n}-sided polygon`);
 }
 
