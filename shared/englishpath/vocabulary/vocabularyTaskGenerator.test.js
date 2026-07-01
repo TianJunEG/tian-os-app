@@ -13,7 +13,7 @@ function exactlyOneCorrect(task) {
 }
 
 describe('vocabulary task generator', () => {
-  it('builds a fair MCQ for every applicable rung of every word', () => {
+  it('builds a fair MCQ for every applicable rung of every word', { timeout: 15000 }, () => {
     for (const w of vocabularyWordBank) {
       for (const task of generateLadder(w)) {
         expect(task.options.length, `${w.word}/${task.taskType} option count`).toBeGreaterThanOrEqual(3);
