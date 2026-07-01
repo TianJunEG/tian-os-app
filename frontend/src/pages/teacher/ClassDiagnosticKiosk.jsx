@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { teacherAPI, diagnosticsAPI } from '../../services/api';
 import { useClass } from './useClass';
 import ClassNav from './ClassNav';
+import { QRCodeSVG } from 'qrcode.react';
 import { Card, Button, Spinner } from '../../components/ui';
 
 const STATUS_LABEL = { not_started: 'Not started', in_progress: 'In progress', completed: 'Done', abandoned: 'Left' };
@@ -77,9 +78,6 @@ export default function ClassDiagnosticKiosk() {
   }
 
   const kioskUrl = session ? `${window.location.origin}/kiosk/${session.code}` : '';
-  const qrSrc = kioskUrl
-    ? `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(kioskUrl)}`
-    : '';
 
   return (
     <>
@@ -124,9 +122,10 @@ export default function ClassDiagnosticKiosk() {
                 <p className="font-mono text-4xl font-extrabold tracking-widest text-ink-900">{session.code}</p>
                 <Button className="mt-4" variant="secondary" onClick={close}>End check-in</Button>
               </div>
-              {qrSrc && (
-                <img src={qrSrc} alt="Scan to join the check-in" width={200} height={200}
-                  className="self-center rounded-xl border border-border-subtle" />
+              {kioskUrl && (
+                <div className="self-center rounded-xl border border-border-subtle bg-white p-2">
+                  <QRCodeSVG value={kioskUrl} size={200} title="Scan to join the check-in" />
+                </div>
               )}
             </div>
           </Card>
