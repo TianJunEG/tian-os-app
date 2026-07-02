@@ -541,6 +541,11 @@ export default function WorkingCanvas({
     if (activePointerRef.current !== null && event?.pointerId !== undefined
       && event.pointerId !== activePointerRef.current) return;
     if (event?.pointerId !== undefined) canvasRef.current?.releasePointerCapture?.(event.pointerId);
+    // Suppress the trailing tap and drop any selection the lift started, so the
+    // canvas isn't left fully highlighted (an iPad/stylus quirk where the next
+    // stroke's first tap only clears the selection instead of drawing).
+    event?.preventDefault?.();
+    if (typeof window !== 'undefined') window.getSelection?.()?.removeAllRanges?.();
     activePointerRef.current = null;
     drawingRef.current = false;
     const raw = currentStrokeRef.current;

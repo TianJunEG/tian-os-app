@@ -209,6 +209,10 @@ export default function ScratchpadOverlay({
     if (!drawingRef.current) return;
     if (activePointerRef.current !== null && event?.pointerId !== undefined && event.pointerId !== activePointerRef.current) return;
     if (event?.pointerId !== undefined) canvasRef.current?.releasePointerCapture?.(event.pointerId);
+    // Suppress the trailing tap and clear any selection the lift started, so the
+    // overlay isn't left fully highlighted until the next tap (iPad/stylus quirk).
+    event?.preventDefault?.();
+    if (typeof window !== 'undefined') window.getSelection?.()?.removeAllRanges?.();
     activePointerRef.current = null;
     drawingRef.current = false;
     const raw = currentStrokeRef.current;
