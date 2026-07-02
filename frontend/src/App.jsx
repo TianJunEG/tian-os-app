@@ -237,6 +237,8 @@ const PendingUpgradesPage = lazy(() => import('./pages/admin/PendingUpgradesPage
 const ClassMasteryMap = lazy(() => import('./pages/teacher/ClassMasteryMap'));
 const ClassStudents = lazy(() => import('./pages/teacher/ClassStudents'));
 const ClassCorrections = lazy(() => import('./pages/teacher/ClassCorrections'));
+const ClassTestPapers = lazy(() => import('./pages/teacher/ClassTestPapers'));
+const ClassTestPaperStudent = lazy(() => import('./pages/teacher/ClassTestPaperStudent'));
 const Grouping = lazy(() => import('./pages/teacher/Grouping'));
 const WeakGroups = lazy(() => import('./pages/teacher/WeakGroups'));
 const ClassDiagnosticKiosk = lazy(() => import('./pages/teacher/ClassDiagnosticKiosk'));
@@ -853,6 +855,8 @@ function App() {
             <Route path="/teacher/classes/:id/announcements" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassAnnouncements /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/students" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassStudents /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/corrections" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassCorrections /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/test-papers" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassTestPapers /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/test-papers/:studentId" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassTestPaperStudent /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/groups" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><Grouping /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/weak-groups" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><WeakGroups /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/assign" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherAssignPractice /></FeatureGuard></RoleGuard>} />
