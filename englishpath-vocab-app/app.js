@@ -40,6 +40,7 @@ const K = {
   level: 'vb.level',
   levelGroup: 'vb.levelGroup',
   progress: 'vb.progress', // only written when Premium (namespaced by group)
+  theme: 'vb.theme', // 'dark' | 'light' — absent means follow the OS setting
 };
 const app = document.getElementById('app');
 
@@ -512,6 +513,30 @@ function openPaywall(source) {
   };
 }
 
+// ---- theme (dark mode) -----------------------------------------------------
+// The <head> script has already applied the initial theme class (from the saved
+// preference, else the OS setting) to avoid a flash. Here we just keep the
+// toggle's icon in sync and let the user override + persist their choice.
+function initTheme() {
+  const btn = document.getElementById('theme-toggle');
+  if (!btn) return;
+  const sync = () => {
+    const dark = document.documentElement.classList.contains('dark');
+    btn.textContent = dark ? '☀️' : '🌙';
+    btn.setAttribute('aria-pressed', String(dark));
+  };
+  btn.onclick = () => {
+    const dark = !document.documentElement.classList.contains('dark');
+    document.documentElement.classList.toggle('dark', dark);
+    try {
+      localStorage.setItem(K.theme, dark ? 'dark' : 'light');
+    } catch (_) {}
+    sync();
+  };
+  sync();
+}
+
 // ---- boot -----------------------------------------------------------------
+initTheme();
 consumePaymentReturn(); // grant Premium if returning from a successful checkout
 renderHome();
