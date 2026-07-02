@@ -58,6 +58,25 @@ describe('WorkingCanvas', () => {
     }));
   });
 
+  it('clears the text selection when a stroke ends (no lingering highlight)', () => {
+    // Regression: on iPad/stylus, lifting after a stroke left a text selection
+    // that highlighted the whole area until the next tap. endStroke must drop it.
+    const removeAllRanges = vi.fn();
+    const originalGetSelection = window.getSelection;
+    window.getSelection = vi.fn(() => ({ removeAllRanges }));
+    try {
+      render(<WorkingCanvas questionId="q1" />);
+      const canvas = screen.getByLabelText('Working canvas');
+      fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10, pointerId: 1 });
+      fireEvent.pointerMove(canvas, { clientX: 80, clientY: 80, pointerId: 1 });
+      removeAllRanges.mockClear();
+      fireEvent.pointerUp(canvas, { pointerId: 1 });
+      expect(removeAllRanges).toHaveBeenCalled();
+    } finally {
+      window.getSelection = originalGetSelection;
+    }
+  });
+
   it('allows working not needed when configured', () => {
     const onSubmit = vi.fn();
     render(<WorkingCanvas questionId="q1" allowNoWorking onSubmit={onSubmit} />);

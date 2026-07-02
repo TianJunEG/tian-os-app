@@ -542,6 +542,9 @@ export default function FullScreenWorkingMode({
     event?.preventDefault?.();
     if (event?.pointerId !== undefined) canvasRef.current?.releasePointerCapture?.(event.pointerId);
     drawingRef.current = false;
+    // Drop any selection the lift started so the canvas isn't left highlighted
+    // until the next tap (iPad/stylus quirk — see WorkingCanvas.endStroke).
+    if (typeof window !== 'undefined') window.getSelection?.()?.removeAllRanges?.();
     const raw = currentStrokeRef.current;
     currentStrokeRef.current = null;
     const stroke = finalizeStroke(raw);
