@@ -4,6 +4,7 @@ import { protect } from '../middleware/auth.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import { gradeAnswer } from '../utils/testPaperGrading.js';
+import { projectMarkedSitting } from '../utils/testPaperSitting.js';
 import { recordLearningEvents } from '../services/telemetry/learningTelemetryService.js';
 import TestPaper from '../models/TestPaper.js';
 import TestPaperSession from '../models/TestPaperSession.js';
@@ -113,6 +114,8 @@ router.post('/:paperCode/sessions', protect, asyncHandler(async (req, res) => {
     paperCode: paper.paperCode,
     paperTitle: paper.title,
     level: paper.level,
+    category: paper.category || 'mock',
+    topic: paper.topic || '',
     durationMinutes: paper.durationMinutes,
     totalMarks: paper.totalMarks,
     status: 'inProgress',
@@ -161,7 +164,6 @@ router.post('/sessions/:sessionId/submit', protect, asyncHandler(async (req, res
   if (session.status === 'completed') return res.status(409).json({ error: 'Already submitted' });
 
   const byOrder = new Map((req.body?.answers || []).map((a) => [Number(a.order), a]));
-  const marked = [];
   const scoredAnswers = [];
   let marksAwarded = 0;
   let correctCount = 0;
@@ -174,34 +176,19 @@ router.post('/sessions/:sessionId/submit', protect, asyncHandler(async (req, res
     marksAwarded += awarded;
     if (correct) correctCount += 1;
 
-    const workingSubmitted = Boolean(submitted.workingSubmitted);
-    const workingImage = String(submitted.workingImage || '');
-    scoredAnswers.push({ order: q.order, answer: studentAnswer, correct, marksAwarded: awarded, timeMs: submitted.timeMs ?? null, workingSubmitted, workingImage });
-    marked.push({
+    scoredAnswers.push({
       order: q.order,
-      section: q.section,
-      paper: q.paper || 1,
-      groupId: q.groupId || '',
-      groupIntro: q.groupIntro || '',
-      partLabel: q.partLabel || '',
-      marks: q.marks,
-      type: q.type,
-      stem: q.stem,
-      choices: q.choices,
-      diagram: q.diagram || null,
-      grid: q.grid || null,
-      unit: q.unit || '',
-      studentAnswer,
-      correctAnswer: q.answer,
+      answer: studentAnswer,
       correct,
       marksAwarded: awarded,
-      workedSolution: q.workedSolution || '',
-      solutionSteps: Array.isArray(q.solutionSteps) ? q.solutionSteps : [],
-      skillName: q.skillName || '',
-      workingSubmitted,
-      workingImage,
+      timeMs: submitted.timeMs ?? null,
+      workingSubmitted: Boolean(submitted.workingSubmitted),
+      workingImage: String(submitted.workingImage || ''),
     });
   }
+
+  // Same per-question review shape the teacher drill-down uses (one source of truth).
+  const marked = projectMarkedSitting(session.questions, scoredAnswers);
 
   const totalMarks = session.totalMarks || session.questions.reduce((s, q) => s + (Number(q.marks) || 0), 0);
   const scorePct = totalMarks ? Math.round((marksAwarded / totalMarks) * 100) : 0;

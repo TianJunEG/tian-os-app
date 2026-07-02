@@ -33,6 +33,7 @@ export default function ClassNav({ classId, name, level }) {
     ['Weak groups', `${base}/weak-groups`],
     ['Intervention', `${base}/interventions`],
     ['Worksheets', `${base}/worksheets`],
+    ['Test papers', `${base}/test-papers`],
     ['Reports', `${base}/reports`],
     FEATURE_FLAGS.lifelab && ['LifeLab', `${base}/lifelab`],
   ].filter(Boolean);

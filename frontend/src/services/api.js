@@ -636,6 +636,10 @@ export const teacherAPI = {
   createAnnouncement: (id, data) => api.post(`/teacher/classes/${id}/announcements`, data),
   listAnnouncements: (id) => api.get(`/teacher/classes/${id}/announcements`),
   deleteAnnouncement: (id, aid) => api.delete(`/teacher/classes/${id}/announcements/${aid}`),
+  // Test papers (self-serve exam-style papers) — teacher visibility, by student.
+  classTestPapers: (id) => api.get(`/teacher/classes/${id}/test-papers`),
+  studentTestPapers: (id, studentId) => api.get(`/teacher/classes/${id}/test-papers/${studentId}`),
+  studentTestPaperSitting: (id, studentId, sessionId) => api.get(`/teacher/classes/${id}/test-papers/${studentId}/sittings/${sessionId}`),
 };
 
 // Announcements (shared: parents read + comment; the author reads + replies).

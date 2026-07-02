@@ -23,6 +23,8 @@ import { generateWorksheet } from '../utils/worksheetGen.js';
 import PSLSession from '../models/psl/PSLSession.js';
 import PSLSkill from '../models/psl/PSLSkill.js';
 import PSLAttempt from '../models/psl/PSLAttempt.js';
+import TestPaperSession from '../models/TestPaperSession.js';
+import { projectMarkedSitting } from '../utils/testPaperSitting.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 import ClassDiagnosticSession from '../models/ClassDiagnosticSession.js';
 import { createClassDiagnosticSession, buildKioskStatus } from '../services/kiosk/classDiagnosticService.js';
@@ -365,6 +367,115 @@ router.get('/classes/:id/corrections/:studentId', asyncHandler(async (req, res) 
       correctionDone: CORRECTION_DONE.includes(m.learningStatus),
       occurredAt: m.occurredAt || m.createdAt,
     })),
+  });
+}));
+
+// ─── Test Papers — teacher visibility ───────────────────────────────────────
+// Test papers are self-serve (a student sits any published paper; they are NOT
+// assigned to a class), so the teacher view is by-student: which of my students
+// have sat papers, how they scored, and a full per-question review of any sitting.
+
+// Class roster with each student's completed-test-paper activity.
+router.get('/classes/:id/test-papers', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return;
+  const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
+  const ids = await rosterIds(c._id);
+  const students = await Student.find({ _id: { $in: ids } }).select('name level').lean();
+
+  const sittings = await TestPaperSession.find({ studentId: { $in: ids }, status: 'completed' })
+    .select('studentId paperCode paperTitle category topic summary completedAt')
+    .sort({ completedAt: -1 })
+    .lean();
+  const byStudent = new Map();
+  for (const s of sittings) {
+    const k = String(s.studentId);
+    if (!byStudent.has(k)) byStudent.set(k, []);
+    byStudent.get(k).push(s);
+  }
+
+  const roster = students.map((s) => {
+    const list = byStudent.get(String(s._id)) || [];           // already newest-first
+    const scores = list.map((l) => l.summary?.scorePct || 0);
+    const latest = list[0] || null;
+    return {
+      studentId: s._id, name: s.name, level: s.level,
+      sittingCount: list.length,
+      papersAttempted: new Set(list.map((l) => l.paperCode)).size,
+      bestScorePct: scores.length ? Math.max(...scores) : null,
+      latestScorePct: latest ? (latest.summary?.scorePct ?? null) : null,
+      latestPaperTitle: latest?.paperTitle || '',
+      latestAt: latest?.completedAt || null,
+    };
+  });
+  // Most active first; then most recent activity, then name.
+  roster.sort((a, b) => b.sittingCount - a.sittingCount
+    || (new Date(b.latestAt || 0) - new Date(a.latestAt || 0))
+    || a.name.localeCompare(b.name));
+
+  const allScores = sittings.map((s) => s.summary?.scorePct || 0);
+  res.json({
+    class: { id: c._id, name: c.name, level: c.level },
+    summary: {
+      totalStudents: roster.length,
+      studentsWithSittings: byStudent.size,
+      totalSittings: sittings.length,
+      avgScorePct: allScores.length ? Math.round(allScores.reduce((s, n) => s + n, 0) / allScores.length) : null,
+    },
+    students: roster,
+  });
+}));
+
+// One student's completed sittings (newest first).
+router.get('/classes/:id/test-papers/:studentId', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return;
+  const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
+  const ids = (await rosterIds(c._id)).map(String);
+  if (!ids.includes(String(req.params.studentId))) return res.status(403).json({ error: 'Student not in this class.' });
+
+  const student = await Student.findById(req.params.studentId).select('name level').lean();
+  const sittings = await TestPaperSession.find({ studentId: req.params.studentId, status: 'completed' })
+    .select('sessionId paperCode paperTitle level category topic durationMinutes summary completedAt')
+    .sort({ completedAt: -1 })
+    .lean();
+
+  res.json({
+    student: student ? { studentId: student._id, name: student.name, level: student.level } : null,
+    sittings: sittings.map((s) => ({
+      sessionId: s.sessionId,
+      paperCode: s.paperCode,
+      paperTitle: s.paperTitle,
+      level: s.level,
+      category: s.category || 'mock',
+      topic: s.topic || '',
+      durationMinutes: s.durationMinutes,
+      summary: s.summary,
+      completedAt: s.completedAt,
+    })),
+  });
+}));
+
+// Full per-question review of one sitting (what the student saw at submission).
+router.get('/classes/:id/test-papers/:studentId/sittings/:sessionId', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return;
+  const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
+  const ids = (await rosterIds(c._id)).map(String);
+  if (!ids.includes(String(req.params.studentId))) return res.status(403).json({ error: 'Student not in this class.' });
+
+  const session = await TestPaperSession.findOne({
+    sessionId: req.params.sessionId, studentId: req.params.studentId, status: 'completed',
+  }).lean();
+  if (!session) return res.status(404).json({ error: 'Sitting not found.' });
+
+  res.json({
+    sessionId: session.sessionId,
+    paperCode: session.paperCode,
+    title: session.paperTitle,
+    level: session.level,
+    category: session.category || 'mock',
+    topic: session.topic || '',
+    summary: session.summary,
+    completedAt: session.completedAt,
+    questions: projectMarkedSitting(session.questions, session.answers),
   });
 }));
 

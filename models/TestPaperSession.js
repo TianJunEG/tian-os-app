@@ -40,6 +40,8 @@ const testPaperSessionSchema = new mongoose.Schema({
   paperCode: { type: String, required: true },
   paperTitle: { type: String, default: '' },
   level: { type: String, default: '' },
+  category: { type: String, default: 'mock' },   // 'mock' | 'challenge' (snapshot of the paper)
+  topic: { type: String, default: '' },          // challenge-set focus, e.g. 'Fractions'
   durationMinutes: { type: Number, default: 0 },
   totalMarks: { type: Number, default: 0 },
   status: { type: String, enum: ['inProgress', 'completed', 'abandoned'], default: 'inProgress' },
