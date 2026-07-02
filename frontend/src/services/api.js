@@ -720,6 +720,9 @@ export const parentsAPI = {
     api.get(`/parents/${studentId}/mathpath/dashboard`, { params: { subjectId, domainId } }),
   mathPathDomains: ({ studentId, subjectId = 'math' }) =>
     api.get(`/parents/${studentId}/mathpath/domains`, { params: { subjectId } }),
+  // Test papers — a child's completed sittings + one sitting's full review.
+  testPapers: (studentId) => api.get(`/parents/${studentId}/test-papers`),
+  testPaperSitting: (studentId, sessionId) => api.get(`/parents/${studentId}/test-papers/sittings/${sessionId}`),
 };
 
 // BrightDesk integration API
