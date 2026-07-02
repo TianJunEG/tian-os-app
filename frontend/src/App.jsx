@@ -201,6 +201,7 @@ const RecommendedActions = lazy(() => import('./pages/parent/RecommendedActions'
 const AssignPractice = lazy(() => import('./pages/parent/AssignPractice'));
 const MistakeHistory = lazy(() => import('./pages/parent/MistakeHistory'));
 const ChildAssignments = lazy(() => import('./pages/parent/ChildAssignments'));
+const ChildTestPapers = lazy(() => import('./pages/parent/ChildTestPapers'));
 const StudentCareDashboard = lazy(() => import('./pages/studentCare/StudentCareDashboard'));
 const StudentCareHomework = lazy(() => import('./pages/studentCare/StudentCareHomework'));
 const StudentCareRecoveryPacks = lazy(() => import('./pages/studentCare/StudentCareRecoveryPacks'));
@@ -799,6 +800,7 @@ function App() {
             <Route path="/parent/children/:studentId/assign-practice" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><AssignPractice /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/mistakes" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><MistakeHistory /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/assignments" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildAssignments /></FeatureGuard>} />
+            <Route path="/parent/children/:studentId/test-papers" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildTestPapers /></FeatureGuard>} />
             {/* Mastery Worksheet Generator (Phase 4) */}
             <Route path="/parent/children/:studentId/worksheets" element={<FeatureGuard feature="parent"><WorksheetHome /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/worksheets/new" element={<FeatureGuard feature="parent"><WorksheetSetup /></FeatureGuard>} />

@@ -22,6 +22,7 @@ export default function ChildNav({ studentId, name, level, showAssign = true }) 
     ['Mistakes', `${base}/mistakes`, true],
     ['Weak topics', `${base}/weak-topics`, true],
     ['Practice Tasks', `${base}/assignments`, true],
+    ['Test papers', `${base}/test-papers`, true],
     ['Worksheets', `${base}/worksheets`, false],
     FEATURE_FLAGS.psl && ['Problem Solving', `${base}/psl`, true],
     FEATURE_FLAGS.science && ['Science', `${base}/science`, true],
