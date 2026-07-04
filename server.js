@@ -40,6 +40,7 @@ import mistakeRoutes from './routes/mistakes.js';
 import masteryRoutes from './routes/mastery.js';
 import diagnosticRoutes from './routes/diagnostics.js';
 import kioskDiagnosticRoutes from './routes/kioskDiagnostics.js';
+import vocabRoutes from './routes/vocab.js';
 import announcementRoutes from './routes/announcements.js';
 import studentProfileRoutes from './routes/studentProfile.js';
 import studentAnalyticsRoutes from './routes/studentAnalytics.js';
@@ -185,6 +186,11 @@ app.use(sanitizeInputs);
 // apiRateLimit so a whole class behind one classroom IP isn't throttled by the
 // per-IP cap; it gets its own, higher limit instead.
 app.use('/api/kiosk', rateLimit(800, 15 * 60 * 1000), kioskDiagnosticRoutes);
+
+// Standalone Vocabulary Builder cross-device save (public, passwordless). Its
+// endpoints carry their own per-route rate limits, so mount before the global
+// apiRateLimit like the kiosk above.
+app.use('/api/vocab', vocabRoutes);
 
 app.use(apiRateLimit);
 

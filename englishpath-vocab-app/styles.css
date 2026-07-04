@@ -44,6 +44,14 @@ body {
   transition: background 0.15s;
 }
 .theme-toggle:hover { background: var(--emerald-tint); }
+/* inline text button (sync affordance in the on-device note) */
+.linkbtn {
+  appearance: none; border: 0; background: transparent; cursor: pointer; font: inherit;
+  color: var(--emerald); font-weight: 600; padding: 0; text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.linkbtn:hover { color: var(--emerald-deep); }
+.synced b { color: var(--ink-700); }
 .brand em { color: var(--ink-500); font-style: normal; font-weight: 500; }
 .logo {
   display: inline-flex; align-items: center; justify-content: center;

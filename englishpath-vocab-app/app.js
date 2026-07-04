@@ -41,6 +41,8 @@ const K = {
   levelGroup: 'vb.levelGroup',
   progress: 'vb.progress', // only written when Premium (namespaced by group)
   theme: 'vb.theme', // 'dark' | 'light' — absent means follow the OS setting
+  session: 'vb.session', // cross-device sync: signed-in session JWT
+  email: 'vb.email', // cross-device sync: the signed-in email (for display)
 };
 const app = document.getElementById('app');
 
@@ -112,6 +114,107 @@ function saveProgress(s) {
   try {
     localStorage.setItem(progressKey(), JSON.stringify(s));
   } catch (_) {}
+  // If the learner has signed in for cross-device save, mirror this group's
+  // state up to the server (debounced) so it follows them to other devices.
+  if (isSignedIn()) schedulePush(currentGroup().id, s);
+}
+
+// ---- cross-device sync (magic-link) ---------------------------------------
+// Progress lives in localStorage by default (per-device). When a learner signs
+// in with a magic link, we also mirror it to /api/vocab so it follows them to
+// any device. localStorage stays the fast, offline-friendly source of truth;
+// the server is the durable copy, reconciled last-write-wins per level group.
+const apiBase = () => `${(CONFIG.API_BASE || '').replace(/\/+$/, '')}/api/vocab`;
+const isSignedIn = () => !!localStorage.getItem(K.session);
+const signedInEmail = () => localStorage.getItem(K.email) || '';
+
+async function api(path, { method = 'GET', body, auth = false } = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (auth) headers.Authorization = `Bearer ${localStorage.getItem(K.session) || ''}`;
+  const res = await fetch(apiBase() + path, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+  return data;
+}
+
+function signOut() {
+  localStorage.removeItem(K.session);
+  localStorage.removeItem(K.email);
+}
+
+// Request a magic sign-in link. Returns the API payload (in dev it includes a
+// devLink so the flow is testable without email).
+function requestMagicLink(email) {
+  return api('/auth/request', { method: 'POST', body: { email } });
+}
+
+// Redeem a ?vbtoken=… magic link on load: verify it, store the session, pull
+// the server's saved progress into localStorage, then clean the URL.
+async function consumeMagicToken() {
+  let token;
+  try {
+    token = new URLSearchParams(window.location.search).get('vbtoken');
+  } catch (_) {
+    return;
+  }
+  if (!token) return;
+  try {
+    const { token: session, email } = await api('/auth/verify', { method: 'POST', body: { token } });
+    localStorage.setItem(K.session, session);
+    localStorage.setItem(K.email, email);
+    await reconcileOnSignIn();
+  } catch (_) {
+    // invalid/expired link — fall through; the UI will let them request another
+  } finally {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      params.delete('vbtoken');
+      window.history.replaceState({}, '', window.location.pathname + (params.toString() ? '?' + params : ''));
+    } catch (_) {}
+  }
+}
+
+// Reconcile local and server progress at sign-in. Per level group: if the
+// server already has progress, adopt it (it's the shared source of truth, so
+// server wins — last-write-wins across devices). If the server has nothing but
+// this device does, upload the local progress so it isn't stranded. This makes
+// "practise locally, then sign in" carry your existing progress up.
+async function reconcileOnSignIn() {
+  if (!isSignedIn()) return;
+  const { progress } = await api('/progress', { auth: true });
+  const server = progress || {};
+  for (const g of LEVEL_GROUP_LIST.map((x) => x.id)) {
+    const key = `${K.progress}.${g}`;
+    const serverState = server[g] && server[g].state;
+    if (serverState && serverState.words) {
+      try {
+        localStorage.setItem(key, JSON.stringify(serverState));
+      } catch (_) {}
+      continue;
+    }
+    // Server has nothing for this group — push local up if we have real progress.
+    try {
+      const local = JSON.parse(localStorage.getItem(key) || 'null');
+      if (local && local.words && Object.keys(local.words).length) {
+        await api('/progress', { method: 'PUT', auth: true, body: { group: g, state: local } });
+      }
+    } catch (_) {}
+  }
+}
+
+let _pushTimers = {};
+function schedulePush(group, state) {
+  clearTimeout(_pushTimers[group]);
+  _pushTimers[group] = setTimeout(() => {
+    api('/progress', { method: 'PUT', auth: true, body: { group, state } }).catch((err) => {
+      // A dead session (expired/cleared) shouldn't wedge local practice.
+      if (/40[13]/.test(err.message)) signOut();
+    });
+  }, 1200);
 }
 
 // ---- light markup ---------------------------------------------------------
@@ -174,7 +277,9 @@ function renderHome() {
         <div class="stat"><div class="n">${s.counts.mastered}</div><div class="l">Mastered</div></div>
         <div class="stat"><div class="n">${s.counts.dueNow}</div><div class="l">Due to review</div></div>
       </div>
-      <p class="muted center" style="margin:-6px 0 16px">📱 Saved on this device — no account needed. Clearing your browser or switching devices starts fresh.</p>
+      ${isSignedIn()
+        ? `<p class="muted center synced" style="margin:-6px 0 16px">☁️ Synced across your devices · ${esc(signedInEmail())} · <button class="linkbtn" data-signout>Sign out</button></p>`
+        : `<p class="muted center" style="margin:-6px 0 16px">📱 Saved on this device. <button class="linkbtn" data-savesync>Save across devices →</button></p>`}
       ${weak.length ? `<div class="card focus">
         <div class="eyebrow warn">Your tricky words · ${weak.length}</div>
         <h3 style="margin:2px 0 8px">Words you keep getting wrong</h3>
@@ -248,6 +353,14 @@ function renderHome() {
   }
   const unlock = app.querySelector('[data-unlock]');
   if (unlock) unlock.onclick = () => openPaywall('home');
+  const saveSync = app.querySelector('[data-savesync]');
+  if (saveSync) saveSync.onclick = openSyncModal;
+  const signout = app.querySelector('[data-signout]');
+  if (signout)
+    signout.onclick = () => {
+      signOut();
+      renderHome();
+    };
   const reset = app.querySelector('[data-reset]');
   if (reset)
     reset.onclick = () => {
@@ -514,6 +627,62 @@ function openPaywall(source) {
   };
 }
 
+// ---- cross-device sync modal ----------------------------------------------
+// Passwordless: enter an email, we send a one-time sign-in link. Opening that
+// link (on any device) signs in and syncs progress. No password to remember.
+function openSyncModal() {
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.innerHTML = `
+    <div class="modal">
+      <button class="x" data-close aria-label="Close">×</button>
+      <div class="eyebrow">Save across devices</div>
+      <h2 style="margin:4px 0 8px">Keep your progress anywhere</h2>
+      <p class="muted" style="margin:0 0 14px">Enter your email and we'll send a one-tap sign-in link — no password. Your saved words then follow you to any phone, tablet or laptop.</p>
+      <form data-form>
+        <label class="fld"><span>Your email</span>
+          <input type="email" name="email" required placeholder="you@email.com" autocomplete="email" /></label>
+        <button class="btn full" type="submit">Email me a sign-in link</button>
+        <p class="hint center mt" data-msg></p>
+      </form>
+    </div>`;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  overlay.querySelector('[data-close]').onclick = close;
+  overlay.onclick = (e) => {
+    if (e.target === overlay) close();
+  };
+  overlay.querySelector('[data-form]').onsubmit = async (e) => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    const msg = e.target.querySelector('[data-msg]');
+    const email = new FormData(e.target).get('email');
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    msg.textContent = '';
+    msg.style.color = '';
+    try {
+      const res = await requestMagicLink(email);
+      overlay.querySelector('.modal').innerHTML = `
+        <div class="center" style="padding:16px 6px">
+          <div style="font-size:44px">✉️</div>
+          <h2 style="margin:6px 0">Check your inbox</h2>
+          <p class="muted">We sent a sign-in link to <b>${esc(email)}</b>. Open it on any device to sync your progress. The link works once and expires in 20 minutes.</p>
+          ${res.devLink ? `<button class="btn mt" data-devopen>Open link now (dev)</button>` : ''}
+          <button class="btn ghost mt" data-close2>Close</button>
+        </div>`;
+      overlay.querySelector('[data-close2]').onclick = close;
+      const dev = overlay.querySelector('[data-devopen]');
+      if (dev) dev.onclick = () => (window.location.href = res.devLink);
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = 'Email me a sign-in link';
+      msg.textContent = err.message || 'Something went wrong. Please try again.';
+      msg.style.color = 'var(--error)';
+    }
+  };
+}
+
 // ---- theme (dark mode) -----------------------------------------------------
 // The <head> script has already applied the initial theme class (from the saved
 // preference, else the OS setting) to avoid a flash. Here we just keep the
@@ -540,4 +709,9 @@ function initTheme() {
 // ---- boot -----------------------------------------------------------------
 initTheme();
 consumePaymentReturn(); // grant Premium if returning from a successful checkout
-renderHome();
+renderHome(); // render immediately so there's no blank frame
+// If arriving from a magic link, redeem it and re-render with synced progress.
+consumeMagicToken().then(() => {
+  state = loadProgress();
+  renderHome();
+});
