@@ -17,6 +17,7 @@ import {
   initState,
   buildSession,
   buildFocusSession,
+  buildColdProbe,
   weakWords,
   recordResult,
   summarize,
@@ -43,6 +44,7 @@ const K = {
   theme: 'vb.theme', // 'dark' | 'light' — absent means follow the OS setting
   session: 'vb.session', // cross-device sync: signed-in session JWT
   email: 'vb.email', // cross-device sync: the signed-in email (for display)
+  clientId: 'vb.clientId', // anonymous analytics id (whole-funnel measurement)
 };
 const app = document.getElementById('app');
 
@@ -166,6 +168,7 @@ async function consumeMagicToken() {
     const { token: session, email } = await api('/auth/verify', { method: 'POST', body: { token } });
     localStorage.setItem(K.session, session);
     localStorage.setItem(K.email, email);
+    logEvent('sign_in');
     await reconcileOnSignIn();
   } catch (_) {
     // invalid/expired link — fall through; the UI will let them request another
@@ -216,6 +219,44 @@ function schedulePush(group, state) {
     });
   }, 1200);
 }
+
+// ---- analytics (engagement + cold-word probe) -----------------------------
+// Fire-and-forget events so we can measure whether the product earns its keep:
+// retention (do they come back?), depth, and — via the probe — real growth on
+// unseen words. Anonymous by default (a stable client id covers the whole
+// funnel); the signed-in session token, when present, tags events with an email.
+function clientId() {
+  let id = localStorage.getItem(K.clientId);
+  if (!id) {
+    id =
+      (window.crypto && crypto.randomUUID && crypto.randomUUID()) ||
+      `c_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+    try {
+      localStorage.setItem(K.clientId, id);
+    } catch (_) {}
+  }
+  return id;
+}
+
+let _events = [];
+let _flushTimer = null;
+function logEvent(type, data = null, group = null) {
+  _events.push({ type, group, data });
+  clearTimeout(_flushTimer);
+  _flushTimer = setTimeout(flushEvents, 2500);
+}
+function flushEvents() {
+  clearTimeout(_flushTimer);
+  if (!_events.length) return;
+  const batch = _events.splice(0, 100);
+  api('/events', { method: 'POST', auth: isSignedIn(), body: { clientId: clientId(), sessionId: session?.id, events: batch } }).catch(
+    () => {} // analytics must never disrupt practice
+  );
+}
+// Best-effort flush when the tab is hidden/closed so we don't lose the tail.
+window.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') flushEvents();
+});
 
 // ---- light markup ---------------------------------------------------------
 function esc(s) {
@@ -389,11 +430,22 @@ function shuffle(arr) {
   return a;
 }
 
+function newSessionId() {
+  return `s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
+}
+
 function startSession() {
   const group = currentGroup();
   const sessionBank = isPremium() ? bank() : shuffle(bank());
   const tasks = buildSession(state, { size: group.sessionSize, bank: sessionBank });
-  session = { tasks, idx: 0, answered: false, log: [], focus: false };
+  // Occasionally slip in one cold-word probe — a question on a word they've
+  // never met — to measure genuine growth on unseen words over time.
+  if (tasks.some((t) => t.kind !== 'teach') && Math.random() < 0.5) {
+    const probe = buildColdProbe(state, { bank: sessionBank });
+    if (probe) tasks.push(probe);
+  }
+  session = { id: newSessionId(), tasks, idx: 0, answered: false, log: [], focus: false };
+  logEvent('session_start', { size: tasks.length, focus: false }, group.id);
   renderSession();
 }
 
@@ -401,7 +453,8 @@ function startFocusSession() {
   const group = currentGroup();
   const tasks = buildFocusSession(state, { size: group.sessionSize, bank: bank() });
   if (!tasks.length) return renderHome();
-  session = { tasks, idx: 0, answered: false, log: [], focus: true };
+  session = { id: newSessionId(), tasks, idx: 0, answered: false, log: [], focus: true };
+  logEvent('session_start', { size: tasks.length, focus: true }, group.id);
   renderSession();
 }
 
@@ -456,6 +509,7 @@ function renderSession() {
     return;
   }
 
+  session._shownAt = Date.now(); // for answer-time telemetry
   app.innerHTML = `${head}
     <div class="card">
       <div class="eyebrow">${esc(t.label)}</div>
@@ -477,13 +531,23 @@ function answer(t, optId) {
   session.answered = true;
   const option = t.options.find((o) => o.id === optId);
   const correct = !!option.correct;
-  state = recordResult(
-    state,
-    { wordId: t.wordId, taskType: t.taskType, correct, chosenText: correct ? undefined : option.text },
-    { bank: bank() }
-  );
-  saveProgress(state);
-  session.log.push({ kind: 'mcq', word: t.word, label: t.label, correct });
+  const ms = session._shownAt ? Date.now() - session._shownAt : undefined;
+
+  if (t.probe) {
+    // Measurement only — never fed into progress or the session score, so a
+    // probe can't inflate "words learned" or skew results.
+    logEvent('probe_result', { word: t.word, correct, ms }, currentGroup().id);
+    session.log.push({ kind: 'probe', word: t.word, correct });
+  } else {
+    state = recordResult(
+      state,
+      { wordId: t.wordId, taskType: t.taskType, correct, chosenText: correct ? undefined : option.text },
+      { bank: bank() }
+    );
+    saveProgress(state);
+    session.log.push({ kind: 'mcq', word: t.word, label: t.label, correct });
+    logEvent('answer', { word: t.word, taskType: t.taskType, tier: t.tier, correct, ms }, currentGroup().id);
+  }
 
   app.querySelectorAll('[data-opt]').forEach((btn) => {
     const o = t.options.find((x) => x.id === btn.getAttribute('data-opt'));
@@ -520,6 +584,9 @@ function renderResults() {
   const pct = total ? Math.round((correct / total) * 100) : 100;
   const newCount = session.log.filter((e) => e.kind === 'teach').length;
   const premium = isPremium();
+
+  logEvent('session_complete', { correctCount: correct, total, size: session.tasks.length, focus: !!session.focus }, currentGroup().id);
+  flushEvents();
 
   // What's next — the answer differs for free vs Premium.
   const next = premium

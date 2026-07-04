@@ -12,6 +12,7 @@ process.env.JWT_SECRET = 'test-secret-vocab';
 
 const { default: vocabRouter } = await import('./vocab.js');
 const VocabMagicLink = (await import('../models/VocabMagicLink.js')).default;
+const VocabEvent = (await import('../models/VocabEvent.js')).default;
 
 let mongo;
 let base;
@@ -144,5 +145,55 @@ describe('vocab magic-link auth + progress sync', () => {
     await put('/progress', { group: 'upper', state: { owner: 'a' } }, { Authorization: `Bearer ${a.session}` });
     const bView = await (await get('/progress', { Authorization: `Bearer ${b.session}` })).json();
     expect(bView.progress.upper).toBeUndefined(); // b sees nothing of a's
+  });
+
+  it('logs anonymous analytics events and drops unknown types', async () => {
+    const clientId = 'client-anon-1';
+    const res = await post('/events', {
+      clientId,
+      sessionId: 'sess-1',
+      events: [
+        { type: 'session_start', group: 'upper', data: { size: 10 } },
+        { type: 'answer', data: { word: 'resist', taskType: 'meaning_match', tier: 1, correct: true, ms: 3400 } },
+        { type: 'not_a_real_type', data: { x: 1 } }, // dropped
+      ],
+    });
+    expect(res.status).toBe(200);
+    expect((await res.json()).stored).toBe(2); // unknown type not stored
+    const rows = await VocabEvent.find({ clientId }).sort({ type: 1 });
+    expect(rows.map((r) => r.type)).toEqual(['answer', 'session_start']);
+    expect(rows.find((r) => r.type === 'answer').data.correct).toBe(true);
+    expect(rows.find((r) => r.type === 'answer').email).toBeNull(); // anonymous
+  });
+
+  it('sanitises event data to whitelisted, bounded fields', async () => {
+    const clientId = 'client-anon-2';
+    await post('/events', {
+      clientId,
+      events: [
+        {
+          type: 'answer',
+          data: { word: 'x'.repeat(500), correct: true, secret: 'should-not-store', ms: 9e9, tier: 99 },
+        },
+      ],
+    });
+    const row = await VocabEvent.findOne({ clientId });
+    expect(row.data.secret).toBeUndefined(); // arbitrary keys dropped
+    expect(row.data.word.length).toBe(64); // truncated
+    expect(row.data.ms).toBe(600000); // clamped
+    expect(row.data.tier).toBe(9); // clamped
+  });
+
+  it('attaches the signed-in email to events when a vocab session is present', async () => {
+    const { session } = await signIn('tracked@example.com');
+    const clientId = 'client-tracked';
+    await post('/events', { clientId, events: [{ type: 'probe_result', data: { word: 'aloof', correct: false } }] }, { Authorization: `Bearer ${session}` });
+    const row = await VocabEvent.findOne({ clientId });
+    expect(row.email).toBe('tracked@example.com');
+    expect(row.type).toBe('probe_result');
+  });
+
+  it('requires a clientId', async () => {
+    expect((await post('/events', { events: [{ type: 'session_start' }] })).status).toBe(400);
   });
 });

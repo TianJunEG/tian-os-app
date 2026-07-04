@@ -6,6 +6,7 @@ import {
   selectNextTask,
   buildSession,
   buildFocusSession,
+  buildColdProbe,
   weakWords,
   summarize,
   examReadiness,
@@ -187,5 +188,24 @@ describe('vocabulary adaptive engine', () => {
   it('buildFocusSession is empty when nothing is weak', () => {
     const s = completeLadder(initState(), 'vw_encroachment', T0, SMALL_BANK);
     expect(buildFocusSession(s, { size: 6, now: T0, bank: SMALL_BANK })).toEqual([]);
+  });
+
+  it('buildColdProbe returns a task on an unseen word, marked as a probe', () => {
+    let s = initState();
+    s = recordResult(s, { wordId: 'vw_encroachment', taskType: 'meet_word', correct: true }, { now: T0, bank: SMALL_BANK });
+    const probe = buildColdProbe(s, { now: T0, bank: SMALL_BANK });
+    expect(probe).toBeTruthy();
+    expect(probe.probe).toBe(true);
+    expect(probe.mode).toBe('probe');
+    expect(probe.wordId).not.toBe('vw_encroachment'); // never an already-seen word
+    expect(s.words[probe.wordId]?.introduced).toBeFalsy();
+  });
+
+  it('buildColdProbe returns null once every word has been seen', () => {
+    let s = initState();
+    for (const w of SMALL_BANK) {
+      s = recordResult(s, { wordId: w.id, taskType: 'meet_word', correct: true }, { now: T0, bank: SMALL_BANK });
+    }
+    expect(buildColdProbe(s, { now: T0, bank: SMALL_BANK })).toBeNull();
   });
 });

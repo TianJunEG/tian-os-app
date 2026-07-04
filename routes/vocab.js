@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import VocabProgress from '../models/VocabProgress.js';
 import VocabMagicLink from '../models/VocabMagicLink.js';
+import VocabEvent from '../models/VocabEvent.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 import { rateLimit } from '../middleware/rateLimiter.js';
 import { sendEmail, appBaseUrl } from '../utils/emailService.js';
@@ -164,6 +165,83 @@ router.put(
       { upsert: true }
     );
     res.json({ ok: true, updatedAt });
+  })
+);
+
+// ---- analytics events ------------------------------------------------------
+
+const EVENT_TYPES = new Set(['session_start', 'session_complete', 'answer', 'probe_result', 'sign_in']);
+const MAX_BATCH = 100;
+
+// Whitelist the fields we store, coercing/bounding each — the endpoint is public,
+// so `data` must never become a place to stash arbitrary blobs.
+function sanitizeEventData(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const out = {};
+  const str = (v, n) => (typeof v === 'string' ? v.slice(0, n) : undefined);
+  const num = (v, lo, hi) => (typeof v === 'number' && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : undefined);
+  const bool = (v) => (typeof v === 'boolean' ? v : undefined);
+  const set = (k, v) => {
+    if (v !== undefined) out[k] = v;
+  };
+  set('word', str(raw.word, 64));
+  set('taskType', str(raw.taskType, 40));
+  set('tier', num(raw.tier, 0, 9));
+  set('correct', bool(raw.correct));
+  set('distractor', str(raw.distractor, 64));
+  set('ms', num(raw.ms, 0, 600000));
+  set('size', num(raw.size, 0, 100));
+  set('correctCount', num(raw.correctCount, 0, 100));
+  set('total', num(raw.total, 0, 100));
+  set('focus', bool(raw.focus));
+  set('probe', bool(raw.probe));
+  return Object.keys(out).length ? out : null;
+}
+
+// Soft auth: attach the signed-in email if a valid vocab session is present,
+// but never block — anonymous learners are logged too (that's the funnel).
+function softVocabEmail(req) {
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+  if (!token) return null;
+  try {
+    const decoded = verifyWithRotation(token);
+    return decoded.kind === 'vocab' && decoded.email ? normEmail(decoded.email) : null;
+  } catch {
+    return null;
+  }
+}
+
+// POST /api/vocab/events  { clientId, sessionId?, events: [{ type, group?, data? }] }
+router.post(
+  '/events',
+  rateLimit(120, 15 * 60 * 1000),
+  asyncHandler(async (req, res) => {
+    const clientId = String(req.body?.clientId || '').slice(0, 64);
+    if (!clientId) return res.status(400).json({ error: 'Missing clientId.' });
+    const list = Array.isArray(req.body?.events) ? req.body.events.slice(0, MAX_BATCH) : [];
+    if (!list.length) return res.json({ ok: true, stored: 0 });
+
+    const email = softVocabEmail(req);
+    const sessionId = req.body?.sessionId ? String(req.body.sessionId).slice(0, 64) : null;
+    const now = Date.now();
+
+    const docs = [];
+    for (const ev of list) {
+      const type = String(ev?.type || '');
+      if (!EVENT_TYPES.has(type)) continue;
+      docs.push({
+        clientId,
+        email,
+        sessionId,
+        type,
+        group: ev?.group ? String(ev.group).slice(0, 16) : null,
+        data: sanitizeEventData(ev?.data),
+        createdAt: new Date(now),
+      });
+    }
+    if (docs.length) await VocabEvent.insertMany(docs, { ordered: false });
+    res.json({ ok: true, stored: docs.length });
   })
 );
 

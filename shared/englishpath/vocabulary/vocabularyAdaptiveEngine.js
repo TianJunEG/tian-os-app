@@ -372,6 +372,24 @@ export function buildFocusSession(
     .filter(Boolean);
 }
 
+// ---- cold-word probe -------------------------------------------------------
+
+/**
+ * A measurement task on a word the learner has NEVER been introduced to — a
+ * quiet check of whether their vocabulary is genuinely growing (transfer to
+ * unseen words), separate from the words they've drilled. The result is meant
+ * to be logged, NOT fed back into progress (recordResult), so probing never
+ * inflates "words learned" or perturbs the ladder. Returns null once every word
+ * has been seen. `mode: 'probe'` and `probe: true` mark it for the caller.
+ */
+export function buildColdProbe(state, { bank = vocabularyWordBank, now = Date.now(), rng = makeRng(now >>> 0 || 1) } = {}) {
+  const unseen = bank.filter((w) => !state.words[w.id] || !state.words[w.id].introduced);
+  if (!unseen.length) return null;
+  const entry = unseen[Math.floor(rng() * unseen.length)];
+  const task = generateTask(entry, 'meaning_match', { bank, rng });
+  return task ? { ...task, mode: 'probe', probe: true } : null;
+}
+
 // ---- progress summary ------------------------------------------------------
 
 /** A learner-facing snapshot: counts, per-word progress and exam-section readiness. */
