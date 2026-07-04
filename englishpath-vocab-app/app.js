@@ -174,6 +174,7 @@ function renderHome() {
         <div class="stat"><div class="n">${s.counts.mastered}</div><div class="l">Mastered</div></div>
         <div class="stat"><div class="n">${s.counts.dueNow}</div><div class="l">Due to review</div></div>
       </div>
+      <p class="muted center" style="margin:-6px 0 16px">📱 Saved on this device — no account needed. Clearing your browser or switching devices starts fresh.</p>
       ${weak.length ? `<div class="card focus">
         <div class="eyebrow warn">Your tricky words · ${weak.length}</div>
         <h3 style="margin:2px 0 8px">Words you keep getting wrong</h3>
