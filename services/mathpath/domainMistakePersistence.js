@@ -46,6 +46,19 @@ export async function persistDomainPracticeMistakes({ student, domainId, session
     } catch { /* telemetry is best-effort */ }
   }
 
+  // Practice-earned stickers (students earn from their OWN domain practice; this
+  // shared hook runs for every domain submit). MUST be BEFORE the no-mistakes
+  // early-return below — a perfect round has no mistakes yet is exactly when the
+  // perfect-round sticker should fire. Best-effort + idempotent per milestone;
+  // generic practice (routes/practice.js) and fluency award their own separately.
+  try {
+    const acc = scored.accuracySummary || {};
+    await awardPerfectRoundSticker({ studentId, sessionId, correct: acc.correct, total: acc.total });
+    for (const [skillId, s] of Object.entries(scored.perSkill || {})) {
+      if (s && s.status === 'mastered' && s.total > 0) await awardMasterySticker({ studentId, skillId });
+    }
+  } catch { /* stickers are best-effort */ }
+
   const mistakes = Array.isArray(scored.mistakes) ? scored.mistakes : [];
   if (!mistakes.length) return { aggregateCount: 0, mistakeCount: 0 };
 
@@ -122,18 +135,6 @@ export async function persistDomainPracticeMistakes({ student, domainId, session
     );
     mistakeCount += 1;
   }
-
-  // Practice-earned stickers for the MAIN MathPath domain practice flow (this
-  // shared hook runs for every domain submit). Best-effort + idempotent per
-  // milestone — a sticker never fails a submit. Generic practice (routes/practice.js)
-  // and fluency (routes/fluency.js) award their own via separate hooks.
-  try {
-    const acc = scored.accuracySummary || {};
-    await awardPerfectRoundSticker({ studentId, sessionId, correct: acc.correct, total: acc.total });
-    for (const [skillId, s] of Object.entries(scored.perSkill || {})) {
-      if (s && s.status === 'mastered' && s.total > 0) await awardMasterySticker({ studentId, skillId });
-    }
-  } catch { /* stickers are best-effort */ }
 
   return { aggregateCount: mistakes.length, mistakeCount };
 }
