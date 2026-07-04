@@ -4,6 +4,8 @@ import MathPathAttempt from '../../models/mathpath/MathPathAttempt.js';
 import MathPathAssessmentSession from '../../models/mathpath/MathPathAssessmentSession.js';
 import MathPathDiagnosticSession from '../../models/mathpath/MathPathDiagnosticSession.js';
 import MathPathPracticeSession from '../../models/mathpath/MathPathPracticeSession.js';
+import PracticeSession from '../../models/PracticeSession.js';
+import PracticeAttempt from '../../models/PracticeAttempt.js';
 import MathPathStudentSkillState from '../../models/mathpath/MathPathStudentSkillState.js';
 import MathPathSkill from '../../models/mathpath/MathPathSkill.js';
 import MathPathWorkingSession from '../../models/mathpath/MathPathWorkingSession.js';
@@ -675,7 +677,7 @@ export async function getStudentPersonalBests(student, offsetHours = 8) {
   // not skewed by an abandoned/in-progress diagnostic.
   const excludeIncompleteDiagnostics = await buildDiagnosticAttemptExclusion(studentId);
 
-  const [allAttempts, completedSessions] = await Promise.all([
+  const [mathPathAttempts, completedSessions, mathPracticeSessions] = await Promise.all([
     MathPathAttempt.find({ studentId, ...excludeIncompleteDiagnostics })
       .sort({ createdAt: -1 })
       .select('correct timeTaken createdAt sessionId skillId')
@@ -684,7 +686,32 @@ export async function getStudentPersonalBests(student, offsetHours = 8) {
       .sort({ completedAt: -1 })
       .select('summary completedAt startedAt practiceSessionId targetSkillId')
       .lean(),
+    // Fluency + generic MathPath practice write to PracticeAttempt (a SEPARATE
+    // collection from MathPathAttempt), so the profile missed them entirely —
+    // most visibly, a student's fluency work never showed up in these stats.
+    // Scope to this student's MathPath PracticeSessions so other modules
+    // (spelling, mechanisms) don't leak into the math personal-bests.
+    PracticeSession.find({ studentId, module: 'MathPath' }).select('_id').lean(),
   ]);
+
+  const practiceSessionIds = mathPracticeSessions.map((s) => s._id);
+  const practiceAttempts = practiceSessionIds.length
+    ? await PracticeAttempt.find({ studentId, sessionId: { $in: practiceSessionIds } })
+      .select('correct timeMs timeTakenSeconds createdAt sessionId skillId')
+      .lean()
+    : [];
+  // Normalise PracticeAttempt to the MathPathAttempt shape (timeTaken in ms) and
+  // merge, so every personal-best stat below reflects diagnostics + practice +
+  // fluency uniformly.
+  const normalizedPractice = practiceAttempts.map((a) => ({
+    correct: a.correct,
+    timeTaken: a.timeMs ?? (a.timeTakenSeconds != null ? Math.round(Number(a.timeTakenSeconds) * 1000) : null),
+    createdAt: a.createdAt,
+    sessionId: a.sessionId,
+    skillId: a.skillId,
+  }));
+  const allAttempts = [...mathPathAttempts, ...normalizedPractice]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   // 1. Best session accuracy (min 3 questions)
   let bestSessionAccuracy = 0;

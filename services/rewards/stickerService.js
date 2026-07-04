@@ -67,3 +67,40 @@ export async function awardHomeworkSticker({ studentId, noteId, correct, total, 
   });
   return created ? sticker : null;
 }
+
+// ── Practice-earned stickers ─────────────────────────────────────────────────
+// Students collect stickers from their OWN work (not just tutor-awarded homework).
+// Each is idempotent via a milestone-specific dedupeKey so a resubmit/re-complete
+// never doubles up. All are best-effort: callers must swallow errors so a sticker
+// failure never blocks saving the practice result.
+
+// A flawless practice/fluency round (all correct over a meaningful number of Qs).
+export async function awardPerfectRoundSticker({ studentId, sessionId, correct, total, minQuestions = 5 }) {
+  if (!studentId || !sessionId || !total || total < minQuestions || correct !== total) return null;
+  const { sticker, created } = await awardSticker({
+    studentId, stickerCode: pickAutoSticker(total * 7 + 3), source: 'auto',
+    note: `Perfect round — ${total}/${total}!`, dedupeKey: `perfect:${sessionId}`,
+  });
+  return created ? sticker : null;
+}
+
+// Mastering a skill — awarded once per skill.
+export async function awardMasterySticker({ studentId, skillId }) {
+  if (!studentId || !skillId) return null;
+  const seed = [...String(skillId)].reduce((s, c) => s + c.charCodeAt(0), 0);
+  const { sticker, created } = await awardSticker({
+    studentId, stickerCode: pickAutoSticker(seed), source: 'auto',
+    note: 'Skill mastered!', dedupeKey: `mastery:${skillId}`,
+  });
+  return created ? sticker : null;
+}
+
+// Hitting the fluency goal on a fluency session (once per session).
+export async function awardFluencySticker({ studentId, sessionId, accuracy, threshold = 80 }) {
+  if (!studentId || !sessionId || !Number.isFinite(accuracy) || accuracy < threshold) return null;
+  const { sticker, created } = await awardSticker({
+    studentId, stickerCode: pickAutoSticker(Math.round(accuracy) + 11), source: 'auto',
+    note: `Fluency goal — ${Math.round(accuracy)}%!`, dedupeKey: `fluency:${sessionId}`,
+  });
+  return created ? sticker : null;
+}
