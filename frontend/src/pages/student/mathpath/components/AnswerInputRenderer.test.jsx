@@ -283,6 +283,55 @@ describe('AnswerInputRenderer contextual math input', () => {
     expect(denominator).toHaveValue('');
   });
 
+  // Number Sense negative-integer skills (NS021 number line, NS023 temperature,
+  // NS024–NS029 integers) can have negative answers, but iOS number pads have no
+  // '-' key. The server strips the answer, so these arrive as a plain short-answer
+  // (skillId is the only signal) and must expose an on-screen minus toggle.
+  const negativeQuestion = {
+    questionId: 'ns021_0',
+    skillId: 'NS021',
+    type: 'short_answer',
+    prompt: 'On a number line, what number is 5 steps to the left of 2?',
+  };
+
+  it('shows a minus toggle and builds a negative answer for NS021 (number line)', () => {
+    const onSubmit = vi.fn();
+    render(<ControlledAnswer question={negativeQuestion} onSubmit={onSubmit} />);
+
+    const minus = screen.getByRole('button', { name: /make the answer negative/i });
+    expect(minus).toHaveAttribute('aria-pressed', 'false');
+
+    // Type the magnitude on the number pad, then tap the on-screen minus.
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '3' } });
+    fireEvent.click(minus);
+
+    expect(screen.getByRole('textbox')).toHaveValue('-3');
+    expect(screen.getByRole('button', { name: /tap to make it positive/i })).toHaveAttribute('aria-pressed', 'true');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Submit answer' }));
+    expect(onSubmit).toHaveBeenCalledWith('-3');
+  });
+
+  it('toggles the minus off again (NS023 temperature)', () => {
+    render(<ControlledAnswer question={{ ...negativeQuestion, questionId: 'ns023_0', skillId: 'NS023', prompt: 'The temperature was 3°C. It fell by 9°C. What is the new temperature (in °C)?' }} />);
+
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '6' } });
+    const toggle = screen.getByRole('button', { name: /make the answer negative/i });
+    fireEvent.click(toggle);
+    expect(screen.getByRole('textbox')).toHaveValue('-6');
+    fireEvent.click(screen.getByRole('button', { name: /tap to make it positive/i }));
+    expect(screen.getByRole('textbox')).toHaveValue('6');
+  });
+
+  it('does not show a minus toggle for the comparison-picker skill NS022 or positive skills', () => {
+    const { rerender } = render(<ControlledAnswer question={{ questionId: 'ns001_0', skillId: 'NS001', type: 'short_answer', prompt: 'What number comes just after 12?' }} />);
+    expect(screen.queryByRole('button', { name: /negative/i })).not.toBeInTheDocument();
+
+    // NS022 is rendered as a comparison picker, never a text box — no toggle.
+    rerender(<ControlledAnswer question={{ questionId: 'ns022_0', skillId: 'NS022', type: 'short_answer', answerFormat: 'comparison', prompt: 'Compare the integers. Write <, > or =:  -3 ___ 4' }} />);
+    expect(screen.queryByRole('button', { name: /negative/i })).not.toBeInTheDocument();
+  });
+
   it('keeps incomplete mixed numbers visible until submission validation', () => {
     const onSubmit = vi.fn();
     render(<ControlledAnswer question={mixedNumberQuestion} onSubmit={onSubmit} />);
