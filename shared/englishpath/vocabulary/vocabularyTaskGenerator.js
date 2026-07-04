@@ -41,7 +41,17 @@ function shuffle(arr, rng) {
   return a;
 }
 
-const norm = (s) => String(s).trim().toLowerCase();
+// `norm` is called on the same handful of words/answers millions of times while
+// building distractor pools (every task re-scans the whole bank). Memoise by input
+// so each distinct string is trimmed/lower-cased once — pure, so generated output
+// is byte-identical, but it turns ~168M string allocations into cheap Map hits.
+const NORM_CACHE = new Map();
+const norm = (s) => {
+  const key = typeof s === 'string' ? s : String(s);
+  let v = NORM_CACHE.get(key);
+  if (v === undefined) { v = key.trim().toLowerCase(); NORM_CACHE.set(key, v); }
+  return v;
+};
 
 // ---- option assembly ------------------------------------------------------
 
@@ -95,25 +105,75 @@ function hasBlank(example) {
 
 // ---- distractor pools from the wider bank ---------------------------------
 
-function otherWords(entry, bank, { samePos = false } = {}) {
-  return bank
-    .filter((w) => w.id !== entry.id && (!samePos || w.pos === entry.pos))
-    .filter((w) => norm(w.word) !== norm(entry.word));
+// These three re-scan the whole word bank, and several ladder rungs of the SAME
+// word each ask for the same pool — so building a word's full ladder used to scan
+// the bank a dozen times over (the bulk of the ~168M norm() calls). The pools
+// depend only on (bank, entry, samePos), so memoise them per bank: each is built
+// once per word and the result array is returned as-is (callers never mutate it),
+// keeping generated output byte-identical.
+const POOL_MEMO = new WeakMap();
+function poolMemo(bank) {
+  let m = POOL_MEMO.get(bank);
+  if (!m) { m = new Map(); POOL_MEMO.set(bank, m); }
+  return m;
 }
 
-function poolWords(entry, bank, opts) {
+// norm(word) | norm(answer) -> the FIRST bank entry with that word/answer, so a
+// `bank.find(w => norm(w.word)===c || norm(w.answer)===c)` becomes an O(1) lookup.
+// Built once per bank (first-wins in bank order preserves find()'s semantics).
+function bankWordAnswerIndex(bank) {
+  const memo = poolMemo(bank);
+  let idx = memo.get('__wordAnswerIndex');
+  if (idx) return idx;
+  idx = new Map();
+  for (const w of bank) {
+    const nw = norm(w.word);
+    const na = norm(w.answer);
+    if (!idx.has(nw)) idx.set(nw, w);
+    if (!idx.has(na)) idx.set(na, w);
+  }
+  memo.set('__wordAnswerIndex', idx);
+  return idx;
+}
+
+function otherWords(entry, bank, { samePos = false } = {}) {
+  const memo = poolMemo(bank);
+  const key = `o:${entry.id}:${samePos ? 1 : 0}`;
+  const cached = memo.get(key);
+  if (cached) return cached;
+  const en = norm(entry.word);
+  const result = bank
+    .filter((w) => w.id !== entry.id && (!samePos || w.pos === entry.pos))
+    .filter((w) => norm(w.word) !== en);
+  memo.set(key, result);
+  return result;
+}
+
+function poolWords(entry, bank, opts = {}) {
+  const memo = poolMemo(bank);
+  const key = `pw:${entry.id}:${opts.samePos ? 1 : 0}`;
+  const cached = memo.get(key);
+  if (cached) return cached;
   // prefer same-theme words for plausibility, then everything else
   const others = otherWords(entry, bank, opts);
   const sameTheme = others.filter((w) => w.theme === entry.theme).map((w) => w.answer);
   const rest = others.filter((w) => w.theme !== entry.theme).map((w) => w.answer);
-  return [...sameTheme, ...rest];
+  const result = [...sameTheme, ...rest];
+  memo.set(key, result);
+  return result;
 }
 
 function poolMeanings(entry, bank) {
+  const memo = poolMemo(bank);
+  const key = `pm:${entry.id}`;
+  const cached = memo.get(key);
+  if (cached) return cached;
   const others = otherWords(entry, bank);
   const sameTheme = others.filter((w) => w.theme === entry.theme).map((w) => w.meaning);
   const rest = others.filter((w) => w.theme !== entry.theme).map((w) => w.meaning);
-  return [...sameTheme, ...rest];
+  const result = [...sameTheme, ...rest];
+  memo.set(key, result);
+  return result;
 }
 
 // ---- per task-type generators ---------------------------------------------
@@ -190,8 +250,9 @@ const GENERATORS = {
           new RegExp(`\\b(${entry.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})\\b`, 'i'),
           '**$1**',
         );
+    const byWordOrAnswer = bankWordAnswerIndex(bank);
     const confusableMeanings = entry.confusables
-      .map((c) => bank.find((w) => norm(w.word) === norm(c) || norm(w.answer) === norm(c)))
+      .map((c) => byWordOrAnswer.get(norm(c)))       // first entry whose word OR answer === c (as bank.find did)
       .filter(Boolean)
       .map((w) => w.meaning);
     const options = buildOptions({
