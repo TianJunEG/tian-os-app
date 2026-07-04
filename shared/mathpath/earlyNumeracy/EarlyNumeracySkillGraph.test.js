@@ -12,7 +12,7 @@ describe('EarlyNumeracySkillGraph', () => {
     expect(result.isValid).toBe(true);
     expect(result.errors).toEqual([]);
     expect(earlyNumeracySkillGraph.domainId).toBe('early_numeracy');
-    expect(earlyNumeracySkillGraph.skillIds.length).toBe(21);
+    expect(earlyNumeracySkillGraph.skillIds.length).toBe(22);
   });
 
   it('groups skills into the four K2 numeracy strands', () => {

@@ -6,7 +6,7 @@ import { MascotBubble } from '../../../../components/MascotAvatar';
 import { MathText } from '../../../../components/ui/Fraction';
 import FullScreenWorkingMode from '../../../../components/learning/FullScreenWorkingMode';
 import WorkingPreviewCard from '../../../../components/learning/WorkingPreviewCard';
-import ManipulativeDotArray, { parseDotStem, numericLine, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram, parseCountDiagram, ManipulativeCountArray, parseCompareDiagram, ManipulativeCompareSets, parsePatternDiagram, ManipulativePatternStrip, parseShapeChoice, ShapeGlyph, parsePositionDiagram, ManipulativePositionStack, DragAnswerChips, parseBondDiagram, ManipulativeBondFrame } from '../../../../components/learning/ManipulativeDotArray';
+import ManipulativeDotArray, { parseDotStem, numericLine, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram, parseCountDiagram, ManipulativeCountArray, parseCompareDiagram, ManipulativeCompareSets, parsePatternDiagram, ManipulativePatternStrip, parseShapeChoice, ShapeGlyph, parsePositionDiagram, ManipulativePositionStack, DragAnswerChips, parseBondDiagram, ManipulativeBondFrame, parseSortDiagram, ManipulativeSortActivity } from '../../../../components/learning/ManipulativeDotArray';
 import { speak, isVoiceEnabled, setVoiceEnabled } from '../../../../utils/sound';
 import { confettiBurst } from '../../../../utils/confetti';
 import { studentProfileAPI } from '../../../../services/api';
@@ -210,6 +210,9 @@ export default function DomainPracticeSession({ domain }) {
   const lpDragMcq = isLPrimary && current?.type === 'mcq'
     ? (parsePatternDiagram(current) || parseBondDiagram(current))
     : null;
+  // Sort is a self-contained activity (buckets + tray + "Check!") — it renders
+  // its own answer UI, so the normal MCQ button section is suppressed for it.
+  const lpSortMcq = isLPrimary && current?.type === 'mcq' ? parseSortDiagram(current) : null;
   const isLast = index >= questions.length - 1;
   const currentWorking = current?.questionId ? (workingByQuestion[current.questionId] || {}) : {};
 
@@ -383,6 +386,21 @@ export default function DomainPracticeSession({ domain }) {
               const patternData = parsePatternDiagram(current);
               const positionData = parsePositionDiagram(current);
               const bondData = parseBondDiagram(current);
+              const sortData = isLPrimary ? parseSortDiagram(current) : null;
+              if (sortData) {
+                return (
+                  <>
+                    <ManipulativeSortActivity
+                      key={current?.questionId}
+                      buckets={sortData.buckets}
+                      items={sortData.items}
+                      onAnswer={(value) => submitAnswer(value)}
+                      disabled={showReflection || submitting}
+                    />
+                    <p className="text-xl font-bold text-ink-900">{prompt}</p>
+                  </>
+                );
+              }
               if (coinTokens) {
                 return (
                   <>
@@ -485,7 +503,7 @@ export default function DomainPracticeSession({ domain }) {
           </button>
         </div>
 
-        {current?.type === 'mcq' ? (
+        {lpSortMcq ? null : current?.type === 'mcq' ? (
           lpDragMcq ? (
             <DragAnswerChips
               key={current?.questionId}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { encodeSortPlacement } from '../../../../shared/mathpath/earlyNumeracy/EarlyNumeracyQuestionGenerator.js';
 
 // Convert a math prompt to a TTS-friendly string (strips dot-array lines and symbols).
 export function toSpeakable(text = '') {
@@ -676,6 +677,117 @@ export function ManipulativeBondFrame({ whole, part }) {
         <BondCircle content="?" slot />
       </div>
       <p className="mt-1 text-center text-xs text-ink-400">Drag or tap the missing part</p>
+    </div>
+  );
+}
+
+// ── K2 sorting: drag each item into the right bucket (Strand B) ───────────────
+// Generator emits diagram:{kind:'sort', buckets:[{id,label,color}], items:[{id,emoji}]}.
+// Two ways to place: DRAG an item onto a bucket, or TAP an item to select it
+// then TAP a bucket (a11y fallback). When every item is placed, a "Check!"
+// button submits the placement encoded exactly as the generator's answer key.
+export function parseSortDiagram(question) {
+  const d = question?.diagram;
+  if (!d || d.kind !== 'sort' || !Array.isArray(d.buckets) || !Array.isArray(d.items)) return null;
+  return { buckets: d.buckets, items: d.items };
+}
+
+export function ManipulativeSortActivity({ buckets = [], items = [], onAnswer, disabled = false }) {
+  const [placement, setPlacement] = useState({}); // itemId -> bucketId
+  const [selected, setSelected] = useState(null); // itemId (tap mode)
+  const [drag, setDrag] = useState(null); // { id, x, y }
+  const start = useRef(null);
+
+  const emojiOf = (id) => items.find((it) => it.id === id)?.emoji || '';
+  const allPlaced = items.length > 0 && items.every((it) => placement[it.id]);
+
+  const place = (itemId, bucketId) => {
+    if (disabled || !itemId || !bucketId) return;
+    setSelected(null);
+    setPlacement((p) => ({ ...p, [itemId]: bucketId }));
+  };
+
+  const onItemDown = (e, id) => {
+    if (disabled) return;
+    start.current = { id, x: e.clientX, y: e.clientY, moved: false };
+    setDrag({ id, x: e.clientX, y: e.clientY });
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* ignore */ }
+  };
+  const onItemMove = (e) => {
+    const s = start.current;
+    if (!s) return;
+    if (Math.hypot(e.clientX - s.x, e.clientY - s.y) > 6) s.moved = true;
+    setDrag((d) => (d ? { ...d, x: e.clientX, y: e.clientY } : d));
+  };
+  const onItemUp = (e) => {
+    const s = start.current;
+    start.current = null;
+    setDrag(null);
+    if (!s || disabled) return;
+    if (!s.moved) { setSelected((cur) => (cur === s.id ? null : s.id)); return; } // tap → select
+    const bucketEl = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-bucket-id]');
+    if (bucketEl) place(s.id, bucketEl.getAttribute('data-bucket-id'));
+  };
+
+  const Chip = ({ id }) => (
+    <button
+      key={id}
+      type="button"
+      disabled={disabled}
+      onPointerDown={(e) => onItemDown(e, id)}
+      onPointerMove={onItemMove}
+      onPointerUp={onItemUp}
+      style={{ touchAction: 'none', fontSize: 30, lineHeight: 1 }}
+      className={`flex h-12 w-12 items-center justify-center rounded-xl border-2 bg-white shadow-sm active:scale-95 disabled:opacity-40 ${selected === id ? 'border-violet-500 ring-2 ring-violet-200' : 'border-line-soft'}`}
+    >
+      {emojiOf(id)}
+    </button>
+  );
+
+  const unplaced = items.filter((it) => !placement[it.id]);
+
+  return (
+    <div className="rounded-2xl bg-sky-50 p-4 space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        {buckets.map((b) => (
+          <div
+            key={b.id}
+            data-bucket-id={b.id}
+            onClick={() => selected && place(selected, b.id)}
+            className="min-h-[86px] rounded-xl border-2 bg-white/70 p-2"
+            style={{ borderColor: b.color || '#c4b5fd' }}
+          >
+            <p className="mb-1 text-center text-xs font-semibold" style={{ color: b.color || '#6d28d9' }}>{b.label}</p>
+            <div className="flex flex-wrap justify-center gap-1">
+              {items.filter((it) => placement[it.id] === b.id).map((it) => (
+                <Chip key={it.id} id={it.id} />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      {unplaced.length > 0 && (
+        <div className="flex flex-wrap justify-center gap-2 rounded-xl bg-white/60 p-2">
+          {unplaced.map((it) => <Chip key={it.id} id={it.id} />)}
+        </div>
+      )}
+      {allPlaced ? (
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => onAnswer?.(encodeSortPlacement(placement, items))}
+          className="w-full rounded-2xl bg-violet-600 py-3 text-lg font-bold text-white shadow-sm active:scale-95 disabled:opacity-40"
+        >
+          Check! ✓
+        </button>
+      ) : (
+        <p className="text-center text-xs text-ink-400">Drag each one into a box — or tap it, then tap a box</p>
+      )}
+      {drag && (
+        <div style={{ position: 'fixed', left: drag.x, top: drag.y, transform: 'translate(-50%, -50%)', pointerEvents: 'none', zIndex: 60, fontSize: 34, opacity: 0.9 }}>
+          {emojiOf(drag.id)}
+        </div>
+      )}
     </div>
   );
 }

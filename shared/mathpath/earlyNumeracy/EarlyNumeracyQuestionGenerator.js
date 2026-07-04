@@ -369,6 +369,58 @@ function measureCompare(rng, skill, { pairs, moreWord, lessWord, morePrompt, les
   });
 }
 
+// ── Strand B — Sorting into groups (drag-to-bucket) ──────────────────────────
+// Two-bucket colour sorts. Each pool holds objects that clearly share the
+// bucket's colour, so the attribute is unambiguous.
+const SORT_SETS = [
+  { buckets: [{ id: 'red', label: 'Red', color: '#ef4444' }, { id: 'blue', label: 'Blue', color: '#3b82f6' }],
+    pools: { red: ['🔴', '🟥', '❤️'], blue: ['🔵', '🟦', '💙'] } },
+  { buckets: [{ id: 'yellow', label: 'Yellow', color: '#eab308' }, { id: 'green', label: 'Green', color: '#22c55e' }],
+    pools: { yellow: ['🟡', '🟨', '💛'], green: ['🟢', '🟩', '💚'] } },
+];
+
+// Canonical encoding of an item→bucket placement, order-independent (items
+// sorted by id). The generator encodes the CORRECT map; the client encodes the
+// child's placement the same way, and the answer-checker compares the strings —
+// so this is the single source of truth for sort scoring. Exported for the UI.
+export function encodeSortPlacement(placement = {}, items = []) {
+  return [...items]
+    .map((it) => it.id)
+    .sort()
+    .map((id) => `${id}:${placement[id] || ''}`)
+    .join(',');
+}
+
+function genSortGroups(rng, skill) {
+  const set = pick(rng, SORT_SETS);
+  const items = [];
+  const correct = {};
+  set.buckets.forEach((bucket, bi) => {
+    const pool = shuffle(rng, set.pools[bucket.id]);
+    for (let k = 0; k < 2; k += 1) {
+      const id = `i${bi}${k}`;
+      items.push({ id, emoji: pool[k % pool.length] });
+      correct[id] = bucket.id;
+    }
+  });
+  const shownItems = shuffle(rng, items);
+  const answer = encodeSortPlacement(correct, shownItems);
+  return {
+    skillId: skill.id,
+    questionFamilyId: `QF_${skill.id}_001`,
+    type: 'mcq',
+    prompt: `Put each one in the right box — ${set.buckets.map((b) => b.label).join(' or ')}.`,
+    choices: [], // handled by the sort activity, not MCQ buttons
+    answer: { display: answer },
+    acceptedAnswers: [answer],
+    solutionSteps: [],
+    misconceptionTag: 'en/sorts-wrong-group',
+    difficulty: skill.difficulty || 2,
+    workingRequired: false,
+    diagram: { kind: 'sort', buckets: set.buckets, items: shownItems.map((it) => ({ id: it.id, emoji: it.emoji })) },
+  };
+}
+
 const BUILDERS = {
   EN001: (rng, skill) => genCount(rng, skill, { min: 2, max: 10 }),
   EN002: (rng, skill) => genCount(rng, skill, { min: 1, max: 10 }),
@@ -382,6 +434,7 @@ const BUILDERS = {
   EN010: (rng, skill) => genCompareSize(rng, skill),
   EN011: (rng, skill) => genPatternNext(rng, skill),
   EN012: (rng, skill) => genPatternMissing(rng, skill),
+  EN022: (rng, skill) => genSortGroups(rng, skill),
   EN013: (rng, skill) => genShapeRecognise(rng, skill),
   EN014: (rng, skill) => genShapeAttributes(rng, skill),
   EN015: (rng, skill) => genShapesAround(rng, skill),
