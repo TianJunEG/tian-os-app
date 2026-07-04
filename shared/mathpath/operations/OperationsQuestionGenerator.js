@@ -230,11 +230,14 @@ const BUILDERS = {
       distractors: [q + 1, q - 1, b] };
   },
   // OP014 — Short division by a 1-digit number.
-  // Even variant: exact quotient (original). Odd variant: a non-exact division
-  // answered to 2 decimal places — e.g. 7 ÷ 8 = 0.88 (add a decimal point and
-  // zeros and keep dividing, then round to 2 d.p.).
-  OP014(rng, variant) {
-    if (variant % 2 === 1) {
+  // ~Half exact quotient (original), ~half a non-exact division answered to 2
+  // decimal places — e.g. 7 ÷ 8 = 0.88 (add a decimal point and zeros and keep
+  // dividing, then round to 2 d.p.). The decimal/exact choice is driven by the
+  // per-question RNG (NOT the loop variant): variant increments in lockstep with
+  // family cycling, so keying off it starved the short-answer (typed) family of
+  // decimals — they only ever landed on the MCQ family.
+  OP014(rng) {
+    if (rng() < 0.5) {
       const b = rint(rng, 3, 9);
       let a = rint(rng, 3, 90);
       if (a % b === 0) a += 1;                        // force a non-exact quotient
