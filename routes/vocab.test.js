@@ -9,6 +9,7 @@ import { MongoMemoryServer } from 'mongodb-memory-server-core';
 
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'test-secret-vocab';
+process.env.VOCAB_ADMIN_KEY = 'test-admin-key';
 
 const { default: vocabRouter } = await import('./vocab.js');
 const VocabMagicLink = (await import('../models/VocabMagicLink.js')).default;
@@ -195,5 +196,48 @@ describe('vocab magic-link auth + progress sync', () => {
 
   it('requires a clientId', async () => {
     expect((await post('/events', { events: [{ type: 'session_start' }] })).status).toBe(400);
+  });
+
+  describe('admin metrics', () => {
+    const DAY = 24 * 60 * 60 * 1000;
+    beforeAll(async () => {
+      await VocabEvent.deleteMany({}); // isolate from earlier event tests
+      const now = Date.now();
+      // client A: sessions on two distinct days (returning), 2 answers (1 right), 1 probe right
+      await VocabEvent.insertMany([
+        { clientId: 'A', type: 'session_start', createdAt: new Date(now - 2 * DAY) },
+        { clientId: 'A', type: 'session_start', createdAt: new Date(now - 1 * DAY) },
+        { clientId: 'A', type: 'answer', data: { correct: true }, createdAt: new Date(now - 1 * DAY) },
+        { clientId: 'A', type: 'answer', data: { correct: false }, createdAt: new Date(now - 1 * DAY) },
+        { clientId: 'A', type: 'probe_result', data: { correct: true }, createdAt: new Date(now - 1 * DAY) },
+      ]);
+      // client B: one day only, signed in, 1 answer wrong, 1 probe wrong
+      await VocabEvent.insertMany([
+        { clientId: 'B', email: 'b@example.com', type: 'session_start', createdAt: new Date(now - 1 * DAY) },
+        { clientId: 'B', email: 'b@example.com', type: 'answer', data: { correct: false }, createdAt: new Date(now - 1 * DAY) },
+        { clientId: 'B', email: 'b@example.com', type: 'probe_result', data: { correct: false }, createdAt: new Date(now - 1 * DAY) },
+      ]);
+    });
+
+    it('rejects without / with a wrong admin key', async () => {
+      expect((await get('/admin/metrics')).status).toBe(401);
+      expect((await get('/admin/metrics', { 'x-vocab-admin-key': 'nope' })).status).toBe(401);
+    });
+
+    it('summarises engagement, accuracy and the cold-probe trend', async () => {
+      const res = await get('/admin/metrics?days=30', { 'x-vocab-admin-key': 'test-admin-key' });
+      expect(res.status).toBe(200);
+      const m = await res.json();
+      expect(m.learners.total).toBe(2);
+      expect(m.learners.signedIn).toBe(1);
+      expect(m.learners.returning).toBe(1); // only A practised on 2 days
+      expect(m.sessions.started).toBe(3);
+      expect(m.answers.total).toBe(3);
+      expect(m.answers.accuracy).toBe(33.3); // 1 of 3
+      expect(m.coldProbe.total).toBe(2);
+      expect(m.coldProbe.accuracy).toBe(50); // 1 of 2
+      expect(Array.isArray(m.coldProbe.byWeek)).toBe(true);
+      expect(m.sessionsByDay.reduce((s, d) => s + d.n, 0)).toBe(3);
+    });
   });
 });

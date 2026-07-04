@@ -245,4 +245,92 @@ router.post(
   })
 );
 
+// ---- metrics (admin read-side) --------------------------------------------
+
+// Guard the metrics with a shared secret (VOCAB_ADMIN_KEY). If it isn't set the
+// endpoint 404s — it's opt-in and stays fully off in any environment without a
+// key, so analytics are never exposed by default.
+function requireAdmin(req, res, next) {
+  const key = process.env.VOCAB_ADMIN_KEY;
+  if (!key) return res.status(404).json({ error: 'Not found' });
+  const provided = String(req.headers['x-vocab-admin-key'] || req.query.key || '');
+  const a = Buffer.from(provided);
+  const b = Buffer.from(key);
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  next();
+}
+
+// GET /api/vocab/admin/metrics?days=30  → engagement + cold-probe summary.
+router.get(
+  '/admin/metrics',
+  requireAdmin,
+  asyncHandler(async (req, res) => {
+    const days = Math.min(365, Math.max(1, Number(req.query.days) || 30));
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const match = { createdAt: { $gte: since } };
+    const day = { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } };
+    const week = { $dateToString: { format: '%G-W%V', date: '$createdAt' } };
+    const pct = (correct, n) => (n ? Math.round((correct / n) * 1000) / 10 : null);
+
+    const [byType, clients, returning, ans, probe, probeByWeek, sessionsByDay] = await Promise.all([
+      VocabEvent.aggregate([{ $match: match }, { $group: { _id: '$type', n: { $sum: 1 } } }]),
+      VocabEvent.aggregate([
+        { $match: match },
+        { $group: { _id: '$clientId', hasEmail: { $max: { $cond: [{ $ifNull: ['$email', false] }, 1, 0] } } } },
+        { $group: { _id: null, total: { $sum: 1 }, signedIn: { $sum: '$hasEmail' } } },
+      ]),
+      VocabEvent.aggregate([
+        { $match: { ...match, type: 'session_start' } },
+        { $group: { _id: { c: '$clientId', d: day } } },
+        { $group: { _id: '$_id.c', days: { $sum: 1 } } },
+        { $group: { _id: null, returning: { $sum: { $cond: [{ $gte: ['$days', 2] }, 1, 0] } }, any: { $sum: 1 } } },
+      ]),
+      VocabEvent.aggregate([
+        { $match: { ...match, type: 'answer' } },
+        { $group: { _id: null, n: { $sum: 1 }, correct: { $sum: { $cond: ['$data.correct', 1, 0] } } } },
+      ]),
+      VocabEvent.aggregate([
+        { $match: { ...match, type: 'probe_result' } },
+        { $group: { _id: null, n: { $sum: 1 }, correct: { $sum: { $cond: ['$data.correct', 1, 0] } } } },
+      ]),
+      VocabEvent.aggregate([
+        { $match: { ...match, type: 'probe_result' } },
+        { $group: { _id: week, n: { $sum: 1 }, correct: { $sum: { $cond: ['$data.correct', 1, 0] } } } },
+        { $sort: { _id: 1 } },
+      ]),
+      VocabEvent.aggregate([
+        { $match: { ...match, type: 'session_start' } },
+        { $group: { _id: day, n: { $sum: 1 } } },
+        { $sort: { _id: 1 } },
+      ]),
+    ]);
+
+    const counts = Object.fromEntries(byType.map((r) => [r._id, r.n]));
+    const c = clients[0] || { total: 0, signedIn: 0 };
+    const ret = returning[0] || { returning: 0, any: 0 };
+    const a = ans[0] || { n: 0, correct: 0 };
+    const p = probe[0] || { n: 0, correct: 0 };
+
+    res.json({
+      windowDays: days,
+      learners: {
+        total: c.total,
+        signedIn: c.signedIn,
+        returning: ret.returning, // practised on ≥2 distinct days
+        returnRate: ret.any ? Math.round((ret.returning / ret.any) * 1000) / 10 : null,
+      },
+      sessions: { started: counts.session_start || 0, completed: counts.session_complete || 0 },
+      answers: { total: a.n, accuracy: pct(a.correct, a.n) },
+      coldProbe: {
+        total: p.n,
+        accuracy: pct(p.correct, p.n), // transfer signal — track the trend, not the level
+        byWeek: probeByWeek.map((w) => ({ week: w._id, n: w.n, accuracy: pct(w.correct, w.n) })),
+      },
+      sessionsByDay: sessionsByDay.map((d) => ({ day: d._id, n: d.n })),
+    });
+  })
+);
+
 export default router;
