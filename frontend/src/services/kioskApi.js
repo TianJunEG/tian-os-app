@@ -42,9 +42,14 @@ kioskClient.interceptors.response.use((res) => res, (err) => Promise.reject(err)
 
 export const kioskAPI = {
   getSession: (code) => kioskClient.get(`/sessions/${encodeURIComponent(code)}`),
+  // Diagnostic (adaptive) flow
   begin: (code, ref) => kioskClient.post(`/sessions/${encodeURIComponent(code)}/begin`, { ref }),
   answer: (sessionId, body) => kioskClient.post(`/diagnostics/${sessionId}/answer`, body),
   finish: (sessionId) => kioskClient.post(`/diagnostics/${sessionId}/finish`, {}),
+  // Practice (fixed-set) flow
+  practiceBegin: (code, ref) => kioskClient.post(`/sessions/${encodeURIComponent(code)}/practice-begin`, { ref }),
+  practiceAttempt: (sessionId, body) => kioskClient.post(`/practice/${sessionId}/attempt`, body),
+  practiceComplete: (sessionId) => kioskClient.post(`/practice/${sessionId}/complete`, {}),
 };
 
 export default kioskAPI;

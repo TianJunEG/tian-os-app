@@ -111,7 +111,7 @@ export async function ensureQuestionsForSkills(skillIds, perSkill = 6) {
 // "What fraction of the shape is shaded?") is impossible without its diagram, and
 // the client renderer keys off diagramSpec / requiresVisual / requiredVisualTypes.
 // These fields carry no answer, so forwarding them does not leak the solution.
-const clientQuestion = (q) => ({
+export const clientQuestion = (q) => ({
   questionId: q._id, stem: q.stem, type: q.type, choices: q.choices,
   difficulty: q.difficulty, skillId: q.skillId?._id || q.skillId,
   skillName: q.skillId?.name, topicId: q.skillId?.topicId,

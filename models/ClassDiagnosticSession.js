@@ -11,8 +11,9 @@ import mongoose from 'mongoose';
 const rosterEntrySchema = new mongoose.Schema({
   studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true },
   name: { type: String, required: true },               // snapshot — the only PII the kiosk exposes
-  taken: { type: Boolean, default: false },             // one-attempt-per-name guard
-  diagnosticSessionId: { type: String, default: '' },   // the MathPathDiagnosticSession code, once begun
+  taken: { type: Boolean, default: false },             // one-attempt guard (diagnostic only; practice allows redo)
+  diagnosticSessionId: { type: String, default: '' },   // the MathPathDiagnosticSession code, once begun (diagnostic)
+  practiceSessionId: { type: String, default: '' },     // the latest PracticeSession _id, once begun (practice)
   attemptTokenJti: { type: String, default: '' },       // bound token id (for optional revocation)
   status: { type: String, enum: ['not_started', 'in_progress', 'completed', 'abandoned'], default: 'not_started' },
   startedAt: { type: Date, default: null },
@@ -26,6 +27,16 @@ const classDiagnosticSessionSchema = new mongoose.Schema({
   code: { type: String, required: true, uppercase: true, trim: true }, // short join code (carried in the QR)
   subjectId: { type: String, default: 'math' },
   domainId: { type: String, required: true },
+  // 'diagnostic' = adaptive assessment (default, unchanged); 'practice' = a fixed
+  // set of questions on one skill. Additive with a safe default so existing
+  // sessions read back as diagnostics.
+  type: { type: String, enum: ['diagnostic', 'practice'], default: 'diagnostic' },
+  // Only set when type==='practice': the single skill + how many questions to serve.
+  practiceConfig: {
+    skillId: { type: String, default: '' },
+    skillName: { type: String, default: '' },
+    questionCount: { type: Number, default: 10 },
+  },
   mode: { type: String, enum: ['basic', 'core', 'full'], default: 'core' },
   studentLevel: { type: String, default: '' },
   status: { type: String, enum: ['open', 'closed', 'expired'], default: 'open' },

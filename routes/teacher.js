@@ -27,7 +27,7 @@ import TestPaperSession from '../models/TestPaperSession.js';
 import { projectMarkedSitting } from '../utils/testPaperSitting.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 import ClassDiagnosticSession from '../models/ClassDiagnosticSession.js';
-import { createClassDiagnosticSession, buildKioskStatus } from '../services/kiosk/classDiagnosticService.js';
+import { createClassDiagnosticSession, createClassPracticeSession, buildKioskStatus } from '../services/kiosk/classDiagnosticService.js';
 import { getDiagnosticDomain } from '../services/diagnostics/diagnosticDomainRegistry.js';
 import { parseRosterCsv, importRoster, createStudentRecord } from '../services/school/schoolAdminService.js';
 import multer from 'multer';
@@ -1381,27 +1381,55 @@ router.post('/classes/:id/kiosk-sessions', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return undefined;
   const klass = await getOwnedClass(req);
   if (!klass) return res.status(404).json({ error: 'Class not found.' });
-  const { domainId, mode = 'core', studentLevel = '', subjectId = 'math' } = req.body || {};
-  if (!domainId) return res.status(400).json({ error: 'A diagnostic topic (domainId) is required.' });
-  try {
-    getDiagnosticDomain({ subjectId, domainId });
-  } catch {
-    return res.status(400).json({ error: `Unknown diagnostic topic: ${domainId}` });
+  const { type = 'diagnostic', mode = 'core', studentLevel = '', subjectId = 'math' } = req.body || {};
+
+  let session;
+  if (type === 'practice') {
+    // Practice: a fixed set of questions on ONE skill. Resolve the skill server-side
+    // (so the client can't spoof it) and derive a domainId for the session.
+    const { skillId, questionCount = 10 } = req.body || {};
+    if (!skillId) return res.status(400).json({ error: 'A skill is required for a practice check-in.' });
+    const skill = await Skill.findById(skillId).populate({ path: 'topicId', select: '_id' }).lean();
+    if (!skill) return res.status(400).json({ error: 'That skill was not found.' });
+    const count = Math.min(20, Math.max(3, Number(questionCount) || 10));
+    session = await createClassPracticeSession({
+      classId: klass._id,
+      workspaceId: req.workspaceId,
+      teacherUserId: req.user.id,
+      subjectId,
+      domainId: skill.domain || 'practice', // keep domainId populated (schema requires it)
+      skillId: String(skill._id),
+      skillName: skill.name || '',
+      questionCount: count,
+      studentLevel: studentLevel || klass.level || '',
+    });
+  } else {
+    const { domainId } = req.body || {};
+    if (!domainId) return res.status(400).json({ error: 'A diagnostic topic (domainId) is required.' });
+    try {
+      getDiagnosticDomain({ subjectId, domainId });
+    } catch {
+      return res.status(400).json({ error: `Unknown diagnostic topic: ${domainId}` });
+    }
+    session = await createClassDiagnosticSession({
+      classId: klass._id,
+      workspaceId: req.workspaceId,
+      teacherUserId: req.user.id,
+      subjectId,
+      domainId,
+      mode,
+      studentLevel: studentLevel || klass.level || '',
+    });
   }
-  const session = await createClassDiagnosticSession({
-    classId: klass._id,
-    workspaceId: req.workspaceId,
-    teacherUserId: req.user.id,
-    subjectId,
-    domainId,
-    mode,
-    studentLevel: studentLevel || klass.level || '',
-  });
+
   return res.status(201).json({
     sessionId: String(session._id),
     code: session.code,
+    type: session.type,
     domainId: session.domainId,
     mode: session.mode,
+    skillName: session.practiceConfig?.skillName || undefined,
+    questionCount: session.type === 'practice' ? session.practiceConfig?.questionCount : undefined,
     status: session.status,
     kioskUrl: `/kiosk/${session.code}`,
     expiresAt: session.expiresAt,
@@ -1421,8 +1449,10 @@ router.get('/classes/:id/kiosk-sessions', asyncHandler(async (req, res) => {
     sessions: sessions.map((s) => ({
       sessionId: String(s._id),
       code: s.code,
+      type: s.type || 'diagnostic',
       domainId: s.domainId,
       mode: s.mode,
+      skillName: s.practiceConfig?.skillName || undefined,
       status: s.status,
       rosterCount: s.roster?.length || 0,
       createdAt: s.createdAt,

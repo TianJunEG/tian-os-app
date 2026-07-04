@@ -250,6 +250,7 @@ const ParentAnnouncementDetail = lazy(() => import('./pages/parent/ParentAnnounc
 const TutorAnnouncements = lazy(() => import('./pages/tutor/TutorAnnouncements'));
 const KioskLandingPage = lazy(() => import('./pages/kiosk/KioskLandingPage'));
 const KioskQuestionScreen = lazy(() => import('./pages/kiosk/KioskQuestionScreen'));
+const KioskPracticeScreen = lazy(() => import('./pages/kiosk/KioskPracticeScreen'));
 const KioskResultPage = lazy(() => import('./pages/kiosk/KioskResultPage'));
 const TeacherAssignPractice = lazy(() => import('./pages/teacher/AssignPractice'));
 const TeacherAssessments = lazy(() => import('./pages/teacher/Assessments'));
@@ -498,6 +499,7 @@ function App() {
           {/* In-class diagnostic kiosk — PUBLIC (teacher-supervised iPads, no login) */}
           <Route path="/kiosk/:code" element={<KioskLandingPage />} />
           <Route path="/kiosk/:code/q/:sessionId" element={<KioskQuestionScreen />} />
+          <Route path="/kiosk/:code/practice/:sessionId" element={<KioskPracticeScreen />} />
           <Route path="/kiosk/:code/result/:sessionId" element={<KioskResultPage />} />
 
           {/* Auth Routes */}
