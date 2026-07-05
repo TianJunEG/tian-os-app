@@ -305,11 +305,10 @@ function renderHome() {
 
   const weak = premium ? weakWords(state, { bank: b }) : [];
   const ctaEyebrow = premium ? (s.counts.dueNow ? 'Review due' : 'Your practice') : 'Free · no sign-up';
-  const sessionLabel = group.sessionSize === 10 ? '10-question' : '6-question';
   const ctaHeading =
     premium && s.counts.dueNow
       ? `${s.counts.dueNow} word${s.counts.dueNow === 1 ? '' : 's'} to review + new`
-      : `Start a ${sessionLabel} session`;
+      : 'Start a 5-minute session';
 
   const premiumBlock = premium
     ? `
@@ -361,7 +360,7 @@ function renderHome() {
     ${b.length ? `<div class="card cta">
       <div class="eyebrow">${ctaEyebrow}</div>
       <h2>${ctaHeading}</h2>
-      <p class="muted">Meet a few new words, then test yourself. About 5 minutes.</p>
+      <p class="muted">A few new words to meet, then questions — with quick review of words you're already learning mixed in.</p>
       <button class="btn full mt" data-go="practice">${premium ? 'Continue' : 'Start practice'} →</button>
     </div>` : `<div class="card" style="text-align:center;padding:32px 22px">
       <h2 style="color:var(--ink-700)">Coming soon</h2>
