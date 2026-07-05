@@ -92,4 +92,21 @@ describe('vocabulary task generator', () => {
     expect(tiers).toEqual(sorted);
     expect(ids[0]).toBe('meaning_match'); // tier 1 first
   });
+
+  it('never offers the question word itself as the "same word family" answer', () => {
+    // Regression: words like "consent" (verb) / "consent" (noun) have a same-
+    // spelling family member, which used to surface as the correct option — so
+    // the answer was literally the word being asked about.
+    const n = (s) => String(s).trim().toLowerCase();
+    const rng = makeRng(7);
+    let checked = 0;
+    for (const w of vocabularyWordBank) {
+      const task = generateTask(w, 'morphology_match', { bank: vocabularyWordBank, rng });
+      if (!task) continue;
+      checked++;
+      const correct = task.options.find((o) => o.correct);
+      expect(n(correct.text), `morphology answer for "${w.word}"`).not.toBe(n(w.word));
+    }
+    expect(checked).toBeGreaterThan(100);
+  });
 });

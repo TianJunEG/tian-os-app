@@ -271,8 +271,13 @@ const GENERATORS = {
   },
 
   morphology_match(entry, bank, rng) {
-    if (!entry.wordFamily.length) return null;
-    const member = entry.wordFamily[Math.floor(rng() * entry.wordFamily.length)];
+    // The correct answer must be a DIFFERENTLY-spelled family member — otherwise
+    // it's just the question word again (e.g. "consent" the verb vs "consent" the
+    // noun), which reads as "the answer is the word being asked about". Skip the
+    // task for words whose family has no distinct-form member.
+    const members = entry.wordFamily.filter((f) => norm(f.word) !== norm(entry.word));
+    if (!members.length) return null;
+    const member = members[Math.floor(rng() * members.length)];
     const distractors = [
       ...entry.confusables,
       ...otherWords(entry, bank)
