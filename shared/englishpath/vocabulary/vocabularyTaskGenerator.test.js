@@ -12,6 +12,11 @@ function exactlyOneCorrect(task) {
   return task.options.filter((o) => o.correct).length === 1;
 }
 
+const norm = (s) => String(s).trim().toLowerCase();
+
+// Function words that don't anchor a cloze on their own (mirrors the generator).
+const STOPWORDS = new Set(['a', 'an', 'the', 'to', 'of', 'in', 'on', 'at', 'for', 'with', 'from', 'by', 'and', 'or', 'as']);
+
 describe('vocabulary task generator', () => {
   // Exhaustive: every word (712) × every ladder rung (~26k MCQs). Two speedups vs
   // the old ~17s version: (1) invariant checks run in plain JS with a single expect
@@ -31,9 +36,39 @@ describe('vocabulary task generator', () => {
         if (!task.answer) failures.push(`${where}: missing answer`);
         const correct = task.options.find((o) => o.correct);
         if (!correct || correct.text !== task.answer) failures.push(`${where}: correct option "${correct?.text}" !== answer "${task.answer}"`);
+        // A "which word belongs to / is the X form of <word>" question must not
+        // answer with <word> itself — that word is already named in the prompt.
+        if (
+          (task.taskType === 'morphology_match' || task.taskType === 'word_form_pick') &&
+          norm(task.answer) === norm(w.word)
+        ) {
+          failures.push(`${where}: answer "${task.answer}" is the headword itself`);
+        }
       }
     }
     expect(failures, `${failures.length} bad MCQ(s):\n${failures.slice(0, 20).join('\n')}`).toEqual([]);
+  });
+
+  it('skips word-family rungs when every family member is spelled like the headword', () => {
+    // "consent" (noun) has only "consent" (verb) in its family — asking which word
+    // is in its family (or which is the verb form) would answer "consent" itself.
+    const w = getWord('vw_consent');
+    expect(w.wordFamily.every((f) => norm(f.word) === norm(w.word))).toBe(true);
+    expect(generateTask(w, 'morphology_match', { rng: makeRng(3) })).toBeNull();
+    expect(generateTask(w, 'word_form_pick', { rng: makeRng(3) })).toBeNull();
+  });
+
+  it('collocation_pick only blanks phrases that keep a distinctive anchor word', () => {
+    // "reluctant to" blanks to "____ to" — many words fit (resistant/receptive to),
+    // so it must instead use "a reluctant agreement" ("a ____ agreement").
+    const w = getWord('vw_reluctant');
+    const task = generateTask(w, 'collocation_pick', { rng: makeRng(3) });
+    expect(task).not.toBeNull();
+    expect(task.prompt).not.toMatch(/________\s+to”/); // never the bare "____ to" cloze
+    // the surviving context must contain a content word, not only function words
+    const context = task.prompt.split('\n').pop().replace(/[“”]/g, '').replace(/________/, ' ');
+    const contentWords = context.split(/[^a-zA-Z]+/).filter((t) => t && !STOPWORDS.has(t.toLowerCase()));
+    expect(contentWords.length).toBeGreaterThan(0);
   });
 
   it('meaning_match asks for the meaning and marks the true definition correct', () => {

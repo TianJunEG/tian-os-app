@@ -103,6 +103,27 @@ function hasBlank(example) {
   return BLANK_RE.test(example || '');
 }
 
+// Function words that carry no disambiguating meaning on their own. A cloze
+// whose only surviving context is one of these ("____ to", "____ of") is unfair:
+// far too many words legitimately complete it, so several "distractors" are in
+// fact correct answers (e.g. "resistant to", "receptive to" all fit "____ to").
+const COLLOCATION_STOPWORDS = new Set([
+  'a', 'an', 'the', 'to', 'of', 'in', 'on', 'at', 'for', 'with', 'from', 'by',
+  'and', 'or', 'but', 'as', 'up', 'out', 'off', 'down', 'into', 'onto', 'over',
+  'under', 'about', 'than', 'that', 'this', 'these', 'those', 'it', 'its', 'is',
+  'are', 'was', 'were', 'be', 'been', 'being', 'so', 'too', 'very', 'not', 'no',
+]);
+
+// True when, after removing `word`, the collocation still contains a content
+// word to anchor the blank — so exactly one option can naturally complete it.
+function collocationResidualIsDistinctive(phrase, word) {
+  const re = new RegExp(word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'ig');
+  const residual = phrase.replace(re, ' ');
+  return residual
+    .split(/[^a-zA-Z]+/)
+    .some((tok) => tok && !COLLOCATION_STOPWORDS.has(tok.toLowerCase()));
+}
+
 // ---- distractor pools from the wider bank ---------------------------------
 
 // These three re-scan the whole word bank, and several ladder rungs of the SAME
@@ -271,8 +292,13 @@ const GENERATORS = {
   },
 
   morphology_match(entry, bank, rng) {
-    if (!entry.wordFamily.length) return null;
-    const member = entry.wordFamily[Math.floor(rng() * entry.wordFamily.length)];
+    // The answer must be a *different* word from the headword, otherwise the
+    // correct option is literally the word already named in the prompt (e.g.
+    // "consent" (noun) / "consent" (verb) share a spelling). Skip the rung when
+    // every family member is spelled the same as the headword.
+    const family = entry.wordFamily.filter((f) => norm(f.word) !== norm(entry.word));
+    if (!family.length) return null;
+    const member = family[Math.floor(rng() * family.length)];
     const distractors = [
       ...entry.confusables,
       ...otherWords(entry, bank)
@@ -362,7 +388,12 @@ const GENERATORS = {
   },
 
   collocation_pick(entry, bank, rng) {
-    const phrase = entry.collocations.find((c) => norm(c).includes(norm(entry.word)));
+    // Blank the headword out of a collocation and ask which word fills it. Only
+    // use a collocation whose *remaining* words still pin down a single answer;
+    // a bare "____ to" is completed by many words, so it has no unique answer.
+    const phrase = entry.collocations.find(
+      (c) => norm(c).includes(norm(entry.word)) && collocationResidualIsDistinctive(c, entry.word),
+    );
     if (!phrase) return null;
     const re = new RegExp(entry.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
     const blanked = phrase.replace(re, BLANK_DISPLAY);
@@ -383,8 +414,12 @@ const GENERATORS = {
 
   word_form_pick(entry, bank, rng) {
     // Ask for a part-of-speech form that only one family member has, so the
-    // answer is unambiguous.
-    const candidate = entry.wordFamily.find((f) => f.pos !== entry.pos && f.pos !== 'other');
+    // answer is unambiguous. The form must also be spelled differently from the
+    // headword — otherwise the "answer" is the word already shown in the prompt
+    // (e.g. asking for the verb form of "consent" when the verb is also "consent").
+    const candidate = entry.wordFamily.find(
+      (f) => f.pos !== entry.pos && f.pos !== 'other' && norm(f.word) !== norm(entry.word),
+    );
     if (!candidate) return null;
     const sharesPos = entry.wordFamily.filter((f) => f.pos === candidate.pos).length;
     if (sharesPos !== 1) return null;
