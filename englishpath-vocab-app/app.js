@@ -360,7 +360,11 @@ function renderHome() {
     ${b.length ? `<div class="card cta">
       <div class="eyebrow">${ctaEyebrow}</div>
       <h2>${ctaHeading}</h2>
-      <p class="muted">A few new words to meet, then questions — with quick review of words you're already learning mixed in.</p>
+      <p class="muted">${
+        premium && s.counts.dueNow
+          ? 'First, review the words that are due (spaced to bring them back right before you forget), then meet a few new ones.'
+          : "A few new words to meet, then questions — with quick review of words you're already learning mixed in."
+      }</p>
       <button class="btn full mt" data-go="practice">${premium ? 'Continue' : 'Start practice'} →</button>
     </div>` : `<div class="card" style="text-align:center;padding:32px 22px">
       <h2 style="color:var(--ink-700)">Coming soon</h2>
