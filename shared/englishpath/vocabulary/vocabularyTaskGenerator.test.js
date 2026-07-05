@@ -109,4 +109,30 @@ describe('vocabulary task generator', () => {
     }
     expect(checked).toBeGreaterThan(100);
   });
+
+  it('collocation_pick never leaves only a function word as the phrase stem', () => {
+    // Regression: "____ to" (a preposition-only stem) is filled equally well by
+    // near-synonyms — reluctant / resistant / receptive to — so it isn't a fair
+    // single-answer question.
+    const FW = new Set([
+      'to', 'of', 'on', 'in', 'with', 'for', 'at', 'by', 'a', 'an', 'the', 'and', 'or',
+      'up', 'off', 'out', 'as', 'into', 'from', 'over', 'about', 'that', 'this',
+      'his', 'her', 'its', 'their', 'your', 'my', 'our', 'is', 'was', 'be', 'been',
+      'so', 'than', 'too', 'it', 'them', 'you',
+    ]);
+    const rng = makeRng(9);
+    let checked = 0;
+    for (const w of vocabularyWordBank) {
+      const task = generateTask(w, 'collocation_pick', { bank: vocabularyWordBank, rng });
+      if (!task) continue;
+      checked++;
+      const stem = (task.prompt.match(/“([\s\S]+)”/) || [])[1] || '';
+      const content = stem.replace(/_+/g, ' ').toLowerCase().split(/[^a-z]+/).filter(Boolean);
+      expect(
+        content.some((t) => !FW.has(t)),
+        `collocation stem for "${w.word}": "${stem.trim()}"`
+      ).toBe(true);
+    }
+    expect(checked).toBeGreaterThan(100);
+  });
 });

@@ -103,6 +103,26 @@ function hasBlank(example) {
   return BLANK_RE.test(example || '');
 }
 
+// Function words that don't, on their own, pin down which word fills a blank.
+// A collocation whose only remaining context is one of these ("____ to") is a
+// weak single-answer question because many near-synonyms share it.
+const COLLOCATION_FUNCTION_WORDS = new Set([
+  'to', 'of', 'on', 'in', 'with', 'for', 'at', 'by', 'a', 'an', 'the', 'and', 'or',
+  'up', 'off', 'out', 'as', 'into', 'from', 'over', 'about', 'that', 'this',
+  'his', 'her', 'its', 'their', 'your', 'my', 'our', 'is', 'was', 'be', 'been',
+  'so', 'than', 'too', 'it', 'them', 'you',
+]);
+
+// True when blanking `re` (the target word) out of `phrase` leaves a distinctive
+// content word behind — not just prepositions/articles.
+function hasContentRemainder(phrase, re) {
+  const rest = String(phrase).replace(re, ' ');
+  return rest
+    .toLowerCase()
+    .split(/[^a-z]+/)
+    .some((tok) => tok && !COLLOCATION_FUNCTION_WORDS.has(tok));
+}
+
 // ---- distractor pools from the wider bank ---------------------------------
 
 // These three re-scan the whole word bank, and several ladder rungs of the SAME
@@ -367,9 +387,16 @@ const GENERATORS = {
   },
 
   collocation_pick(entry, bank, rng) {
-    const phrase = entry.collocations.find((c) => norm(c).includes(norm(entry.word)));
-    if (!phrase) return null;
     const re = new RegExp(entry.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    // Only use a collocation whose remaining words (after blanking the target)
+    // include a distinctive content word. A stem that leaves only a function word
+    // — e.g. "____ to" — is satisfied by many near-synonyms (reluctant / resistant
+    // / receptive to), so it isn't a fair single-answer question. The distractors
+    // here ARE near-synonyms, which is exactly what makes such stems ambiguous.
+    const phrase = entry.collocations.find(
+      (c) => norm(c).includes(norm(entry.word)) && hasContentRemainder(c, re)
+    );
+    if (!phrase) return null;
     const blanked = phrase.replace(re, BLANK_DISPLAY);
     const options = buildOptions({
       correct: entry.word,
