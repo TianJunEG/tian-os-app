@@ -220,7 +220,12 @@ export function questionRequiresDiagram(question = {}) {
   if (question?.diagram || question?.visual?.payload?.type) return true;
   if (question?.requiresDiagram || question?.requiresVisual || question?.visualRequired) return true;
   const text = `${question?.prompt || ''} ${question?.stem || ''}`.toLowerCase();
-  return /\b(number line|shaded|shape|fraction strip|bar model|area model|diagram|graph)\b/.test(text);
+  // NOTE: bare "shape" was here but only ever caused false "could not load"
+  // errors — figure questions attach a real `diagram.kind` (handled above), while
+  // shape-IDENTIFICATION questions ("Which shape has 3 sides?", "What shape is
+  // this? 🚌", "What quadrilateral shape…?") correctly have no diagram and cannot
+  // infer one, so requiring a diagram blocked a perfectly good question.
+  return /\b(number line|shaded|fraction strip|bar model|area model|diagram|graph)\b/.test(text);
 }
 
 function explicitDiagramCandidates(question = {}) {
