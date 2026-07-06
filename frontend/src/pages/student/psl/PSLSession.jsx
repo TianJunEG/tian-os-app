@@ -142,11 +142,23 @@ export default function PSLSession() {
         const solveStep = currentProblem?.scaffoldSteps?.find((s) => s.stepId === 'solve');
         const solveType = solveStep?.type;
         if (solveType === 'expression' || solveType === 'twoStep') {
+          // Parse the result of each number sentence (the value after its last
+          // "=") into `intermediates`, so a correct intermediate step — e.g.
+          // "49×2=98" when the final answer is 147−98=49 — is recognised and
+          // credited, instead of the working being scored "used wrong numbers".
+          // The SolvePanel emits `sentences`; older inputs used `step1Answer`.
+          const sentenceResults = (Array.isArray(resp?.sentences) ? resp.sentences : [])
+            .map((s) => {
+              const tail = String(s).split('=').pop() || '';
+              const m = tail.match(/-?\d+(\.\d+)?/);
+              return m ? Number(m[0]) : null;
+            })
+            .filter((v) => v != null && Number.isFinite(v));
           return {
             answer: Number(resp?.answer),
             operation: resp?.expression?.match(/[+\-×÷*/]/)?.[0] || '',
             expression: resp?.expression || '',
-            intermediates: resp?.step1Answer ? [Number(resp.step1Answer)] : [],
+            intermediates: sentenceResults.length ? sentenceResults : (resp?.step1Answer ? [Number(resp.step1Answer)] : []),
             reasoning: resp?.reasoning || '',
           };
         }
