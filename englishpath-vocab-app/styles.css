@@ -143,14 +143,19 @@ h3 { font-size: 15px; margin: 0 0 12px; }
 .opt {
   text-align: left; width: 100%; cursor: pointer; font: inherit;
   background: var(--paper); border: 1px solid var(--line); border-radius: 11px; padding: 13px 15px;
-  display: flex; justify-content: space-between; align-items: center; gap: 10px; transition: border-color 0.12s, background 0.12s;
+  display: flex; flex-direction: column; align-items: stretch; gap: 6px; transition: border-color 0.12s, background 0.12s;
 }
+.opt-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .opt:hover:not(:disabled) { border-color: var(--emerald); background: var(--emerald-tint); }
 .opt:disabled { cursor: default; }
 .opt.correct { border-color: var(--emerald); background: var(--success-bg); color: var(--emerald-deep); }
 .opt.wrong { border-color: var(--error); background: var(--error-bg); color: var(--error); }
-.opt.dim { opacity: 0.5; }
+/* Dim only the word of a not-picked wrong option — keep its meaning readable. */
+.opt.dim .opt-text { opacity: 0.5; }
 .opt .mk { font-weight: 700; }
+/* Revealed after answering — teaches what each option means. */
+.opt-gloss { font-size: 13px; line-height: 1.35; color: var(--ink-500); }
+.opt.correct .opt-gloss, .opt.wrong .opt-gloss { color: var(--ink-700); }
 
 .feedback { margin-top: 18px; padding: 12px 14px; border-radius: 11px; font-size: 14px; display: flex; gap: 8px; }
 .feedback.ok { background: var(--success-bg); color: var(--emerald-deep); }

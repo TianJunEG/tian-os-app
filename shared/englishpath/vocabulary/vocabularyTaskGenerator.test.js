@@ -4,6 +4,7 @@ import {
   generateTask,
   generateLadder,
   generatableTaskTypes,
+  glossFor,
   makeRng,
 } from './vocabularyTaskGenerator.js';
 import { TASK_TYPES } from './vocabularyModel.js';
@@ -108,6 +109,22 @@ describe('vocabulary task generator', () => {
       expect(n(correct.text), `morphology answer for "${w.word}"`).not.toBe(n(w.word));
     }
     expect(checked).toBeGreaterThan(100);
+  });
+
+  it('word-option questions carry a meaning gloss on every option (to teach the distractors too)', () => {
+    // A student often misses because they don't know the DISTRACTORS. word_recall
+    // options are words, so each should reveal its meaning.
+    const task = generateTask(getWord('vw_encroachment'), 'word_recall', { rng: makeRng(3) });
+    expect(task.options.every((o) => typeof o.gloss === 'string' && o.gloss.length > 3)).toBe(true);
+    // ...and glossFor resolves both a taught headword and an untaught distractor.
+    expect(glossFor('encroachment')).toBeTruthy();
+    expect(glossFor('insight')).toBeTruthy(); // an untaught distractor, from the glossary
+    expect(glossFor('this is a full sentence, not a word')).toBeNull();
+  });
+
+  it('meaning-option questions do NOT gloss options (they are already meanings)', () => {
+    const task = generateTask(getWord('vw_encroachment'), 'meaning_match', { rng: makeRng(3) });
+    expect(task.options.every((o) => o.gloss === undefined)).toBe(true);
   });
 
   it('collocation_pick never leaves only a function word as the phrase stem', () => {

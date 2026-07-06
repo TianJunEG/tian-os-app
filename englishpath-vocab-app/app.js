@@ -519,7 +519,7 @@ function renderSession() {
       <p class="muted" style="margin:4px 0 0">${esc(t.instruction)}</p>
       <div class="prompt">${markup(t.prompt)}</div>
       <div class="options">
-        ${t.options.map((o) => `<button class="opt" data-opt="${o.id}">${esc(o.text)}<span class="mk" data-mk="${o.id}"></span></button>`).join('')}
+        ${t.options.map((o) => `<button class="opt" data-opt="${o.id}"><span class="opt-row"><span class="opt-text">${esc(o.text)}</span><span class="mk" data-mk="${o.id}"></span></span>${o.gloss ? `<span class="opt-gloss" hidden>${esc(o.gloss)}</span>` : ''}</button>`).join('')}
       </div>
       <div data-foot></div>
     </div>`;
@@ -564,6 +564,12 @@ function answer(t, optId) {
     } else {
       btn.classList.add('dim');
     }
+  });
+  // Reveal every option's meaning — so each question teaches all four words,
+  // not just the answer (students often miss because they don't know the
+  // distractors). Hidden until now so glosses don't give the answer away.
+  app.querySelectorAll('.opt-gloss').forEach((el) => {
+    el.hidden = false;
   });
 
   const last = session.idx + 1 >= session.tasks.length;

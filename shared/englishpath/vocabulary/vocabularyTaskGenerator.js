@@ -14,6 +14,7 @@ import {
   gradedLadder,
 } from './vocabularyModel.js';
 import { vocabularyWordBank } from './vocabularyWordBank.js';
+import { distractorGlossary } from './distractorGlossary.js';
 
 const BLANK_RE = /_{3,}/;
 export const BLANK_DISPLAY = '________';
@@ -483,6 +484,28 @@ const GENERATORS = {
  * Generate a single task for an entry + task type. Returns null when the task
  * does not apply or there are not enough distractors to make a fair question.
  */
+// A word -> one-line meaning lookup covering every option a student can see:
+// a taught headword uses its own (authoritative) meaning; an untaught distractor
+// uses its generated gloss. Built once, lazily. Used to teach ALL four options
+// in the answer feedback, not just the correct one.
+let _glossMap = null;
+function glossMap() {
+  if (_glossMap) return _glossMap;
+  _glossMap = new Map();
+  for (const [word, gloss] of Object.entries(distractorGlossary)) _glossMap.set(norm(word), gloss);
+  for (const w of vocabularyWordBank) {
+    if (!w.meaning) continue;
+    _glossMap.set(norm(w.word), w.meaning);
+    _glossMap.set(norm(w.answer), w.meaning);
+  }
+  return _glossMap;
+}
+
+/** One-line meaning for an option's text, or null (e.g. an option that is itself a meaning). */
+export function glossFor(text) {
+  return glossMap().get(norm(text)) || null;
+}
+
 export function generateTask(entry, taskTypeId, { bank = vocabularyWordBank, rng = makeRng(1) } = {}) {
   const taskType = TASK_TYPE_BY_ID[taskTypeId];
   if (!taskType) throw new Error(`Unknown task type: ${taskTypeId}`);
@@ -491,7 +514,7 @@ export function generateTask(entry, taskTypeId, { bank = vocabularyWordBank, rng
   if (!gen) return null;
   const body = gen(entry, bank, rng);
   if (!body) return null;
-  return {
+  const task = {
     id: `${entry.id}::${taskTypeId}`,
     taskType: taskTypeId,
     label: taskType.label,
@@ -504,6 +527,15 @@ export function generateTask(entry, taskTypeId, { bank = vocabularyWordBank, rng
     ...body,
     answer: body.kind === 'mcq' ? body.options.find((o) => o.correct)?.text : entry.answer,
   };
+  // Attach a one-line meaning to each word-option so the feedback can teach every
+  // option. Meaning-valued options (e.g. "What does X mean?") get no gloss.
+  if (task.kind === 'mcq' && Array.isArray(task.options)) {
+    task.options = task.options.map((o) => {
+      const gloss = glossFor(o.text);
+      return gloss ? { ...o, gloss } : o;
+    });
+  }
+  return task;
 }
 
 /** Every graded task that can be built for an entry, in ladder (tier) order. */
