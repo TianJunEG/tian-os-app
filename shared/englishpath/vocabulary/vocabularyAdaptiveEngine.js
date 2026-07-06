@@ -325,6 +325,7 @@ export function weakWords(state, { bank = vocabularyWordBank } = {}) {
       accuracy: attempts ? (attempts - missCount(wp)) / attempts : 0,
       topConfusion: topKey(wp.confusions),
       mastered: wp.mastered,
+      lastSeenAt: wp.lastSeenAt || 0,
     });
   }
   // Most-missed first, then lowest accuracy, then alphabetical for stability.
@@ -354,13 +355,19 @@ function weakestTaskType(wp, entry, bank) {
  * Build a session made only of the student's weak words, each re-tested on the
  * rung it was weakest on. Unlike buildSession this introduces no new words — it
  * is a concentrated drill of exactly the gaps before an exam.
+ *
+ * Words are drilled least-recently-practised first (not most-missed first), so
+ * repeated drills work through the WHOLE backlog and old tricky words aren't
+ * permanently buried under a fresh batch of mistakes. Answering one correctly
+ * clears it; getting it wrong pushes it to the back of the queue to come round
+ * again — so nothing is lost.
  */
 export function buildFocusSession(
   state,
   { size, bank = vocabularyWordBank, now = Date.now(), rng = makeRng(now >>> 0 || 1) } = {}
 ) {
   const limit = size || state.config.sessionSize;
-  const weak = weakWords(state, { bank });
+  const weak = weakWords(state, { bank }).slice().sort((a, b) => a.lastSeenAt - b.lastSeenAt);
   return weak
     .slice(0, limit)
     .map((w) => {
