@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Comprehension Cloze · prototype</title>
+    <style>
+      :root {
+        --ink:#232c39; --ink-700:#46505f; --muted:#6b7585; --line:#e7e9ee; --paper:#fff; --bg:#f3f5f7;
+        --emerald:#1f8a5b; --deep:#175f40; --tint:#e7f3ec; --gold:#b06f1f;
+        --ok:#1f8a5b; --ok-bg:#e7f3ec; --amber:#b06f1f; --amber-bg:#f6ecda; --err:#c8472f; --err-bg:#fdeeea;
+      }
+      * { box-sizing: border-box; }
+      body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:var(--ink); background:var(--bg); line-height:1.5; }
+      .wrap { max-width: 720px; margin: 0 auto; padding: 26px 18px 70px; }
+      h1 { font-size: 22px; margin: 0 0 2px; }
+      .sub { color: var(--muted); margin: 0 0 6px; font-size: 14px; }
+      .eyebrow { font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--gold); }
+      .card { background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:22px; margin:16px 0; box-shadow:0 1px 3px rgba(20,30,25,.06); }
+      .passage p { font-size:16px; line-height:2.1; margin:0 0 14px; }
+      .blank { position: relative; display: inline-flex; align-items:center; }
+      .blank input {
+        width: 118px; font: inherit; font-size:15px; text-align:center; padding:3px 6px;
+        border:0; border-bottom:2px solid var(--ink); background:transparent; color:var(--ink); border-radius:4px 4px 0 0;
+      }
+      .blank input:focus { outline:none; border-bottom-color:var(--emerald); background:var(--tint); }
+      .blank .n { font-size:11px; color:var(--muted); margin-left:2px; vertical-align:super; }
+      .blank.correct input { border-bottom-color:var(--ok); background:var(--ok-bg); color:var(--deep); }
+      .blank.typo input { border-bottom-color:var(--amber); background:var(--amber-bg); color:var(--amber); }
+      .blank.review input { border-bottom-color:var(--err); background:var(--err-bg); color:var(--err); }
+      .btn { appearance:none; border:0; cursor:pointer; font:inherit; font-weight:600; background:var(--emerald); color:#fff; padding:12px 20px; border-radius:11px; }
+      .btn:hover { background:var(--deep); }
+      .btn.ghost { background:transparent; color:var(--muted); }
+      .row { display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; }
+      .score { font-size:40px; font-weight:800; color:var(--deep); }
+      .score small { font-size:22px; color:var(--muted); font-weight:600; }
+      .skill { margin:10px 0; }
+      .skill .top { display:flex; justify-content:space-between; font-size:14px; margin-bottom:4px; }
+      .bar { height:8px; background:var(--tint); border-radius:99px; overflow:hidden; }
+      .bar > span { display:block; height:100%; background:var(--emerald); border-radius:99px; }
+      .fb { list-style:none; margin:14px 0 0; padding:0; }
+      .fb li { font-size:14px; padding:7px 0; border-bottom:1px solid var(--line); display:flex; gap:10px; }
+      .fb li:last-child { border:0; }
+      .fb .mk { flex:none; font-weight:700; width:20px; }
+      .fb .mk.ok { color:var(--ok); } .fb .mk.amber { color:var(--amber); } .fb .mk.err { color:var(--err); }
+      .fb .acc { color:var(--muted); }
+      .note { color:var(--muted); font-size:13px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="eyebrow">EnglishPath · prototype</div>
+      <h1>Comprehension Cloze</h1>
+      <p class="sub">Fill in each blank with a suitable word. Many blanks accept more than one right answer — the grader knows.</p>
+
+      <div class="card">
+        <div id="passage" class="passage"></div>
+      </div>
+      <div class="row">
+        <button class="btn" id="check">Check answers</button>
+        <button class="btn ghost" id="reveal">Reveal answers</button>
+        <button class="btn ghost" id="reset">Clear</button>
+      </div>
+      <div id="results"></div>
+    </div>
+
+    <script type="module">
+      import { clozePassages, gradePassage, SKILL_LABELS } from '../shared/englishpath/cloze/index.js';
+
+      const passage = clozePassages[0];
+      const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+
+      // Render the passage, turning each {n} into an input.
+      function render() {
+        const html = passage.text
+          .split('\n\n')
+          .map((para) => {
+            const body = esc(para).replace(/\{(\d+)\}/g, (_, n) =>
+              `<span class="blank" data-blank="${n}"><input data-n="${n}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="blank ${n}" /><span class="n">${n}</span></span>`
+            );
+            return `<p>${body}</p>`;
+          })
+          .join('');
+        document.getElementById('passage').innerHTML = html;
+      }
+
+      const answers = () => {
+        const a = {};
+        for (const inp of document.querySelectorAll('input[data-n]')) a[inp.dataset.n] = inp.value;
+        return a;
+      };
+      const clearState = () => document.querySelectorAll('.blank').forEach((b) => b.classList.remove('correct','typo','review'));
+
+      function check() {
+        clearState();
+        const res = gradePassage(answers(), passage);
+        for (const r of res.perBlank) {
+          const el = document.querySelector(`.blank[data-blank="${r.n}"]`);
+          if (r.verdict !== 'blank') el.classList.add(r.verdict);
+        }
+        showResults(res);
+      }
+
+      function showResults(res) {
+        const pct = Math.round((res.score / res.total) * 100);
+        const skills = Object.entries(res.bySkill).map(([k, s]) => {
+          const p = Math.round((s.correct / s.total) * 100);
+          return `<div class="skill"><div class="top"><b>${SKILL_LABELS[k] || k}</b><span>${s.correct}/${s.total}</span></div><div class="bar"><span style="width:${p}%"></span></div></div>`;
+        }).join('');
+        const fb = res.perBlank.map((r) => {
+          if (r.verdict === 'correct') return `<li><span class="mk ok">✓</span><span><b>${r.n}.</b> ${esc(document.querySelector(`input[data-n="${r.n}"]`).value)}</span></li>`;
+          if (r.verdict === 'typo') return `<li><span class="mk amber">≈</span><span><b>${r.n}.</b> ${esc(r.note)}</span></li>`;
+          if (r.verdict === 'blank') return `<li><span class="mk err">–</span><span><b>${r.n}.</b> left blank · <span class="acc">accepted: ${esc(r.accepted.join(', '))}</span></span></li>`;
+          return `<li><span class="mk err">✗</span><span><b>${r.n}.</b> you wrote “${esc(document.querySelector(`input[data-n="${r.n}"]`).value)}” · <span class="acc">accepted: ${esc(r.accepted.join(', '))}</span></span></li>`;
+        }).join('');
+        document.getElementById('results').innerHTML = `
+          <div class="card">
+            <div class="eyebrow">Your score</div>
+            <div class="score">${res.score} <small>/ ${res.total}</small></div>
+            <p class="note">${pct}% · a mark-worthy answer in green, a spelling slip in amber, and everything you missed with the answers that were accepted.</p>
+            <div style="margin-top:14px">${skills}</div>
+          </div>
+          <div class="card"><div class="eyebrow">Every blank</div><ul class="fb">${fb}</ul></div>`;
+      }
+
+      function reveal() {
+        clearState();
+        for (const b of passage.blanks) {
+          const inp = document.querySelector(`input[data-n="${b.n}"]`);
+          inp.value = b.accept[0];
+          document.querySelector(`.blank[data-blank="${b.n}"]`).classList.add('correct');
+        }
+        document.getElementById('results').innerHTML = '';
+      }
+
+      render();
+      document.getElementById('check').onclick = check;
+      document.getElementById('reveal').onclick = reveal;
+      document.getElementById('reset').onclick = () => { document.querySelectorAll('input[data-n]').forEach((i) => (i.value = '')); clearState(); document.getElementById('results').innerHTML = ''; };
+    </script>
+  </body>
+</html>

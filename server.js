@@ -138,10 +138,8 @@ if (fs.existsSync(path.join(clientDist, 'index.html'))) {
 const vocabAppDir = path.resolve(__dirname, 'englishpath-vocab-app');
 if (fs.existsSync(path.join(vocabAppDir, 'index.html'))) {
   app.use('/vocab', express.static(vocabAppDir));
-  app.use(
-    '/shared/englishpath/vocabulary',
-    express.static(path.resolve(__dirname, 'shared', 'englishpath', 'vocabulary'))
-  );
+  // The self-contained EnglishPath engines the app's ES modules import from.
+  app.use('/shared/englishpath', express.static(path.resolve(__dirname, 'shared', 'englishpath')));
 }
 
 // Allowed origins come from CORS_ORIGIN (comma-separated); defaults to local dev.
