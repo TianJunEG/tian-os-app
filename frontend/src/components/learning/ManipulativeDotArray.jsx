@@ -635,6 +635,39 @@ export function ManipulativePositionStack({ top, bottom }) {
   );
 }
 
+// ── K2 distance scene: near vs far (Strand C, NEL LG4.4) ─────────────────────
+// Generator emits diagram:{kind:'distance', near, far}. The scene shows a shared
+// horizon with the "far" object small and up (in the sky/background) and the
+// "near" object big and low (in the foreground) — the size + vertical placement
+// cue the concept together, matching how NEL introduces perspective.
+export function parseDistanceDiagram(question) {
+  const d = question?.diagram;
+  if (!d || d.kind !== 'distance' || !d.near || !d.far) return null;
+  return { near: d.near, far: d.far };
+}
+
+export function ManipulativeDistanceScene({ near, far }) {
+  return (
+    <div className="mx-auto max-w-xs rounded-2xl bg-gradient-to-b from-sky-200 via-sky-100 to-emerald-100 p-4">
+      <div className="relative mx-auto flex h-40 w-full max-w-[240px] flex-col justify-between overflow-hidden rounded-xl">
+        {/* far — small, upper background */}
+        <div className="flex justify-center pt-2">
+          <span aria-label="far object" style={{ fontSize: 30, lineHeight: 1, filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.15))' }}>{far}</span>
+        </div>
+        {/* horizon line so "near vs far" is anchored to a shared ground */}
+        <div className="pointer-events-none absolute left-0 right-0 top-[62%] h-px bg-emerald-300/60" />
+        {/* near — big, lower foreground */}
+        <div className="flex justify-center pb-1">
+          <span aria-label="near object" style={{ fontSize: 68, lineHeight: 1, filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.2))' }}>{near}</span>
+        </div>
+      </div>
+      <div className="mt-2 flex justify-between px-1 text-xs font-semibold uppercase tracking-wide text-emerald-700/80">
+        <span>far</span><span>near</span>
+      </div>
+    </div>
+  );
+}
+
 // ── K2 number bonds: part-whole frame with a drop slot (Strand A) ────────────
 // Generator emits diagram:{kind:'bond', whole, part}; the missing part
 // (whole - part) is the answer dragged/tapped into the dashed slot.

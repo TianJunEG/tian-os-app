@@ -65,6 +65,9 @@ const DIRECTIONS = { up: '⬆️', down: '⬇️', left: '⬅️', right: '➡�
 // Position (top/bottom) uses any two distinct friendly objects — the position is
 // what is being tested, not the objects.
 const POSITION_OBJECTS = ['🐱', '🐶', '🐦', '🐟', '🎈', '🧸', '⚽', '🍎', '🚗', '🌟'];
+// Distance-scene pairs — the two objects placed against the same horizon so the
+// child can tell which is "near" (foreground/bigger) vs "far" (background/smaller).
+const DISTANCE_OBJECTS = ['🐶', '🐱', '🚗', '🌳', '🏠', '🎈', '⚽', '🌷', '🦋', '🐦'];
 // Strand D (Measuring). Each pair is [more, less] for the attribute: the first
 // is longer / taller / heavier / holds-more.
 const LENGTH_PAIRS = [['🐍', '🐛'], ['🚂', '🚗'], ['🥖', '🍪'], ['📏', '📎'], ['🪱', '🐞']];
@@ -346,6 +349,19 @@ function genPosition(rng, skill) {
   });
 }
 
+function genDistance(rng, skill) {
+  const [near, far] = shuffle(rng, DISTANCE_OBJECTS).slice(0, 2);
+  const askNear = rng() < 0.5;
+  return mcq({
+    skill, familySuffix: askNear ? '001' : '002',
+    prompt: askNear ? 'Which one is near?' : 'Which one is far?',
+    correct: askNear ? near : far,
+    choices: shuffle(rng, [near, far]),
+    diagram: { kind: 'distance', near, far },
+    misconceptionTag: 'en/confuses-near-far',
+  });
+}
+
 function genDirection(rng, skill) {
   const dir = pick(rng, Object.keys(DIRECTIONS));
   return mcq({
@@ -440,6 +456,7 @@ const BUILDERS = {
   EN015: (rng, skill) => genShapesAround(rng, skill),
   EN016: (rng, skill) => genDirection(rng, skill),
   EN021: (rng, skill) => genPosition(rng, skill),
+  EN023: (rng, skill) => genDistance(rng, skill),
   EN017: (rng, skill) => measureCompare(rng, skill, { pairs: LENGTH_PAIRS, moreWord: 'longer', lessWord: 'shorter' }),
   EN018: (rng, skill) => measureCompare(rng, skill, { pairs: HEIGHT_PAIRS, moreWord: 'taller', lessWord: 'shorter' }),
   EN019: (rng, skill) => measureCompare(rng, skill, { pairs: WEIGHT_PAIRS, moreWord: 'heavier', lessWord: 'lighter' }),

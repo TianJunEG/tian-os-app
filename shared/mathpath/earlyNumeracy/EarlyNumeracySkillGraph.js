@@ -350,6 +350,21 @@ const earlyNumeracySkills = [
     misconceptions: ['en/confuses-top-bottom'],
     questionFamilies: ['QF_EN021_001', 'QF_EN021_002'],
   },
+  {
+    id: 'EN023',
+    slug: 'en.spatial.distance',
+    name: 'Near & far',
+    description: 'Use distance words — near and far — to describe where things are.',
+    strand: 'Shapes & Space',
+    prerequisites: [],
+    crossDomainPrerequisites: [],
+    difficulty: 1,
+    singaporeLevel: ['K2'],
+    mastery: { minimumAccuracy: 70, minimumQuestions: 5 },
+    remediationIfWeak: [],
+    misconceptions: ['en/confuses-near-far'],
+    questionFamilies: ['QF_EN023_001', 'QF_EN023_002'],
+  },
 ];
 
 const skills = earlyNumeracySkills.map((skill) => ({ ...skill }));

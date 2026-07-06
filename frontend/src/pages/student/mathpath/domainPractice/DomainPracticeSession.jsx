@@ -6,7 +6,7 @@ import { MascotBubble } from '../../../../components/MascotAvatar';
 import { MathText } from '../../../../components/ui/Fraction';
 import FullScreenWorkingMode from '../../../../components/learning/FullScreenWorkingMode';
 import WorkingPreviewCard from '../../../../components/learning/WorkingPreviewCard';
-import ManipulativeDotArray, { parseDotStem, numericLine, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram, parseCountDiagram, ManipulativeCountArray, parseCompareDiagram, ManipulativeCompareSets, parsePatternDiagram, ManipulativePatternStrip, parseShapeChoice, ShapeGlyph, parsePositionDiagram, ManipulativePositionStack, DragAnswerChips, parseBondDiagram, ManipulativeBondFrame, parseSortDiagram, ManipulativeSortActivity } from '../../../../components/learning/ManipulativeDotArray';
+import ManipulativeDotArray, { parseDotStem, numericLine, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram, parseCountDiagram, ManipulativeCountArray, parseCompareDiagram, ManipulativeCompareSets, parsePatternDiagram, ManipulativePatternStrip, parseShapeChoice, ShapeGlyph, parsePositionDiagram, ManipulativePositionStack, DragAnswerChips, parseBondDiagram, ManipulativeBondFrame, parseSortDiagram, ManipulativeSortActivity, parseDistanceDiagram, ManipulativeDistanceScene } from '../../../../components/learning/ManipulativeDotArray';
 import { speak, isVoiceEnabled, setVoiceEnabled } from '../../../../utils/sound';
 import { confettiBurst } from '../../../../utils/confetti';
 import { studentProfileAPI } from '../../../../services/api';
@@ -385,6 +385,7 @@ export default function DomainPracticeSession({ domain }) {
               const compareData = parseCompareDiagram(current);
               const patternData = parsePatternDiagram(current);
               const positionData = parsePositionDiagram(current);
+              const distanceData = parseDistanceDiagram(current);
               const bondData = parseBondDiagram(current);
               const sortData = isLPrimary ? parseSortDiagram(current) : null;
               if (sortData) {
@@ -446,6 +447,14 @@ export default function DomainPracticeSession({ domain }) {
                 return (
                   <>
                     <ManipulativePositionStack key={current?.questionId} top={positionData.top} bottom={positionData.bottom} />
+                    <p className="text-xl font-bold text-ink-900">{prompt}</p>
+                  </>
+                );
+              }
+              if (distanceData) {
+                return (
+                  <>
+                    <ManipulativeDistanceScene key={current?.questionId} near={distanceData.near} far={distanceData.far} />
                     <p className="text-xl font-bold text-ink-900">{prompt}</p>
                   </>
                 );
