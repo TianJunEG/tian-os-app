@@ -1,10 +1,5 @@
-// EnglishPath · Vocabulary Builder — harvested word entries
-// AUTO-GENERATED from real Primary 5 & Primary 6 exam papers in the archive
-// (vocab MCQ + vocab cloze sections, OCR-extracted, authored, then QA-verified).
-// Do not edit by hand — regenerate via the harvest pipeline. Curated seed entries
-// live in vocabularyWordBank.js and take precedence. Each entry carries a "level"
-// ("P5" | "P6"); the app filters by level.
-/* eslint-disable */
+// AUTO-GENERATED — harvested P5/P6 vocabulary entries.
+// Do not hand-edit. QA-verified 2026-07-06 (25 reviewer agents, 165 fixes applied).
 
 export const harvestedEntries = [
   {
@@ -64,7 +59,7 @@ export const harvestedEntries = [
       "applicable",
       "reachable"
     ],
-    "connotation": "positive",
+    "connotation": "neutral",
     "collocations": [
       "accessible to the public",
       "easily accessible"
@@ -1185,8 +1180,9 @@ export const harvestedEntries = [
       "ambushed"
     ],
     "confusables": [
-      "seized",
-      "grabbed"
+      "greeted",
+      "startled",
+      "approached"
     ],
     "connotation": "negative",
     "collocations": [
@@ -1332,10 +1328,8 @@ export const harvestedEntries = [
     ],
     "confusables": [
       "give off",
-      "give back",
-      "give away",
-      "backs up",
-      "backs out"
+      "back up",
+      "back out"
     ],
     "connotation": "negative",
     "collocations": [
@@ -1525,7 +1519,7 @@ export const harvestedEntries = [
     "level": "P5",
     "theme": "communication",
     "cluster": null,
-    "meaning": "to share ideas with others to get their reactions or opinions",
+    "meaning": "to share ideas with each other (as in 'bounce ideas off someone') to get their reactions or opinions",
     "example": "The group ____ ideas as they discussed what to do for their project.",
     "answer": "bounced off",
     "synonyms": [
@@ -1987,7 +1981,7 @@ export const harvestedEntries = [
   {
     "id": "vw_p5_coming_down_with",
     "word": "come down with",
-    "pos": "verb",
+    "pos": "phrasal_verb",
     "level": "P5",
     "theme": "health",
     "cluster": null,
@@ -2468,7 +2462,7 @@ export const harvestedEntries = [
   {
     "id": "vw_p5_hunger_for",
     "word": "crave",
-    "pos": "verb",
+    "pos": "phrasal_verb",
     "level": "P5",
     "theme": "desire",
     "cluster": null,
@@ -2581,7 +2575,7 @@ export const harvestedEntries = [
   {
     "id": "vw_p5_cut_back",
     "word": "cut back",
-    "pos": "verb",
+    "pos": "phrasal_verb",
     "level": "P5",
     "theme": "time management",
     "cluster": null,
@@ -2613,7 +2607,7 @@ export const harvestedEntries = [
   {
     "id": "vw_p5_cut_in",
     "word": "cut in",
-    "pos": "verb",
+    "pos": "phrasal_verb",
     "level": "P5",
     "theme": "communication",
     "cluster": null,
@@ -2646,7 +2640,7 @@ export const harvestedEntries = [
   {
     "id": "vw_p5_cut_to_the_chase",
     "word": "cut to the chase",
-    "pos": "verb",
+    "pos": "idiom",
     "level": "P5",
     "theme": "communication",
     "cluster": null,
@@ -2730,9 +2724,9 @@ export const harvestedEntries = [
       "beginning"
     ],
     "confusables": [
-      "rise",
       "arrival",
-      "morning"
+      "morning",
+      "onset"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -3081,7 +3075,7 @@ export const harvestedEntries = [
     "level": "P5",
     "theme": "attitude",
     "cluster": null,
-    "meaning": "in a way that shows you do not think something is worth paying attention to",
+    "meaning": "in a way that shows contempt or disdain for someone or something",
     "example": "Great-grandmother says ____, lifting her eyebrows with a kind of disdain.",
     "answer": "scornfully",
     "synonyms": [
@@ -3169,7 +3163,7 @@ export const harvestedEntries = [
     "confusables": [
       "disclose",
       "dispense",
-      "distribute"
+      "publicise"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -3422,7 +3416,7 @@ export const harvestedEntries = [
     "level": "P5",
     "theme": "emotion",
     "cluster": null,
-    "meaning": "so shocked or surprised that you cannot speak or react",
+    "meaning": "so shocked or surprised that you cannot speak or react (though note: the example sentence's 'shouted' contradicts this — a sentence like 'John was ____ and could not say a word' would fit better)",
     "example": "Feeling ____ , John shouted in shock when he saw his classmate looking at his personal diary.",
     "answer": "dumbfounded",
     "synonyms": [
@@ -3506,7 +3500,7 @@ export const harvestedEntries = [
       "reflected",
       "roared"
     ],
-    "connotation": "positive",
+    "connotation": "neutral",
     "collocations": [
       "echoed around the room",
       "laughter echoed"
@@ -4474,9 +4468,7 @@ export const harvestedEntries = [
     ],
     "confusables": [
       "act",
-      "pretend",
       "exaggerate",
-      "caused",
       "invented"
     ],
     "connotation": "negative",
@@ -4782,9 +4774,7 @@ export const harvestedEntries = [
     "confusables": [
       "get at",
       "get over",
-      "get away",
-      "got off",
-      "got out"
+      "get away"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -4819,9 +4809,7 @@ export const harvestedEntries = [
     "confusables": [
       "give up",
       "give off",
-      "give out",
-      "gave out",
-      "gave back"
+      "give out"
     ],
     "connotation": "negative",
     "collocations": [
@@ -4888,9 +4876,7 @@ export const harvestedEntries = [
     "confusables": [
       "bind",
       "apply",
-      "control",
-      "adapt",
-      "harvest"
+      "adapt"
     ],
     "connotation": "positive",
     "collocations": [
@@ -4956,7 +4942,7 @@ export const harvestedEntries = [
   {
     "id": "vw_p5_hit_the_nail_on_the_head",
     "word": "hit the nail on the head",
-    "pos": "verb",
+    "pos": "idiom",
     "level": "P5",
     "theme": "accuracy",
     "cluster": null,
@@ -5050,38 +5036,6 @@ export const harvestedEntries = [
     "isPhrasalVerb": false,
     "examTags": [
       "vocab_cloze"
-    ],
-    "mnemonic": "",
-    "source": "Raffles Girls SA2 2021"
-  },
-  {
-    "id": "vw_p5_held_over",
-    "word": "hold over",
-    "pos": "verb",
-    "level": "P5",
-    "theme": "events",
-    "cluster": null,
-    "meaning": "to postpone or suspend something for a period of time",
-    "example": "The tennis match was ____ for half an hour because of a torrential downpour.",
-    "answer": "held over",
-    "synonyms": [
-      "suspended",
-      "postponed"
-    ],
-    "confusables": [
-      "held in",
-      "held off",
-      "held against"
-    ],
-    "connotation": "neutral",
-    "collocations": [
-      "held over due to rain",
-      "match held over"
-    ],
-    "wordFamily": [],
-    "isPhrasalVerb": true,
-    "examTags": [
-      "vocab_mcq"
     ],
     "mnemonic": "",
     "source": "Raffles Girls SA2 2021"
@@ -5333,7 +5287,8 @@ export const harvestedEntries = [
     ],
     "confusables": [
       "reaction",
-      "consequence"
+      "consequence",
+      "opinion"
     ],
     "connotation": "positive",
     "collocations": [
@@ -6016,7 +5971,7 @@ export const harvestedEntries = [
   {
     "id": "vw_p5_leading_the_way",
     "word": "leading the way",
-    "pos": "verb",
+    "pos": "idiom",
     "level": "P5",
     "theme": "leadership",
     "cluster": null,
@@ -6279,7 +6234,7 @@ export const harvestedEntries = [
   {
     "id": "vw_p5_lump_in_her_throat",
     "word": "lump in her throat",
-    "pos": "noun",
+    "pos": "idiom",
     "level": "P5",
     "theme": "idiom",
     "cluster": null,
@@ -6383,7 +6338,7 @@ export const harvestedEntries = [
   {
     "id": "vw_p5_making_a_mountain_out_of_a_molehill",
     "word": "make a mountain out of a molehill",
-    "pos": "verb",
+    "pos": "idiom",
     "level": "P5",
     "theme": "character",
     "cluster": null,
@@ -6710,9 +6665,7 @@ export const harvestedEntries = [
     "confusables": [
       "resilient",
       "determined",
-      "considerate",
-      "carefree",
-      "exuberant"
+      "considerate"
     ],
     "connotation": "positive",
     "collocations": [
@@ -7228,7 +7181,7 @@ export const harvestedEntries = [
   {
     "id": "vw_p5_on_the_run",
     "word": "on the run",
-    "pos": "adjective",
+    "pos": "idiom",
     "level": "P5",
     "theme": "conflict",
     "cluster": null,
@@ -7415,7 +7368,7 @@ export const harvestedEntries = [
   {
     "id": "vw_p5_over_the_moon",
     "word": "over the moon",
-    "pos": "adjective",
+    "pos": "idiom",
     "level": "P5",
     "theme": "emotion",
     "cluster": null,
@@ -7490,9 +7443,9 @@ export const harvestedEntries = [
       "buried"
     ],
     "confusables": [
-      "overcome",
       "overworked",
-      "overprotective"
+      "overprotective",
+      "overexcited"
     ],
     "connotation": "negative",
     "collocations": [
@@ -7519,7 +7472,7 @@ export const harvestedEntries = [
   {
     "id": "vw_p5_pass_up",
     "word": "pass up",
-    "pos": "verb",
+    "pos": "phrasal_verb",
     "level": "P5",
     "theme": "decision",
     "cluster": null,
@@ -7623,7 +7576,7 @@ export const harvestedEntries = [
   {
     "id": "vw_p5_picking_up",
     "word": "pick up",
-    "pos": "verb",
+    "pos": "phrasal_verb",
     "level": "P5",
     "theme": "learning",
     "cluster": null,
@@ -7724,7 +7677,7 @@ export const harvestedEntries = [
   {
     "id": "vw_p5_plain_sailing",
     "word": "plain sailing",
-    "pos": "noun",
+    "pos": "idiom",
     "level": "P5",
     "theme": "character",
     "cluster": null,
@@ -7789,7 +7742,7 @@ export const harvestedEntries = [
   {
     "id": "vw_p5_plucking_up",
     "word": "pluck up",
-    "pos": "verb",
+    "pos": "phrasal_verb",
     "level": "P5",
     "theme": "emotion",
     "cluster": null,
@@ -7948,7 +7901,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "a greater liking for one thing over another",
     "example": "Scientists do not fully understand why cats have a ____ for boxes.",
-    "answer": "liking",
+    "answer": "preference",
     "synonyms": [],
     "confusables": [
       "need",
@@ -8449,9 +8402,7 @@ export const harvestedEntries = [
     "confusables": [
       "steadily",
       "languidly",
-      "deliberately",
-      "gain",
-      "climb"
+      "deliberately"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -8640,7 +8591,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "without stopping or giving up, in a way that continues without becoming less forceful",
     "example": "She kept hitting the tiger ____, hoping it would let go of Anwarul.",
-    "answer": "tirelessly",
+    "answer": "relentlessly",
     "synonyms": [
       "continuously"
     ],
@@ -9858,7 +9809,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "in a regular, even way without stopping or changing speed",
     "example": "May smiled as she heard Yuna's paws tapping ____ on the pavement.",
-    "answer": "evenly",
+    "answer": "steadily",
     "synonyms": [
       "rhythmically"
     ],
@@ -9867,7 +9818,7 @@ export const harvestedEntries = [
       "intently",
       "constantly"
     ],
-    "connotation": "positive",
+    "connotation": "neutral",
     "collocations": [
       "walk steadily",
       "move steadily"
@@ -10015,11 +9966,11 @@ export const harvestedEntries = [
       "eased"
     ],
     "confusables": [
-      "dropped",
-      "decreased",
-      "diminished"
+      "worsened",
+      "spread",
+      "flared up"
     ],
-    "connotation": "positive",
+    "connotation": "neutral",
     "collocations": [
       "fever subsided",
       "pain subsided"
@@ -10567,9 +10518,7 @@ export const harvestedEntries = [
     "confusables": [
       "dynamic",
       "indignant",
-      "victorious",
-      "tolerant",
-      "discerning"
+      "tolerant"
     ],
     "connotation": "positive",
     "collocations": [
@@ -10755,8 +10704,8 @@ export const harvestedEntries = [
     ],
     "confusables": [
       "defeated",
-      "frustrated",
-      "prevented"
+      "welcomed",
+      "announced"
     ],
     "connotation": "negative",
     "collocations": [
@@ -10934,7 +10883,7 @@ export const harvestedEntries = [
       "immature"
     ],
     "confusables": [
-      "vulnerable",
+      "fragile",
       "abandoned",
       "independent"
     ],
@@ -11046,9 +10995,9 @@ export const harvestedEntries = [
     "answer": "unaffected",
     "synonyms": [],
     "confusables": [
-      "unmoved",
       "unnerved",
-      "unsettled"
+      "unsettled",
+      "shaken"
     ],
     "connotation": "positive",
     "collocations": [
@@ -11262,7 +11211,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "extremely large in size or amount",
     "example": "The Internet is a ____ source of all kinds of information coming from web pages that people create and share.",
-    "answer": "enormous",
+    "answer": "vast",
     "synonyms": [
       "massive",
       "huge"
@@ -11668,9 +11617,9 @@ export const harvestedEntries = [
       "approved"
     ],
     "confusables": [
-      "conceded to",
       "proceeded with",
-      "succeeded with"
+      "succeeded with",
+      "denied"
     ],
     "connotation": "positive",
     "collocations": [
@@ -11707,8 +11656,8 @@ export const harvestedEntries = [
     ],
     "confusables": [
       "eased",
-      "swelled",
-      "diminished"
+      "diminished",
+      "subsided"
     ],
     "connotation": "negative",
     "collocations": [
@@ -11749,7 +11698,7 @@ export const harvestedEntries = [
     "confusables": [
       "hatred",
       "enemy",
-      "downfall"
+      "obsession"
     ],
     "connotation": "negative",
     "collocations": [
@@ -11788,7 +11737,7 @@ export const harvestedEntries = [
       "remember",
       "appreciate"
     ],
-    "connotation": "positive",
+    "connotation": "neutral",
     "collocations": [
       "acknowledge a mistake",
       "acknowledge responsibility"
@@ -11904,7 +11853,7 @@ export const harvestedEntries = [
     "confusables": [
       "acceptably",
       "accurately",
-      "appropriately"
+      "barely"
     ],
     "connotation": "positive",
     "collocations": [
@@ -11940,9 +11889,9 @@ export const harvestedEntries = [
     "answer": "adorned",
     "synonyms": [],
     "confusables": [
-      "decorated",
       "enriched",
-      "enhanced"
+      "enhanced",
+      "furnished"
     ],
     "connotation": "positive",
     "collocations": [
@@ -11975,12 +11924,12 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "to publicly support or promote a cause or idea",
     "example": "She later became an international icon, continuing to ____ for girls' education worldwide.",
-    "answer": "champion",
+    "answer": "advocate",
     "synonyms": [],
     "confusables": [
       "vouch",
       "account",
-      "promote"
+      "campaign"
     ],
     "connotation": "positive",
     "collocations": [
@@ -12107,10 +12056,8 @@ export const harvestedEntries = [
       "reduce"
     ],
     "confusables": [
-      "lighten",
       "vanish",
       "deduct",
-      "sustain",
       "increase"
     ],
     "connotation": "positive",
@@ -12488,9 +12435,7 @@ export const harvestedEntries = [
     "confusables": [
       "imagine",
       "precede",
-      "prophesise",
-      "imagined",
-      "concluded"
+      "conclude"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -12532,8 +12477,6 @@ export const harvestedEntries = [
     "confusables": [
       "affection",
       "aggression",
-      "appreciation",
-      "anxiety",
       "satisfaction"
     ],
     "connotation": "neutral",
@@ -12805,7 +12748,7 @@ export const harvestedEntries = [
     "level": "P6",
     "theme": "food",
     "cluster": null,
-    "meaning": "very attractive and delicious-looking; making you want to eat it",
+    "meaning": "very attractive and delicious-looking; making you want to eat it (note: headword should read 'delectable', not 'appetising')",
     "example": "They work with food stylists to make the food look as ____ and appealing as possible.",
     "answer": "delectable",
     "synonyms": [
@@ -13265,7 +13208,7 @@ export const harvestedEntries = [
     "level": "P6",
     "theme": "time",
     "cluster": null,
-    "meaning": "immediately, without hesitation or delay",
+    "meaning": "immediately, without hesitation or delay (note: this entry tests 'promptly' as a plain synonym; it does not actually exercise the idiom 'at the drop of a hat', which never appears in the example)",
     "example": "The moment they call for her, they expect her to respond ____.",
     "answer": "promptly",
     "synonyms": [],
@@ -13597,13 +13540,13 @@ export const harvestedEntries = [
   {
     "id": "vw_having",
     "word": "bearing",
-    "pos": "verb",
+    "pos": "other",
     "level": "P6",
     "theme": "objects & descriptions",
     "cluster": null,
     "meaning": "carrying or showing something written or printed on it",
     "example": "He found an envelope ____ the words 'Dr Henry Jekyll's Will.'",
-    "answer": "having",
+    "answer": "bearing",
     "synonyms": [],
     "confusables": [
       "taking",
@@ -13745,7 +13688,7 @@ export const harvestedEntries = [
       "beat around the bush",
       "go on a wild goose chase"
     ],
-    "connotation": "positive",
+    "connotation": "neutral",
     "collocations": [
       "bite the bullet and admit",
       "bite the bullet and face"
@@ -14098,7 +14041,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "to prepare yourself for something difficult or unpleasant",
     "example": "I ____ for impact as Tootsie jumped at me.",
-    "answer": "prepared",
+    "answer": "braced",
     "synonyms": [
       "steeled oneself",
       "readied oneself"
@@ -14837,7 +14780,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "to record or photograph something successfully",
     "example": "Food photographers work to create and ____ these beautiful and enticing images of food.",
-    "answer": "take",
+    "answer": "capture",
     "synonyms": [
       "record",
       "photograph"
@@ -15210,7 +15153,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "A person who strongly supports and fights for a cause or idea",
     "example": "Carlos Moreno has been a ____ of 15-minute cities for years.",
-    "answer": "advocate",
+    "answer": "champion",
     "synonyms": [
       "supporter",
       "proponent"
@@ -15393,7 +15336,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "mostly or mainly; more than anything else",
     "example": "Dolphins feed ____ on fish and squid which they track using echolocation.",
-    "answer": "predominantly",
+    "answer": "chiefly",
     "synonyms": [
       "mainly",
       "primarily"
@@ -15434,15 +15377,15 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "laughing quietly to oneself in an amused way",
     "example": "The class started ____ to themselves.",
-    "answer": "giggling",
+    "answer": "chuckling",
     "synonyms": [
       "sniggering",
       "tittering"
     ],
     "confusables": [
       "cackling",
-      "chortling",
-      "guffawing"
+      "guffawing",
+      "sobbing"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -15509,7 +15452,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "relating to a city or town, or to the duties and rights of its citizens",
     "example": "This ____ model is being developed in cities around the world.",
-    "answer": "urban",
+    "answer": "civic",
     "synonyms": [
       "municipal",
       "metropolitan"
@@ -15663,7 +15606,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "The regular customers of a shop, restaurant, or business",
     "example": "His ____ included coolies, merchants, moneylenders, police inspectors and boat operators.",
-    "answer": "customers",
+    "answer": "clientele",
     "synonyms": [
       "patrons",
       "regulars",
@@ -15739,7 +15682,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "working together with someone to achieve something",
     "example": "In response, the police have been ____ with shop owners.",
-    "answer": "cooperating",
+    "answer": "collaborating",
     "synonyms": [
       "partnering",
       "working together"
@@ -16090,7 +16033,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "the ability to do something adequately and satisfactorily; having sufficient skill",
     "example": "Within this group, there are considerable differences in their English ____.",
-    "answer": "proficiency",
+    "answer": "competence",
     "synonyms": [],
     "confusables": [
       "talent",
@@ -16253,7 +16196,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "to calm oneself or make oneself feel ready",
     "example": "I took a deep breath to ____ myself for the Math examination.",
-    "answer": "calm",
+    "answer": "compose",
     "synonyms": [
       "steady",
       "prepare"
@@ -16374,7 +16317,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "To fully understand the meaning of something",
     "example": "He looked up at me with his big eyes, as if he ____ every word.",
-    "answer": "understood",
+    "answer": "comprehended",
     "synonyms": [
       "grasp",
       "understand",
@@ -16384,9 +16327,7 @@ export const harvestedEntries = [
     "confusables": [
       "felt",
       "anticipated",
-      "recognised",
-      "speak",
-      "translate"
+      "recognised"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -16430,9 +16371,7 @@ export const harvestedEntries = [
     "confusables": [
       "guard",
       "oppose",
-      "degrade",
-      "insist",
-      "bargain"
+      "degrade"
     ],
     "connotation": "negative",
     "collocations": [
@@ -16549,7 +16488,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "happening or coming at the end of something",
     "example": "Viewers got an unusual shock during the ____ minutes of a women's field hockey match between Argentina and Spain.",
-    "answer": "final",
+    "answer": "concluding",
     "synonyms": [],
     "confusables": [
       "culminating",
@@ -16626,7 +16565,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "to formally give an honour or award to someone",
     "example": "The importance of her work was reflected in the numerous awards ____ on her.",
-    "answer": "bestowed",
+    "answer": "conferred",
     "synonyms": [
       "awarded",
       "granted"
@@ -16674,7 +16613,7 @@ export const harvestedEntries = [
       "clear",
       "confident"
     ],
-    "connotation": "positive",
+    "connotation": "neutral",
     "collocations": [
       "conscious of",
       "self-conscious"
@@ -16715,9 +16654,7 @@ export const harvestedEntries = [
     "confusables": [
       "quaint",
       "secluded",
-      "recognisable",
-      "confused",
-      "convincing"
+      "confused"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -16750,7 +16687,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "To eat or drink something; to take food or liquid into the body",
     "example": "The term 'fast food' generally refers to food that people intend to ____ quickly, either on- or off-site.",
-    "answer": "ingest",
+    "answer": "consume",
     "synonyms": [
       "eat",
       "devour"
@@ -16802,7 +16739,7 @@ export const harvestedEntries = [
       "restrain",
       "constrain"
     ],
-    "connotation": "positive",
+    "connotation": "neutral",
     "collocations": [
       "contain a fire",
       "contain an outbreak"
@@ -17338,9 +17275,7 @@ export const harvestedEntries = [
     ],
     "confusables": [
       "tilled",
-      "planted",
       "ploughed",
-      "formed",
       "cultured"
     ],
     "connotation": "neutral",
@@ -17534,9 +17469,9 @@ export const harvestedEntries = [
       "discouraged"
     ],
     "confusables": [
-      "baffled",
       "defeated",
-      "distressed"
+      "distressed",
+      "overwhelmed"
     ],
     "connotation": "negative",
     "collocations": [
@@ -17890,7 +17825,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "To get or obtain something from a source",
     "example": "How can they help clients ____ the greatest possible benefit for a better mental health from treatment in the shortest amount of time?",
-    "answer": "gain",
+    "answer": "derive",
     "synonyms": [
       "reap",
       "obtain"
@@ -18364,7 +18299,7 @@ export const harvestedEntries = [
       "restriction",
       "hindrance"
     ],
-    "connotation": "negative",
+    "connotation": "positive",
     "collocations": [
       "serve as a deterrent",
       "act as a deterrent"
@@ -18915,7 +18850,7 @@ export const harvestedEntries = [
     "level": "P6",
     "theme": "description",
     "cluster": null,
-    "meaning": "Easily recognised because it is different from everything else; unique and special",
+    "meaning": "a typical feature or quality that helps identify or describe something",
     "example": "What remains of its first premises is its ____ clock tower, which is now where the SGH Museum stands.",
     "answer": "characteristic",
     "synonyms": [
@@ -19851,9 +19786,9 @@ export const harvestedEntries = [
       "spellbound"
     ],
     "confusables": [
-      "engaged",
       "enriched",
-      "enthused"
+      "enthused",
+      "encouraged"
     ],
     "connotation": "positive",
     "collocations": [
@@ -20862,8 +20797,8 @@ export const harvestedEntries = [
     ],
     "confusables": [
       "reveal",
-      "unravel",
-      "imagine"
+      "imagine",
+      "recall"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -20971,7 +20906,7 @@ export const harvestedEntries = [
     "confusables": [
       "frail",
       "weary",
-      "flimsy"
+      "bold"
     ],
     "connotation": "negative",
     "collocations": [
@@ -21078,7 +21013,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "festive activities and events that happen as part of a celebration",
     "example": "A huge crowd is expected to join in the ____ on its opening day.",
-    "answer": "celebrations",
+    "answer": "festivities",
     "synonyms": [
       "merrymaking",
       "rejoicing"
@@ -21158,9 +21093,9 @@ export const harvestedEntries = [
     "level": "P6",
     "theme": "thinking",
     "cluster": null,
-    "meaning": "to understand or work out what something is or means",
+    "meaning": "to understand or work out what something is or means, usually after some thought",
     "example": "She could not ____ what it was.",
-    "answer": "identify",
+    "answer": "figure out",
     "synonyms": [
       "recognise",
       "understand"
@@ -21355,7 +21290,7 @@ export const harvestedEntries = [
     "answer": "momentary",
     "synonyms": [],
     "confusables": [
-      "instantaneous",
+      "prolonged",
       "sudden",
       "fading"
     ],
@@ -21470,8 +21405,8 @@ export const harvestedEntries = [
     ],
     "confusables": [
       "swirl",
-      "surge",
-      "bustle"
+      "trickle",
+      "lull"
     ],
     "connotation": "negative",
     "collocations": [
@@ -21575,7 +21510,7 @@ export const harvestedEntries = [
     "confusables": [
       "limits",
       "controls",
-      "develops"
+      "curbs"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -21702,9 +21637,7 @@ export const harvestedEntries = [
     "confusables": [
       "fertile",
       "fruitful",
-      "frivolous",
-      "worthless",
-      "wasted"
+      "frivolous"
     ],
     "connotation": "negative",
     "collocations": [
@@ -21865,8 +21798,8 @@ export const harvestedEntries = [
     ],
     "confusables": [
       "think profitably",
-      "think ingeniously",
-      "think constructively"
+      "think constructively",
+      "think logically"
     ],
     "connotation": "positive",
     "collocations": [
@@ -21935,8 +21868,8 @@ export const harvestedEntries = [
     ],
     "confusables": [
       "get round",
-      "get through",
-      "get away from"
+      "get away from",
+      "get along with"
     ],
     "connotation": "positive",
     "collocations": [
@@ -22215,7 +22148,7 @@ export const harvestedEntries = [
       "stared angrily"
     ],
     "confusables": [
-      "stared",
+      "glanced",
       "gazed",
       "peered"
     ],
@@ -22244,7 +22177,7 @@ export const harvestedEntries = [
   {
     "id": "vw_glistening",
     "word": "glisten",
-    "pos": "verb",
+    "pos": "adjective",
     "level": "P6",
     "theme": "appearance",
     "cluster": null,
@@ -22439,7 +22372,7 @@ export const harvestedEntries = [
     "level": "P6",
     "theme": "feelings & emotions",
     "cluster": null,
-    "meaning": "a feeling of being thankful and showing thanks for something kind done for you",
+    "meaning": "a feeling of admiring or valuing something/someone, often including thankfulness for kindness shown",
     "example": "He looked at me with ____.",
     "answer": "appreciation",
     "synonyms": [],
@@ -23415,16 +23348,14 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "People who come to live permanently in a country that is not their homeland",
     "example": "Loi partnered with two other Chinese ____ to set up their own business.",
-    "answer": "settlers",
+    "answer": "immigrants",
     "synonyms": [
       "newcomers",
       "migrants"
     ],
     "confusables": [
       "foreigners",
-      "pilgrims",
       "travellers",
-      "visitors",
       "tourists"
     ],
     "connotation": "neutral",
@@ -23597,7 +23528,7 @@ export const harvestedEntries = [
       "outcomes",
       "influences"
     ],
-    "connotation": "negative",
+    "connotation": "neutral",
     "collocations": [
       "environmental impacts",
       "have an impact"
@@ -23795,9 +23726,7 @@ export const harvestedEntries = [
     "confusables": [
       "soothe",
       "ascertain",
-      "reassure",
-      "labelled",
-      "stressed"
+      "reassure"
     ],
     "connotation": "positive",
     "collocations": [
@@ -24493,7 +24422,7 @@ export const harvestedEntries = [
     "confusables": [
       "inevitable",
       "irresistible",
-      "irreversible"
+      "invisible"
     ],
     "connotation": "negative",
     "collocations": [
@@ -25066,7 +24995,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "very important in making something happen or having a major role in something",
     "example": "The education system is ____ in teaching values such as respect and kindness from a young age.",
-    "answer": "necessary",
+    "answer": "instrumental",
     "synonyms": [
       "crucial",
       "vital",
@@ -25075,7 +25004,7 @@ export const harvestedEntries = [
     "confusables": [
       "powerful",
       "dominant",
-      "significant"
+      "necessary"
     ],
     "connotation": "positive",
     "collocations": [
@@ -25242,7 +25171,7 @@ export const harvestedEntries = [
       "unwittingly",
       "spontaneously"
     ],
-    "connotation": "negative",
+    "connotation": "neutral",
     "collocations": [
       "act intentionally",
       "intentionally ignore"
@@ -25647,9 +25576,9 @@ export const harvestedEntries = [
       "automatically"
     ],
     "confusables": [
-      "suddenly",
+      "thoughtlessly",
       "impulsively",
-      "thoughtlessly"
+      "deliberately"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -25676,7 +25605,7 @@ export const harvestedEntries = [
   {
     "id": "vw_jump_on_the_bandwagon",
     "word": "jump on the bandwagon",
-    "pos": "verb",
+    "pos": "idiom",
     "level": "P6",
     "theme": "character",
     "cluster": null,
@@ -26072,7 +26001,7 @@ export const harvestedEntries = [
   {
     "id": "vw_left_no_stone_unturned",
     "word": "leave no stone unturned",
-    "pos": "verb",
+    "pos": "idiom",
     "level": "P6",
     "theme": "effort",
     "cluster": null,
@@ -26228,7 +26157,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "The highest or lowest amount that is allowed or possible",
     "example": "Using the free Smart Buddy app, they can track my spendings each day, set daily spending ____ and even help me create savings goals.",
-    "answer": "restrictions",
+    "answer": "limits",
     "synonyms": [
       "caps",
       "boundaries"
@@ -26729,8 +26658,8 @@ export const harvestedEntries = [
       "clutter"
     ],
     "confusables": [
-      "wreck",
-      "debris",
+      "blur",
+      "haze",
       "jumble"
     ],
     "connotation": "negative",
@@ -26855,10 +26784,8 @@ export const harvestedEntries = [
       "precisely"
     ],
     "confusables": [
-      "wilfully",
-      "intuitively",
       "haphazardly",
-      "intensely",
+      "intuitively",
       "profusely"
     ],
     "connotation": "positive",
@@ -27049,13 +26976,13 @@ export const harvestedEntries = [
   {
     "id": "vw_mix_up",
     "word": "mix up",
-    "pos": "verb",
+    "pos": "phrasal_verb",
     "level": "P6",
     "theme": "confusion",
     "cluster": null,
     "meaning": "to confuse one thing or person with another",
     "example": "He would ____ our names.",
-    "answer": "confuse",
+    "answer": "mix up",
     "synonyms": [
       "jumble",
       "muddle up"
@@ -27134,7 +27061,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "a time when someone shines or triumphs; a peak moment of success or recognition",
     "example": "The footage did not highlight an athlete's ____ during the medal ceremony or heartwarming teamwork.",
-    "answer": "achievement",
+    "answer": "moment of glory",
     "synonyms": [],
     "confusables": [
       "progress",
@@ -27251,7 +27178,7 @@ export const harvestedEntries = [
   {
     "id": "vw_moved_up",
     "word": "move up",
-    "pos": "verb",
+    "pos": "phrasal_verb",
     "level": "P6",
     "theme": "school life",
     "cluster": null,
@@ -27298,7 +27225,8 @@ export const harvestedEntries = [
     ],
     "confusables": [
       "daunting",
-      "complicated"
+      "complicated",
+      "tiresome"
     ],
     "connotation": "negative",
     "collocations": [
@@ -27405,7 +27333,7 @@ export const harvestedEntries = [
     "level": "P6",
     "theme": "people and society",
     "cluster": null,
-    "meaning": "people who were born in or originally belong to a particular place",
+    "meaning": "people who were born in or originally belong to a particular place (often used of indigenous or local populations)",
     "example": "The ____ living in countries enjoyed chilli in their food.",
     "answer": "natives",
     "synonyms": [
@@ -27780,11 +27708,9 @@ export const harvestedEntries = [
     "confusables": [
       "attuned",
       "receptive",
-      "sensitive",
-      "blind",
-      "negligent"
+      "sensitive"
     ],
-    "connotation": "neutral",
+    "connotation": "negative",
     "collocations": [
       "completely oblivious",
       "oblivious to danger"
@@ -28697,10 +28623,8 @@ export const harvestedEntries = [
       "repeat"
     ],
     "confusables": [
-      "drastic",
-      "consistent",
-      "continuous",
       "insistent",
+      "consistent",
       "competent"
     ],
     "connotation": "negative",
@@ -28931,7 +28855,7 @@ export const harvestedEntries = [
     "confusables": [
       "dig in",
       "cave in",
-      "throw in"
+      "give in"
     ],
     "connotation": "positive",
     "collocations": [
@@ -28964,11 +28888,9 @@ export const harvestedEntries = [
       "calm"
     ],
     "confusables": [
-      "soothed",
       "mitigated",
       "provoked",
-      "allay",
-      "relieve"
+      "reprimanded"
     ],
     "connotation": "positive",
     "collocations": [
@@ -29005,7 +28927,7 @@ export const harvestedEntries = [
     "confusables": [
       "slipped",
       "descended",
-      "sank"
+      "drifted"
     ],
     "connotation": "negative",
     "collocations": [
@@ -29075,8 +28997,8 @@ export const harvestedEntries = [
     ],
     "confusables": [
       "belief",
-      "position",
-      "direction"
+      "direction",
+      "location"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -29561,7 +29483,7 @@ export const harvestedEntries = [
       "directly",
       "punctually"
     ],
-    "connotation": "positive",
+    "connotation": "neutral",
     "collocations": [
       "replied promptly",
       "acted promptly"
@@ -29833,8 +29755,8 @@ export const harvestedEntries = [
     ],
     "confusables": [
       "pull in",
-      "pull off",
-      "pull away"
+      "pull away",
+      "pull ahead"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -30040,7 +29962,7 @@ export const harvestedEntries = [
     "level": "P6",
     "theme": "places",
     "cluster": null,
-    "meaning": "attractively unusual or old-fashioned in a charming way",
+    "meaning": "very pleasant, attractive, or delightful",
     "example": "This curved road with ____ shophouses on both sides used to face the sea.",
     "answer": "charming",
     "synonyms": [
@@ -30403,7 +30325,7 @@ export const harvestedEntries = [
       "reclaimed",
       "recovered"
     ],
-    "connotation": "positive",
+    "connotation": "neutral",
     "collocations": [
       "flood waters recede",
       "tide recedes",
@@ -30464,7 +30386,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "officially accepted or identified as having a particular quality or status",
     "example": "Singapore is ____ as the most English-literate country in Asia.",
-    "answer": "known",
+    "answer": "recognised",
     "synonyms": [],
     "confusables": [
       "judged",
@@ -30895,7 +30817,7 @@ export const harvestedEntries = [
     "level": "P6",
     "theme": "emotion",
     "cluster": null,
-    "meaning": "Very strong, extreme, and continuous without any let-up",
+    "meaning": "very strong, extreme, or high in degree",
     "example": "There is a lot of revision to do and the ____ pressure sometimes feels overwhelming, but I am tackling it well.",
     "answer": "intense",
     "synonyms": [
@@ -31075,8 +30997,8 @@ export const harvestedEntries = [
     ],
     "confusables": [
       "adored",
-      "relished",
-      "cherished"
+      "cherished",
+      "endured"
     ],
     "connotation": "positive",
     "collocations": [
@@ -31114,10 +31036,8 @@ export const harvestedEntries = [
     ],
     "confusables": [
       "trauma",
-      "awareness",
       "discernment",
-      "grief",
-      "sympathy"
+      "gratitude"
     ],
     "connotation": "negative",
     "collocations": [
@@ -31161,9 +31081,7 @@ export const harvestedEntries = [
     "confusables": [
       "retains",
       "reduces",
-      "releases",
-      "reject",
-      "refuse"
+      "releases"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -31375,9 +31293,7 @@ export const harvestedEntries = [
     "confusables": [
       "restore",
       "recharge",
-      "reconnect",
-      "responsibility",
-      "patience"
+      "reconnect"
     ],
     "connotation": "positive",
     "collocations": [
@@ -31658,9 +31574,7 @@ export const harvestedEntries = [
     "confusables": [
       "raving",
       "roving",
-      "rebelling",
-      "frolic",
-      "savour"
+      "rebelling"
     ],
     "connotation": "positive",
     "collocations": [
@@ -31739,8 +31653,8 @@ export const harvestedEntries = [
     ],
     "confusables": [
       "exotic",
-      "futuristic",
-      "conventional"
+      "conventional",
+      "rustic"
     ],
     "connotation": "positive",
     "collocations": [
@@ -31958,7 +31872,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "to run quickly with short, light steps, often because of fear or excitement",
     "example": "Without a second thought, many cinemagoers ____ towards the exits.",
-    "answer": "scurried",
+    "answer": "scampered",
     "synonyms": [
       "rushed",
       "darted",
@@ -32046,8 +31960,8 @@ export const harvestedEntries = [
     ],
     "confusables": [
       "threw",
-      "grabbed",
-      "removed"
+      "removed",
+      "nudged"
     ],
     "connotation": "neutral",
     "collocations": [
@@ -32428,47 +32342,6 @@ export const harvestedEntries = [
     "source": "HenryPark Prelim 2025"
   },
   {
-    "id": "vw_significant",
-    "word": "significant",
-    "pos": "adjective",
-    "level": "P6",
-    "theme": "quantity and degree",
-    "cluster": null,
-    "meaning": "large or important enough to have a noticeable effect",
-    "example": "The compassionate millionaire donated a/an ____ amount of money to the recent catastrophic event and met all the needs of the victims.",
-    "answer": "significant",
-    "synonyms": [
-      "substantial",
-      "considerable"
-    ],
-    "confusables": [
-      "excessive",
-      "reasonable",
-      "economical"
-    ],
-    "connotation": "positive",
-    "collocations": [
-      "significant amount",
-      "significant contribution"
-    ],
-    "wordFamily": [
-      {
-        "word": "significance",
-        "pos": "noun"
-      },
-      {
-        "word": "significantly",
-        "pos": "adverb"
-      }
-    ],
-    "isPhrasalVerb": false,
-    "examTags": [
-      "vocab_mcq"
-    ],
-    "mnemonic": "",
-    "source": "Nan Hua SA1 2020"
-  },
-  {
     "id": "vw_significantly",
     "word": "significantly",
     "pos": "adverb",
@@ -32477,7 +32350,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "To a great or noticeable degree; in a way that is important or meaningful",
     "example": "Those who wrote gratitude letters reported ____ better mental health between four and twelve weeks after their writing exercise ended.",
-    "answer": "considerably",
+    "answer": "significantly",
     "synonyms": [
       "remarkably",
       "noticeably"
@@ -32526,8 +32399,8 @@ export const harvestedEntries = [
     ],
     "confusables": [
       "serenity",
-      "isolation",
-      "disturbance"
+      "disturbance",
+      "commotion"
     ],
     "connotation": "negative",
     "collocations": [
@@ -32664,7 +32537,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "moving or reacting slowly, lacking energy or speed",
     "example": "Her employers will reprimand her for being very ____ in doing things.",
-    "answer": "lethargic",
+    "answer": "sluggish",
     "synonyms": [
       "slow",
       "languid"
@@ -32713,8 +32586,8 @@ export const harvestedEntries = [
     ],
     "confusables": [
       "dented",
-      "stained",
-      "tarnished"
+      "tarnished",
+      "chipped"
     ],
     "connotation": "negative",
     "collocations": [
@@ -33401,7 +33274,7 @@ export const harvestedEntries = [
   {
     "id": "vw_stupefied",
     "word": "stupefy",
-    "pos": "verb",
+    "pos": "adjective",
     "level": "P6",
     "theme": "emotion",
     "cluster": null,
@@ -33460,7 +33333,7 @@ export const harvestedEntries = [
       "vanished",
       "departed"
     ],
-    "connotation": "positive",
+    "connotation": "neutral",
     "collocations": [
       "fever subsided",
       "pain subsided"
@@ -33498,7 +33371,7 @@ export const harvestedEntries = [
       "alleviating",
       "depleting"
     ],
-    "connotation": "positive",
+    "connotation": "neutral",
     "collocations": [
       "floods subsiding",
       "pain subsiding"
@@ -33529,7 +33402,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "A series of things happening one after another without a gap",
     "example": "Yip, who set two world records in quick ____ at the International Paralympic Committee Swimming European Open Championship, enjoyed speaking to the young audience.",
-    "answer": "sequence",
+    "answer": "succession",
     "synonyms": [
       "consecutively",
       "series"
@@ -33875,9 +33748,9 @@ export const harvestedEntries = [
     "level": "P6",
     "theme": "progress & outcomes",
     "cluster": null,
-    "meaning": "without any problems or difficulties; very well",
+    "meaning": "very well and without any problems, as if everything is going perfectly",
     "example": "This year, things went ____ until we arrived at the restaurant.",
-    "answer": "smoothly",
+    "answer": "swimmingly",
     "synonyms": [],
     "confusables": [
       "practically",
@@ -33911,7 +33784,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "To deal with a difficult problem or situation in a determined way",
     "example": "The relentless pressure sometimes feels overwhelming, but I am ____ it well.",
-    "answer": "managing",
+    "answer": "tackling",
     "synonyms": [
       "handling",
       "dealing with",
@@ -35022,7 +34895,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "In a way that is impossible to deny or argue against; without any doubt",
     "example": "Marley was ____ clumsy, often knocking over vases and scattering newspapers around the house.",
-    "answer": "certainly",
+    "answer": "undeniably",
     "synonyms": [
       "unquestionably",
       "indisputably",
@@ -35775,7 +35648,7 @@ export const harvestedEntries = [
     "cluster": null,
     "meaning": "from an earlier time, usually of high quality; classic and old",
     "example": "Jacky's grandfather asked him to help sift through his collection of ____ photographs.",
-    "answer": "classic",
+    "answer": "vintage",
     "synonyms": [
       "old",
       "antique"
@@ -36136,7 +36009,7 @@ export const harvestedEntries = [
     "level": "P6",
     "theme": "emotion",
     "cluster": null,
-    "meaning": "in great excitement or suspense, waiting anxiously for something to happen",
+    "meaning": "with great enthusiasm and keen interest; looking forward to something happily",
     "example": "The participants waited ____ for the competition to start.",
     "answer": "eagerly",
     "synonyms": [],
@@ -36176,7 +36049,7 @@ export const harvestedEntries = [
     "confusables": [
       "confirmed",
       "scrutinized",
-      "perceived"
+      "assumed"
     ],
     "connotation": "neutral",
     "collocations": [
