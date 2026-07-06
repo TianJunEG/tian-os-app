@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, AlertTriangle, Camera, ChevronRight, ChevronDown, GraduationCap, Layers, Zap } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
-import { Card, Button, Badge, ProgressBar, Spinner, EmptyState } from '../../../components/ui';
+import { Card, Button, Badge, ProgressBar, Spinner, EmptyState, PageHeader } from '../../../components/ui';
 import { useAuth } from '../../../context/AuthContext';
 import {
   normalizeCurriculum,
@@ -15,7 +15,7 @@ import FEATURE_FLAGS from '../../../config/featureFlags';
 import MathPathDomainGrid from './components/MathPathDomainGrid';
 import { fractionSkillGraph } from '../../../mathpath/fractions/fractionSkillGraph';
 import { getVisualModeStyles, resolveStudentVisualMode } from '../../../design-os/studentVisualMode';
-import { MascotGreeting } from '../../../components/MascotAvatar';
+import { MascotBubble } from '../../../components/MascotAvatar';
 import {
   buildMathPathDomainProgressState,
   getMathPathDomainProgressState,
@@ -364,9 +364,8 @@ export default function MathPathHome() {
     <>
       <div className={`${visualStyles.page} space-y-4 overflow-x-hidden sm:space-y-6`}>
       <div>
-        <p className={`text-sm font-semibold ${visualStyles.accent}`}>{welcomeTitle}</p>
-        <h1 className="font-display text-2xl sm:text-3xl font-semibold text-ink-900">MathPath</h1>
-        <MascotGreeting mascotKey="kylo" studentName={(user?.name || 'there').split(' ')[0]} className="mt-3" />
+        <PageHeader title="MathPath" subtitle="Your maths learning path" />
+        <MascotBubble name="kylo" message={`Hi ${(user?.name || 'there').split(' ')[0]}! ${welcomeTitle} — ready for some maths?`} size="sm" />
       </div>
 
       {/* Hero — main CTA + progress.
