@@ -273,3 +273,22 @@ html.dark .lockpill { background: #2e2717; }
   .linkbtn:hover { color: var(--emerald); }
   .modal .x:hover { color: var(--ink-300); }
 }
+
+/* "My words" review list */
+.tag.ok { background: var(--success-bg); color: var(--emerald-deep); }
+.wordsearch {
+  width: 100%; font: inherit; padding: 11px 14px; margin-bottom: 14px;
+  border: 1px solid var(--line); border-radius: 11px; background: var(--paper); color: var(--ink-900);
+}
+.wordsearch:focus { outline: none; border-color: var(--emerald); }
+.wordlist { display: flex; flex-direction: column; gap: 10px; }
+.wordrow { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.wordhead {
+  display: flex; width: 100%; justify-content: space-between; align-items: center; gap: 10px;
+  background: transparent; border: 0; padding: 0; cursor: pointer; font: inherit; text-align: left;
+}
+.wordhead .ww b { font-size: 16px; color: var(--ink-900); }
+.wordhead .pos { font-size: 12px; color: var(--ink-300); font-style: italic; margin-left: 4px; }
+.wordmean { font-size: 14px; color: var(--ink-700); margin-top: 5px; }
+.worddetail { margin-top: 8px; }
+.worddetail .ex { background: var(--emerald-tint); border-radius: 9px; padding: 10px 12px; font-size: 14px; }

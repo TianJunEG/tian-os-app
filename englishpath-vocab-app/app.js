@@ -382,11 +382,14 @@ function renderHome() {
 
     ${premium ? '' : premiumBlock}
 
+    ${premium && s.counts.introduced ? `<button class="btn secondary full" data-words>📖 Review my words (${s.counts.introduced})</button>` : ''}
     ${premium ? '<button class="btn ghost" data-reset>↺ Reset my progress</button>' : ''}
   `;
 
   const goBtn = app.querySelector('[data-go="practice"]');
   if (goBtn) goBtn.onclick = startSession;
+  const wordsBtn = app.querySelector('[data-words]');
+  if (wordsBtn) wordsBtn.onclick = renderWords;
   const focusBtn = app.querySelector('[data-focus]');
   if (focusBtn) focusBtn.onclick = startFocusSession;
   for (const btn of app.querySelectorAll('[data-group]')) {
@@ -422,6 +425,67 @@ function readinessRow(key, label, examReadiness) {
       <div class="top"><b>${label}</b><span>${examReadiness[key] || 0}%</span></div>
       <div class="bar"><span style="width:${examReadiness[key] || 0}%"></span></div>
     </div>`;
+}
+
+// A browsable personal dictionary of every word the learner has met, so they can
+// look meanings back up. Grouped tricky → learning → reviewing → mastered; tap a
+// word to see its example sentence and similar words.
+function renderWords() {
+  state = loadProgress();
+  const b = bank();
+  const weakSet = new Set(weakWords(state, { bank: b }).map((w) => w.wordId));
+  const rows = [];
+  for (const wp of Object.values(state.words)) {
+    if (!wp.introduced) continue;
+    const entry = b.find((w) => w.id === wp.wordId);
+    if (!entry) continue;
+    const status = wp.mastered ? 'mastered' : weakSet.has(wp.wordId) ? 'tricky' : wp.box > 0 ? 'review' : 'learning';
+    rows.push({ id: wp.wordId, word: entry.word, pos: entry.pos, meaning: entry.meaning, example: entry.example, answer: entry.answer, synonyms: entry.synonyms, status });
+  }
+  const order = { tricky: 0, learning: 1, review: 2, mastered: 3 };
+  rows.sort((a, c) => order[a.status] - order[c.status] || a.word.localeCompare(c.word));
+  const tag = {
+    tricky: '<span class="tag warn">Tricky</span>',
+    learning: '<span class="tag">Learning</span>',
+    review: '<span class="tag gold">Review</span>',
+    mastered: '<span class="tag ok">Mastered</span>',
+  };
+
+  app.innerHTML = `
+    <button class="btn ghost" data-home>← Home</button>
+    <div class="hero" style="padding:6px 0 2px"><h1 style="font-size:24px">My words</h1>
+      <p class="sub" style="font-size:15px">${rows.length} word${rows.length === 1 ? '' : 's'} you've met — tap any to see its example.</p></div>
+    <input class="wordsearch" type="search" placeholder="Search your words…" aria-label="Search your words" />
+    <div class="wordlist">
+      ${rows
+        .map(
+          (r) => `<div class="wordrow" data-w="${esc(r.word.toLowerCase())}">
+        <button class="wordhead" data-toggle="${r.id}">
+          <span class="ww"><b>${esc(r.word)}</b> <span class="pos">${esc(r.pos || '')}</span></span>
+          ${tag[r.status] || ''}
+        </button>
+        <div class="wordmean">${esc(r.meaning)}</div>
+        <div class="worddetail" data-detail="${r.id}" hidden>
+          ${r.example ? `<div class="ex">${markup(r.example.replace(/_{3,}/g, `**${r.answer || r.word}**`))}</div>` : ''}
+          ${r.synonyms && r.synonyms.length ? `<p class="muted" style="margin:8px 0 0"><b>Similar:</b> ${esc(r.synonyms.join(', '))}</p>` : ''}
+        </div>
+      </div>`
+        )
+        .join('')}
+    </div>`;
+  app.querySelector('[data-home]').onclick = renderHome;
+  for (const btn of app.querySelectorAll('[data-toggle]')) {
+    btn.onclick = () => {
+      const d = app.querySelector(`[data-detail="${btn.getAttribute('data-toggle')}"]`);
+      if (d) d.hidden = !d.hidden;
+    };
+  }
+  const search = app.querySelector('.wordsearch');
+  if (search)
+    search.oninput = () => {
+      const q = search.value.trim().toLowerCase();
+      for (const row of app.querySelectorAll('.wordrow')) row.hidden = q && !row.dataset.w.includes(q);
+    };
 }
 
 function shuffle(arr) {
