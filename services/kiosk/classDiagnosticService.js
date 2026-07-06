@@ -3,8 +3,11 @@ import ClassDiagnosticSession from '../../models/ClassDiagnosticSession.js';
 import ClassStudent from '../../models/ClassStudent.js';
 import Student from '../../models/Student.js';
 import MathPathDiagnosticSession from '../../models/mathpath/MathPathDiagnosticSession.js';
+import MathPathAttempt from '../../models/mathpath/MathPathAttempt.js';
 import PracticeSession from '../../models/PracticeSession.js';
 import PracticeAttempt from '../../models/PracticeAttempt.js';
+import Question from '../../models/Question.js';
+import Skill from '../../models/Skill.js';
 
 // Unambiguous alphabet (no 0/O/1/I) — these codes get read off a projector.
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -213,9 +216,110 @@ export async function buildKioskStatus(session) {
   return buildDiagnosticStatus(session);
 }
 
+// Resolve MathPath framework skill codes (F001 / OP014 / …) to display names.
+async function resolveSkillNames(frameworkIds = []) {
+  const ids = [...new Set(frameworkIds.filter(Boolean).map(String))];
+  if (!ids.length) return new Map();
+  const docs = await Skill.find({
+    $or: [{ 'metadata.mathPathSkillId': { $in: ids } }, { 'metadata.frameworkCode': { $in: ids } }],
+  }).select('name metadata').lean();
+  const byCode = new Map();
+  for (const d of docs) {
+    const code = d.metadata?.mathPathSkillId || d.metadata?.frameworkCode;
+    if (code) byCode.set(String(code), d.name);
+  }
+  return byCode;
+}
+
+// Per-student results detail for the teacher's post-session drill-down. Surfaces
+// data that is captured but was never shown: time taken, overall readiness/score,
+// weak skills (named), and a per-question breakdown incl. the student's WORKINGS.
+export async function buildKioskStudentDetail(session, studentId) {
+  const rosterEntry = (session.roster || []).find((r) => String(r.studentId) === String(studentId));
+  if (!rosterEntry) return null;
+  const base = { studentId: String(studentId), name: rosterEntry.name, type: session.type || 'diagnostic', attemptStatus: rosterEntry.status || 'not_started' };
+
+  if (session.type === 'practice') {
+    const ps = rosterEntry.practiceSessionId
+      ? await PracticeSession.findById(rosterEntry.practiceSessionId).select('summary status startedAt endedAt').lean()
+      : null;
+    if (!ps) return { ...base, started: false };
+    const attempts = await PracticeAttempt.find({ sessionId: ps._id })
+      .select('questionId skillId correct answer timeMs').sort({ createdAt: 1 }).lean();
+    const qDocs = await Question.find({ _id: { $in: attempts.map((a) => a.questionId) } }).select('stem answer').lean();
+    const qById = new Map(qDocs.map((q) => [String(q._id), q]));
+    const total = attempts.length;
+    const correct = attempts.filter((a) => a.correct).length;
+    return {
+      ...base,
+      started: true,
+      skillName: session.practiceConfig?.skillName || '',
+      overall: {
+        answered: total, correct, accuracy: total ? Math.round((correct / total) * 100) : 0,
+        timeSpentSeconds: ps.startedAt && ps.endedAt ? Math.max(0, Math.round((new Date(ps.endedAt) - new Date(ps.startedAt)) / 1000)) : null,
+      },
+      questions: attempts.map((a) => {
+        const q = qById.get(String(a.questionId)) || {};
+        return { prompt: q.stem || '', correct: a.correct, studentAnswer: a.answer || '', correctAnswer: q.answer || '', timeMs: a.timeMs ?? null, workingImage: '' };
+      }),
+    };
+  }
+
+  // Diagnostic
+  const diag = await MathPathDiagnosticSession
+    .findOne({ sourceType: 'kiosk', sourceId: String(session._id), studentId: String(studentId) })
+    .select('diagnosticSessionId adaptiveState result perSkillSnapshot readinessScore startedAt completedAt').lean();
+  if (!diag) return { ...base, started: false };
+
+  const result = diag.result || {};
+  const responses = Array.isArray(diag.adaptiveState?.responses) ? diag.adaptiveState.responses : [];
+  const snapshots = diag.perSkillSnapshot?.length ? diag.perSkillSnapshot : (result.perSkillSnapshots || []);
+  const weakIds = new Set((result.weakSkillIds || result.weakSkills || []).map(String));
+
+  const nameByCode = await resolveSkillNames([...snapshots.map((s) => s.skillId), ...responses.map((r) => r.skillId)]);
+  const attempts = await MathPathAttempt
+    .find({ studentId: String(studentId), sessionId: diag.diagnosticSessionId })
+    .select('questionId correctAnswer studentAnswer workingImage fullscreenWorkingImage timeTaken').lean();
+  const attemptByQ = new Map(attempts.map((a) => [String(a.questionId), a]));
+
+  const answered = responses.length;
+  const correctCount = responses.filter((r) => r.correct).length;
+  return {
+    ...base,
+    started: true,
+    overall: {
+      readinessScore: result.readinessScore ?? diag.readinessScore ?? null,
+      readinessBand: result.readinessBand || result.overallReadinessBand || '',
+      answered,
+      correct: correctCount,
+      accuracy: answered ? Math.round((correctCount / answered) * 100) : 0,
+      timeSpentSeconds: diag.startedAt && diag.completedAt ? Math.max(0, Math.round((new Date(diag.completedAt) - new Date(diag.startedAt)) / 1000)) : null,
+    },
+    skills: snapshots.map((s) => ({
+      skillId: s.skillId,
+      name: nameByCode.get(String(s.skillId)) || s.skillId,
+      score: s.readinessScore ?? s.score ?? null,
+      weak: weakIds.has(String(s.skillId)),
+    })),
+    questions: responses.map((r) => {
+      const a = attemptByQ.get(String(r.questionId)) || {};
+      return {
+        skillName: nameByCode.get(String(r.skillId)) || r.skillId || '',
+        correct: r.correct,
+        studentAnswer: r.studentAnswer ?? a.studentAnswer ?? '',
+        correctAnswer: a.correctAnswer ?? '',
+        timeMs: r.timeTakenMs ?? (a.timeTaken != null ? a.timeTaken : null),
+        misconceptions: Array.isArray(r.detectedErrorTags) ? r.detectedErrorTags : [],
+        workingImage: a.fullscreenWorkingImage || a.workingImage || '',
+      };
+    }),
+  };
+}
+
 export default {
   generateSessionCode,
   createClassDiagnosticSession,
   createClassPracticeSession,
   buildKioskStatus,
+  buildKioskStudentDetail,
 };

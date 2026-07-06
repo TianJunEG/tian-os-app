@@ -631,6 +631,7 @@ export const teacherAPI = {
   createKioskSession: (id, data) => api.post(`/teacher/classes/${id}/kiosk-sessions`, data),
   listKioskSessions: (id) => api.get(`/teacher/classes/${id}/kiosk-sessions`),
   kioskSessionStatus: (id, sessionId) => api.get(`/teacher/classes/${id}/kiosk-sessions/${sessionId}`),
+  kioskStudentDetail: (id, sessionId, studentId) => api.get(`/teacher/classes/${id}/kiosk-sessions/${sessionId}/students/${studentId}`),
   closeKioskSession: (id, sessionId) => api.post(`/teacher/classes/${id}/kiosk-sessions/${sessionId}/close`),
   // Announcements to parents
   createAnnouncement: (id, data) => api.post(`/teacher/classes/${id}/announcements`, data),

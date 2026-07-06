@@ -1,19 +1,29 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
-const practiceSession = { find: vi.fn() };
-const practiceAttempt = { aggregate: vi.fn() };
+const practiceSession = { find: vi.fn(), findById: vi.fn() };
+const practiceAttempt = { aggregate: vi.fn(), find: vi.fn() };
+const mpDiag = { find: vi.fn(), findOne: vi.fn() };
+const mpAttempt = { find: vi.fn() };
+const question = { find: vi.fn() };
+const skill = { find: vi.fn() };
 
 vi.mock('../../models/ClassDiagnosticSession.js', () => ({ default: { findOne: vi.fn(), create: vi.fn() } }));
 vi.mock('../../models/ClassStudent.js', () => ({ default: { find: vi.fn() } }));
 vi.mock('../../models/Student.js', () => ({ default: { find: vi.fn() } }));
-vi.mock('../../models/mathpath/MathPathDiagnosticSession.js', () => ({ default: { find: vi.fn() } }));
+vi.mock('../../models/mathpath/MathPathDiagnosticSession.js', () => ({ default: mpDiag }));
+vi.mock('../../models/mathpath/MathPathAttempt.js', () => ({ default: mpAttempt }));
 vi.mock('../../models/PracticeSession.js', () => ({ default: practiceSession }));
 vi.mock('../../models/PracticeAttempt.js', () => ({ default: practiceAttempt }));
+vi.mock('../../models/Question.js', () => ({ default: question }));
+vi.mock('../../models/Skill.js', () => ({ default: skill }));
 
 // Import lazily (after the mock consts initialise) — the factories above close
 // over them, matching the kiosk route test's pattern.
 let buildKioskStatus;
-beforeAll(async () => { ({ buildKioskStatus } = await import('./classDiagnosticService.js')); });
+let buildKioskStudentDetail;
+beforeAll(async () => { ({ buildKioskStatus, buildKioskStudentDetail } = await import('./classDiagnosticService.js')); });
+
+const chain = (val) => ({ select: () => ({ lean: () => Promise.resolve(val) }) });
 
 describe('buildKioskStatus — practice branch', () => {
   afterEach(() => vi.clearAllMocks());
@@ -52,5 +62,48 @@ describe('buildKioskStatus — practice branch', () => {
     expect(byName.Ben).toMatchObject({ attemptStatus: 'in_progress', answeredCount: 2, readinessScore: 50 });
     expect(byName.Cara).toMatchObject({ attemptStatus: 'not_started', answeredCount: 0, readinessScore: null });
     expect(out.summary).toEqual({ notStarted: 1, inProgress: 1, completed: 1, total: 3 });
+  });
+});
+
+describe('buildKioskStudentDetail — diagnostic branch', () => {
+  afterEach(() => vi.clearAllMocks());
+
+  it('shapes overall stats, named weak skills, and per-question with workings', async () => {
+    const session = { _id: 'cds1', type: 'diagnostic', roster: [{ studentId: 's1', name: 'Aisha', status: 'completed' }] };
+    mpDiag.findOne.mockReturnValueOnce(chain({
+      diagnosticSessionId: 'diag1',
+      startedAt: new Date('2026-07-04T00:00:00Z'),
+      completedAt: new Date('2026-07-04T00:03:00Z'),
+      readinessScore: 40,
+      result: { readinessScore: 40, readinessBand: 'developing', weakSkillIds: ['NS009'] },
+      perSkillSnapshot: [{ skillId: 'NS009', readinessScore: 30 }, { skillId: 'NS010', readinessScore: 80 }],
+      adaptiveState: { responses: [
+        { questionId: 'q1', skillId: 'NS009', correct: false, timeTakenMs: 8000, studentAnswer: '<', detectedErrorTags: ['compare/leading-digit'] },
+        { questionId: 'q2', skillId: 'NS010', correct: true, timeTakenMs: 5000, studentAnswer: '>' },
+      ] },
+    }));
+    skill.find.mockReturnValueOnce(chain([
+      { name: 'Compare to 100', metadata: { mathPathSkillId: 'NS009' } },
+      { name: 'Compare to 100000', metadata: { mathPathSkillId: 'NS010' } },
+    ]));
+    mpAttempt.find.mockReturnValueOnce(chain([
+      { questionId: 'q1', correctAnswer: '>', studentAnswer: '<', workingImage: 'data:img1', timeTaken: 8000 },
+    ]));
+
+    const d = await buildKioskStudentDetail(session, 's1');
+    expect(d.started).toBe(true);
+    expect(d.overall).toMatchObject({ readinessScore: 40, readinessBand: 'developing', answered: 2, correct: 1, accuracy: 50, timeSpentSeconds: 180 });
+    expect(d.skills.find((s) => s.skillId === 'NS009')).toMatchObject({ name: 'Compare to 100', score: 30, weak: true });
+    expect(d.skills.find((s) => s.skillId === 'NS010')).toMatchObject({ name: 'Compare to 100000', weak: false });
+    // per-question: named skill, wrong answer + correct answer, working image, misconception
+    expect(d.questions[0]).toMatchObject({ skillName: 'Compare to 100', correct: false, studentAnswer: '<', correctAnswer: '>', workingImage: 'data:img1', misconceptions: ['compare/leading-digit'] });
+    expect(d.questions[1]).toMatchObject({ skillName: 'Compare to 100000', correct: true });
+  });
+
+  it('returns started:false when the student has no attempt, and null when off-roster', async () => {
+    mpDiag.findOne.mockReturnValueOnce(chain(null));
+    const d = await buildKioskStudentDetail({ _id: 'cds1', type: 'diagnostic', roster: [{ studentId: 's1', name: 'Aisha', status: 'in_progress' }] }, 's1');
+    expect(d.started).toBe(false);
+    expect(await buildKioskStudentDetail({ roster: [] }, 'sX')).toBeNull();
   });
 });

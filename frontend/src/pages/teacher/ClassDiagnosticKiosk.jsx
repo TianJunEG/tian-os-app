@@ -4,7 +4,79 @@ import { teacherAPI, diagnosticsAPI, mathpathAPI } from '../../services/api';
 import { useClass } from './useClass';
 import ClassNav from './ClassNav';
 import { QRCodeSVG } from 'qrcode.react';
-import { Card, Button, Spinner } from '../../components/ui';
+import { Card, Button, Spinner, Modal } from '../../components/ui';
+
+function fmtTime(seconds) {
+  if (seconds == null) return '—';
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return m ? `${m}m ${s}s` : `${s}s`;
+}
+
+function StatChip({ label, value }) {
+  return (
+    <div className="rounded-lg bg-surface-muted px-3 py-2 text-center">
+      <div className="text-lg font-bold text-ink-800">{value}</div>
+      <div className="text-xs text-ink-500">{label}</div>
+    </div>
+  );
+}
+
+// Per-student results drill-down: overall stats, weak skills, and a per-question
+// breakdown incl. the student's workings.
+function KioskStudentDetail({ data }) {
+  if (!data?.started) return <p className="text-sm text-ink-500">This student hasn’t started yet.</p>;
+  const o = data.overall || {};
+  const isPractice = data.type === 'practice';
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <StatChip label="Accuracy" value={`${o.accuracy ?? 0}%`} />
+        <StatChip label="Correct" value={`${o.correct ?? 0}/${o.answered ?? 0}`} />
+        {!isPractice && <StatChip label="Readiness" value={o.readinessScore != null ? `${o.readinessScore}%` : (o.readinessBand || '—')} />}
+        <StatChip label="Time" value={fmtTime(o.timeSpentSeconds)} />
+      </div>
+
+      {!isPractice && data.skills?.length > 0 && (
+        <div>
+          <h4 className="mb-1.5 text-sm font-semibold text-ink-700">Skills</h4>
+          <div className="space-y-1">
+            {data.skills.map((sk, i) => (
+              <div key={i} className={`flex items-center justify-between rounded-lg px-3 py-1.5 text-sm ${sk.weak ? 'bg-rose-50 text-rose-700' : 'bg-surface-muted text-ink-700'}`}>
+                <span>{sk.name}{sk.weak ? ' · needs work' : ''}</span>
+                {sk.score != null && <span className="font-mono">{sk.score}%</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div>
+        <h4 className="mb-1.5 text-sm font-semibold text-ink-700">Questions</h4>
+        <div className="space-y-2">
+          {(data.questions || []).map((q, i) => (
+            <div key={i} className="rounded-lg border border-border-subtle p-2.5">
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-sm font-medium text-ink-800">{q.prompt || q.skillName || `Question ${i + 1}`}</span>
+                <span className={`shrink-0 rounded px-1.5 py-0.5 text-xs font-semibold ${q.correct ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>{q.correct ? '✓' : '✗'}</span>
+              </div>
+              <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-ink-500">
+                <span>Their answer: <span className="font-mono text-ink-700">{q.studentAnswer || '—'}</span></span>
+                {!q.correct && q.correctAnswer && <span>Correct: <span className="font-mono text-emerald-700">{q.correctAnswer}</span></span>}
+                {q.timeMs != null && <span>{Math.round(q.timeMs / 1000)}s</span>}
+                {q.misconceptions?.length > 0 && <span className="text-rose-600">{q.misconceptions.join(', ')}</span>}
+              </div>
+              {q.workingImage && (
+                <img src={q.workingImage} alt="Student working" className="mt-2 max-h-44 rounded border border-border-subtle" />
+              )}
+            </div>
+          ))}
+          {(!data.questions || !data.questions.length) && <p className="text-sm text-ink-400">No per-question detail.</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const STATUS_LABEL = { not_started: 'Not started', in_progress: 'In progress', completed: 'Done', abandoned: 'Left' };
 const STATUS_COLOR = { not_started: '#8a94a3', in_progress: '#c98a3a', completed: '#2f8f5b', abandoned: '#b23b54' };
@@ -24,6 +96,7 @@ export default function ClassDiagnosticKiosk() {
   const [status, setStatus] = useState(null);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState('');
+  const [detail, setDetail] = useState(null); // { studentId, name, loading, data, error }
   const pollRef = useRef(null);
 
   // Load the diagnostic topics + any already-open session for this class.
@@ -100,6 +173,17 @@ export default function ClassDiagnosticKiosk() {
       setError(e?.response?.data?.error || 'Could not start the check-in.');
     } finally {
       setStarting(false);
+    }
+  }
+
+  async function openDetail(s) {
+    if (!session?.sessionId || s.attemptStatus === 'not_started') return;
+    setDetail({ studentId: s.studentId, name: s.name, loading: true, data: null, error: '' });
+    try {
+      const { data } = await teacherAPI.kioskStudentDetail(id, session.sessionId, s.studentId);
+      setDetail({ studentId: s.studentId, name: s.name, loading: false, data, error: '' });
+    } catch (e) {
+      setDetail({ studentId: s.studentId, name: s.name, loading: false, data: null, error: e?.response?.data?.error || 'Could not load results.' });
     }
   }
 
@@ -241,24 +325,47 @@ export default function ClassDiagnosticKiosk() {
             </div>
             {!status ? <Spinner /> : (
               <div className="space-y-1.5">
-                {status.students.map((s) => (
-                  <div key={s.studentId} className="flex items-center justify-between rounded-lg bg-surface-muted px-3 py-2">
-                    <span className="font-medium text-ink-700">{s.name}</span>
-                    <span className="flex items-center gap-3 text-sm">
-                      {s.attemptStatus !== 'not_started' && (
-                        <span className="text-ink-500">{s.answeredCount} answered{s.readinessScore != null ? ` · ${s.readinessScore}%` : ''}</span>
-                      )}
-                      <span style={{ color: STATUS_COLOR[s.attemptStatus] || '#8a94a3' }} className="font-semibold">
-                        {STATUS_LABEL[s.attemptStatus] || s.attemptStatus}
+                {status.students.map((s) => {
+                  const started = s.attemptStatus !== 'not_started';
+                  return (
+                    <button
+                      key={s.studentId}
+                      type="button"
+                      onClick={() => openDetail(s)}
+                      disabled={!started}
+                      title={started ? 'View results' : undefined}
+                      className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition ${started ? 'cursor-pointer bg-surface-muted hover:bg-emerald-tint' : 'cursor-default bg-surface-muted opacity-80'}`}
+                    >
+                      <span className="font-medium text-ink-700">{s.name}</span>
+                      <span className="flex items-center gap-3 text-sm">
+                        {started && (
+                          <span className="text-ink-500">{s.answeredCount} answered{s.readinessScore != null ? ` · ${s.readinessScore}%` : ''}</span>
+                        )}
+                        <span style={{ color: STATUS_COLOR[s.attemptStatus] || '#8a94a3' }} className="font-semibold">
+                          {STATUS_LABEL[s.attemptStatus] || s.attemptStatus}
+                        </span>
+                        {started && <span className="text-ink-300" aria-hidden="true">›</span>}
                       </span>
-                    </span>
-                  </div>
-                ))}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </Card>
         </div>
       )}
+
+      <Modal
+        open={!!detail}
+        onClose={() => setDetail(null)}
+        title={detail ? `${detail.name} — results` : ''}
+      >
+        {detail?.loading ? <Spinner /> : detail?.error ? (
+          <p className="text-sm text-rose-600">{detail.error}</p>
+        ) : detail?.data ? (
+          <KioskStudentDetail data={detail.data} />
+        ) : null}
+      </Modal>
     </>
   );
 }
