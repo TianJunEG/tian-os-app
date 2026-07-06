@@ -482,37 +482,37 @@ export default function MathPathHome() {
       <section>
         <h2 className="mb-3 font-display text-xl font-semibold text-ink-900 sm:mb-4 sm:text-2xl">Quick Actions</h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
-          <Card className="flex h-full flex-col border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-sky-50 p-4">
-            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-100 text-emerald-700"><Layers className="h-6 w-6" /></span>
-            <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">{effectiveStudentLevel} Mathematics</h3>
-            <p className="mt-1 flex-1 text-sm text-ink-500">Browse your syllabus skills and topics.</p>
-            <Button to={levelPath} variant="secondary" className="mt-4 w-full border-emerald-200 bg-white/80 text-emerald-700 hover:bg-emerald-50">
+          <Card className="flex h-full flex-col p-4">
+            <span className="grid h-11 w-11 place-items-center rounded-shell bg-emerald-tint text-emerald"><Layers className="h-6 w-6" /></span>
+            <h3 className="mt-4 font-display text-xl font-semibold text-ink">{effectiveStudentLevel} Mathematics</h3>
+            <p className="mt-1 flex-1 text-sm text-body-muted">Browse your syllabus skills and topics.</p>
+            <Button to={levelPath} variant="secondary" className="mt-4 w-full">
               Explore {effectiveStudentLevel}
             </Button>
           </Card>
-          <Card className="flex h-full flex-col border-pink-100 bg-gradient-to-br from-pink-50 via-white to-orange-50 p-4">
-            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-pink-100 text-pink-700"><Camera className="h-6 w-6" /></span>
-            <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Upload Test Paper</h3>
-            <p className="mt-1 flex-1 text-sm text-ink-500">Snap a photo of your marked test and get targeted practice.</p>
-            <Button to="/student/mathpath/upload-paper" variant="secondary" className="mt-4 w-full border-pink-200 bg-white/80 text-pink-700 hover:bg-pink-50">
+          <Card className="flex h-full flex-col p-4">
+            <span className="grid h-11 w-11 place-items-center rounded-shell bg-emerald-tint text-emerald"><Camera className="h-6 w-6" /></span>
+            <h3 className="mt-4 font-display text-xl font-semibold text-ink">Upload Test Paper</h3>
+            <p className="mt-1 flex-1 text-sm text-body-muted">Snap a photo of your marked test and get targeted practice.</p>
+            <Button to="/student/mathpath/upload-paper" variant="secondary" className="mt-4 w-full">
               Upload Paper
             </Button>
           </Card>
           {FEATURE_FLAGS.fluency && (
-            <Card className="flex h-full flex-col border-teal-100 bg-gradient-to-br from-teal-50 via-white to-sky-50 p-4">
-              <span className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-tint text-emerald-deep"><Zap className="h-6 w-6" /></span>
-              <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Speed &amp; Accuracy</h3>
-              <p className="mt-1 flex-1 text-sm text-ink-500">Build times-table fluency with flash quizzes.</p>
-              <Button to="/student/mathpath/fluency/times-tables" variant="secondary" className="mt-4 w-full border-teal-200 bg-white/80 text-emerald-deep hover:bg-emerald-tint">
+            <Card className="flex h-full flex-col p-4">
+              <span className="grid h-11 w-11 place-items-center rounded-shell bg-emerald-tint text-emerald"><Zap className="h-6 w-6" /></span>
+              <h3 className="mt-4 font-display text-xl font-semibold text-ink">Speed &amp; Accuracy</h3>
+              <p className="mt-1 flex-1 text-sm text-body-muted">Build times-table fluency with flash quizzes.</p>
+              <Button to="/student/mathpath/fluency/times-tables" variant="secondary" className="mt-4 w-full">
                 Practise Now
               </Button>
             </Card>
           )}
           {!isEarlyLevel && hasPlacement && (
-            <Card className={`flex h-full flex-col p-4 ${visualStyles.accentCard}`}>
-              <span className={`grid h-11 w-11 place-items-center rounded-2xl ${visualStyles.icon}`}><GraduationCap className="h-6 w-6" /></span>
-              <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Recovery Packs</h3>
-              <p className="mt-1 flex-1 text-sm text-ink-500">Targeted practice for skills that need work.</p>
+            <Card className="flex h-full flex-col p-4">
+              <span className="grid h-11 w-11 place-items-center rounded-shell bg-emerald-tint text-emerald"><GraduationCap className="h-6 w-6" /></span>
+              <h3 className="mt-4 font-display text-xl font-semibold text-ink">Recovery Packs</h3>
+              <p className="mt-1 flex-1 text-sm text-body-muted">Targeted practice for skills that need work.</p>
               <Button to="/student/mathpath/assignments" variant="secondary" className="mt-4 w-full">View Packs</Button>
             </Card>
           )}

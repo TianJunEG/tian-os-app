@@ -29,20 +29,24 @@ export const MATHPATH_DOMAINS = [
 ];
 
 export default function MathPathDomainGrid() {
+  // Flat, uniform cards on the shared design system (was a per-domain gradient
+  // grid). The `theme`/`chip` fields above are still used by the domain detail
+  // header (DomainSkillMap); here every tile is a plain Card so MathPath's home
+  // matches the rest of the app. The distinct icon per domain keeps wayfinding.
   return (
     <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
-      {MATHPATH_DOMAINS.map(({ slug, label, blurb, icon: Icon, theme, chip }) => (
+      {MATHPATH_DOMAINS.map(({ slug, label, blurb, icon: Icon }) => (
         <Link
           key={slug}
           to={`/student/mathpath/${slug}`}
           aria-label={`Open ${label}`}
-          className={`group flex min-h-[7.5rem] flex-col rounded-2xl border bg-gradient-to-br p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald/30 ${theme}`}
+          className="group flex min-h-[7.5rem] flex-col rounded-card border border-line bg-surface-white p-4 shadow-rest transition hover:-translate-y-0.5 hover:shadow-card focus:outline-none focus:ring-2 focus:ring-emerald/30"
         >
-          <span className={`grid h-11 w-11 place-items-center rounded-2xl ${chip}`}>
+          <span className="grid h-11 w-11 place-items-center rounded-shell bg-emerald-tint text-emerald">
             <Icon className="h-6 w-6" />
           </span>
-          <h3 className="mt-3 font-display text-lg font-semibold leading-tight text-ink-900">{label}</h3>
-          <p className="mt-1 text-xs leading-snug text-ink-500">{blurb}</p>
+          <h3 className="mt-3 font-display text-lg font-semibold leading-tight text-ink">{label}</h3>
+          <p className="mt-1 text-xs leading-snug text-body-muted">{blurb}</p>
         </Link>
       ))}
     </div>
