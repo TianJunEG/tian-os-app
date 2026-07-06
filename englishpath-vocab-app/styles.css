@@ -259,3 +259,17 @@ html.dark .card.focus { border-color: #452f2a; background: linear-gradient(180de
 html.dark .card.focus .chip { border-color: #4a332e; }
 html.dark .locked { background: linear-gradient(180deg, #211d15 0%, var(--paper) 60%); border-color: #3a3320; }
 html.dark .lockpill { background: #2e2717; }
+
+/* Touch devices (iPad) keep :hover applied to the last element tapped, which
+   left an option looking pre-selected on the next question. Where there is no
+   true hovering pointer, cancel every hover effect back to its resting state.
+   All values use palette variables, so this holds in both light and dark. */
+@media (hover: none) {
+  .opt:hover:not(:disabled) { border-color: var(--line); background: var(--paper); }
+  .btn:hover { background: var(--emerald); }
+  .btn.secondary:hover, html.dark .btn.secondary:hover { background: var(--emerald-tint); }
+  .btn.ghost:hover { color: var(--ink-500); }
+  .theme-toggle:hover { background: transparent; }
+  .linkbtn:hover { color: var(--emerald); }
+  .modal .x:hover { color: var(--ink-300); }
+}
