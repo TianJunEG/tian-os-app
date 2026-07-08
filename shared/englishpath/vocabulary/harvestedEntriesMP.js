@@ -1,5 +1,5 @@
 // AUTO-GENERATED — Middle Primary (P3/P4) vocabulary entries harvested from exam papers.
-// Do not hand-edit. Example sentences REWRITTEN to original (no exam text reproduced) 2026-07-06.
+// Do not hand-edit. Example sentences rewritten to original + QA-corrected 2026-07-08.
 // Entries: P3=504, P4=669, Total=1173
 
 export const harvestedEntriesMP = [
@@ -956,7 +956,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "behaving in a foolish or funny way that is not sensible",
-    "example": "Wearing his shirt inside out and his shoes on the wrong feet, Ben looked rather ____ walking into class.",
+    "example": "It was rather ____ of Mei to leave her umbrella at home when the weather forecast had predicted heavy rain all day.",
     "answer": "silly",
     "synonyms": [
       "foolish",
@@ -1058,7 +1058,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "made something happen later than planned",
-    "example": "The school sports day was ____ by two hours because of the sudden heavy rain in the morning.",
+    "example": "Heavy traffic on the expressway ____ Uncle Tan's journey home so badly that it took him two hours instead of the usual thirty minutes.",
     "answer": "delayed",
     "synonyms": [
       "held up",
@@ -1544,7 +1544,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "regular jobs around the house like cleaning, washing, and cooking",
-    "example": "Every Saturday morning, all the siblings take turns doing the household ____ before they can watch television.",
+    "example": "Mum wrote each of Saturday's ____ on a separate sticky note — from sweeping the floor to feeding the fish — and stuck them on the fridge for everyone to see.",
     "answer": "chores",
     "synonyms": [
       "duties",
@@ -1789,7 +1789,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "Cried out very loudly because of pain, fear, or excitement.",
-    "example": "Amy ____ in fright when a huge spider suddenly dropped down in front of her face.",
+    "example": "When a huge spider suddenly dropped down in front of her face, Amy ____ so loudly that her neighbours came rushing over to check if she was safe.",
     "answer": "screamed",
     "synonyms": [
       "shrieked",
@@ -2314,7 +2314,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "large and heavy, taking up a lot of space",
-    "example": "The gift box was so ____ that Dad needed both hands and a lot of effort to fit it into the car boot.",
+    "example": "The oddly-shaped parcel was so ____ that Dad kept bumping it against the car door while trying to angle it into the boot, even though it was not particularly heavy.",
     "answer": "bulky",
     "synonyms": [
       "large",
@@ -2767,7 +2767,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "not the same as something else",
-    "example": "Priya likes drawing comics while her twin sister prefers building model planes. They have completely ____ hobbies.",
+    "example": "Priya likes drawing comics while her twin sister prefers building model planes; although both hobbies are quiet and creative, they are still completely ____ pastimes.",
     "answer": "different",
     "synonyms": [
       "distinct",
@@ -2806,7 +2806,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "to speak very softly and quietly",
-    "example": "During the exam, Sarah leaned over to ____ the answer to her friend so the teacher would not hear.",
+    "example": "During the exam, Sarah leaned close and ____ the answer so softly that her friend could make out every word without the teacher noticing.",
     "answer": "whisper",
     "synonyms": [
       "murmur"
@@ -3266,7 +3266,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "to set someone or something in competition against another",
-    "example": "The inter-house debate competition will ____ the top speakers from each house against one another.",
+    "example": "The tournament draw will ____ our school's badminton team against the defending champions in the first round.",
     "answer": "pit",
     "synonyms": [
       "match up"
@@ -3451,7 +3451,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "feeding on meat or other animals; meat-eating",
-    "example": "The Sumatran tiger is a ____ animal that hunts deer and wild boar for food.",
+    "example": "Because it only eats meat and never touches plants, the crocodile is classified as a ____ animal, just like other predators of its kind.",
     "answer": "carnivorous",
     "synonyms": [
       "meat-eating",
@@ -3518,7 +3518,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "spoke quietly and unclearly, so it is hard to understand",
-    "example": "Nervous about being called on, Hafiz ____ his answer so softly that the teacher had to ask him to repeat it.",
+    "example": "Nervous about being called on, Hafiz ____ his answer, running the words together so quickly and unclearly that the teacher could not make out a single word.",
     "answer": "mumbled",
     "synonyms": [
       "muttered"
@@ -3734,7 +3734,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "to watch something carefully",
-    "example": "During the school trip to the bird sanctuary, we used binoculars to ____ the herons building their nests.",
+    "example": "For twenty minutes, we sat quietly behind the bushes to ____ how the mother heron fed her chicks.",
     "answer": "observe",
     "synonyms": [
       "watch"
@@ -3802,7 +3802,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "in an embarrassed or shy way, especially after doing something wrong",
-    "example": "Caught eating cookies before dinner, little Timmy grinned ____ and wiped the crumbs off his mouth.",
+    "example": "After tripping over his own shoelace in front of the entire class, Ravi picked himself up and grinned ____ before hurrying back to his seat.",
     "answer": "sheepishly",
     "synonyms": [
       "shyly",
@@ -4071,7 +4071,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "To think of or suggest an idea or plan.",
-    "example": "The class was asked to ____ with a plan to raise funds for the animal shelter.",
+    "example": "During the meeting, the class was asked to ____ with a plan on the spot, since nobody had prepared anything beforehand.",
     "answer": "come up",
     "synonyms": [
       "think of",
@@ -4135,7 +4135,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "calmly, without getting annoyed while waiting",
-    "example": "Even though the queue for the roller coaster was extremely long, Nabila waited ____ without complaining once.",
+    "example": "Even though the queue at the clinic stretched all the way to the car park, Nabila waited ____ without complaining once, flipping through a magazine to pass the time.",
     "answer": "patiently",
     "synonyms": [
       "calmly"
@@ -4247,7 +4247,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "To hide or blend in with surroundings so as not to be seen easily.",
-    "example": "Stick insects are shaped like twigs, which helps them ____ among the branches and avoid hungry birds.",
+    "example": "Stick insects are shaped like twigs, which helps them ____ so well among the branches that hungry birds often fly right past without noticing them.",
     "answer": "camouflage",
     "synonyms": [
       "blend in",
@@ -4710,7 +4710,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "moved with light, quick steps, hopping from one foot to the other",
-    "example": "Delighted with her new shoes, Farah ____ happily all the way to school.",
+    "example": "Delighted with her new shoes, Farah ____ happily all the way to school, her feet barely touching the ground between each little hop.",
     "answer": "skipped",
     "synonyms": [
       "hopped",
@@ -5454,7 +5454,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "very steady, dependable and calm, not easily shaken",
-    "example": "Even when the whole team panicked during the final minute of the match, the goalkeeper remained ____, calmly blocking every shot.",
+    "example": "As the little boat rocked wildly in the storm, the captain remained ____ at the helm, steering with a firm, steady hand.",
     "answer": "as solid as a rock",
     "synonyms": [
       "steady",
@@ -5630,7 +5630,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "to make someone feel less worried or sad",
-    "example": "Seeing her best friend in tears after losing the spelling bee, Hui Min hugged her and ____ her with kind words.",
+    "example": "Seeing her best friend crying after losing the spelling bee, Hui Min hugged her tightly and ____ her, saying gently that it was okay to feel sad and that losing sometimes happens to everyone.",
     "answer": "comforted",
     "synonyms": [
       "consoled",
@@ -5747,7 +5747,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "having good judgment and knowledge gained from experience",
-    "example": "Before making any big decision, my father always seeks ____ advice from his old mentor, who has years of experience.",
+    "example": "Whenever villagers faced a tricky problem, they turned to the old woman by the river, who was known to be as ____ as an owl, and her advice always turned out to be right.",
     "answer": "wise",
     "synonyms": [
       "sensible",
@@ -6275,7 +6275,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "to injure a joint by twisting it suddenly",
-    "example": "Landing awkwardly after the jump, the gymnast ____ her ankle and had to be helped off the mat.",
+    "example": "After landing awkwardly during a cartwheel in PE, Zara was in so much pain that the doctor confirmed she had ____ a ligament in her wrist.",
     "answer": "sprained",
     "synonyms": [
       "twisted",
@@ -6532,7 +6532,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "very calm, not nervous or worried",
-    "example": "Even with the whole hall watching, Aiden stayed ____ as he delivered his speech without a single mistake.",
+    "example": "Even though Aiden's hands were trembling with nerves backstage, he flashed the audience a warm smile, stayed completely ____, and delivered his speech without a single mistake.",
     "answer": "as cool as a cucumber",
     "synonyms": [
       "calm",
@@ -30851,7 +30851,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "organised activities aimed at achieving a particular goal, such as raising awareness",
-    "example": "The Environment Club launched several ____ to encourage residents to recycle their plastic bottles.",
+    "example": "The Environment Club organised a series of conservation ____, going from door to door with posters and talks to persuade residents to recycle their plastic bottles.",
     "answer": "campaigns",
     "synonyms": [
       "drives",
@@ -31071,7 +31071,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "difficult in a way that tests your skill or effort",
-    "example": "Assembling the thousand-piece jigsaw puzzle proved ____, but the siblings finally completed it after three days.",
+    "example": "Assembling the thousand-piece jigsaw puzzle turned out to be a ____ task that the siblings thoroughly enjoyed, testing their patience and teamwork until they proudly pieced it all together after three days.",
     "answer": "challenging",
     "synonyms": [
       "difficult",
@@ -31435,7 +31435,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "rubbed something to make it shiny and clean",
-    "example": "Every Sunday morning, my father ____ his leather shoes until they gleamed.",
+    "example": "Every Sunday morning, my father meticulously ____ his scuffed leather shoes with a soft brush until every mark vanished and they gleamed like new.",
     "answer": "polished",
     "synonyms": [
       "buffed"
@@ -31745,7 +31745,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "words or actions that give someone confidence or support to keep trying",
-    "example": "Before the swimming final, Coach Lim gave the nervous boy a few words of ____ to calm his nerves.",
+    "example": "Before the swimming final, Coach Lim gave the nervous boy a few words of ____, reminding him how hard he had trained and urging him to give his best.",
     "answer": "encouragement",
     "synonyms": [
       "support",
@@ -32625,7 +32625,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "an event causing great and often sudden damage or distress",
-    "example": "The great flood that swept away entire villages along the river was remembered as a terrible ____.",
+    "example": "The great flood that swept away entire villages along the river remains one of the region's worst natural ____, still spoken about by elders today.",
     "answer": "calamity",
     "synonyms": [
       "disaster",
@@ -32847,7 +32847,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "not afraid; brave in the face of danger",
-    "example": "Despite the thick smoke, the ____ diver swam deeper into the flooded cave to search for the missing boy.",
+    "example": "Despite the thick smoke, the ____ diver swam deeper into the flooded cave to search for the missing boy, and was later hailed as a hero for his courage.",
     "answer": "fearless",
     "synonyms": [
       "brave",
@@ -32886,7 +32886,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "careful with money and avoiding waste",
-    "example": "Even though he earns a good salary, my uncle remains ____ and always compares prices before buying anything.",
+    "example": "Even though he earns a good salary, my uncle remains ____ — he still enjoys treating his family to nice meals, but always compares prices carefully before buying anything for himself.",
     "answer": "thrifty",
     "synonyms": [
       "frugal",
@@ -33512,7 +33512,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "to investigate or examine something carefully",
-    "example": "The school council promised to ____ the complaints about the broken swings in the playground.",
+    "example": "After several parents raised concerns, the school council promised to ____ the matter thoroughly and find out exactly why the swings kept breaking.",
     "answer": "look into",
     "synonyms": [
       "investigate",
@@ -33728,7 +33728,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "to find the answer to a problem or mystery",
-    "example": "It took the whole class an hour to ____ the tricky riddle their teacher had written on the whiteboard.",
+    "example": "It took the detective a whole week to finally ____ the mystery of who had stolen the jewels from the museum.",
     "answer": "solve",
     "synonyms": [
       "figure out",
@@ -33767,7 +33767,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "not finished; missing a part",
-    "example": "Halfway through the quiz, the power went out, leaving several of Amir's answers ____.",
+    "example": "The power went out just as Amir was midway through typing his answers on the computer, leaving several of them ____ — some ending abruptly in the middle of a sentence.",
     "answer": "incomplete",
     "synonyms": [
       "unfinished",
@@ -34719,7 +34719,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "people who personally saw an event happen",
-    "example": "According to several ____, the fire at the market stall started from an unattended cooking pot.",
+    "example": "The police have recorded statements from several ____ to piece together exactly how the fire at the market stall started from an unattended cooking pot.",
     "answer": "eyewitnesses",
     "synonyms": [
       "witnesses",
@@ -34859,7 +34859,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "a loud, harsh, high-pitched sound",
-    "example": "A ____ of tyres filled the air as the driver slammed on his brakes to avoid the cat.",
+    "example": "The car came to a ____ halt, tyres leaving black skid marks on the road, as the driver swerved just in time to avoid the cat.",
     "answer": "screeching",
     "synonyms": [
       "shrill sound",
@@ -35946,7 +35946,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "questioned someone thoroughly, often for a long time",
-    "example": "Detectives ____ the man for hours at the station before he finally confessed to the burglary.",
+    "example": "Detectives ____ the suspect relentlessly in the interview room, firing the same questions at him again and again until he finally confessed.",
     "answer": "interrogated",
     "synonyms": [
       "questioned"
@@ -36119,7 +36119,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "an act of showing how to do something",
-    "example": "The fire safety officer gave a ____ on how to use a fire extinguisher correctly during the assembly.",
+    "example": "The fire safety officer gave a live ____, spraying real foam from the extinguisher onto a small fire so every pupil could see exactly how it worked.",
     "answer": "demonstration",
     "synonyms": [
       "display"
@@ -36187,7 +36187,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "a small dense mass or lump of something",
-    "example": "A ____ of wet leaves had blocked the drain, causing water to overflow onto the pavement.",
+    "example": "After showering, Dad found a slimy ____ of hair tangled around the drain plug.",
     "answer": "clump",
     "synonyms": [
       "lump"
@@ -36556,7 +36556,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "Cleaned something using a vacuum cleaner to suck up dirt and dust",
-    "example": "Every Saturday morning, my brother ____ the living room floor before Mother comes home from work.",
+    "example": "Every Saturday morning, my brother ____ the living room carpet, pushing the noisy machine back and forth to suck up all the dust.",
     "answer": "vacuumed",
     "synonyms": [
       "cleaned",
@@ -36678,7 +36678,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "Told someone what you think they should do, especially when you want to help them",
-    "example": "After examining Grandfather, the doctor ____ him to drink more water and rest for the sake of his health.",
+    "example": "After examining Grandfather, the doctor strongly ____ him to drink more water and rest, though the final decision was his to make.",
     "answer": "advised",
     "synonyms": [
       "recommended",
@@ -36977,7 +36977,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "to take an animal (or child) into your family and care for it",
-    "example": "Instead of buying a puppy, the Rajans decided to ____ one from the animal welfare society.",
+    "example": "After years on the waiting list, Mr and Mrs Tan were finally approved to ____ a baby girl and welcomed her into their family as their own daughter.",
     "answer": "adopt",
     "synonyms": [
       "take in"
@@ -37046,7 +37046,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "to earn or be entitled to something because of your actions",
-    "example": "Ethan trained every day before the meet, so his coach said he truly did ____ praise for his effort.",
+    "example": "After working so hard on the charity project, the volunteers felt they truly ____ a proper thank-you from the school, not just a quick nod.",
     "answer": "deserve",
     "synonyms": [
       "merit"
@@ -37669,7 +37669,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "strange and not easily explained or understood",
-    "example": "Late at night, the children spotted a ____ figure lurking near the old well and ran home in fright.",
+    "example": "Late at night, the children spotted a ____ figure that seemed to vanish into thin air the moment they blinked, and they ran home in fright, unable to explain what they had seen.",
     "answer": "mysterious",
     "synonyms": [
       "puzzling"
@@ -38034,7 +38034,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "feeling amazed by something unexpected",
-    "example": "Danial was pleasantly ____ to find his favourite comic book waiting on his desk when he got home from school.",
+    "example": "Danial was ____ to find his favourite comic book waiting on his desk when he got home from school, and he immediately sat down to read it from cover to cover.",
     "answer": "surprised",
     "synonyms": [
       "astonished",
@@ -38151,7 +38151,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "made a loud rattling noise when hitting a hard surface",
-    "example": "The stack of metal trays slipped from the waiter's hands and ____ to the floor with a deafening crash.",
+    "example": "The stack of metal trays slipped from the waiter's hands and ____ across the tiled floor, scattering in every direction with a deafening crash.",
     "answer": "clattered",
     "synonyms": [
       "rattled",
@@ -38225,7 +38225,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "telling a long, often made-up or exaggerated story",
-    "example": "Grandpa loves ____ about the giant fish he supposedly caught, though none of us has ever seen a photo.",
+    "example": "Every family gathering, Grandpa ends up ____ about the giant fish he supposedly caught, adding a new twist to the story each time he tells it.",
     "answer": "spinning a yarn",
     "synonyms": [
       "telling tall tales"
@@ -38411,7 +38411,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "searched an area thoroughly",
-    "example": "Volunteers ____ the forest for hours searching for the missing hiker before nightfall.",
+    "example": "Volunteers ____ every inch of the forest, checking behind every bush and tree, in their search for the missing hiker before nightfall.",
     "answer": "combed",
     "synonyms": [
       "searched",
@@ -38584,7 +38584,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "formal and intense questioning, especially by police",
-    "example": "After a lengthy police ____, the suspect finally admitted to breaking into the warehouse.",
+    "example": "After hours of intense police ____ under bright lights, with the same tough questions repeated over and over, the suspect finally admitted to breaking into the warehouse.",
     "answer": "interrogation",
     "synonyms": [
       "questioning",
@@ -38662,7 +38662,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "carefully undid or opened something rolled or tangled",
-    "example": "The librarian gently ____ the old scroll to check whether the ink had faded over the years.",
+    "example": "After the box tumbled down the stairs, it took Dev ages to ____ the necklace chains that had knotted together inside.",
     "answer": "unravelled",
     "synonyms": [
       "unrolled",
@@ -38697,7 +38697,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "poured a liquid or topping in a thin stream over food",
-    "example": "Mother ____ honey over the warm pancakes before serving them for breakfast.",
+    "example": "Mother ____ honey in a thin, golden stream over the warm pancakes before serving them for breakfast.",
     "answer": "drizzled",
     "synonyms": [
       "trickled",
@@ -39362,7 +39362,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "amazing and lucky, almost impossible to believe",
-    "example": "Doctors were astonished by Grandpa's ____ recovery just two weeks after his major surgery.",
+    "example": "Grandpa's recovery was so ____ that even his doctors, who had given him little chance of surviving the surgery, could not explain how he was up and walking again within two weeks.",
     "answer": "miraculous",
     "synonyms": [
       "amazing",
@@ -39475,7 +39475,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "talked with too much pride about one's own achievements",
-    "example": "Ravi ____ about his new bicycle to anyone who would listen, even though nobody seemed interested.",
+    "example": "Thrilled with his new bicycle, Ravi ____ about how fast and shiny it was to anyone who would listen, even though nobody seemed interested.",
     "answer": "boasted",
     "synonyms": [
       "bragged",
@@ -40256,7 +40256,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "Practising for a performance such as a play, concert, or show",
-    "example": "The drama club stayed back after school, ____ their lines for the upcoming stage play.",
+    "example": "Under the bright stage lights, the drama club spent an hour after school ____ their lines and practising their entrances for the upcoming play.",
     "answer": "rehearsing",
     "synonyms": [
       "practising",
@@ -40338,7 +40338,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "To move forward on hands and knees or with the body close to the ground",
-    "example": "During the obstacle course, the scouts had to ____ under a low net stretched across the field.",
+    "example": "During the obstacle course, the scouts got down on their hands and knees to ____ under the low net stretched across the muddy field.",
     "answer": "crawl",
     "synonyms": [
       "creep"
@@ -40679,7 +40679,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "walking in a slow, relaxed way for enjoyment",
-    "example": "On weekends, elderly couples enjoy ____ along the riverside promenade, taking in the cool evening breeze.",
+    "example": "On breezy evenings, couples enjoy ____ hand in hand along the riverside promenade, admiring the sunset.",
     "answer": "strolling",
     "synonyms": [
       "sauntering",
@@ -41216,7 +41216,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "Not very often; only once in a while.",
-    "example": "Although Grandpa owns a beautiful set of golf clubs, he ____ plays golf these days because of his knee injury.",
+    "example": "Because of his knee injury, Grandpa ____ plays golf these days — just a round or two with old friends every year, even though he owns a beautiful set of golf clubs.",
     "answer": "rarely",
     "synonyms": [
       "seldom",
@@ -41460,7 +41460,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "written statements from customers praising a product or service",
-    "example": "The new bakery received glowing ____ from customers who praised its fresh bread on social media.",
+    "example": "The new bakery received glowing five-star ____ from customers who praised its fresh bread on social media.",
     "answer": "testimonials",
     "synonyms": [
       "reviews",
@@ -41505,7 +41505,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "to finish doing something all the way to the end",
-    "example": "Despite twisting her ankle halfway through the cross-country race, Mei Ling was determined to ____ it rather than give up.",
+    "example": "Despite twisting her ankle and falling to the back of the pack halfway through the cross-country race, Mei Ling was determined to ____ it rather than give up.",
     "answer": "complete",
     "synonyms": [
       "finish",
@@ -41779,7 +41779,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "a feeling of being thankful and showing gratitude for something",
-    "example": "The students pooled their pocket money to buy a token of ____ for the janitor, thanking him for keeping the school clean.",
+    "example": "The students pooled their pocket money to buy the janitor a token of ____, tucking in a card that simply read, \"Thank you for keeping our school so clean.\"",
     "answer": "appreciation",
     "synonyms": [
       "gratitude",
@@ -41954,7 +41954,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "Strong and determined; not likely to change.",
-    "example": "After losing his wallet twice, Zhi Wei made a ____ decision to always zip up his bag properly.",
+    "example": "After thinking it over for several days, Zhi Wei made a ____ decision to always zip up his bag properly, no matter how much of a hurry he was in.",
     "answer": "firm",
     "synonyms": [
       "resolute",
@@ -42544,7 +42544,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "Very clever and creative; showing smart thinking",
-    "example": "To stop the class hamster from escaping again, Wei Ling came up with an ____ solution using an old shoebox.",
+    "example": "To stop the class hamster from escaping again, Wei Ling used an old shoebox and some string to rig up an ____ trap-door mechanism so clever that even her teacher couldn't figure out how it worked.",
     "answer": "ingenious",
     "synonyms": [
       "brilliant",
@@ -42900,7 +42900,7 @@ export const harvestedEntriesMP = [
     "theme": "general",
     "cluster": null,
     "meaning": "The exact amounts or sizes of something, often written as numbers",
-    "example": "Before cutting the wood for the birdhouse, Uncle Kumar used a tape measure to record the exact ____ of each plank.",
+    "example": "Before cutting the wood for the birdhouse, Uncle Kumar carefully took the exact ____ of each plank using a tape measure, noting them down in his notebook.",
     "answer": "measurements",
     "synonyms": [
       "quantities",

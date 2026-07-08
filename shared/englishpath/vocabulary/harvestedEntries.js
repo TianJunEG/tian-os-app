@@ -1,5 +1,5 @@
 // AUTO-GENERATED — harvested P5/P6 vocabulary entries.
-// Do not hand-edit. Example sentences REWRITTEN to original (no exam text reproduced) 2026-07-06.
+// Do not hand-edit. Example sentences rewritten to original + QA-corrected 2026-07-08.
 
 export const harvestedEntries = [
   {
@@ -10,7 +10,7 @@ export const harvestedEntries = [
     "theme": "manner",
     "cluster": null,
     "meaning": "suddenly and unexpectedly, without warning",
-    "example": "The teacher was upset when the fire drill bell rang and the class discussion ____ before anyone could finish their point.",
+    "example": "The fire drill bell rang without warning, and the class discussion ended ____ before anyone could finish their point.",
     "answer": "abruptly",
     "synonyms": [
       "suddenly",
@@ -131,7 +131,7 @@ export const harvestedEntries = [
     "theme": "character",
     "cluster": null,
     "meaning": "to agree to do what someone wants, especially by making allowances",
-    "example": "Since Mei broke her arm during recess, the coach agreed to ____ her request to sit out of the swimming test.",
+    "example": "Since Mei broke her arm during recess, the coach agreed to ____ her request to sit out of the swimming test, even though it meant rearranging the whole class schedule.",
     "answer": "accommodate",
     "synonyms": [
       "grant",
@@ -293,7 +293,7 @@ export const harvestedEntries = [
     "theme": "achievement",
     "cluster": null,
     "meaning": "to get or obtain something, especially through effort or over time",
-    "example": "Over three decades, the collector ____ more than two hundred rare stamps from countries around the world.",
+    "example": "Over three decades, the collector ____ more than two hundred rare stamps through trades, inheritances, and lucky flea-market finds.",
     "answer": "acquired",
     "synonyms": [
       "obtained",
@@ -526,7 +526,7 @@ export const harvestedEntries = [
     "theme": "action",
     "cluster": null,
     "meaning": "help or support that makes something easier to do",
-    "example": "The old carpenter shaped the wooden chair with the ____ of a small hand chisel his grandfather had left him.",
+    "example": "The elderly carpenter's eyesight had failed almost completely, so he could only shape the wooden chair with the ____ of his grandson, who described each cut aloud.",
     "answer": "help",
     "synonyms": [
       "assistance",
@@ -676,7 +676,7 @@ export const harvestedEntries = [
     "theme": "ability",
     "cluster": null,
     "meaning": "someone who does an activity for enjoyment, not as a job; a beginner",
-    "example": "Ravi just started building birdhouses last month, so he still calls himself an ____ carpenter.",
+    "example": "Ravi only builds birdhouses in his garage on weekends for fun, so he jokingly calls himself an ____ carpenter, not a professional one.",
     "answer": "amateur",
     "synonyms": [
       "beginner",
@@ -1066,7 +1066,7 @@ export const harvestedEntries = [
     "theme": "difficulty",
     "cluster": null,
     "meaning": "very difficult and tiring, needing a lot of effort and strength",
-    "example": "The hikers collapsed onto the grass, exhausted after the ____ trek up the steep, rocky trail.",
+    "example": "The hikers collapsed onto the sand, exhausted after the ____ ten-hour trek across the flat, scorching desert.",
     "answer": "arduous",
     "synonyms": [
       "gruelling",
@@ -1210,7 +1210,7 @@ export const harvestedEntries = [
     "theme": "thought",
     "cluster": null,
     "meaning": "believed or accepted something as true without having proof",
-    "example": "I heard the door creak open late at night, but I ____ it was just the wind rattling the hinges.",
+    "example": "Since the museum is always closed on Mondays, I ____ it would be shut today too, but it turned out to be a special public holiday opening.",
     "answer": "assumed",
     "synonyms": [
       "supposed"
@@ -1319,7 +1319,7 @@ export const harvestedEntries = [
     "theme": "character",
     "cluster": null,
     "meaning": "to stop insisting on something or to admit defeat in an argument",
-    "example": "Even when the older boys mocked her plan, Aisha refused to ____ and finished building her science project her way.",
+    "example": "Even when the older boys mocked her plan and insisted she use their method instead, Aisha refused to ____ and built her science project her way.",
     "answer": "back down",
     "synonyms": [
       "give in",
@@ -1520,7 +1520,7 @@ export const harvestedEntries = [
     "theme": "communication",
     "cluster": null,
     "meaning": "to share ideas with each other (as in 'bounce ideas off someone') to get their reactions or opinions",
-    "example": "Before the science fair, the teammates ____ ideas late into the evening to decide on their final experiment.",
+    "example": "Before the science fair, the teammates ____ each other's ideas late into the evening before settling on their final experiment.",
     "answer": "bounced off",
     "synonyms": [
       "exchange ideas",
@@ -1552,7 +1552,7 @@ export const harvestedEntries = [
     "theme": "conflict",
     "cluster": null,
     "meaning": "a rough and noisy fight, especially in a public place",
-    "example": "A ____ erupted outside the stadium after the referee's controversial decision, and security had to step in.",
+    "example": "A ____ broke out between rival fans outside the stadium after the referee's controversial decision, with punches thrown before security stepped in.",
     "answer": "brawl",
     "synonyms": [
       "fight",
@@ -1593,7 +1593,7 @@ export const harvestedEntries = [
     "theme": "negotiation",
     "cluster": null,
     "meaning": "if talks or negotiations break down, they fail and stop",
-    "example": "Talks between the two neighbouring families over the shared fence ____ after neither side would compromise.",
+    "example": "Talks between the two neighbouring families over the shared fence gradually ____ as neither side was willing to compromise on anything.",
     "answer": "broke down",
     "synonyms": [
       "collapsed",
@@ -10440,7 +10440,7 @@ export const harvestedEntries = [
     "theme": "communication",
     "cluster": null,
     "meaning": "said unkind or insulting things to someone in order to upset or provoke them",
-    "example": "Grinning wickedly, the older boy ____, \"Bet you can't even climb halfway up that tree!\"",
+    "example": "Grinning wickedly, the older boy ____ the smaller kids, betting loudly that none of them could climb even halfway up the tree.",
     "answer": "taunted",
     "synonyms": [
       "mocked"
@@ -10662,7 +10662,7 @@ export const harvestedEntries = [
     "theme": "willpower",
     "cluster": null,
     "meaning": "to admit defeat and give up trying",
-    "example": "Even though their kite kept crashing into the sand, the twins refused to ____ and tried again until it finally soared.",
+    "example": "As the marathon route grew steeper and her legs began to ache, Mei refused to ____, pushing through the pain until she crossed the finish line.",
     "answer": "throw in the towel",
     "synonyms": [
       "give up",
@@ -10695,7 +10695,7 @@ export const harvestedEntries = [
     "theme": "obstacle",
     "cluster": null,
     "meaning": "prevented someone's plans or efforts from succeeding",
-    "example": "The robbers' plan to break into the museum was ____ by an alert security guard who spotted them on the roof.",
+    "example": "The robbers' plan to break into the museum was ____ before it could even begin, when an alert security guard spotted them still climbing onto the roof.",
     "answer": "thwarted",
     "synonyms": [
       "foiled",
@@ -10877,7 +10877,7 @@ export const harvestedEntries = [
     "theme": "growth",
     "cluster": null,
     "meaning": "not fully formed or grown; lacking complete development",
-    "example": "Newly hatched chicks are quite ____ and rely on their mother hen to keep them warm.",
+    "example": "Newly hatched chicks are still ____, unable to open their eyes or stand on their own for the first few days, and rely on their mother hen to keep them warm.",
     "answer": "undeveloped",
     "synonyms": [
       "immature"
@@ -10917,7 +10917,7 @@ export const harvestedEntries = [
     "theme": "experience",
     "cluster": null,
     "meaning": "without anything interesting, exciting, or important happening",
-    "example": "The long bus ride to Malacca was largely ____, save for a brief stop to fix a flat tyre.",
+    "example": "Thanks to light traffic, the long bus ride to Malacca was pleasantly ____, save for a brief stop to fix a flat tyre, and Amir spent most of it enjoying the scenery outside.",
     "answer": "uneventful",
     "synonyms": [
       "unremarkable"
@@ -10953,7 +10953,7 @@ export const harvestedEntries = [
     "theme": "change",
     "cluster": null,
     "meaning": "surprising because it was not planned or thought about beforehand",
-    "example": "The class debate took an ____ turn when the quietest student suddenly delivered the strongest argument of the day.",
+    "example": "Nobody had predicted it, but the class debate took a mildly ____ turn when the quietest student calmly raised a point that even his critics found hard to argue with.",
     "answer": "unexpected",
     "synonyms": [
       "unanticipated",
@@ -11167,7 +11167,7 @@ export const harvestedEntries = [
     "theme": "memory/certainty",
     "cluster": null,
     "meaning": "in a way that is not clear or certain; only slightly",
-    "example": "Walking past the old playground, Grandpa said he could ____ recall playing marbles there as a young boy.",
+    "example": "It had been over sixty years, so Grandpa said he could only ____ recall playing marbles there as a young boy, though the details had long faded.",
     "answer": "vaguely",
     "synonyms": [
       "faintly",
@@ -11379,7 +11379,7 @@ export const harvestedEntries = [
     "theme": "alertness",
     "cluster": null,
     "meaning": "watching carefully and ready to notice anything dangerous or wrong",
-    "example": "The lifeguard kept a ____ eye on the swimmers, ready to jump in at the first sign of trouble.",
+    "example": "Even though the pool was calm and nothing seemed wrong, the lifeguard remained ____, scanning every swimmer just in case.",
     "answer": "watchful",
     "synonyms": [
       "alert",
@@ -11420,7 +11420,7 @@ export const harvestedEntries = [
     "theme": "value/reward",
     "cluster": null,
     "meaning": "worth the time, effort, or money spent; giving a good result",
-    "example": "Volunteering at the animal shelter every weekend has been a truly ____ experience for Aleena.",
+    "example": "Even though it meant giving up her Saturday mornings, volunteering at the animal shelter has been a truly ____ experience for Aleena — one she wouldn't trade for anything.",
     "answer": "worthwhile",
     "synonyms": [
       "rewarding"
@@ -11456,7 +11456,7 @@ export const harvestedEntries = [
     "theme": "character",
     "cluster": null,
     "meaning": "deserving respect, praise, or a reward because of good qualities or actions",
-    "example": "After rescuing the drowning toddler without hesitation, the teenager was ____ of the bravery award he received.",
+    "example": "After rescuing the drowning toddler without hesitation, the teenager was widely regarded as ____ of the bravery award, even though he insisted he had only done what anyone would do.",
     "answer": "worthy",
     "synonyms": [
       "deserving",
@@ -11497,7 +11497,7 @@ export const harvestedEntries = [
     "theme": "physical action",
     "cluster": null,
     "meaning": "to pull something or someone suddenly and with force",
-    "example": "Just as the puppy was about to chew on the electrical wire, Dad grabbed its leash, ____ it back sharply.",
+    "example": "Just as the puppy was about to chew on the electrical wire, Dad took hold of its leash, ____ it away with a sharp pull that sent the puppy stumbling backward.",
     "answer": "yanking",
     "synonyms": [
       "jerking",
@@ -11609,7 +11609,7 @@ export const harvestedEntries = [
     "theme": "actions",
     "cluster": null,
     "meaning": "to agree to a request; to say yes to what someone asks for",
-    "example": "After his daughter begged for weeks, Mr Osman finally ____ her request to adopt a stray kitten.",
+    "example": "After his daughter begged for weeks, Mr Osman finally ____ her request, and the family brought the stray kitten home that very evening.",
     "answer": "acceded to",
     "synonyms": [
       "agreed to",
@@ -11721,7 +11721,7 @@ export const harvestedEntries = [
     "theme": "character",
     "cluster": null,
     "meaning": "To admit or accept that something is true or that you have done something",
-    "example": "After the vase shattered, Kai finally chose to ____ that he had been the one bouncing the ball indoors, even though he had denied it earlier.",
+    "example": "After days of guilt eating away at him, Kai finally, reluctantly, chose to ____ that he had been the one bouncing the ball indoors, even though he had denied it to his parents' faces the week before.",
     "answer": "acknowledge",
     "synonyms": [
       "admit",
@@ -11923,7 +11923,7 @@ export const harvestedEntries = [
     "theme": "social",
     "cluster": null,
     "meaning": "to publicly support or promote a cause or idea",
-    "example": "Even after retiring from teaching, Mdm Rani continues to ____ for smaller class sizes whenever she speaks to school boards.",
+    "example": "Even in casual conversations with other parents, Mdm Rani will always ____ for smaller class sizes, though she has never organised a formal campaign about it.",
     "answer": "advocate",
     "synonyms": [],
     "confusables": [
@@ -12003,7 +12003,7 @@ export const harvestedEntries = [
     "theme": "community and support",
     "cluster": null,
     "meaning": "help or support given to someone who needs it, especially money or supplies",
-    "example": "With the ____ of blankets and canned food sent by neighbouring towns, the flood survivors stayed warm through the cold nights.",
+    "example": "Blankets and canned food arrived from neighbouring towns as emergency ____, helping the flood survivors stay warm through the cold nights.",
     "answer": "aid",
     "synonyms": [
       "help",
@@ -12086,7 +12086,7 @@ export const harvestedEntries = [
     "theme": "relationships",
     "cluster": null,
     "meaning": "a person or thing that helps and supports you",
-    "example": "During the group project, Wei Jie found an unexpected ____ in his old rival, Farhan, who backed his ideas in every meeting.",
+    "example": "During the group project, Wei Jie found an unexpected ____ in his old rival Farhan, who backed his ideas in every meeting even though the two still weren't on speaking terms outside of class.",
     "answer": "ally",
     "synonyms": [
       "companion",
@@ -12509,7 +12509,7 @@ export const harvestedEntries = [
     "theme": "emotions and feelings",
     "cluster": null,
     "meaning": "feeling worried and nervous, especially about something uncertain",
-    "example": "Mrs Lim paced the corridor outside the operating theatre, feeling ____ as she waited for news about her husband's surgery.",
+    "example": "Mrs Lim paced the corridor outside the operating theatre, feeling ____ about whether her husband would pull through the surgery.",
     "answer": "anxious",
     "synonyms": [
       "eager",
@@ -12635,7 +12635,7 @@ export const harvestedEntries = [
     "theme": "reasoning",
     "cluster": null,
     "meaning": "clearly seen or understood; obvious",
-    "example": "As the fever worsened through the night, it became ____ that Ravi needed to see a doctor immediately.",
+    "example": "As the fever climbed past 40 degrees and Ravi began shivering uncontrollably, it became ____ to everyone in the room that he needed to see a doctor immediately.",
     "answer": "apparent",
     "synonyms": [
       "obvious",
@@ -12986,7 +12986,7 @@ export const harvestedEntries = [
     "theme": "effort",
     "cluster": null,
     "meaning": "doing something very carefully, thoroughly and with a lot of effort",
-    "example": "Every evening after dinner, Grandpa would ____ polish his old wristwatch until it gleamed like new.",
+    "example": "Every evening after dinner, Grandpa would ____ polish every corner and crevice of his old wristwatch, never satisfied until it gleamed like new.",
     "answer": "assiduously",
     "synonyms": [
       "thoroughly",
@@ -13238,7 +13238,7 @@ export const harvestedEntries = [
     "theme": "achievement",
     "cluster": null,
     "meaning": "to successfully reach or gain something through effort",
-    "example": "After years of hard work, the young violinist finally ____ her goal of performing at the national concert hall.",
+    "example": "After years of relentless practice, the young violinist finally ____ the level of skill required to perform at the national concert hall.",
     "answer": "attained",
     "synonyms": [
       "obtained",
@@ -13628,7 +13628,7 @@ export const harvestedEntries = [
     "theme": "emotion",
     "cluster": null,
     "meaning": "a feeling of being completely confused and unable to understand what is happening",
-    "example": "The tourist stared at the confusing maze of signs at the train station in ____, unsure which platform to go to.",
+    "example": "The tourist stared at the confusing maze of signs at the train station in complete ____, unable to make sense of a single word and unsure which platform to go to.",
     "answer": "bewilderment",
     "synonyms": [
       "confusion",
@@ -13850,7 +13850,7 @@ export const harvestedEntries = [
     "theme": "emotion",
     "cluster": null,
     "meaning": "to increase or improve something, making it stronger or better",
-    "example": "Winning first prize at the science fair ____ Hui Ling's confidence to try out for the debate team.",
+    "example": "Winning first prize at the science fair suddenly ____ Hui Ling's confidence enough for her to finally try out for the debate team she'd always been too scared to join.",
     "answer": "boosted",
     "synonyms": [
       "raised",
@@ -13887,7 +13887,7 @@ export const harvestedEntries = [
     "theme": "emotion",
     "cluster": null,
     "meaning": "to increase or improve someone's confidence, spirit, or enthusiasm",
-    "example": "Winning the friendly match against their rival school greatly ____ team morale ahead of the championship finals.",
+    "example": "After a long losing streak, the surprise win against their rival school finally ____ team morale, giving the players a much-needed lift ahead of the championship finals.",
     "answer": "raised",
     "synonyms": [],
     "confusables": [
@@ -14002,7 +14002,7 @@ export const harvestedEntries = [
     "theme": "description",
     "cluster": null,
     "meaning": "Without any limits; seeming to have no end",
-    "example": "Even after a full day of chores, Grandma still had ____ energy to chase her giggling grandchildren around the garden.",
+    "example": "Even after a full day of chores, Grandma still seemed to have ____ energy that never ran dry, chasing her giggling grandchildren around the garden long after everyone else had collapsed onto the sofa.",
     "answer": "inexhaustible",
     "synonyms": [
       "unlimited",
@@ -14143,7 +14143,7 @@ export const harvestedEntries = [
     "theme": "achievements",
     "cluster": null,
     "meaning": "an important development or discovery that helps to achieve something previously difficult",
-    "example": "Researchers announced a major ____ in battery technology that could make electric cars charge in minutes.",
+    "example": "After years of slow, incremental progress, researchers announced a sudden ____ in battery technology that could make electric cars charge in minutes.",
     "answer": "breakthrough",
     "synonyms": [
       "development",
@@ -14282,7 +14282,7 @@ export const harvestedEntries = [
     "theme": "movement",
     "cluster": null,
     "meaning": "moving in a quick, energetic, and purposeful way",
-    "example": "To catch the early morning bus, Uncle Tan walked ____ down the lane, his umbrella swinging with each step.",
+    "example": "To catch the early morning bus, Uncle Tan walked ____ down the lane, whistling a tune as his umbrella swung jauntily with each step.",
     "answer": "briskly",
     "synonyms": [
       "quickly",
@@ -14327,7 +14327,7 @@ export const harvestedEntries = [
     "theme": "technology",
     "cluster": null,
     "meaning": "stopped working properly; failed to function",
-    "example": "The old air-conditioner in the classroom had ____ again, leaving the students sweating through the humid afternoon.",
+    "example": "The old air-conditioner in the classroom had ____ again, grinding to a complete halt and leaving the students sweating through the humid afternoon until a technician could be called.",
     "answer": "broken down",
     "synonyms": [
       "malfunctioned",
@@ -14435,7 +14435,7 @@ export const harvestedEntries = [
     "theme": "work",
     "cluster": null,
     "meaning": "the duties or responsibilities expected from a person in their job or role",
-    "example": "The nurse worked two extra shifts to comfort worried families, going well beyond the ____ of duty.",
+    "example": "The nurse worked two extra shifts to comfort worried families, going well beyond the ____ of duty — no one had asked her to, but she wanted to help.",
     "answer": "call",
     "synonyms": [
       "summons",
@@ -14657,7 +14657,7 @@ export const harvestedEntries = [
     "theme": "character",
     "cluster": null,
     "meaning": "The quality of being open, honest, and direct in speech",
-    "example": "The new manager's ____ in admitting the company's mistakes during the meeting earned respect from the entire staff.",
+    "example": "The new manager's ____ — freely admitting the company's mistakes without any attempt to hide or downplay them — earned respect from the entire staff.",
     "answer": "candour",
     "synonyms": [
       "honesty",
@@ -14896,7 +14896,7 @@ export const harvestedEntries = [
     "theme": "actions",
     "cluster": null,
     "meaning": "to continue doing something",
-    "example": "Even though the rain started pouring, the coach told the players to ____ with their training session.",
+    "example": "Even though the rain started pouring midway through the session, the coach told the players to ____ regardless, without missing a single drill.",
     "answer": "carry on",
     "synonyms": [
       "continue",
@@ -14929,7 +14929,7 @@ export const harvestedEntries = [
     "theme": "disaster",
     "cluster": null,
     "meaning": "a person who is killed or injured in an accident or disaster",
-    "example": "Rescue teams rushed to pull survivors from the collapsed building, which caused dozens of ____ in the earthquake.",
+    "example": "Rescue teams rushed to pull survivors from the collapsed building, and the earthquake left dozens of ____ — some with minor cuts and bruises, others rushed to intensive care.",
     "answer": "casualties",
     "synonyms": [
       "victims",
@@ -15335,7 +15335,7 @@ export const harvestedEntries = [
     "theme": "degree",
     "cluster": null,
     "meaning": "mostly or mainly; more than anything else",
-    "example": "The delay in the school concert was ____ due to a technical fault with the sound system, though a few late arrivals also played a part.",
+    "example": "The delay in the school concert was ____ caused by a technical fault with the sound system rather than by the few late arrivals, who only added a few extra minutes.",
     "answer": "chiefly",
     "synonyms": [
       "mainly",
@@ -15529,7 +15529,7 @@ export const harvestedEntries = [
     "theme": "description",
     "cluster": null,
     "meaning": "very typical of its kind; well known and used or done in the usual way",
-    "example": "Whenever new students introduce themselves, the teacher always asks the ____ 'what is your favourite subject' question.",
+    "example": "When the class hamster escaped again during clean-up time, it was a ____ case of Mr Lim forgetting to shut the cage properly — this happens almost every single term.",
     "answer": "classic",
     "synonyms": [
       "typical",
@@ -15832,7 +15832,7 @@ export const harvestedEntries = [
     "theme": "thinking",
     "cluster": null,
     "meaning": "to think of or produce an idea, plan, or solution",
-    "example": "During the brainstorming session, the students managed to ____ with a creative plan to reduce food waste in the canteen.",
+    "example": "Struggling to think of a title for her science project alone at her desk, Xin Yi finally managed to ____ with 'The Vanishing Bees' after an hour of staring at a blank page.",
     "answer": "come up",
     "synonyms": [
       "think up",
@@ -15865,7 +15865,7 @@ export const harvestedEntries = [
     "theme": "speech",
     "cluster": null,
     "meaning": "To officially praise or express approval of someone for doing something well",
-    "example": "The young boy was ____ for his honesty after returning a lost wallet full of cash to its rightful owner.",
+    "example": "During the school assembly, the boy was officially ____ for his honesty after returning a lost wallet full of cash to its rightful owner.",
     "answer": "commended",
     "synonyms": [
       "praised",
@@ -15990,7 +15990,7 @@ export const harvestedEntries = [
     "theme": "behaviour",
     "cluster": null,
     "meaning": "so interesting or attractive that it is hard to stop or resist",
-    "example": "The documentary presented such a ____ argument for reducing plastic use that the whole class pledged to bring reusable bottles.",
+    "example": "The documentary's footage of turtles trapped in plastic was so ____ that the whole class found themselves unable to stop thinking about it, and everyone pledged to bring reusable bottles.",
     "answer": "compelling",
     "synonyms": [
       "irresistible",
@@ -16195,7 +16195,7 @@ export const harvestedEntries = [
     "theme": "emotions",
     "cluster": null,
     "meaning": "to calm oneself or make oneself feel ready",
-    "example": "Before walking onto the stage for her piano recital, Charlotte took a few deep breaths to ____ herself.",
+    "example": "Backstage, Charlotte's hands were trembling with fright before her piano recital, so she took a few deep breaths to ____ herself, willing her racing heartbeat to slow down.",
     "answer": "compose",
     "synonyms": [
       "steady",
@@ -16316,7 +16316,7 @@ export const harvestedEntries = [
     "theme": "knowledge",
     "cluster": null,
     "meaning": "To fully understand the meaning of something",
-    "example": "The puppy tilted its head and stared at the vet, almost as if it ____ the seriousness of its check-up.",
+    "example": "The puppy tilted its head at the vet's words, as if it actually ____ every instruction it was given.",
     "answer": "comprehended",
     "synonyms": [
       "grasp",
@@ -16403,7 +16403,7 @@ export const harvestedEntries = [
     "theme": "appearance",
     "cluster": null,
     "meaning": "to hide something so that it cannot be seen or noticed",
-    "example": "Farhan forced a smile to ____ his disappointment after losing the class election by just two votes.",
+    "example": "Mei quickly pulled up her hood to ____ her puffy, tear-streaked eyes before her classmates could see she had been crying in the toilet.",
     "answer": "conceal",
     "synonyms": [
       "hide",
@@ -16445,7 +16445,7 @@ export const harvestedEntries = [
     "theme": "secrecy & hiding",
     "cluster": null,
     "meaning": "hid something so that it could not be seen or found",
-    "example": "The undercover reporter ____ a small recorder inside her bag to capture the illegal transaction on tape.",
+    "example": "Inside the hidden lining of her bag, the undercover reporter had ____ a small recorder so that security guards patting her down would never find it.",
     "answer": "concealed",
     "synonyms": [
       "hid",
@@ -16526,7 +16526,7 @@ export const harvestedEntries = [
     "theme": "character",
     "cluster": null,
     "meaning": "to accept or allow behaviour that most people think is wrong, without criticising it",
-    "example": "The school made it clear that bullying of any kind would never be ____, no matter who was involved.",
+    "example": "The school made clear that even quietly turning a blind eye to bullying would never be ____, and teachers were expected to report every incident immediately.",
     "answer": "condoned",
     "synonyms": [
       "excused",
@@ -17462,7 +17462,7 @@ export const harvestedEntries = [
     "theme": "emotions",
     "cluster": null,
     "meaning": "made to feel nervous or less confident by something difficult or frightening",
-    "example": "On her first day at the tuition centre, the shy new student felt ____ by the loud and confident older students seated around her, and did not dare speak up.",
+    "example": "At recess, the school bully stepped right up to Ethan, cracked his knuckles, and glared down at him without blinking; Ethan felt so ____ that he backed away without saying a word.",
     "answer": "intimidated",
     "synonyms": [
       "frightened off",
@@ -17578,7 +17578,7 @@ export const harvestedEntries = [
     "theme": "knowledge",
     "cluster": null,
     "meaning": "To prove that something believed to be true is actually false or exaggerated",
-    "example": "The science teacher used a simple experiment to ____ the popular myth that goldfish only have a three-second memory.",
+    "example": "Goldfish are often unfairly said to have only a three-second memory. The science teacher used a simple experiment to ____ this popular misconception, showing that the fish could actually remember a maze weeks later.",
     "answer": "debunk",
     "synonyms": [
       "disprove",
@@ -17824,7 +17824,7 @@ export const harvestedEntries = [
     "theme": "action",
     "cluster": null,
     "meaning": "To get or obtain something from a source",
-    "example": "Many volunteers say they ____ great satisfaction from helping the elderly in their neighbourhood.",
+    "example": "Because the shop is right beside the MRT station, the owner ____ great benefit from the steady stream of commuters who walk past every day.",
     "answer": "derive",
     "synonyms": [
       "reap",
@@ -17987,7 +17987,7 @@ export const harvestedEntries = [
     "theme": "health",
     "cluster": null,
     "meaning": "to become worse over time",
-    "example": "Grandpa's hearing ____ steadily over the years until he finally agreed to wear a hearing aid.",
+    "example": "Left exposed to the salty sea air for years, the wooden furniture at the old beach chalet ____ badly, with the legs turning soft and crumbly.",
     "answer": "deteriorated",
     "synonyms": [
       "worsened",
@@ -18029,7 +18029,7 @@ export const harvestedEntries = [
     "theme": "health",
     "cluster": null,
     "meaning": "becoming progressively worse over time",
-    "example": "The old wooden bridge has been ____ for years, with more planks cracking every rainy season.",
+    "example": "The old wooden bridge has been ____ for years — though no plank has actually broken off yet, it creaks louder and sags lower every time a heavy vehicle crosses it.",
     "answer": "deteriorating",
     "synonyms": [
       "worsening",
@@ -18071,7 +18071,7 @@ export const harvestedEntries = [
     "theme": "health",
     "cluster": null,
     "meaning": "the process of becoming worse or of lesser quality over time",
-    "example": "Without regular maintenance, the engineers warned there would be further ____ of the ageing flood barriers.",
+    "example": "Without regular maintenance, the engineers warned that there would be further ____ of the ageing flood barriers, whose paint was already peeling and metal frame already rusting, though the structure itself remained sound.",
     "answer": "deterioration",
     "synonyms": [
       "worsening",
@@ -18775,7 +18775,7 @@ export const harvestedEntries = [
     "theme": "competition",
     "cluster": null,
     "meaning": "to prevent someone from taking part in something because they have broken a rule",
-    "example": "The runner was ____ from the relay race after it was discovered she had stepped out of her lane.",
+    "example": "Even though she crossed the finish line first, the runner was ____ from the relay race after judges discovered she had stepped out of her lane.",
     "answer": "disqualified",
     "synonyms": [
       "barred",
@@ -18813,7 +18813,7 @@ export const harvestedEntries = [
     "theme": "communication",
     "cluster": null,
     "meaning": "to spread or share information widely to many people",
-    "example": "The principal ____ details of the school's new recycling programme through a letter sent home to every family.",
+    "example": "The Ministry of Education ____ information about the new school recycling guidelines nationwide through radio announcements, television adverts, and articles in every major newspaper.",
     "answer": "disseminated",
     "synonyms": [
       "circulate",
@@ -19062,7 +19062,7 @@ export const harvestedEntries = [
     "theme": "society",
     "cluster": null,
     "meaning": "the variety of different types of things, people, or cultures that exist together",
-    "example": "The food fair at the community centre celebrated the ____ of cultures in our estate, with stalls selling dishes from every corner of Asia.",
+    "example": "At the estate's Racial Harmony Day fair, the stalls celebrated the community's cultural ____, with each stall proudly keeping its own distinct customs instead of blending them together.",
     "answer": "diversity",
     "synonyms": [
       "variety",
@@ -19151,7 +19151,7 @@ export const harvestedEntries = [
     "theme": "speech",
     "cluster": null,
     "meaning": "to reveal or share secret or private information with others",
-    "example": "Sworn to secrecy by his older sister, Ethan would not ____ a single detail about her surprise engagement party.",
+    "example": "Ethan refused to ____ the exact date of his sister's surprise engagement party, no matter how many times his cousins begged for a hint.",
     "answer": "divulge",
     "synonyms": [
       "reveal",
@@ -19191,7 +19191,7 @@ export const harvestedEntries = [
     "theme": "work",
     "cluster": null,
     "meaning": "to increase your effort or commitment to something",
-    "example": "After the disappointing rehearsal, the drama club decided to ____ on their practice sessions before the big performance.",
+    "example": "Even though the judges criticised their routine harshly, the drama club refused to give up and instead decided to ____ on their commitment to the show, rehearsing even harder than before.",
     "answer": "double down",
     "synonyms": [
       "intensify",
@@ -19224,7 +19224,7 @@ export const harvestedEntries = [
     "theme": "degree",
     "cluster": null,
     "meaning": "In a very significant and extreme way; by a large amount",
-    "example": "After moving to the countryside, the family's daily routine changed ____ — no more traffic jams, just fresh air and quiet mornings.",
+    "example": "The way pupils learn today differs ____ from the way their grandparents learned decades ago, with tablets and online videos replacing chalk and blackboards.",
     "answer": "radically",
     "synonyms": [
       "dramatically",
@@ -19262,7 +19262,7 @@ export const harvestedEntries = [
     "theme": "opinions and views",
     "cluster": null,
     "meaning": "a disadvantage or problem that makes something less good",
-    "example": "The only ____ of the new bus route is that it takes ten minutes longer than the old one.",
+    "example": "Every transport option has its advantages, but the one ____ of taking the night bus is that it comes only once an hour, so you might have a long wait.",
     "answer": "drawback",
     "synonyms": [
       "disadvantage",
@@ -19295,7 +19295,7 @@ export const harvestedEntries = [
     "theme": "movement",
     "cluster": null,
     "meaning": "To attract or bring people to a place or event",
-    "example": "The new bubble tea shop at the corner has been ____ long queues of customers every weekend since it opened.",
+    "example": "Word has spread so fast that the new bubble tea shop has been ____ customers from neighbourhoods across the whole town, with queues forming even before it opens each morning.",
     "answer": "attracting",
     "synonyms": [
       "bringing in",
@@ -19452,7 +19452,7 @@ export const harvestedEntries = [
     "theme": "communication",
     "cluster": null,
     "meaning": "the ability to express ideas clearly and persuasively in spoken or written language",
-    "example": "The class president's speech was so full of ____ that even the strictest teachers were persuaded to approve the new recycling project.",
+    "example": "The class president spoke with such ____ that her logical, persuasive arguments won over even the strictest teachers, who approved the new recycling project on the spot.",
     "answer": "eloquence",
     "synonyms": [
       "articulation",
@@ -19493,7 +19493,7 @@ export const harvestedEntries = [
     "theme": "movement",
     "cluster": null,
     "meaning": "To begin a new and important activity, journey, or experience",
-    "example": "Last June, the Lim family ____ an ambitious journey across New Zealand that would take them through lakes, forests and mountains over three weeks.",
+    "example": "Last June, the Lim family ____ an ambitious journey across New Zealand, setting off from Auckland and spending the next three weeks driving through lakes, forests and mountains.",
     "answer": "embarked on",
     "synonyms": [
       "set out on",
@@ -19655,7 +19655,7 @@ export const harvestedEntries = [
     "theme": "entertainment",
     "cluster": null,
     "meaning": "interesting and enjoyable in a way that keeps your attention",
-    "example": "Mr Tan's history lessons are so ____ that even pupils who normally dislike the subject stay glued to their seats.",
+    "example": "Mr Tan's history lessons are so ____ that even pupils who normally dislike the subject find themselves eager to know what happens next in each story he tells.",
     "answer": "engaging",
     "synonyms": [
       "captivating",
@@ -19945,7 +19945,7 @@ export const harvestedEntries = [
     "theme": "character",
     "cluster": null,
     "meaning": "greatly respected and admired by others",
-    "example": "Among the ____ guests at the award ceremony was a scientist who had spent decades researching cures for rare diseases.",
+    "example": "Among the ____ guests whom the mayor personally welcomed with a bow of deep respect was a scientist who had spent decades researching cures for rare diseases.",
     "answer": "esteemed",
     "synonyms": [
       "respected",
@@ -19987,7 +19987,7 @@ export const harvestedEntries = [
     "theme": "data and facts",
     "cluster": null,
     "meaning": "to make a careful guess about the amount, size or value of something",
-    "example": "The cost of renovating the old community hall is ____ at about two hundred thousand dollars.",
+    "example": "After inspecting the crumbling walls, the quantity surveyor calculated that the renovation cost is ____ at about two hundred thousand dollars, though this could change once work begins.",
     "answer": "estimated",
     "synonyms": [
       "calculated",
@@ -20062,7 +20062,7 @@ export const harvestedEntries = [
     "theme": "change",
     "cluster": null,
     "meaning": "to gradually develop or change over a long period of time",
-    "example": "Over the past fifty years, the fishing village has ____ into a bustling town with tall buildings and busy roads.",
+    "example": "Over the past fifty years, the quiet fishing village has ____ into a congested town, with the mangroves replaced by tall buildings and the once-quiet lanes now clogged with traffic.",
     "answer": "changed",
     "synonyms": [],
     "confusables": [
@@ -20188,7 +20188,7 @@ export const harvestedEntries = [
     "theme": "health",
     "cluster": null,
     "meaning": "great physical or mental effort put into doing something",
-    "example": "By the time he reached the summit, Farid's legs were trembling from the sheer physical ____ of the climb.",
+    "example": "Drenched in sweat and trembling all over, Farid felt the full physical ____ of the climb, even though he had never once doubted he would reach the summit.",
     "answer": "exertion",
     "synonyms": [
       "effort",
@@ -20547,7 +20547,7 @@ export const harvestedEntries = [
     "theme": "trends",
     "cluster": null,
     "meaning": "a short-lived craze or trend that people are very interested in for only a brief time",
-    "example": "Many classmates thought fidget spinners were just a passing ____, and true enough, hardly anyone plays with them now.",
+    "example": "Many classmates were obsessed with fidget spinners for a few months, insisting they were the best toy ever, but teachers correctly guessed it was just a passing ____ that would soon fade from the playground.",
     "answer": "fad",
     "synonyms": [
       "craze",
@@ -20585,7 +20585,7 @@ export const harvestedEntries = [
     "theme": "judgement",
     "cluster": null,
     "meaning": "to be tricked or deceived by someone's scheme or lie",
-    "example": "Aunt Mei couldn't believe she had ____ the caller's fake prize scam and almost handed over her bank details.",
+    "example": "Aunt Mei couldn't believe she had ____ the caller's made-up story about winning a prize, and had almost handed over her bank account number before hanging up in a panic.",
     "answer": "fallen for",
     "synonyms": [
       "be tricked by",
@@ -20747,7 +20747,7 @@ export const harvestedEntries = [
     "theme": "health",
     "cluster": null,
     "meaning": "A death caused by an accident or disaster",
-    "example": "The news reported three ____ from the highway pile-up, though several other drivers walked away with only minor injuries.",
+    "example": "The highway pile-up claimed three ____, police confirmed, while several other drivers walked away with only minor injuries.",
     "answer": "fatalities",
     "synonyms": [
       "deaths",
@@ -20789,7 +20789,7 @@ export const harvestedEntries = [
     "theme": "understanding",
     "cluster": null,
     "meaning": "to understand something that is difficult or puzzling",
-    "example": "No matter how hard she tried, Priya could not ____ why her best friend had suddenly stopped talking to her.",
+    "example": "Priya reread every one of their old text messages, searching for a clue, but she still could not ____ why her best friend had suddenly stopped talking to her.",
     "answer": "fathom",
     "synonyms": [
       "understand",
@@ -30116,7 +30116,7 @@ export const harvestedEntries = [
     "theme": "emotion",
     "cluster": null,
     "meaning": "To increase or lift something, such as someone's spirits or confidence",
-    "example": "Winning the friendly match against their rival school greatly ____ team morale ahead of the championship finals.",
+    "example": "After a long losing streak, the surprise win against their rival school finally ____ team morale, giving the players a much-needed lift ahead of the championship finals.",
     "answer": "raised",
     "synonyms": [
       "boosted",
