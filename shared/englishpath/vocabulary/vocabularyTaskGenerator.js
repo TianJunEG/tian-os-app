@@ -1,4 +1,4 @@
-// EnglishPath · Vocabulary Builder — task generator
+// ELPath · Vocabulary Builder — task generator
 // ----------------------------------------------------------------------------
 // Turns a single word entry into a concrete, renderable exercise for a given
 // task type. Distractors are drawn first from the word's *real exam confusables*

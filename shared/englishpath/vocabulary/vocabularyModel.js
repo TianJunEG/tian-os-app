@@ -1,4 +1,4 @@
-// EnglishPath · Vocabulary Builder — domain model
+// ELPath · Vocabulary Builder — domain model
 // ----------------------------------------------------------------------------
 // The P6 (PSLE) English paper has three vocabulary-heavy sections that students
 // routinely lose marks on for one root reason: they do not know what the words

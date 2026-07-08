@@ -1,4 +1,4 @@
-// EnglishPath · Vocabulary Builder — public surface
+// ELPath · Vocabulary Builder — public surface
 //
 // A self-contained, framework-agnostic adaptive vocabulary engine for the P6
 // (PSLE) English vocabulary sections. Import this from the backend (sessions /

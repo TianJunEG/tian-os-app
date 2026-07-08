@@ -11,7 +11,7 @@ import {
 } from '../../../../../shared/englishpath/vocabulary/index.js';
 import { loadVocabState, resetVocabState } from './vocabStore';
 
-// EnglishPath · Vocabulary Builder — home. Shows exam-section readiness and the
+// ELPath · Vocabulary Builder — home. Shows exam-section readiness and the
 // learning ladder, and starts an adaptive practice session. Runs entirely on the
 // client engine (shared/englishpath) with progress in localStorage.
 export default function VocabHome() {

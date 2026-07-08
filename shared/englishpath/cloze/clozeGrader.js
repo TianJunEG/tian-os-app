@@ -1,4 +1,4 @@
-// EnglishPath · Comprehension Cloze — grader
+// ELPath · Comprehension Cloze — grader
 // ----------------------------------------------------------------------------
 // Open cloze ("fill in each blank with a suitable word") has no options — the
 // student types a word — and most blanks accept MORE THAN ONE right answer. So

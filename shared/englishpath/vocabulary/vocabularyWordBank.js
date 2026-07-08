@@ -1,4 +1,4 @@
-// EnglishPath · Vocabulary Builder — seed word bank
+// ELPath · Vocabulary Builder — seed word bank
 // ----------------------------------------------------------------------------
 // Every entry here was mined from real P6 (PSLE) Prelim/SA papers in the test
 // paper archive. The `confusables` are the *actual* multiple-choice distractors

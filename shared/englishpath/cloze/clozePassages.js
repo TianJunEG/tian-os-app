@@ -1,4 +1,4 @@
-// EnglishPath · Comprehension Cloze — passage bank (prototype)
+// ELPath · Comprehension Cloze — passage bank (prototype)
 // ----------------------------------------------------------------------------
 // One real P6 open-cloze passage, marked up for the grader. `{n}` in `text` is
 // blank n; each blank carries:

@@ -1,4 +1,4 @@
-// EnglishPath · Vocabulary Builder — adaptive engine
+// ELPath · Vocabulary Builder — adaptive engine
 // ----------------------------------------------------------------------------
 // Decides what to put in front of the student next and tracks how well they
 // know each word. Two ideas drive it:
