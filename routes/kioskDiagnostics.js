@@ -9,7 +9,9 @@ import Mistake from '../models/Mistake.js';
 import {
   startAdaptiveDiagnostic,
   answerAdaptiveDiagnostic,
+  scrubQuestionForClient,
 } from '../services/diagnostics/diagnosticRuntime.js';
+import { getDiagnosticDomain } from '../services/diagnostics/diagnosticDomainRegistry.js';
 import { ensureQuestionsForSkills, clientQuestion } from './practice.js';
 import { selectSimilarQuestions } from '../utils/worksheetGen.js';
 import { isCorrectWithContext } from '../utils/answerCheck.js';
@@ -253,6 +255,8 @@ router.post('/sessions/:code/practice-begin', asyncHandler(async (req, res) => {
     mode: 'practice',
     feature: 'Class Practice Kiosk',
     skillIds: [skillId],
+    // Persist the fixed set's order so a mid-set refresh rehydrates the same items.
+    questionIds: questions.map((q) => q._id),
     status: 'active',
   });
 
@@ -361,6 +365,66 @@ router.post('/practice/:sessionId/complete', requireAttemptToken, asyncHandler(a
   );
 
   return res.json({ summary: { total, correct, scorePct } });
+}));
+
+// RESUME — rehydrate an in-progress attempt after a mid-attempt page refresh
+// (both modes). The attempt token lives in the iPad's sessionStorage so it
+// survives a reload; this returns the current question (diagnostic) or the fixed
+// item set + how many are already answered (practice), so the student continues
+// where they left off instead of being dumped back to the name list.
+router.get('/attempt/:sessionId/resume', requireAttemptToken, asyncHandler(async (req, res) => {
+  const ctx = await loadAttempt(req, res);
+  if (!ctx) return undefined;
+  const classSession = await ClassDiagnosticSession.findById(req.kiosk.cds).lean();
+  const type = classSession?.type || 'diagnostic';
+
+  if (type === 'practice') {
+    const ps = await PracticeSession.findById(ctx.sessionId).lean();
+    if (!ps) return res.status(404).json({ error: 'Practice attempt not found.' });
+    if (ps.status === 'completed') return res.json({ mode: 'practice', sessionComplete: true });
+    const orderedIds = (ps.questionIds || []).map(String);
+    const qDocs = await Question.find({ _id: { $in: orderedIds } }).populate('skillId', 'name topicId');
+    const byId = new Map(qDocs.map((q) => [String(q._id), q]));
+    const items = orderedIds.map((id) => byId.get(id)).filter(Boolean).map(clientQuestion);
+    const answeredIds = new Set(
+      (await PracticeAttempt.find({ sessionId: ctx.sessionId }).select('questionId').lean())
+        .map((a) => String(a.questionId)),
+    );
+    // The kiosk practice walk is strictly linear, so the answered count is the
+    // index to resume at (no answer leaked — items[] never carries the answer).
+    const answeredCount = items.filter((it) => answeredIds.has(String(it.questionId))).length;
+    return res.json({
+      mode: 'practice',
+      sessionComplete: false,
+      items,
+      answeredCount,
+      skillName: classSession?.practiceConfig?.skillName || '',
+    });
+  }
+
+  // Diagnostic — return the question the student is currently on (server-side
+  // currentQuestionId), scrubbed of its answer.
+  const diag = await MathPathDiagnosticSession.findOne({ diagnosticSessionId: ctx.sessionId }).lean();
+  if (!diag) return res.status(404).json({ error: 'Diagnostic attempt not found.' });
+  if (diag.status === 'completed') return res.json({ mode: 'diagnostic', sessionComplete: true });
+  let currentQuestion = null;
+  if (diag.currentQuestionId) {
+    try {
+      const domain = getDiagnosticDomain({ subjectId: diag.subjectId || 'math', domainId: diag.domainId });
+      const qDoc = await domain.getQuestionById(diag.currentQuestionId);
+      if (qDoc) currentQuestion = scrubQuestionForClient(domain.normaliseQuestion(qDoc, qDoc.skillId));
+    } catch (_) { /* fall through: client sends them back to the name list */ }
+  }
+  const adaptiveState = diag.adaptiveState || {};
+  return res.json({
+    mode: 'diagnostic',
+    sessionComplete: false,
+    currentQuestion,
+    progress: {
+      answeredCount: (adaptiveState.responses || []).length,
+      estimatedQuestionCount: adaptiveState.maxQuestions || 10,
+    },
+  });
 }));
 
 export default router;

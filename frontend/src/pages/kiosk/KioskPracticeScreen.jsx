@@ -15,21 +15,58 @@ export default function KioskPracticeScreen() {
   const location = useLocation();
 
   const studentName = location.state?.studentName || '';
-  const skillName = location.state?.skillName || '';
-  const items = useMemo(() => location.state?.items || [], [location.state]);
+  const [skillName, setSkillName] = useState(location.state?.skillName || '');
+  const [items, setItems] = useState(() => location.state?.items || []);
 
   const [index, setIndex] = useState(0);
   const [answer, setAnswer] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  // A mid-set refresh loses the in-memory items, but the attempt token survives in
+  // sessionStorage — so rehydrate the fixed set + resume at the first unanswered
+  // item rather than dumping the student back to the name list.
+  const [resuming, setResuming] = useState(() => !(location.state?.items?.length) && Boolean(getAttemptToken()));
+  const [resumeFailed, setResumeFailed] = useState(false);
   const startedAt = useRef(Date.now());
 
   const question = items[index] || null;
-  // If the page is refreshed mid-set we lose the in-memory items (no rehydrate
-  // endpoint in P1). Send them back to the name list.
-  const lostState = !items.length && !getAttemptToken();
+  // Only truly lost if the token is gone too, or the resume attempt failed.
+  const lostState = (!items.length && !getAttemptToken()) || resumeFailed;
 
   useEffect(() => { startedAt.current = Date.now(); setAnswer(''); }, [index]);
+
+  useEffect(() => {
+    if (!resuming) return undefined;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await kioskAPI.resume(sessionId);
+        if (cancelled) return;
+        if (data?.sessionComplete) {
+          navigate(`/kiosk/${code}/result/${sessionId}`, { state: { studentName, code }, replace: true });
+          return;
+        }
+        const resumedItems = data?.items || [];
+        if (!resumedItems.length) { clearAttempt(); setResumeFailed(true); return; }
+        setItems(resumedItems);
+        if (data.skillName) setSkillName(data.skillName);
+        const answered = data.answeredCount || 0;
+        if (answered >= resumedItems.length) {
+          // All answered but the completion POST never landed — finish it now.
+          const { data: done } = await kioskAPI.practiceComplete(sessionId);
+          if (cancelled) return;
+          navigate(`/kiosk/${code}/result/${sessionId}`, { state: { summary: done?.summary || null, studentName, code }, replace: true });
+          return;
+        }
+        setIndex(answered);
+      } catch {
+        if (!cancelled) { clearAttempt(); setResumeFailed(true); }
+      } finally {
+        if (!cancelled) setResuming(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [resuming, sessionId, code, navigate, studentName]);
 
   const choices = useMemo(
     () => (question?.type === 'mcq' ? [...new Set(question?.choices || [])] : []),

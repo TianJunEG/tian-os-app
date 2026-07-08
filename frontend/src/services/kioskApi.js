@@ -50,6 +50,8 @@ export const kioskAPI = {
   practiceBegin: (code, ref) => kioskClient.post(`/sessions/${encodeURIComponent(code)}/practice-begin`, { ref }),
   practiceAttempt: (sessionId, body) => kioskClient.post(`/practice/${sessionId}/attempt`, body),
   practiceComplete: (sessionId) => kioskClient.post(`/practice/${sessionId}/complete`, {}),
+  // Rehydrate an in-progress attempt after a page refresh (both modes).
+  resume: (sessionId) => kioskClient.get(`/attempt/${sessionId}/resume`),
 };
 
 export default kioskAPI;
