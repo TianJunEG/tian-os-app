@@ -110,8 +110,8 @@ export default function TestPaperSession() {
     return () => clearInterval(t);
   }, [secondsLeft, handleSubmit]);
 
-  if (loading) return <div className="flex items-center justify-center py-24 text-slate-400"><Loader2 className="animate-spin" /></div>;
-  if (error && !session) return <div className="mx-auto max-w-2xl px-4 py-10 text-center text-slate-600">{error}<div className="mt-4"><button className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white" onClick={() => navigate('/student/test-papers')}>Back to papers</button></div></div>;
+  if (loading) return <div className="flex items-center justify-center py-24 text-body-faint"><Loader2 className="animate-spin" /></div>;
+  if (error && !session) return <div className="mx-auto max-w-2xl px-4 py-10 text-center text-body-soft">{error}<div className="mt-4"><button className="rounded-xl bg-emerald px-4 py-2 text-sm font-semibold text-white" onClick={() => navigate('/student/test-papers')}>Back to papers</button></div></div>;
 
   const questions = session?.questions || [];
   const q = questions[index];
@@ -129,11 +129,11 @@ export default function TestPaperSession() {
       {/* Header: title, progress, timer */}
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="truncate text-base font-bold text-slate-900">{session?.title}</h1>
-          <p className="text-xs text-slate-500">Question {index + 1} of {questions.length} · {answeredCount} answered</p>
+          <h1 className="truncate text-base font-bold text-ink">{session?.title}</h1>
+          <p className="text-xs text-body-muted">Question {index + 1} of {questions.length} · {answeredCount} answered</p>
         </div>
         {secondsLeft != null && (
-          <div className={`inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-semibold ${secondsLeft <= 60 ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-700'}`}>
+          <div className={`inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-semibold ${secondsLeft <= 60 ? 'bg-danger-tint text-danger-deep' : 'bg-surface-raised text-body'}`}>
             <Clock size={15} /> {fmtTime(secondsLeft)}
           </div>
         )}
@@ -146,7 +146,7 @@ export default function TestPaperSession() {
           return (
             <button
               key={qq.order} type="button" onClick={() => setIndex(i)}
-              className={`h-7 w-7 rounded-md text-xs font-semibold ${i === index ? 'bg-indigo-600 text-white' : done ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}
+              className={`h-7 w-7 rounded-md text-xs font-semibold ${i === index ? 'bg-emerald text-white' : done ? 'bg-emerald-tint text-emerald' : 'bg-surface-raised text-body-muted'}`}
             >{i + 1}</button>
           );
         })}
@@ -154,30 +154,30 @@ export default function TestPaperSession() {
 
       {/* Current question */}
       {q && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="mb-2 flex items-center gap-2 text-xs text-slate-400">
-            <span className="rounded bg-slate-100 px-1.5 py-0.5 font-semibold">{q.paper === 2 ? 'Paper 2' : `Section ${q.section}`}</span>
+        <div className="rounded-2xl border border-line bg-surface-white p-5 shadow-rest">
+          <div className="mb-2 flex items-center gap-2 text-xs text-body-faint">
+            <span className="rounded bg-surface-raised px-1.5 py-0.5 font-semibold">{q.paper === 2 ? 'Paper 2' : `Section ${q.section}`}</span>
             <span>{q.marks} mark{q.marks === 1 ? '' : 's'}</span>
           </div>
 
           {/* Shared context for a multi-part word problem (shown on each part). */}
           {q.groupIntro && (
-            <p className="mb-3 rounded-xl bg-slate-50 px-3 py-2 text-base leading-relaxed text-slate-700"><MathText text={q.groupIntro} /></p>
+            <p className="mb-3 rounded-xl bg-surface-raised px-3 py-2 text-base leading-relaxed text-body"><MathText text={q.groupIntro} /></p>
           )}
 
           {q.diagram && canRenderQuestionDiagram({ diagram: q.diagram }) && (
             <div className="mb-4"><QuestionDiagram question={{ diagram: q.diagram }} /></div>
           )}
 
-          <p className="mb-4 text-lg leading-relaxed text-slate-900">
-            {q.partLabel && <span className="font-semibold text-slate-500">({q.partLabel})&nbsp;</span>}
+          <p className="mb-4 text-lg leading-relaxed text-ink">
+            {q.partLabel && <span className="font-semibold text-body-muted">({q.partLabel})&nbsp;</span>}
             <MathText text={q.stem} />
           </p>
 
           {q.type === 'shade_grid' && q.grid ? (
             <div>
               <SymmetryShadeGrid grid={q.grid} value={answers[q.order] || ''} onChange={(v) => setAnswer(q.order, v)} />
-              <p className="mt-2 text-xs text-slate-400">Tap a square to shade it; tap again to clear.</p>
+              <p className="mt-2 text-xs text-body-faint">Tap a square to shade it; tap again to clear.</p>
             </div>
           ) : q.type === 'mcq' && Array.isArray(q.choices) && q.choices.length > 0 ? (
             <div className="space-y-2">
@@ -186,7 +186,7 @@ export default function TestPaperSession() {
                 return (
                   <button
                     key={choice} type="button" onClick={() => setAnswer(q.order, choice)}
-                    className={`block w-full rounded-xl border px-4 py-3 text-left text-base font-medium transition ${selected ? 'border-indigo-500 bg-indigo-50 text-indigo-800' : 'border-slate-200 bg-white text-slate-800 hover:border-slate-300'}`}
+                    className={`block w-full rounded-xl border px-4 py-3 text-left text-base font-medium transition ${selected ? 'border-emerald bg-emerald-tint text-emerald' : 'border-line bg-surface-white text-ink hover:border-line-strong'}`}
                   ><MathText text={choice} /></button>
                 );
               })}
@@ -198,15 +198,15 @@ export default function TestPaperSession() {
                 const isPrefix = /^(\$|s\$|rm|£|€)$/i.test(unit);
                 return (
                   <div className="relative flex items-center">
-                    {unit && isPrefix && <span className="pointer-events-none absolute left-4 text-lg font-semibold text-slate-400">{unit}</span>}
+                    {unit && isPrefix && <span className="pointer-events-none absolute left-4 text-lg font-semibold text-body-faint">{unit}</span>}
                     <input
                       value={answers[q.order] ?? ''}
                       onChange={(e) => setAnswer(q.order, e.target.value)}
                       inputMode="text"
                       placeholder="Type your answer"
-                      className={`w-full rounded-xl border border-slate-200 py-3 font-mono text-lg text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 ${unit && isPrefix ? 'pl-10 pr-4' : unit ? 'pl-4 pr-14' : 'px-4'}`}
+                      className={`w-full rounded-xl border border-line py-3 font-mono text-lg text-ink focus:border-emerald focus:outline-none focus:ring-2 focus:ring-emerald/20 ${unit && isPrefix ? 'pl-10 pr-4' : unit ? 'pl-4 pr-14' : 'px-4'}`}
                     />
-                    {unit && !isPrefix && <span className="pointer-events-none absolute right-4 text-lg font-semibold text-slate-400">{unit}</span>}
+                    {unit && !isPrefix && <span className="pointer-events-none absolute right-4 text-lg font-semibold text-body-faint">{unit}</span>}
                   </div>
                 );
               })()}
@@ -215,7 +215,7 @@ export default function TestPaperSession() {
 
           {/* Working space — students show their working; it's stored with the
               submission so a teacher can see they worked it out. */}
-          <div className="mt-5 border-t border-slate-100 pt-4">
+          <div className="mt-5 border-t border-line-soft pt-4">
             <WorkingPreviewCard
               workingImage={(workingByOrder[q.order] || {}).workingImage || ''}
               workingSubmitted={Boolean((workingByOrder[q.order] || {}).workingSubmitted)}
@@ -229,24 +229,24 @@ export default function TestPaperSession() {
         </div>
       )}
 
-      {error && <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-700">{error}</div>}
+      {error && <div className="mt-3 rounded-xl border border-danger-border bg-danger-tint px-4 py-2 text-sm text-danger-deep">{error}</div>}
 
       {/* Footer nav */}
       <div className="mt-5 flex items-center justify-between gap-3">
         <button
           type="button" onClick={() => setIndex((i) => Math.max(0, i - 1))} disabled={index === 0}
-          className="inline-flex items-center gap-1 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 disabled:opacity-40"
+          className="inline-flex items-center gap-1 rounded-xl border border-line px-4 py-2 text-sm font-semibold text-body-soft disabled:opacity-40"
         ><ChevronLeft size={16} /> Back</button>
 
         {index < questions.length - 1 ? (
           <button
             type="button" onClick={() => setIndex((i) => Math.min(questions.length - 1, i + 1))}
-            className="inline-flex items-center gap-1 rounded-xl bg-slate-800 px-5 py-2 text-sm font-semibold text-white hover:bg-slate-900"
+            className="inline-flex items-center gap-1 rounded-xl bg-ink px-5 py-2 text-sm font-semibold text-white hover:bg-ink-dash"
           >Next <ChevronRight size={16} /></button>
         ) : (
           <button
             type="button" onClick={confirmAndSubmit} disabled={submitting}
-            className="inline-flex items-center gap-1 rounded-xl bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+            className="inline-flex items-center gap-1 rounded-xl bg-emerald px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-deep disabled:opacity-50"
           >{submitting ? <Loader2 size={16} className="animate-spin" /> : <><Send size={15} /> Submit paper</>}</button>
         )}
       </div>
