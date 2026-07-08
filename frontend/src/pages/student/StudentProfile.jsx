@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  ArrowLeft,
   ArrowRight,
   ArrowUp,
   ArrowDown,
@@ -30,7 +29,7 @@ import {
 } from 'lucide-react';
 import { studentProfileAPI } from '../../services/api';
 import { getCelebrationStyle, setCelebrationStyle, celebrationPreview } from '../../utils/confetti';
-import { Badge, Button, Card, ErrorState, ProgressBar, Spinner } from '../../components/ui';
+import { Badge, BackLink, Button, Card, ErrorState, ProgressBar, Spinner } from '../../components/ui';
 import { getVisualModeStyles, isLowerPrimary, isSecondary, resolveStudentVisualMode, STUDENT_VISUAL_MODES } from '../../design-os/studentVisualMode';
 import { FEATURE_FLAGS } from '../../config/featureFlags';
 import { useAuth } from '../../context/AuthContext';
@@ -551,13 +550,7 @@ export default function StudentProfile() {
 
   return (
     <main className={`mx-auto max-w-6xl pb-6 ${visual.styles.page}`}>
-      <button
-        onClick={() => navigate('/student')}
-        className="mb-4 inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-semibold text-ink-500 transition-colors hover:bg-white/60 hover:text-ink-800"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back to Dashboard
-      </button>
+      <BackLink to="/student" className="mb-4">Back to Dashboard</BackLink>
 
       <section className="grid gap-4 lg:grid-cols-[1fr_22rem]">
         <Card className={`relative overflow-hidden p-5 sm:p-6 ${visual.styles.card}`}>

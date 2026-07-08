@@ -10,11 +10,11 @@ import {
   BarChart3,
   BookOpen,
   ChevronRight,
-  ArrowLeft,
   Sparkles,
 } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import MasteryStars from '../../../components/mathpath/learning/MasteryStars';
+import { BackLink } from '../../../components/ui';
 
 const DOMAIN_GROUPS = [
   {
@@ -187,12 +187,7 @@ export default function P5LearningPathPage() {
       <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="mb-6">
-          <button
-            onClick={() => navigate('/student/mathpath')}
-            className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-3 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back to MathPath
-          </button>
+          <BackLink to="/student/mathpath" className="mb-3">Back to MathPath</BackLink>
           <div className="flex items-start justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
