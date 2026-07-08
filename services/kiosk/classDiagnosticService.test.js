@@ -21,7 +21,8 @@ vi.mock('../../models/Skill.js', () => ({ default: skill }));
 // over them, matching the kiosk route test's pattern.
 let buildKioskStatus;
 let buildKioskStudentDetail;
-beforeAll(async () => { ({ buildKioskStatus, buildKioskStudentDetail } = await import('./classDiagnosticService.js')); });
+let buildKioskWeakGroups;
+beforeAll(async () => { ({ buildKioskStatus, buildKioskStudentDetail, buildKioskWeakGroups } = await import('./classDiagnosticService.js')); });
 
 const chain = (val) => ({ select: () => ({ lean: () => Promise.resolve(val) }) });
 
@@ -105,5 +106,41 @@ describe('buildKioskStudentDetail — diagnostic branch', () => {
     const d = await buildKioskStudentDetail({ _id: 'cds1', type: 'diagnostic', roster: [{ studentId: 's1', name: 'Aisha', status: 'in_progress' }] }, 's1');
     expect(d.started).toBe(false);
     expect(await buildKioskStudentDetail({ roster: [] }, 'sX')).toBeNull();
+  });
+});
+
+describe('buildKioskWeakGroups — post-session groups to pull', () => {
+  afterEach(() => vi.clearAllMocks());
+
+  it('groups finished students by shared weak skill, named + sorted by size', async () => {
+    const session = {
+      _id: 'cds1', type: 'diagnostic',
+      roster: [
+        { studentId: 's1', name: 'Aisha' },
+        { studentId: 's2', name: 'Ben' },
+        { studentId: 's3', name: 'Cara' },
+      ],
+    };
+    mpDiag.find.mockReturnValueOnce(chain([
+      { studentId: 's1', result: { readinessScore: 40, weakSkillIds: ['NS009', 'NS010'] }, completedAt: new Date() },
+      { studentId: 's2', result: { readinessScore: 60, weakSkillIds: ['NS009'] }, completedAt: new Date() },
+      { studentId: 's3', result: { readinessScore: 90, weakSkillIds: [] }, completedAt: new Date() }, // aced it
+    ]));
+    skill.find.mockReturnValueOnce(chain([
+      { name: 'Compare to 100', metadata: { mathPathSkillId: 'NS009' } },
+      { name: 'Compare to 100000', metadata: { mathPathSkillId: 'NS010' } },
+    ]));
+
+    const out = await buildKioskWeakGroups(session);
+    expect(out.analysedStudents).toBe(3);
+    // NS009 (2 students) sorts before NS010 (1 student)
+    expect(out.groups[0]).toEqual({ skillId: 'NS009', skillName: 'Compare to 100', studentCount: 2, students: ['Aisha', 'Ben'] });
+    expect(out.groups[1]).toEqual({ skillId: 'NS010', skillName: 'Compare to 100000', studentCount: 1, students: ['Aisha'] });
+  });
+
+  it('returns nothing for a practice-type session (no per-skill weakness)', async () => {
+    const out = await buildKioskWeakGroups({ _id: 'cds1', type: 'practice', roster: [] });
+    expect(out).toEqual({ groups: [], analysedStudents: 0 });
+    expect(mpDiag.find).not.toHaveBeenCalled();
   });
 });

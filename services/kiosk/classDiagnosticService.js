@@ -316,10 +316,54 @@ export async function buildKioskStudentDetail(session, studentId) {
   };
 }
 
+// Post-session grouping for the teacher: which SKILLS the class collectively
+// struggled with in THIS check-in and which students fall in each group — so the
+// teacher can pull a small group the moment the diagnostic ends. Diagnostic-only
+// (practice carries no per-skill weakness signal). Reuses the same
+// kiosk→MathPathDiagnosticSession link + skill-name resolution as the drill-down.
+export async function buildKioskWeakGroups(session) {
+  if ((session.type || 'diagnostic') !== 'diagnostic') {
+    return { groups: [], analysedStudents: 0 };
+  }
+  const nameByStudent = new Map((session.roster || []).map((r) => [String(r.studentId), r.name]));
+  const diags = await MathPathDiagnosticSession
+    .find({ sourceType: 'kiosk', sourceId: String(session._id) })
+    .select('studentId result completedAt').lean();
+
+  const bySkill = new Map(); // framework code -> Set<studentId>
+  let analysedStudents = 0;
+  for (const d of diags) {
+    const finished = Boolean(d.completedAt) || d.result?.readinessScore != null;
+    if (!finished) continue;
+    analysedStudents += 1;
+    const weak = d.result?.weakSkillIds || d.result?.weakSkills || [];
+    for (const code of Array.isArray(weak) ? weak : []) {
+      const key = String(code);
+      if (!key) continue;
+      if (!bySkill.has(key)) bySkill.set(key, new Set());
+      bySkill.get(key).add(String(d.studentId));
+    }
+  }
+
+  const nameByCode = await resolveSkillNames([...bySkill.keys()]);
+  const groups = [...bySkill.entries()]
+    .map(([code, studentSet]) => ({
+      skillId: code,
+      skillName: nameByCode.get(code) || code,
+      studentCount: studentSet.size,
+      students: [...studentSet].map((sid) => nameByStudent.get(sid) || 'Student').sort(),
+    }))
+    .sort((a, b) => b.studentCount - a.studentCount || a.skillName.localeCompare(b.skillName))
+    .slice(0, 8);
+
+  return { groups, analysedStudents };
+}
+
 export default {
   generateSessionCode,
   createClassDiagnosticSession,
   createClassPracticeSession,
   buildKioskStatus,
   buildKioskStudentDetail,
+  buildKioskWeakGroups,
 };

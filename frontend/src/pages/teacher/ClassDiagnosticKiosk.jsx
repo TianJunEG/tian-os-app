@@ -97,6 +97,7 @@ export default function ClassDiagnosticKiosk() {
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState('');
   const [detail, setDetail] = useState(null); // { studentId, name, loading, data, error }
+  const [weakGroups, setWeakGroups] = useState(null); // { groups, analysedStudents }
   const pollRef = useRef(null);
 
   // Load the diagnostic topics + any already-open session for this class.
@@ -155,6 +156,19 @@ export default function ClassDiagnosticKiosk() {
     pollRef.current = setInterval(() => poll(session.sessionId), 5000);
     return () => clearInterval(pollRef.current);
   }, [session?.sessionId, poll]);
+
+  // Post-session "groups to pull": refetch whenever another student finishes a
+  // diagnostic (completed count changes) — diagnostic sessions only.
+  const completedCount = status?.summary?.completed || 0;
+  const isDiagnosticSession = (status?.type || kioskType) !== 'practice';
+  useEffect(() => {
+    if (!session?.sessionId || !isDiagnosticSession || completedCount < 1) { setWeakGroups(null); return undefined; }
+    let cancelled = false;
+    teacherAPI.kioskWeakGroups(id, session.sessionId)
+      .then(({ data }) => { if (!cancelled) setWeakGroups(data); })
+      .catch(() => { if (!cancelled) setWeakGroups(null); });
+    return () => { cancelled = true; };
+  }, [id, session?.sessionId, isDiagnosticSession, completedCount]);
 
   async function start() {
     if (starting) return;
@@ -352,6 +366,30 @@ export default function ClassDiagnosticKiosk() {
               </div>
             )}
           </Card>
+
+          {isDiagnosticSession && weakGroups?.groups?.length > 0 && (
+            <Card className="p-5">
+              <div className="mb-3">
+                <h3 className="font-bold text-ink-800">Groups to pull</h3>
+                <p className="text-sm text-ink-500">
+                  Skills the class struggled with in this check-in ({weakGroups.analysedStudents} finished).
+                </p>
+              </div>
+              <div className="space-y-2">
+                {weakGroups.groups.map((g) => (
+                  <div key={g.skillId} className="rounded-lg bg-surface-muted px-3 py-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-medium text-ink-700">{g.skillName}</span>
+                      <span className="whitespace-nowrap text-sm font-semibold text-rose-600">
+                        {g.studentCount} {g.studentCount === 1 ? 'student' : 'students'}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-sm text-ink-500">{g.students.join(', ')}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
         </div>
       )}
 

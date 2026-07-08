@@ -27,7 +27,7 @@ import TestPaperSession from '../models/TestPaperSession.js';
 import { projectMarkedSitting } from '../utils/testPaperSitting.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 import ClassDiagnosticSession from '../models/ClassDiagnosticSession.js';
-import { createClassDiagnosticSession, createClassPracticeSession, buildKioskStatus, buildKioskStudentDetail } from '../services/kiosk/classDiagnosticService.js';
+import { createClassDiagnosticSession, createClassPracticeSession, buildKioskStatus, buildKioskStudentDetail, buildKioskWeakGroups } from '../services/kiosk/classDiagnosticService.js';
 import { getDiagnosticDomain } from '../services/diagnostics/diagnosticDomainRegistry.js';
 import { parseRosterCsv, importRoster, createStudentRecord } from '../services/school/schoolAdminService.js';
 import multer from 'multer';
@@ -1486,6 +1486,19 @@ router.get('/classes/:id/kiosk-sessions/:sessionId/students/:studentId', asyncHa
   const detail = await buildKioskStudentDetail(session, req.params.studentId);
   if (!detail) return res.status(404).json({ error: 'Student is not in this session.' });
   return res.json(detail);
+}));
+
+// Post-session weak groups: skills the class struggled with in this check-in,
+// with the students in each group — so the teacher can pull a small group.
+router.get('/classes/:id/kiosk-sessions/:sessionId/weak-groups', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return undefined;
+  const klass = await getOwnedClass(req);
+  if (!klass) return res.status(404).json({ error: 'Class not found.' });
+  const session = await ClassDiagnosticSession.findOne({
+    _id: req.params.sessionId, classId: klass._id, workspaceId: req.workspaceId,
+  });
+  if (!session) return res.status(404).json({ error: 'Session not found.' });
+  return res.json(await buildKioskWeakGroups(session));
 }));
 
 // A3. Close a session (blocks new joins; in-flight attempts can still finish).
