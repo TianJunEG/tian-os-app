@@ -90,7 +90,7 @@ const BUILDERS = {
   // GE008 — Angle properties of triangles
   [GE(8)]: (rng) => { const a = rint(rng, 30, 80), b = rint(rng, 30, 80); const c = 180 - a - b; return { prompt: `Two angles of a triangle are ${a}° and ${b}°. Find the third angle.`, answer: c, unit: '°', tag: 'geo/angle-sum-wrong', steps: ['The angles of a triangle add up to 180°.', `180 − ${a} − ${b} = ${c}°.`], distractors: [360 - a - b, a + b, 180 - a].filter((d) => d > 0 && d !== c), diagram: { kind: 'triangle', angles: [a, b, c] } }; },
   // GE009 — Quadrilateral types and properties
-  [GE(9)]: (rng) => { const q = pick(rng, [{ n: 'square', d: '4 equal sides and 4 right angles' }, { n: 'rectangle', d: '4 right angles and opposite sides equal' }, { n: 'rhombus', d: '4 equal sides but no right angles' }, { n: 'parallelogram', d: 'two pairs of parallel sides' }]); return { prompt: `Which quadrilateral has ${q.d}?`, answer: q.n, tag: 'geo/square-not-rectangle', steps: [`A ${q.n} has ${q.d}.`], choices: ['square', 'rectangle', 'rhombus', 'parallelogram'] }; },
+  [GE(9)]: (rng) => { const q = pick(rng, [{ n: 'square', d: '4 equal sides and 4 right angles' }, { n: 'rectangle', d: '4 right angles but not all four sides equal' }, { n: 'rhombus', d: '4 equal sides but no right angles' }, { n: 'parallelogram', d: 'two pairs of parallel sides, but no right angles and not all sides equal' }]); return { prompt: `Which quadrilateral has ${q.d}?`, answer: q.n, tag: 'geo/square-not-rectangle', steps: [`A ${q.n} has ${q.d}.`], choices: ['square', 'rectangle', 'rhombus', 'parallelogram'] }; },
   // GE010 — Angles in special quadrilaterals
   [GE(10)]: (rng) => { const a = rint(rng, 50, 130); const adj = 180 - a; return { prompt: `In a parallelogram, one angle is ${a}°. Find the angle next to it (co-interior).`, answer: adj, unit: '°', tag: 'geo/quad-angle-relationship', steps: ['Adjacent angles in a parallelogram add up to 180°.', `180 − ${a} = ${adj}°.`], distractors: [a, 360 - a, adj + 10].filter((d) => d > 0 && d !== adj), diagram: { kind: 'parallelogram', angle: a } }; },
   // GE011 — Line symmetry
@@ -252,7 +252,10 @@ export function checkGeometryAnswer({ question, studentResponse }) {
   const norm = (s) => String(s).trim().toLowerCase().replace(/\s+/g, ' ').replace(/ angle$/, '');
   const raw = norm(studentResponse), exp = norm(question.answer?.display ?? question.answer ?? '');
   if (raw === exp) return { correct: true };
-  const digits = (s) => s.replace(/[^0-9.\-]/g, '');
+  // Strip unit tokens (incl. ASCII exponents) first so the "2" in "cm2" isn't read
+  // as a digit — otherwise a correct "50 cm2" (502) is rejected vs "50 cm²" (50).
+  const stripUnits = (s) => s.replace(/cm³|cm3|cm²|cm2|m³|m3|m²|m2|cm|mm|km|m/g, '');
+  const digits = (s) => stripUnits(s).replace(/[^0-9.\-]/g, '');
   const a = digits(raw), b = digits(exp);
   if (b !== '' && a !== '') {
     if (a === b) return { correct: true };
