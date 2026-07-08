@@ -9,16 +9,9 @@
       content="Adaptive vocabulary practice for the Primary English paper — learn the words the exam tests, step by step."
     />
     <link rel="stylesheet" href="./styles.css" />
-    <!-- Apply the saved (or OS) theme before first paint to avoid a flash. -->
-    <script>
-      (function () {
-        try {
-          var saved = localStorage.getItem('vb.theme');
-          var dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
-          if (dark) document.documentElement.classList.add('dark');
-        } catch (e) {}
-      })();
-    </script>
+    <!-- Apply the saved (or OS) theme before first paint to avoid a flash.
+         External (not inline) so it runs under a strict script-src CSP. -->
+    <script src="./theme.js"></script>
   </head>
   <body>
     <header class="topbar">
@@ -31,6 +24,7 @@
     <main id="app" class="wrap"><p class="loading">Loading…</p></main>
     <footer class="foot">
       Standalone web app · runs entirely in your browser · no account needed.
+      <br /><a class="foot-link" id="to-cloze" href="./cloze.html">Try Comprehension Cloze →</a>
     </footer>
     <!--
       The whole app is this one module + the shared vocabulary engine. There is

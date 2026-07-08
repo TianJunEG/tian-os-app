@@ -137,9 +137,33 @@ if (fs.existsSync(path.join(clientDist, 'index.html'))) {
 // like frontend/dist) so its JS/CSS/ESM load cleanly and aren't rate-limited.
 const vocabAppDir = path.resolve(__dirname, 'englishpath-vocab-app');
 if (fs.existsSync(path.join(vocabAppDir, 'index.html'))) {
-  app.use('/vocab', express.static(vocabAppDir));
+  // ELPath is offered as a FREE, EMBEDDABLE practice resource (e.g. inside the
+  // BrightDesk tutoring marketplace). Relax the frame headers for these static
+  // routes ONLY, so partners can iframe them; every other route keeps helmet's
+  // default `frame-ancestors 'self'` + `X-Frame-Options: SAMEORIGIN`. Lock the
+  // embed down to specific partner origins by setting EMBED_FRAME_ANCESTORS
+  // (space-separated list of origins); defaults to '*' for an open resource.
+  const embedAncestors = (process.env.EMBED_FRAME_ANCESTORS || '*').trim();
+  const allowEmbed = (req, res, next) => {
+    res.removeHeader('X-Frame-Options');
+    res.setHeader('Content-Security-Policy', [
+      "default-src 'self'",
+      "base-uri 'self'",
+      "font-src 'self' https: data:",
+      "form-action 'self'",
+      "img-src 'self' data:",
+      "object-src 'none'",
+      "script-src 'self'",
+      "script-src-attr 'none'",
+      "style-src 'self' 'unsafe-inline'",
+      `frame-ancestors ${embedAncestors}`,
+      'upgrade-insecure-requests',
+    ].join(';'));
+    next();
+  };
+  app.use('/vocab', allowEmbed, express.static(vocabAppDir));
   // The self-contained EnglishPath engines the app's ES modules import from.
-  app.use('/shared/englishpath', express.static(path.resolve(__dirname, 'shared', 'englishpath')));
+  app.use('/shared/englishpath', allowEmbed, express.static(path.resolve(__dirname, 'shared', 'englishpath')));
 }
 
 // Allowed origins come from CORS_ORIGIN (comma-separated); defaults to local dev.

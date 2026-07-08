@@ -47,13 +47,15 @@
       .note { color:var(--muted); font-size:13px; }
       .picker { font:inherit; font-size:14px; padding:9px 11px; border:1px solid var(--line); border-radius:10px; background:var(--paper); color:var(--ink); max-width:100%; }
       .ptitle { font-size:15px; font-weight:700; margin:0 0 12px; color:var(--deep); }
+      .xlink { color:var(--emerald); text-decoration:none; font-weight:600; white-space:nowrap; }
+      .xlink:hover { text-decoration:underline; }
     </style>
   </head>
   <body>
     <div class="wrap">
-      <div class="eyebrow">ELPath · prototype</div>
+      <div class="eyebrow">ELPath · Comprehension Cloze</div>
       <h1>Comprehension Cloze</h1>
-      <p class="sub">Fill in each blank with a suitable word. Many blanks accept more than one right answer — the grader knows.</p>
+      <p class="sub">Fill in each blank with a suitable word. Many blanks accept more than one right answer — the grader knows. <a class="xlink" id="to-vocab" href="./index.html">Vocabulary practice →</a></p>
 
       <div class="row" style="margin:12px 0 0">
         <select id="picker" class="picker" aria-label="Choose a passage"></select>
@@ -71,91 +73,6 @@
       <div id="results"></div>
     </div>
 
-    <script type="module">
-      import { clozePassages, gradePassage, SKILL_LABELS } from '../shared/englishpath/cloze/index.js';
-
-      let passage = clozePassages[0];
-      const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
-
-      // Render the passage, turning each {n} into an input.
-      function render() {
-        document.getElementById('ptitle').textContent = passage.title;
-        const html = passage.text
-          .split('\n\n')
-          .map((para) => {
-            const body = esc(para).replace(/\{(\d+)\}/g, (_, n) =>
-              `<span class="blank" data-blank="${n}"><input data-n="${n}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="blank ${n}" /><span class="n">${n}</span></span>`
-            );
-            return `<p>${body}</p>`;
-          })
-          .join('');
-        document.getElementById('passage').innerHTML = html;
-      }
-
-      const answers = () => {
-        const a = {};
-        for (const inp of document.querySelectorAll('input[data-n]')) a[inp.dataset.n] = inp.value;
-        return a;
-      };
-      const clearState = () => document.querySelectorAll('.blank').forEach((b) => b.classList.remove('correct','typo','review'));
-
-      function check() {
-        clearState();
-        const res = gradePassage(answers(), passage);
-        for (const r of res.perBlank) {
-          const el = document.querySelector(`.blank[data-blank="${r.n}"]`);
-          if (r.verdict !== 'blank') el.classList.add(r.verdict);
-        }
-        showResults(res);
-      }
-
-      function showResults(res) {
-        const pct = Math.round((res.score / res.total) * 100);
-        const skills = Object.entries(res.bySkill).map(([k, s]) => {
-          const p = Math.round((s.correct / s.total) * 100);
-          return `<div class="skill"><div class="top"><b>${SKILL_LABELS[k] || k}</b><span>${s.correct}/${s.total}</span></div><div class="bar"><span style="width:${p}%"></span></div></div>`;
-        }).join('');
-        const fb = res.perBlank.map((r) => {
-          if (r.verdict === 'correct') return `<li><span class="mk ok">✓</span><span><b>${r.n}.</b> ${esc(document.querySelector(`input[data-n="${r.n}"]`).value)}</span></li>`;
-          if (r.verdict === 'typo') return `<li><span class="mk amber">≈</span><span><b>${r.n}.</b> ${esc(r.note)}</span></li>`;
-          if (r.verdict === 'blank') return `<li><span class="mk err">–</span><span><b>${r.n}.</b> left blank · <span class="acc">accepted: ${esc(r.accepted.join(', '))}</span></span></li>`;
-          return `<li><span class="mk err">✗</span><span><b>${r.n}.</b> you wrote “${esc(document.querySelector(`input[data-n="${r.n}"]`).value)}” · <span class="acc">accepted: ${esc(r.accepted.join(', '))}</span></span></li>`;
-        }).join('');
-        document.getElementById('results').innerHTML = `
-          <div class="card">
-            <div class="eyebrow">Your score</div>
-            <div class="score">${res.score} <small>/ ${res.total}</small></div>
-            <p class="note">${pct}% · a mark-worthy answer in green, a spelling slip in amber, and everything you missed with the answers that were accepted.</p>
-            <div style="margin-top:14px">${skills}</div>
-          </div>
-          <div class="card"><div class="eyebrow">Every blank</div><ul class="fb">${fb}</ul></div>`;
-      }
-
-      function reveal() {
-        clearState();
-        for (const b of passage.blanks) {
-          const inp = document.querySelector(`input[data-n="${b.n}"]`);
-          inp.value = b.accept[0];
-          document.querySelector(`.blank[data-blank="${b.n}"]`).classList.add('correct');
-        }
-        document.getElementById('results').innerHTML = '';
-      }
-
-      // Passage picker — browse all authored passages.
-      const picker = document.getElementById('picker');
-      picker.innerHTML = clozePassages
-        .map((p, i) => `<option value="${i}">${esc(p.title)}</option>`)
-        .join('');
-      picker.onchange = () => {
-        passage = clozePassages[+picker.value];
-        document.getElementById('results').innerHTML = '';
-        render();
-      };
-
-      render();
-      document.getElementById('check').onclick = check;
-      document.getElementById('reveal').onclick = reveal;
-      document.getElementById('reset').onclick = () => { document.querySelectorAll('input[data-n]').forEach((i) => (i.value = '')); clearState(); document.getElementById('results').innerHTML = ''; };
-    </script>
+    <script type="module" src="./cloze.js"></script>
   </body>
 </html>
