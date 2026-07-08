@@ -13,6 +13,7 @@ import Topic from '../models/Topic.js';
 import Skill from '../models/Skill.js';
 import MasteryRecord from '../models/MasteryRecord.js';
 import PracticeAttempt from '../models/PracticeAttempt.js';
+import PracticeSession from '../models/PracticeSession.js';
 import Question from '../models/Question.js';
 
 const DAY = 86400000;
@@ -120,8 +121,12 @@ describe('mastery engine round-trip (in-memory Mongo)', () => {
   it('analytics returns a clean dashboard structure', async () => {
     const sid = new mongoose.Types.ObjectId();
     const q = await Question.create({ subjectId: multFacts.topicId, topicId: multFacts.topicId, skillId: multFacts._id, stem: '3 x 4', answer: '12', misconceptionTag: 'mult/adjacent-fact', source: 'seed' });
+    // studentMathAnalytics scopes PracticeAttempts to MathPath sessions (so spelling
+    // etc. don't pollute math stats), so the attempts must belong to one — as they
+    // always do in production.
+    const session = await PracticeSession.create({ studentId: sid, workspaceId: new mongoose.Types.ObjectId(), module: 'MathPath', status: 'active' });
     for (const c of [true, true, false, true]) {
-      await PracticeAttempt.create({ sessionId: new mongoose.Types.ObjectId(), studentId: sid, questionId: q._id, skillId: multFacts._id, correct: c, timeMs: c ? 2200 : 9000 });
+      await PracticeAttempt.create({ sessionId: session._id, studentId: sid, questionId: q._id, skillId: multFacts._id, correct: c, timeMs: c ? 2200 : 9000 });
       await recordAttempt({ studentId: sid, skillId: multFacts._id, workspaceId: ws, correct: c, timeMs: c ? 2200 : 9000 });
     }
     const a = await studentMathAnalytics(sid, { sinceDays: 30 });
