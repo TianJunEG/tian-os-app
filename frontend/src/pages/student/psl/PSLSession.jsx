@@ -34,12 +34,11 @@ import HintLadder from './components/HintLadder';
 import ReasoningInput from './components/ReasoningInput';
 import WorkedSolutionWalkthrough from './components/WorkedSolutionWalkthrough';
 import FullScreenWorkingMode from '../../../components/learning/FullScreenWorkingMode';
+import { Card, Button, Spinner } from '../../../components/ui';
 import { getVoiceScripts } from './utils/voiceScripts';
 import { confettiBurst } from '../../../utils/confetti';
 import { playCorrect, playWin, isVoiceEnabled, setVoiceEnabled, speak } from '../../../utils/sound';
 import { getMascotVoice } from '../../../config/mascots';
-import { useAuth } from '../../../context/AuthContext';
-import { resolveStudentVisualMode, getVisualModeStyles } from '../../../design-os/studentVisualMode';
 
 const STEP_IDS = ['understand', 'identify_info', 'identify_question', 'plan', 'solve', 'check'];
 
@@ -66,8 +65,6 @@ function UnderstandStep({ choices, onSelect, selectedIndex }) {
 export default function PSLSession() {
   const { sessionId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const visualStyles = getVisualModeStyles(resolveStudentVisualMode(user || {}));
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
@@ -296,14 +293,7 @@ export default function PSLSession() {
   const getStepChoices = (stepId) =>
     currentProblem?.scaffoldSteps?.find((s) => s.stepId === stepId)?.choices || [];
 
-  if (loading) return (
-    <div className="bg-dot-grid min-h-screen">
-      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#dde1e8] border-t-[#d9892e]" />
-        <p className="text-sm font-medium" style={{ color: '#6b7585' }}>Loading session…</p>
-      </div>
-    </div>
-  );
+  if (loading) return <Spinner label="Loading session…" />;
   if (!currentProblem) return <div className="p-6 text-center text-ink-500">No problem available.</div>;
 
   const canSubmit = (() => {
@@ -395,8 +385,8 @@ export default function PSLSession() {
       case 'solve':
         return (
           <>
-            <div className="mb-4 rounded-xl border border-[#edf0f4] bg-[#fafbfc] p-3">
-              <p className="text-sm leading-relaxed" style={{ color: '#5a6675' }}>{currentProblem.storyText}</p>
+            <div className="mb-4 rounded-card border border-line bg-surface-raised p-3">
+              <p className="text-sm leading-relaxed text-body">{currentProblem.storyText}</p>
             </div>
             {(currentProblem.scaffoldSteps?.find((s) => s.stepId === 'plan')?.type || 'model') === 'model' && stepResponses.plan?.modelType && (
               <div className="mb-4">
@@ -445,8 +435,8 @@ export default function PSLSession() {
         return (
           <div className="flex flex-col gap-4">
             <div>
-              <h4 className="text-lg font-bold" style={{ color: '#232c39' }}>Ready?</h4>
-              <p className="mt-1 text-sm" style={{ color: '#5a6675' }}>
+              <h4 className="text-lg font-bold text-ink">Ready?</h4>
+              <p className="mt-1 text-sm text-body">
                 Take your time reading. We'll break it down together, one step at a time.
               </p>
             </div>
@@ -462,18 +452,18 @@ export default function PSLSession() {
         const expected = currentProblem?.scaffoldSteps?.find((s) => s.stepId === 'identify_info')?.expectedCount || 2;
         return (
           <div className="flex flex-col gap-3">
-            <p className="text-sm font-medium" style={{ color: '#5a6675' }}>
+            <p className="text-sm font-medium text-body">
               Tap the numbers in the story that you need to solve this problem.
             </p>
             {nums.map((n, i) => (
-              <div key={i} className="flex items-center gap-2 rounded-xl border p-3" style={{ background: '#f3faf6', borderColor: '#d8ece1' }}>
-                <span className="flex h-5 w-5 items-center justify-center rounded-full" style={{ background: '#1f8a5b', color: '#fff' }}>
+              <div key={i} className="flex items-center gap-2 rounded-btn border border-emerald-border bg-emerald-tint p-3">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald text-white">
                   <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6L9 17l-5-5" /></svg>
                 </span>
-                <span className="font-mono font-bold" style={{ color: '#232c39' }}>{n}</span>
+                <span className="font-mono font-bold text-ink">{n}</span>
               </div>
             ))}
-            <p className="mono-label" style={{ color: '#1f8a5b' }}>
+            <p className="text-xs font-semibold uppercase tracking-wide text-emerald">
               {nums.length} of {expected} clues found
             </p>
           </div>
@@ -490,7 +480,7 @@ export default function PSLSession() {
       case 'plan':
         return (
           <div className="flex flex-col gap-3">
-            <p className="text-sm" style={{ color: '#5a6675' }}>
+            <p className="text-sm text-body">
               Choose the right strategy and operation for this problem.
             </p>
             <a
@@ -507,8 +497,8 @@ export default function PSLSession() {
       case 'solve':
         return (
           <div className="flex flex-col gap-3">
-            <h4 className="text-base font-bold" style={{ color: '#232c39' }}>Your answer</h4>
-            <p className="text-xs" style={{ color: '#8a93a3' }}>
+            <h4 className="text-base font-bold text-ink">Your answer</h4>
+            <p className="text-xs text-body-muted">
               Stuck? Tap the helper for a hint.
             </p>
           </div>
@@ -531,18 +521,16 @@ export default function PSLSession() {
   };
 
   return (
-    <div className={`bg-dot-grid min-h-screen pb-8 ${visualStyles.page}`}>
-      <div className="mx-auto max-w-[1180px] px-3 pt-4 sm:px-6 sm:pt-6 lg:px-10">
-        {/* Step shell */}
-        <div className="step-shell !p-4 sm:!p-[22px_26px_26px]">
+    <>
+      <div className="mx-auto max-w-[1180px]">
           {/* Header meta row */}
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-3">
-              <span className="mono-label" style={{ color: '#8a93a3' }}>
+              <span className="text-xs font-semibold uppercase tracking-wide text-body-muted">
                 Problem {problemIndex + 1} of {totalProblems}
               </span>
               {streak >= 2 && (
-                <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold animate-bounce" style={{ background: '#fbf1e1', color: '#d9892e', animationDuration: '1s', animationIterationCount: 1 }}>
+                <span className="inline-flex animate-bounce items-center gap-1 rounded-pill bg-gold-tint px-2 py-0.5 text-[10px] font-bold text-gold-deep" style={{ animationDuration: '1s', animationIterationCount: 1 }}>
                   <Flame className="h-3 w-3" />
                   {streak}
                 </span>
@@ -553,22 +541,20 @@ export default function PSLSession() {
                 <button
                   type="button"
                   onClick={() => { setFeedback(null); setCurrentStepIdx(STEP_IDS.indexOf('solve')); }}
-                  className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium transition-colors"
-                  style={{ color: '#d9892e' }}
+                  className="flex items-center gap-1 rounded-btn px-2 py-1 text-xs font-medium text-gold-deep transition hover:bg-gold-tint"
                   aria-label="Skip to solving"
                 >
                   <span>Skip to solving</span>
                   <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 17l5-5-5-5M6 17l5-5-5-5" /></svg>
                 </button>
               )}
-              <span className="mono-label hidden sm:inline" style={{ color: '#d9892e' }}>
+              <span className="hidden text-xs font-semibold uppercase tracking-wide text-gold-deep sm:inline">
                 Step {currentStepIdx + 1} of {STEP_IDS.length}
               </span>
               <button
                 type="button"
                 onClick={handleReadAloud}
-                className="flex h-8 items-center justify-center gap-1 rounded-full px-2.5 transition-colors"
-                style={{ color: voice ? '#d9892e' : '#94A3B8', border: '1px solid', borderColor: voice ? '#fbf1e1' : '#e7eaef' }}
+                className={`flex h-8 items-center justify-center gap-1 rounded-pill border px-2.5 transition ${voice ? 'border-gold-tint text-gold-deep' : 'border-line text-body-faint'}`}
                 aria-label="Read this step aloud"
                 title="Read aloud"
               >
@@ -582,8 +568,7 @@ export default function PSLSession() {
                   try { await pslAPI.abandonSession(sessionId); } catch {}
                   navigate('/student/psl');
                 }}
-                className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium transition-colors"
-                style={{ color: '#8a93a3' }}
+                className="flex items-center gap-1 rounded-btn px-2 py-1 text-xs font-medium text-body-muted transition hover:bg-line-soft"
                 aria-label="Exit session — your progress on this problem will be lost"
                 title="Exit session"
               >
@@ -600,14 +585,7 @@ export default function PSLSession() {
               {STEP_SHORT_LABELS.map((label, i) => (
                 <span
                   key={label}
-                  className="flex-1 text-center"
-                  style={{
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: '10.5px',
-                    fontWeight: i === currentStepIdx ? 600 : 500,
-                    color: i === currentStepIdx ? '#d9892e' : i < currentStepIdx ? '#8a93a3' : '#c0c5cf',
-                    letterSpacing: '0.04em',
-                  }}
+                  className={`flex-1 text-center font-mono text-[10.5px] tracking-[0.04em] ${i === currentStepIdx ? 'font-semibold text-gold-deep' : i < currentStepIdx ? 'font-medium text-body-muted' : 'font-medium text-body-faint2'}`}
                 >
                   {label}
                 </span>
@@ -616,43 +594,39 @@ export default function PSLSession() {
           </div>
 
           {/* Two-column layout */}
-          <div className="psl-session-grid">
-            {/* Left column — notebook */}
-            <div className="ruled px-4 py-4 sm:px-[26px] sm:py-[22px] sm:pb-[26px] sm:min-h-[60vh]">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.6fr_1fr]">
+            {/* Left column — step content */}
+            <Card className="p-4 sm:p-6">
               {/* Toolbar row */}
               <div className="mb-4 flex items-center justify-between" style={{ position: 'relative', zIndex: 2 }}>
                 {!feedback && !completedSteps[currentStepId] && (
-                  <button
+                  <Button
                     type="button"
+                    variant="secondary"
+                    size="s"
+                    icon={HelpCircle}
                     onClick={handleRequestHint}
                     disabled={hintLoading}
-                    className="flex items-center gap-1.5 rounded-[10px] border px-3 py-2 text-[13.5px] font-semibold transition-colors disabled:opacity-40"
-                    style={{
-                      borderColor: hints.length > 0 ? '#d9892e' : '#fbf1e1',
-                      background: hints.length > 0 ? '#fbf1e1' : '#fff',
-                      color: '#d9892e',
-                    }}
                   >
-                    <HelpCircle className="h-4 w-4" />
                     {hintLoading ? '...' : hints.length > 0 ? 'Show Hints' : 'Hint'}
-                  </button>
+                  </Button>
                 )}
                 {hintError && (
-                  <span className="text-xs font-medium" style={{ color: '#d64545' }}>
+                  <span className="text-xs font-medium text-danger">
                     Couldn't load a hint. Try again.
                   </span>
                 )}
               </div>
 
               {/* Step label */}
-              <div className="mb-2" style={{ position: 'relative', zIndex: 2 }}>
-                <span className="mono-label" style={{ color: '#a8743a', fontSize: '11px', letterSpacing: '0.16em' }}>
+              <div className="relative z-[2] mb-2">
+                <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-gold-deep">
                   STEP {currentStepIdx + 1} &middot; {STEP_SHORT_LABELS[currentStepIdx]?.toUpperCase()}
                 </span>
               </div>
 
               {/* Step title */}
-              <h2 className="mb-3 text-lg sm:text-[23px] sm:mb-4" style={{ fontWeight: 600, lineHeight: 1.3, color: '#232c39', position: 'relative', zIndex: 2 }}>
+              <h2 className="relative z-[2] mb-3 text-lg font-semibold leading-snug text-ink sm:mb-4 sm:text-[23px]">
                 {STEP_LABELS[currentStepId]}
               </h2>
 
@@ -661,11 +635,11 @@ export default function PSLSession() {
                 {voiceScript && <MascotBubble text={voiceScript} />}
                 {renderNotebookContent()}
               </div>
-            </div>
+            </Card>
 
             {/* Right column — action panel */}
-            <div className="flex flex-col gap-3 sm:gap-4 pt-2 sm:pt-[18px]">
-              <div className="flex-1 rounded-2xl border bg-white p-4 sm:p-5" style={{ borderColor: '#e7eaef' }}>
+            <div className="flex flex-col gap-3 sm:gap-4">
+              <Card className="p-4 sm:p-5">
                 {renderActionPanel()}
 
                 {currentStepId !== 'check' && (
@@ -676,7 +650,7 @@ export default function PSLSession() {
                     defaultExpanded={currentStepId === 'understand' || currentStepId === 'plan'}
                   />
                 )}
-              </div>
+              </Card>
 
               {/* Hint Ladder modal */}
               {showHintLadder && hints.length > 0 && (
@@ -712,39 +686,38 @@ export default function PSLSession() {
               )}
 
               {canShowSolution && (
-                <button
+                <Button
                   type="button"
+                  variant="secondary"
+                  icon={BookOpen}
                   onClick={handleShowSolution}
                   disabled={solutionLoading}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-semibold transition-colors disabled:opacity-40"
-                  style={{ borderColor: '#cfe3f7', background: '#eaf3fc', color: '#2f80d8' }}
+                  className="w-full"
                 >
-                  <BookOpen className="h-4 w-4" />
                   {solutionLoading ? 'Loading...' : 'Show me how'}
-                </button>
+                </Button>
               )}
 
               {solutionError && (
-                <p className="text-center text-xs font-medium" style={{ color: '#d64545' }}>
+                <p className="text-center text-xs font-medium text-danger">
                   Couldn't load the solution. Try again.
                 </p>
               )}
 
               {/* Primary CTA */}
               {!feedback && (
-                <button
+                <Button
                   type="button"
                   onClick={handleSubmitStep}
                   disabled={!canSubmit || submitting}
-                  className="btn-gold w-full disabled:opacity-40"
+                  className="w-full"
                 >
                   {submitting ? 'Checking...' : currentStepId === 'understand' ? "I've read it" : 'Check'}
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
-                </button>
+                </Button>
               )}
             </div>
           </div>
-        </div>
       </div>
 
       {/* Full-screen scratchpad — shares the MathPath working canvas, so text
@@ -768,6 +741,6 @@ export default function PSLSession() {
           setShowScratchpad(false);
         }}
       />
-    </div>
+    </>
   );
 }
