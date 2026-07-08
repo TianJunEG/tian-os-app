@@ -38,7 +38,7 @@ export default function StoryPanel({ storyText = '', highlightMode = false, high
 
   return (
     <div>
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wider" style={{ color: '#d9892e' }}>Tap the numbers you need:</p>
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gold">Tap the numbers you need:</p>
       <p className="text-[15.5px] leading-[1.95] text-ink-700">
         {parts.map((part, i) => {
           if (part.type === 'number') {
@@ -48,11 +48,11 @@ export default function StoryPanel({ storyText = '', highlightMode = false, high
                 key={i}
                 type="button"
                 onClick={() => onToggleNumber?.(part.key)}
-                className="mx-0.5 inline-block min-h-[44px] min-w-[44px] rounded-lg px-2 py-1 font-mono font-bold transition-colors"
-                style={selected
-                  ? { background: '#d9892e', color: '#fff', boxShadow: '0 2px 6px rgba(217,137,46,0.3)' }
-                  : { background: 'rgba(255,255,255,0.6)', color: '#232c39', boxShadow: 'inset 0 0 0 1.5px #f0dcb8' }
-                }
+                className={`mx-0.5 inline-block min-h-[44px] min-w-[44px] rounded-lg px-2 py-1 font-mono font-bold transition-colors ${
+                  selected
+                    ? 'bg-gold text-white shadow-gold'
+                    : 'bg-surface-white/60 text-ink ring-[1.5px] ring-inset ring-gold-border'
+                }`}
               >
                 {part.value}
               </button>
