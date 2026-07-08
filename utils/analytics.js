@@ -207,13 +207,37 @@ export async function studentMathAnalytics(studentId, { sinceDays = 30 } = {}) {
   const since = new Date(Date.now() - sinceDays * 86400000);
   const records = await MasteryRecord.find({ studentId, module: 'MathPath' });
   const attempts = await PracticeAttempt.find({ studentId, createdAt: { $gte: since } });
+  // MathPath DOMAIN practice + fluency write MathPathAttempt — a collection DISJOINT
+  // from PracticeAttempt — so reading PracticeAttempt alone under-counts a student's
+  // real math work, often by most of it. Fold in non-diagnostic MathPathAttempts
+  // (diagnostics are an assessment context, excluded so they don't skew practice
+  // accuracy/timing). Note: MathPath timing is in SECONDS; PracticeAttempt.timeMs is ms.
+  const mpAttempts = await MathPathAttempt.find({
+    studentId: String(studentId),
+    sessionType: { $ne: 'diagnostic' },
+    createdAt: { $gte: since },
+  }).lean();
+
+  // Unify both sources to { correct, ms, createdAt } for volume/accuracy/timing.
+  const unified = [
+    ...attempts.map((a) => ({
+      correct: Boolean(a.correct),
+      ms: toNum(a.timeMs, 0) > 0 ? toNum(a.timeMs, 0) : toNum(a.timeTakenSeconds, 0) * 1000,
+      createdAt: a.createdAt,
+    })),
+    ...mpAttempts.map((a) => ({
+      correct: Boolean(a.correct),
+      ms: (toNum(a.timeSpentSeconds, 0) || toNum(a.effectiveAnswerTimeSeconds, 0) || toNum(a.rawTimeSeconds, 0)) * 1000,
+      createdAt: a.createdAt,
+    })),
+  ];
 
   // Response time + accuracy (fluency uses correct-attempt times only).
-  const correctTimes = attempts.filter((a) => a.correct && a.timeMs > 0).map((a) => a.timeMs);
-  const accuracy = attempts.length ? attempts.filter((a) => a.correct).length / attempts.length : 0;
+  const correctTimes = unified.filter((a) => a.correct && a.ms > 0).map((a) => a.ms);
+  const accuracy = unified.length ? unified.filter((a) => a.correct).length / unified.length : 0;
 
   // Practice consistency = distinct active days across the window.
-  const activeDays = new Set(attempts.map((a) => new Date(a.createdAt).toISOString().slice(0, 10))).size;
+  const activeDays = new Set(unified.map((a) => new Date(a.createdAt).toISOString().slice(0, 10))).size;
 
   // Mastery velocity = skills mastered AND practised within the window.
   const masteryVelocity = records.filter((r) => r.status === 'mastered' && r.lastPracticedAt && new Date(r.lastPracticedAt) >= since).length;
@@ -239,7 +263,7 @@ export async function studentMathAnalytics(studentId, { sinceDays = 30 } = {}) {
 
   return {
     window: { sinceDays, since },
-    attempts: attempts.length,
+    attempts: unified.length,
     accuracy: round2(accuracy),
     medianResponseMs: median(correctTimes),
     activeDays,
