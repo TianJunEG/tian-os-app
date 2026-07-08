@@ -5,12 +5,14 @@ import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest';
 // folds them in. These mocks stand in for the two attempt collections.
 const masteryRecord = { find: vi.fn() };
 const practiceAttempt = { find: vi.fn() };
+const practiceSession = { find: vi.fn() };
 const mathPathAttempt = { find: vi.fn() };
 const question = { find: vi.fn() };
 const mathPathSkill = { find: vi.fn() };
 
 vi.mock('../models/MasteryRecord.js', () => ({ default: masteryRecord }));
 vi.mock('../models/PracticeAttempt.js', () => ({ default: practiceAttempt }));
+vi.mock('../models/PracticeSession.js', () => ({ default: practiceSession }));
 vi.mock('../models/mathpath/MathPathAttempt.js', () => ({ default: mathPathAttempt }));
 vi.mock('../models/Question.js', () => ({ default: question }));
 vi.mock('../models/mathpath/MathPathSkill.js', () => ({ default: mathPathSkill }));
@@ -24,6 +26,8 @@ const DAY = '2026-07-07T10:00:00.000Z';
 describe('studentMathAnalytics — folds in MathPath domain attempts', () => {
   it('counts PracticeAttempt AND non-diagnostic MathPathAttempt in volume/accuracy/timing', async () => {
     masteryRecord.find.mockResolvedValueOnce([]);
+    // MathPath session ids (spelling/PSL sessions are excluded by the module filter).
+    practiceSession.find.mockReturnValueOnce({ distinct: () => Promise.resolve(['sess_math_1']) });
     // PracticeAttempt: 1 correct @ 4000ms, 1 wrong @ 2000ms.
     practiceAttempt.find.mockResolvedValueOnce([
       { correct: true, timeMs: 4000, createdAt: DAY, questionId: 'q1' },
@@ -54,10 +58,16 @@ describe('studentMathAnalytics — folds in MathPath domain attempts', () => {
     expect(mathPathAttempt.find).toHaveBeenCalledWith(
       expect.objectContaining({ sessionType: { $ne: 'diagnostic' } }),
     );
+    // PracticeAttempts are scoped to MathPath sessions (spelling/PSL excluded)
+    expect(practiceSession.find).toHaveBeenCalledWith({ studentId: 'stu1', module: 'MathPath' });
+    expect(practiceAttempt.find).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionId: { $in: ['sess_math_1'] } }),
+    );
   });
 
   it('still works (no crash, zeroed) when the student has no attempts at all', async () => {
     masteryRecord.find.mockResolvedValueOnce([]);
+    practiceSession.find.mockReturnValueOnce({ distinct: () => Promise.resolve([]) });
     practiceAttempt.find.mockResolvedValueOnce([]);
     mathPathAttempt.find.mockReturnValueOnce({ lean: () => Promise.resolve([]) });
     question.find.mockResolvedValueOnce([]);

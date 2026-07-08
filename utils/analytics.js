@@ -9,6 +9,7 @@
 // No new event store is introduced; we use MathPathAttempt as the source of
 // truth for MathPath timing and the diagnostic/fluency signals.
 import PracticeAttempt from '../models/PracticeAttempt.js';
+import PracticeSession from '../models/PracticeSession.js';
 import MasteryRecord from '../models/MasteryRecord.js';
 import Question from '../models/Question.js';
 import MathPathAttempt from '../models/mathpath/MathPathAttempt.js';
@@ -206,7 +207,16 @@ export async function studentMathPathTimingAnalytics(studentId, options = {}) {
 export async function studentMathAnalytics(studentId, { sinceDays = 30 } = {}) {
   const since = new Date(Date.now() - sinceDays * 86400000);
   const records = await MasteryRecord.find({ studentId, module: 'MathPath' });
-  const attempts = await PracticeAttempt.find({ studentId, createdAt: { $gte: since } });
+  // Scope PracticeAttempts to MathPath sessions only — spelling / PSL / comics /
+  // worksheet also write PracticeAttempt (module: 'Spelling Practice' etc.) and must
+  // not pollute a MathPath analytics view (MasteryRecord above is already MathPath-
+  // scoped). Fluency + kiosk practice both use module: 'MathPath', so they stay in.
+  const mathSessionIds = await PracticeSession.find({ studentId, module: 'MathPath' }).distinct('_id');
+  const attempts = await PracticeAttempt.find({
+    studentId,
+    sessionId: { $in: mathSessionIds },
+    createdAt: { $gte: since },
+  });
   // MathPath DOMAIN practice + fluency write MathPathAttempt — a collection DISJOINT
   // from PracticeAttempt — so reading PracticeAttempt alone under-counts a student's
   // real math work, often by most of it. Fold in non-diagnostic MathPathAttempts
