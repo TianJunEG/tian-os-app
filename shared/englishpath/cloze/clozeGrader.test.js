@@ -49,11 +49,13 @@ describe('cloze grader', () => {
 
   it('a mixed attempt scores partially and flags only the wrong blanks', () => {
     const passage = clozePassages[0];
-    const answers = { 47: 'walks', 50: 'alike', 54: 'wrongword', 60: 'life' };
+    // two blanks answered with a valid word, one with a clearly wrong word
+    const [b1, b2, b3] = passage.blanks;
+    const answers = { [b1.n]: b1.accept[0], [b2.n]: b2.accept[0], [b3.n]: 'zzzwrongword' };
     const res = gradePassage(answers, passage);
-    expect(res.score).toBe(3); // walks, alike, life
-    expect(res.needsReview).toContain(54);
-    expect(res.perBlank.find((r) => r.n === 47).verdict).toBe('correct');
+    expect(res.score).toBe(2); // b1, b2 correct; b3 wrong
+    expect(res.needsReview).toContain(b3.n);
+    expect(res.perBlank.find((r) => r.n === b1.n).verdict).toBe('correct');
   });
 
   it('editDistance basics', () => {

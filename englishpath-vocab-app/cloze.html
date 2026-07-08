@@ -45,6 +45,8 @@
       .fb .mk.ok { color:var(--ok); } .fb .mk.amber { color:var(--amber); } .fb .mk.err { color:var(--err); }
       .fb .acc { color:var(--muted); }
       .note { color:var(--muted); font-size:13px; }
+      .picker { font:inherit; font-size:14px; padding:9px 11px; border:1px solid var(--line); border-radius:10px; background:var(--paper); color:var(--ink); max-width:100%; }
+      .ptitle { font-size:15px; font-weight:700; margin:0 0 12px; color:var(--deep); }
     </style>
   </head>
   <body>
@@ -53,7 +55,12 @@
       <h1>Comprehension Cloze</h1>
       <p class="sub">Fill in each blank with a suitable word. Many blanks accept more than one right answer — the grader knows.</p>
 
+      <div class="row" style="margin:12px 0 0">
+        <select id="picker" class="picker" aria-label="Choose a passage"></select>
+      </div>
+
       <div class="card">
+        <div id="ptitle" class="ptitle"></div>
         <div id="passage" class="passage"></div>
       </div>
       <div class="row">
@@ -67,11 +74,12 @@
     <script type="module">
       import { clozePassages, gradePassage, SKILL_LABELS } from '../shared/englishpath/cloze/index.js';
 
-      const passage = clozePassages[0];
+      let passage = clozePassages[0];
       const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
 
       // Render the passage, turning each {n} into an input.
       function render() {
+        document.getElementById('ptitle').textContent = passage.title;
         const html = passage.text
           .split('\n\n')
           .map((para) => {
@@ -132,6 +140,17 @@
         }
         document.getElementById('results').innerHTML = '';
       }
+
+      // Passage picker — browse all authored passages.
+      const picker = document.getElementById('picker');
+      picker.innerHTML = clozePassages
+        .map((p, i) => `<option value="${i}">${esc(p.title)}</option>`)
+        .join('');
+      picker.onchange = () => {
+        passage = clozePassages[+picker.value];
+        document.getElementById('results').innerHTML = '';
+        render();
+      };
 
       render();
       document.getElementById('check').onclick = check;
