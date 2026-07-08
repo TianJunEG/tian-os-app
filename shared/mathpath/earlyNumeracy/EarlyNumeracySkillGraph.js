@@ -194,6 +194,21 @@ const earlyNumeracySkills = [
     misconceptions: ['en/pattern-ignores-position'],
     questionFamilies: ['QF_EN012_001', 'QF_EN012_002'],
   },
+  {
+    id: 'EN022',
+    slug: 'en.sort.groups',
+    name: 'Sort into groups',
+    description: 'Sort objects into groups by an attribute (drag each into the right box).',
+    strand: 'Patterns',
+    prerequisites: ['EN009'],
+    crossDomainPrerequisites: [],
+    difficulty: 2,
+    singaporeLevel: ['K2'],
+    mastery: { minimumAccuracy: 70, minimumQuestions: 5 },
+    remediationIfWeak: ['EN009'],
+    misconceptions: ['en/sorts-wrong-group'],
+    questionFamilies: ['QF_EN022_001', 'QF_EN022_002'],
+  },
 
   // ── Strand C — Basic Shapes & Spatial Concepts (NEL Learning Goal 4) ───────
   {
@@ -334,6 +349,21 @@ const earlyNumeracySkills = [
     remediationIfWeak: [],
     misconceptions: ['en/confuses-top-bottom'],
     questionFamilies: ['QF_EN021_001', 'QF_EN021_002'],
+  },
+  {
+    id: 'EN023',
+    slug: 'en.spatial.distance',
+    name: 'Near & far',
+    description: 'Use distance words — near and far — to describe where things are.',
+    strand: 'Shapes & Space',
+    prerequisites: [],
+    crossDomainPrerequisites: [],
+    difficulty: 1,
+    singaporeLevel: ['K2'],
+    mastery: { minimumAccuracy: 70, minimumQuestions: 5 },
+    remediationIfWeak: [],
+    misconceptions: ['en/confuses-near-far'],
+    questionFamilies: ['QF_EN023_001', 'QF_EN023_002'],
   },
 ];
 

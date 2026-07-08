@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { encodeSortPlacement } from '../../../../shared/mathpath/earlyNumeracy/EarlyNumeracyQuestionGenerator.js';
 
 // Convert a math prompt to a TTS-friendly string (strips dot-array lines and symbols).
 export function toSpeakable(text = '') {
@@ -500,7 +501,7 @@ export function ManipulativePatternStrip({ items = [] }) {
         {items.map((item, i) => (
           <span
             key={i}
-            {...(item == null ? { 'data-pattern-slot': 'true' } : {})}
+            {...(item == null ? { 'data-drop-slot': 'true' } : {})}
             className="flex items-center justify-center rounded-xl"
             style={{
               width: item == null ? 52 : 48,
@@ -529,7 +530,7 @@ export function ManipulativePatternStrip({ items = [] }) {
 // Pointer events so it works on touch and mouse; a tiny floating "ghost"
 // follows the finger. Tap is the accessible fallback. The parent should pass
 // key={questionId} so drag state resets per question.
-export function DragAnswerChips({ choices = [], onAnswer, slotSelector = '[data-pattern-slot]', disabled = false }) {
+export function DragAnswerChips({ choices = [], onAnswer, slotSelector = '[data-drop-slot]', disabled = false }) {
   const [drag, setDrag] = useState(null); // { value, x, y } while dragging
   const start = useRef(null);
 
@@ -630,6 +631,196 @@ export function ManipulativePositionStack({ top, bottom }) {
     <div className="mx-auto max-w-xs rounded-2xl bg-violet-50 p-4 space-y-2">
       {Cell(top, 'top')}
       {Cell(bottom, 'bottom')}
+    </div>
+  );
+}
+
+// ── K2 distance scene: near vs far (Strand C, NEL LG4.4) ─────────────────────
+// Generator emits diagram:{kind:'distance', near, far}. The scene shows a shared
+// horizon with the "far" object small and up (in the sky/background) and the
+// "near" object big and low (in the foreground) — the size + vertical placement
+// cue the concept together, matching how NEL introduces perspective.
+export function parseDistanceDiagram(question) {
+  const d = question?.diagram;
+  if (!d || d.kind !== 'distance' || !d.near || !d.far) return null;
+  return { near: d.near, far: d.far };
+}
+
+export function ManipulativeDistanceScene({ near, far }) {
+  return (
+    <div className="mx-auto max-w-xs rounded-2xl bg-gradient-to-b from-sky-200 via-sky-100 to-emerald-100 p-4">
+      <div className="relative mx-auto flex h-40 w-full max-w-[240px] flex-col justify-between overflow-hidden rounded-xl">
+        {/* far — small, upper background */}
+        <div className="flex justify-center pt-2">
+          <span aria-label="far object" style={{ fontSize: 30, lineHeight: 1, filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.15))' }}>{far}</span>
+        </div>
+        {/* horizon line so "near vs far" is anchored to a shared ground */}
+        <div className="pointer-events-none absolute left-0 right-0 top-[62%] h-px bg-emerald-300/60" />
+        {/* near — big, lower foreground */}
+        <div className="flex justify-center pb-1">
+          <span aria-label="near object" style={{ fontSize: 68, lineHeight: 1, filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.2))' }}>{near}</span>
+        </div>
+      </div>
+      <div className="mt-2 flex justify-between px-1 text-xs font-semibold uppercase tracking-wide text-emerald-700/80">
+        <span>far</span><span>near</span>
+      </div>
+    </div>
+  );
+}
+
+// ── K2 number bonds: part-whole frame with a drop slot (Strand A) ────────────
+// Generator emits diagram:{kind:'bond', whole, part}; the missing part
+// (whole - part) is the answer dragged/tapped into the dashed slot.
+export function parseBondDiagram(question) {
+  const d = question?.diagram;
+  if (!d || d.kind !== 'bond') return null;
+  const whole = Number(d.whole);
+  const part = Number(d.part);
+  if (!Number.isFinite(whole) || !Number.isFinite(part)) return null;
+  return { whole, part };
+}
+
+function BondCircle({ content, slot = false }) {
+  return (
+    <span
+      {...(slot ? { 'data-drop-slot': 'true' } : {})}
+      className="flex items-center justify-center rounded-full font-bold"
+      style={{
+        width: 56, height: 56, fontSize: 24, lineHeight: 1,
+        background: slot ? '#faf5ff' : '#ede9fe',
+        border: slot ? '2px dashed #a78bfa' : '2px solid #c4b5fd',
+        color: '#6d28d9',
+      }}
+    >
+      {content}
+    </span>
+  );
+}
+
+export function ManipulativeBondFrame({ whole, part }) {
+  return (
+    <div className="flex flex-col items-center gap-1 rounded-2xl bg-violet-50 p-4">
+      <BondCircle content={whole} />
+      <svg width="120" height="22" viewBox="0 0 120 22" aria-hidden="true">
+        <line x1="60" y1="1" x2="26" y2="21" stroke="#c4b5fd" strokeWidth="3" strokeLinecap="round" />
+        <line x1="60" y1="1" x2="94" y2="21" stroke="#c4b5fd" strokeWidth="3" strokeLinecap="round" />
+      </svg>
+      <div className="flex gap-6">
+        <BondCircle content={part} />
+        <BondCircle content="?" slot />
+      </div>
+      <p className="mt-1 text-center text-xs text-ink-400">Drag or tap the missing part</p>
+    </div>
+  );
+}
+
+// ── K2 sorting: drag each item into the right bucket (Strand B) ───────────────
+// Generator emits diagram:{kind:'sort', buckets:[{id,label,color}], items:[{id,emoji}]}.
+// Two ways to place: DRAG an item onto a bucket, or TAP an item to select it
+// then TAP a bucket (a11y fallback). When every item is placed, a "Check!"
+// button submits the placement encoded exactly as the generator's answer key.
+export function parseSortDiagram(question) {
+  const d = question?.diagram;
+  if (!d || d.kind !== 'sort' || !Array.isArray(d.buckets) || !Array.isArray(d.items)) return null;
+  return { buckets: d.buckets, items: d.items };
+}
+
+export function ManipulativeSortActivity({ buckets = [], items = [], onAnswer, disabled = false }) {
+  const [placement, setPlacement] = useState({}); // itemId -> bucketId
+  const [selected, setSelected] = useState(null); // itemId (tap mode)
+  const [drag, setDrag] = useState(null); // { id, x, y }
+  const start = useRef(null);
+
+  const emojiOf = (id) => items.find((it) => it.id === id)?.emoji || '';
+  const allPlaced = items.length > 0 && items.every((it) => placement[it.id]);
+
+  const place = (itemId, bucketId) => {
+    if (disabled || !itemId || !bucketId) return;
+    setSelected(null);
+    setPlacement((p) => ({ ...p, [itemId]: bucketId }));
+  };
+
+  const onItemDown = (e, id) => {
+    if (disabled) return;
+    start.current = { id, x: e.clientX, y: e.clientY, moved: false };
+    setDrag({ id, x: e.clientX, y: e.clientY });
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* ignore */ }
+  };
+  const onItemMove = (e) => {
+    const s = start.current;
+    if (!s) return;
+    if (Math.hypot(e.clientX - s.x, e.clientY - s.y) > 6) s.moved = true;
+    setDrag((d) => (d ? { ...d, x: e.clientX, y: e.clientY } : d));
+  };
+  const onItemUp = (e) => {
+    const s = start.current;
+    start.current = null;
+    setDrag(null);
+    if (!s || disabled) return;
+    if (!s.moved) { setSelected((cur) => (cur === s.id ? null : s.id)); return; } // tap → select
+    const bucketEl = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-bucket-id]');
+    if (bucketEl) place(s.id, bucketEl.getAttribute('data-bucket-id'));
+  };
+
+  const Chip = ({ id }) => (
+    <button
+      key={id}
+      type="button"
+      disabled={disabled}
+      onPointerDown={(e) => onItemDown(e, id)}
+      onPointerMove={onItemMove}
+      onPointerUp={onItemUp}
+      style={{ touchAction: 'none', fontSize: 30, lineHeight: 1 }}
+      className={`flex h-12 w-12 items-center justify-center rounded-xl border-2 bg-white shadow-sm active:scale-95 disabled:opacity-40 ${selected === id ? 'border-violet-500 ring-2 ring-violet-200' : 'border-line-soft'}`}
+    >
+      {emojiOf(id)}
+    </button>
+  );
+
+  const unplaced = items.filter((it) => !placement[it.id]);
+
+  return (
+    <div className="rounded-2xl bg-sky-50 p-4 space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        {buckets.map((b) => (
+          <div
+            key={b.id}
+            data-bucket-id={b.id}
+            onClick={() => selected && place(selected, b.id)}
+            className="min-h-[86px] rounded-xl border-2 bg-white/70 p-2"
+            style={{ borderColor: b.color || '#c4b5fd' }}
+          >
+            <p className="mb-1 text-center text-xs font-semibold" style={{ color: b.color || '#6d28d9' }}>{b.label}</p>
+            <div className="flex flex-wrap justify-center gap-1">
+              {items.filter((it) => placement[it.id] === b.id).map((it) => (
+                <Chip key={it.id} id={it.id} />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      {unplaced.length > 0 && (
+        <div className="flex flex-wrap justify-center gap-2 rounded-xl bg-white/60 p-2">
+          {unplaced.map((it) => <Chip key={it.id} id={it.id} />)}
+        </div>
+      )}
+      {allPlaced ? (
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => onAnswer?.(encodeSortPlacement(placement, items))}
+          className="w-full rounded-2xl bg-violet-600 py-3 text-lg font-bold text-white shadow-sm active:scale-95 disabled:opacity-40"
+        >
+          Check! ✓
+        </button>
+      ) : (
+        <p className="text-center text-xs text-ink-400">Drag each one into a box — or tap it, then tap a box</p>
+      )}
+      {drag && (
+        <div style={{ position: 'fixed', left: drag.x, top: drag.y, transform: 'translate(-50%, -50%)', pointerEvents: 'none', zIndex: 60, fontSize: 34, opacity: 0.9 }}>
+          {emojiOf(drag.id)}
+        </div>
+      )}
     </div>
   );
 }

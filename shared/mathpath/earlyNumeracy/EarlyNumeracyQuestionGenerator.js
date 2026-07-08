@@ -65,6 +65,9 @@ const DIRECTIONS = { up: '⬆️', down: '⬇️', left: '⬅️', right: '➡�
 // Position (top/bottom) uses any two distinct friendly objects — the position is
 // what is being tested, not the objects.
 const POSITION_OBJECTS = ['🐱', '🐶', '🐦', '🐟', '🎈', '🧸', '⚽', '🍎', '🚗', '🌟'];
+// Distance-scene pairs — the two objects placed against the same horizon so the
+// child can tell which is "near" (foreground/bigger) vs "far" (background/smaller).
+const DISTANCE_OBJECTS = ['🐶', '🐱', '🚗', '🌳', '🏠', '🎈', '⚽', '🌷', '🦋', '🐦'];
 // Strand D (Measuring). Each pair is [more, less] for the attribute: the first
 // is longer / taller / heavier / holds-more.
 const LENGTH_PAIRS = [['🐍', '🐛'], ['🚂', '🚗'], ['🥖', '🍪'], ['📏', '📎'], ['🪱', '🐞']];
@@ -190,7 +193,8 @@ function genBonds(rng, skill) {
     prompt: `${whole} is made of ${part} and ___?`,
     correct: other,
     choices: numberChoices(rng, other, { min: 0, max: whole }),
-    diagram: { kind: 'count', emoji: pick(rng, FRUITS), count: whole },
+    // Part-whole bond frame: the child drags/taps the missing part into the slot.
+    diagram: { kind: 'bond', whole, part },
     misconceptionTag: 'en/part-whole-confusion',
   });
 }
@@ -345,6 +349,19 @@ function genPosition(rng, skill) {
   });
 }
 
+function genDistance(rng, skill) {
+  const [near, far] = shuffle(rng, DISTANCE_OBJECTS).slice(0, 2);
+  const askNear = rng() < 0.5;
+  return mcq({
+    skill, familySuffix: askNear ? '001' : '002',
+    prompt: askNear ? 'Which one is near?' : 'Which one is far?',
+    correct: askNear ? near : far,
+    choices: shuffle(rng, [near, far]),
+    diagram: { kind: 'distance', near, far },
+    misconceptionTag: 'en/confuses-near-far',
+  });
+}
+
 function genDirection(rng, skill) {
   const dir = pick(rng, Object.keys(DIRECTIONS));
   return mcq({
@@ -368,6 +385,58 @@ function measureCompare(rng, skill, { pairs, moreWord, lessWord, morePrompt, les
   });
 }
 
+// ── Strand B — Sorting into groups (drag-to-bucket) ──────────────────────────
+// Two-bucket colour sorts. Each pool holds objects that clearly share the
+// bucket's colour, so the attribute is unambiguous.
+const SORT_SETS = [
+  { buckets: [{ id: 'red', label: 'Red', color: '#ef4444' }, { id: 'blue', label: 'Blue', color: '#3b82f6' }],
+    pools: { red: ['🔴', '🟥', '❤️'], blue: ['🔵', '🟦', '💙'] } },
+  { buckets: [{ id: 'yellow', label: 'Yellow', color: '#eab308' }, { id: 'green', label: 'Green', color: '#22c55e' }],
+    pools: { yellow: ['🟡', '🟨', '💛'], green: ['🟢', '🟩', '💚'] } },
+];
+
+// Canonical encoding of an item→bucket placement, order-independent (items
+// sorted by id). The generator encodes the CORRECT map; the client encodes the
+// child's placement the same way, and the answer-checker compares the strings —
+// so this is the single source of truth for sort scoring. Exported for the UI.
+export function encodeSortPlacement(placement = {}, items = []) {
+  return [...items]
+    .map((it) => it.id)
+    .sort()
+    .map((id) => `${id}:${placement[id] || ''}`)
+    .join(',');
+}
+
+function genSortGroups(rng, skill) {
+  const set = pick(rng, SORT_SETS);
+  const items = [];
+  const correct = {};
+  set.buckets.forEach((bucket, bi) => {
+    const pool = shuffle(rng, set.pools[bucket.id]);
+    for (let k = 0; k < 2; k += 1) {
+      const id = `i${bi}${k}`;
+      items.push({ id, emoji: pool[k % pool.length] });
+      correct[id] = bucket.id;
+    }
+  });
+  const shownItems = shuffle(rng, items);
+  const answer = encodeSortPlacement(correct, shownItems);
+  return {
+    skillId: skill.id,
+    questionFamilyId: `QF_${skill.id}_001`,
+    type: 'mcq',
+    prompt: `Put each one in the right box — ${set.buckets.map((b) => b.label).join(' or ')}.`,
+    choices: [], // handled by the sort activity, not MCQ buttons
+    answer: { display: answer },
+    acceptedAnswers: [answer],
+    solutionSteps: [],
+    misconceptionTag: 'en/sorts-wrong-group',
+    difficulty: skill.difficulty || 2,
+    workingRequired: false,
+    diagram: { kind: 'sort', buckets: set.buckets, items: shownItems.map((it) => ({ id: it.id, emoji: it.emoji })) },
+  };
+}
+
 const BUILDERS = {
   EN001: (rng, skill) => genCount(rng, skill, { min: 2, max: 10 }),
   EN002: (rng, skill) => genCount(rng, skill, { min: 1, max: 10 }),
@@ -381,11 +450,13 @@ const BUILDERS = {
   EN010: (rng, skill) => genCompareSize(rng, skill),
   EN011: (rng, skill) => genPatternNext(rng, skill),
   EN012: (rng, skill) => genPatternMissing(rng, skill),
+  EN022: (rng, skill) => genSortGroups(rng, skill),
   EN013: (rng, skill) => genShapeRecognise(rng, skill),
   EN014: (rng, skill) => genShapeAttributes(rng, skill),
   EN015: (rng, skill) => genShapesAround(rng, skill),
   EN016: (rng, skill) => genDirection(rng, skill),
   EN021: (rng, skill) => genPosition(rng, skill),
+  EN023: (rng, skill) => genDistance(rng, skill),
   EN017: (rng, skill) => measureCompare(rng, skill, { pairs: LENGTH_PAIRS, moreWord: 'longer', lessWord: 'shorter' }),
   EN018: (rng, skill) => measureCompare(rng, skill, { pairs: HEIGHT_PAIRS, moreWord: 'taller', lessWord: 'shorter' }),
   EN019: (rng, skill) => measureCompare(rng, skill, { pairs: WEIGHT_PAIRS, moreWord: 'heavier', lessWord: 'lighter' }),

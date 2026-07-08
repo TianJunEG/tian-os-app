@@ -3,10 +3,11 @@ import { earlyNumeracySkillGraph } from './EarlyNumeracySkillGraph.js';
 import {
   generateEarlyNumeracyQuestionSet,
   checkEarlyNumeracyAnswer,
+  encodeSortPlacement,
 } from './EarlyNumeracyQuestionGenerator.js';
 
 describe('generateEarlyNumeracyQuestionSet', () => {
-  it('generates valid MCQ questions for every Strand A skill', () => {
+  it('generates valid questions for every skill (MCQ choices, or a sort activity)', () => {
     for (const skill of earlyNumeracySkillGraph.skills) {
       const set = generateEarlyNumeracyQuestionSet({ skillId: skill.id, count: 6, sessionSalt: 't' });
       expect(set).toHaveLength(6);
@@ -14,13 +15,38 @@ describe('generateEarlyNumeracyQuestionSet', () => {
         expect(q.skillId).toBe(skill.id);
         expect(q.type).toBe('mcq');
         expect(q.prompt).toBeTruthy();
-        expect(q.choices.length).toBeGreaterThanOrEqual(2);
-        // The correct answer is always among the choices (so it's answerable).
-        expect(q.choices).toContain(q.answer.display);
-        // The checker accepts the correct answer and rejects a wrong one.
+        // The checker accepts the correct answer and rejects a wrong one — for
+        // MCQ and sort questions alike.
         expect(checkEarlyNumeracyAnswer({ question: q, studentResponse: q.answer.display }).correct).toBe(true);
         expect(checkEarlyNumeracyAnswer({ question: q, studentResponse: '___nope___' }).correct).toBe(false);
+        if (q.diagram?.kind === 'sort') {
+          expect(q.choices).toHaveLength(0); // sort uses the activity, not buttons
+        } else {
+          expect(q.choices.length).toBeGreaterThanOrEqual(2);
+          expect(q.choices).toContain(q.answer.display); // answer is answerable
+        }
       }
+    }
+  });
+
+  it('sort questions score by placement: correct map matches, a swap does not', () => {
+    const set = generateEarlyNumeracyQuestionSet({ skillId: 'EN022', count: 8, sessionSalt: 'srt' });
+    for (const q of set) {
+      expect(q.diagram.kind).toBe('sort');
+      expect(q.diagram.buckets).toHaveLength(2);
+      expect(q.diagram.items).toHaveLength(4);
+      // Rebuild the correct placement by decoding the answer, and confirm the
+      // client-side encoder reproduces the exact answer string.
+      const correctMap = Object.fromEntries(q.answer.display.split(',').map((p) => p.split(':')));
+      expect(encodeSortPlacement(correctMap, q.diagram.items)).toBe(q.answer.display);
+      // Swapping two items between buckets must fail the checker.
+      const swapped = { ...correctMap };
+      const [a, b] = q.diagram.items.map((i) => i.id);
+      [swapped[a], swapped[b]] = [swapped[b], swapped[a]];
+      const swappedAnswer = encodeSortPlacement(swapped, q.diagram.items);
+      const scored = checkEarlyNumeracyAnswer({ question: q, studentResponse: swappedAnswer }).correct;
+      // (only fails if the swap actually changed the mapping — i.e. a/b differ)
+      if (correctMap[a] !== correctMap[b]) expect(scored).toBe(false);
     }
   });
 
