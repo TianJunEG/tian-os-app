@@ -1,4 +1,5 @@
 import React from 'react';
+import { isChunkLoadError, reloadOnceForChunkError } from '../utils/chunkError';
 
 // Catches render errors and failed lazy-chunk loads (common right after a
 // deploy, when an open tab requests a hashed chunk that no longer exists) and
@@ -10,15 +11,10 @@ export default class ErrorBoundary extends React.Component {
   }
 
   static getDerivedStateFromError(error) {
-    // Chunk load failures happen when a new deploy invalidates cached JS URLs.
-    // Auto-reload fetches fresh index.html + new chunks without user interaction.
-    const isChunkError = (
-      /Failed to fetch dynamically imported module/i.test(error?.message || '')
-      || /Loading chunk \d+ failed/i.test(error?.message || '')
-      || error?.name === 'ChunkLoadError'
-    );
-    if (isChunkError && typeof window !== 'undefined') {
-      window.location.reload();
+    // A failed lazy chunk = a new deploy invalidated the cached JS URLs. Reload
+    // once (guarded against a loop) to fetch the fresh index + chunks silently;
+    // if it already reloaded and is still failing, fall through to the manual UI.
+    if (isChunkLoadError(error) && reloadOnceForChunkError()) {
       return { hasError: false };
     }
     return { hasError: true };

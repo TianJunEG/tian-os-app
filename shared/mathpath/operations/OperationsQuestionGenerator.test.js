@@ -32,11 +32,12 @@ describe('OperationsQuestionGenerator', () => {
     }
   });
 
-  it('is not a stub — no "Compute: a + b" prompts; answers are non-negative integers', () => {
+  it('is not a stub — no "Compute: a + b" prompts; answers are non-negative numbers', () => {
     let nonAdditionSeen = false;
     for (const q of questions) {
       expect(q.prompt).not.toMatch(/Compute:/);
-      expect(q.answer.display, q.prompt).toMatch(/^\d+$/);
+      // Integers, or a 2-d.p. decimal for the decimal-division questions (OP014).
+      expect(q.answer.display, q.prompt).toMatch(/^\d+(\.\d+)?$/);
       if (!/\+/.test(q.prompt) || /[×÷−-]/.test(q.prompt)) nonAdditionSeen = true;
     }
     expect(nonAdditionSeen).toBe(true); // proves subtraction/×/÷ actually appear
@@ -66,7 +67,7 @@ describe('OperationsQuestionGenerator', () => {
       expect(new Set(q.choices).size, q.prompt + ' :: ' + q.choices.join('|')).toBe(4);
       expect(q.choices, q.prompt).toContain(q.answer.display);
       for (const ch of q.choices) {
-        expect(ch, q.prompt).toMatch(/^\d+$/);
+        expect(ch, q.prompt).toMatch(/^\d+(\.\d+)?$/); // integer or decimal (OP014 2-d.p. division)
         expect(Number(ch)).toBeGreaterThan(0);
       }
     }

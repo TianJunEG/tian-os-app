@@ -3,6 +3,11 @@ import ClassDiagnosticSession from '../../models/ClassDiagnosticSession.js';
 import ClassStudent from '../../models/ClassStudent.js';
 import Student from '../../models/Student.js';
 import MathPathDiagnosticSession from '../../models/mathpath/MathPathDiagnosticSession.js';
+import MathPathAttempt from '../../models/mathpath/MathPathAttempt.js';
+import PracticeSession from '../../models/PracticeSession.js';
+import PracticeAttempt from '../../models/PracticeAttempt.js';
+import Question from '../../models/Question.js';
+import Skill from '../../models/Skill.js';
 
 // Unambiguous alphabet (no 0/O/1/I) — these codes get read off a projector.
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -17,9 +22,31 @@ export function generateSessionCode(length = 8) {
   return out;
 }
 
-// Create one class diagnostic session for a class the teacher owns. Snapshots the
-// active roster (id + name only) so the unauthenticated kiosk never reads class
-// data directly. Roster is restricted to the session's workspace as a safety net.
+// Snapshot the class's active roster (id + name only) so the unauthenticated
+// kiosk never reads class data directly. Restricted to the session's workspace
+// as a safety net.
+async function snapshotRoster(classId, workspaceId) {
+  const links = await ClassStudent.find({ classId, status: 'active' });
+  const studentIds = links.map((l) => l.studentId);
+  const students = await Student.find({ _id: { $in: studentIds } }).select('_id name workspaceId').lean();
+  return students
+    .filter((s) => String(s.workspaceId) === String(workspaceId))
+    .map((s) => ({ studentId: s._id, name: s.name, taken: false, status: 'not_started' }));
+}
+
+// A code that doesn't collide with an existing session (unique index is the real guard).
+async function reserveUniqueCode() {
+  let code = generateSessionCode();
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    // eslint-disable-next-line no-await-in-loop
+    const clash = await ClassDiagnosticSession.findOne({ code }).select('_id').lean();
+    if (!clash) break;
+    code = generateSessionCode();
+  }
+  return code;
+}
+
+// Create one class DIAGNOSTIC session for a class the teacher owns.
 export async function createClassDiagnosticSession({
   classId,
   workspaceId,
@@ -30,22 +57,8 @@ export async function createClassDiagnosticSession({
   studentLevel = '',
   ttlMs = DEFAULT_TTL_MS,
 }) {
-  const links = await ClassStudent.find({ classId, status: 'active' });
-  const studentIds = links.map((l) => l.studentId);
-  const students = await Student.find({ _id: { $in: studentIds } }).select('_id name workspaceId').lean();
-  const roster = students
-    .filter((s) => String(s.workspaceId) === String(workspaceId))
-    .map((s) => ({ studentId: s._id, name: s.name, taken: false, status: 'not_started' }));
-
-  // Unique code with a few retries on collision (unique index is the real guard).
-  let code = generateSessionCode();
-  for (let attempt = 0; attempt < 5; attempt += 1) {
-    // eslint-disable-next-line no-await-in-loop
-    const clash = await ClassDiagnosticSession.findOne({ code }).select('_id').lean();
-    if (!clash) break;
-    code = generateSessionCode();
-  }
-
+  const roster = await snapshotRoster(classId, workspaceId);
+  const code = await reserveUniqueCode();
   return ClassDiagnosticSession.create({
     workspaceId,
     classId,
@@ -53,6 +66,7 @@ export async function createClassDiagnosticSession({
     code,
     subjectId,
     domainId,
+    type: 'diagnostic',
     mode,
     studentLevel,
     status: 'open',
@@ -61,30 +75,69 @@ export async function createClassDiagnosticSession({
   });
 }
 
-// Live status for the teacher's polling view: merge the roster snapshot with the
-// linked per-student diagnostic sessions (sourceType:'kiosk', sourceId:<id>).
-// Pure read — no engine recompute.
-export async function buildKioskStatus(session) {
+// Create one class PRACTICE session: a fixed set of questions on a single skill.
+// Reuses the same roster snapshot + code + expiry as the diagnostic; domainId is
+// still populated (the skill's topic/domain) so the teacher list/UI stays uniform.
+export async function createClassPracticeSession({
+  classId,
+  workspaceId,
+  teacherUserId,
+  subjectId = 'math',
+  domainId,
+  skillId,
+  skillName = '',
+  questionCount = 10,
+  studentLevel = '',
+  ttlMs = DEFAULT_TTL_MS,
+}) {
+  const roster = await snapshotRoster(classId, workspaceId);
+  const code = await reserveUniqueCode();
+  return ClassDiagnosticSession.create({
+    workspaceId,
+    classId,
+    teacherUserId: String(teacherUserId),
+    code,
+    subjectId,
+    domainId,
+    type: 'practice',
+    practiceConfig: { skillId: String(skillId), skillName, questionCount },
+    studentLevel,
+    status: 'open',
+    roster,
+    expiresAt: new Date(Date.now() + ttlMs),
+  });
+}
+
+// Roll roster statuses into the {notStarted, inProgress, completed} summary.
+function rosterSummary(roster = []) {
+  let notStarted = 0;
+  let inProgress = 0;
+  let completed = 0;
+  for (const r of roster) {
+    const status = r.status || 'not_started';
+    if (status === 'completed') completed += 1;
+    else if (status === 'in_progress') inProgress += 1;
+    else notStarted += 1;
+  }
+  return { notStarted, inProgress, completed, total: roster.length };
+}
+
+// Diagnostic live view: merge the roster snapshot with the linked per-student
+// diagnostic sessions (sourceType:'kiosk', sourceId:<id>). Pure read.
+async function buildDiagnosticStatus(session) {
   const linked = await MathPathDiagnosticSession
     .find({ sourceType: 'kiosk', sourceId: String(session._id) })
     .select('diagnosticSessionId studentId status adaptiveState result')
     .lean();
   const byStudent = new Map(linked.map((d) => [String(d.studentId), d]));
 
-  let notStarted = 0;
-  let inProgress = 0;
-  let completed = 0;
   const students = (session.roster || []).map((r) => {
     const d = byStudent.get(String(r.studentId));
     const answeredCount = Array.isArray(d?.adaptiveState?.responses) ? d.adaptiveState.responses.length : 0;
-    const status = r.status || 'not_started';
-    if (status === 'completed') completed += 1;
-    else if (status === 'in_progress') inProgress += 1;
-    else notStarted += 1;
     return {
       studentId: String(r.studentId),
       name: r.name,
-      attemptStatus: status,
+      attemptStatus: r.status || 'not_started',
       answeredCount,
       readinessScore: d?.result?.readinessScore ?? null,
       weakSkillCount: Array.isArray(d?.result?.weakSkillIds) ? d.result.weakSkillIds.length : null,
@@ -92,6 +145,7 @@ export async function buildKioskStatus(session) {
   });
 
   return {
+    type: 'diagnostic',
     sessionId: String(session._id),
     code: session.code,
     domainId: session.domainId,
@@ -99,8 +153,217 @@ export async function buildKioskStatus(session) {
     status: session.status,
     expiresAt: session.expiresAt,
     students,
-    summary: { notStarted, inProgress, completed, total: (session.roster || []).length },
+    summary: rosterSummary(session.roster || []),
   };
 }
 
-export default { generateSessionCode, createClassDiagnosticSession, buildKioskStatus };
+// Practice live view: for each roster slot that has begun, read its latest
+// PracticeSession + attempt counts. `readinessScore` carries the practice
+// scorePct so the teacher panel renders with no UI change. Pure read.
+async function buildPracticeStatus(session) {
+  const practiceIds = (session.roster || []).map((r) => r.practiceSessionId).filter(Boolean);
+  const sessions = practiceIds.length
+    ? await PracticeSession.find({ _id: { $in: practiceIds } }).select('_id summary status').lean()
+    : [];
+  const bySessionId = new Map(sessions.map((s) => [String(s._id), s]));
+
+  // Live answered counts for in-progress sets (before the summary is written).
+  const attemptAgg = practiceIds.length
+    ? await PracticeAttempt.aggregate([
+      { $match: { sessionId: { $in: sessions.map((s) => s._id) } } },
+      { $group: { _id: '$sessionId', answered: { $sum: 1 }, correct: { $sum: { $cond: ['$correct', 1, 0] } } } },
+    ])
+    : [];
+  const byAttemptSession = new Map(attemptAgg.map((a) => [String(a._id), a]));
+
+  const students = (session.roster || []).map((r) => {
+    const ps = r.practiceSessionId ? bySessionId.get(String(r.practiceSessionId)) : null;
+    const agg = r.practiceSessionId ? byAttemptSession.get(String(r.practiceSessionId)) : null;
+    // Prefer the live attempt aggregate (accurate mid-set AND after completion,
+    // since attempts persist); fall back to the written summary. A default summary
+    // reads scorePct:0, so we must NOT let it mask the live score.
+    const answeredCount = agg?.answered ?? ps?.summary?.total ?? 0;
+    const scorePct = agg && agg.answered
+      ? Math.round((agg.correct / agg.answered) * 100)
+      : (ps?.summary?.scorePct ?? null);
+    return {
+      studentId: String(r.studentId),
+      name: r.name,
+      attemptStatus: r.status || 'not_started',
+      answeredCount,
+      readinessScore: scorePct, // reuse the column; it's the practice score for this type
+      weakSkillCount: null,
+    };
+  });
+
+  return {
+    type: 'practice',
+    sessionId: String(session._id),
+    code: session.code,
+    domainId: session.domainId,
+    skillName: session.practiceConfig?.skillName || '',
+    questionCount: session.practiceConfig?.questionCount ?? null,
+    status: session.status,
+    expiresAt: session.expiresAt,
+    students,
+    summary: rosterSummary(session.roster || []),
+  };
+}
+
+// Live status for the teacher's polling view — dispatches by session type.
+export async function buildKioskStatus(session) {
+  if (session.type === 'practice') return buildPracticeStatus(session);
+  return buildDiagnosticStatus(session);
+}
+
+// Resolve MathPath framework skill codes (F001 / OP014 / …) to display names.
+async function resolveSkillNames(frameworkIds = []) {
+  const ids = [...new Set(frameworkIds.filter(Boolean).map(String))];
+  if (!ids.length) return new Map();
+  const docs = await Skill.find({
+    $or: [{ 'metadata.mathPathSkillId': { $in: ids } }, { 'metadata.frameworkCode': { $in: ids } }],
+  }).select('name metadata').lean();
+  const byCode = new Map();
+  for (const d of docs) {
+    const code = d.metadata?.mathPathSkillId || d.metadata?.frameworkCode;
+    if (code) byCode.set(String(code), d.name);
+  }
+  return byCode;
+}
+
+// Per-student results detail for the teacher's post-session drill-down. Surfaces
+// data that is captured but was never shown: time taken, overall readiness/score,
+// weak skills (named), and a per-question breakdown incl. the student's WORKINGS.
+export async function buildKioskStudentDetail(session, studentId) {
+  const rosterEntry = (session.roster || []).find((r) => String(r.studentId) === String(studentId));
+  if (!rosterEntry) return null;
+  const base = { studentId: String(studentId), name: rosterEntry.name, type: session.type || 'diagnostic', attemptStatus: rosterEntry.status || 'not_started' };
+
+  if (session.type === 'practice') {
+    const ps = rosterEntry.practiceSessionId
+      ? await PracticeSession.findById(rosterEntry.practiceSessionId).select('summary status startedAt endedAt').lean()
+      : null;
+    if (!ps) return { ...base, started: false };
+    const attempts = await PracticeAttempt.find({ sessionId: ps._id })
+      .select('questionId skillId correct answer timeMs').sort({ createdAt: 1 }).lean();
+    const qDocs = await Question.find({ _id: { $in: attempts.map((a) => a.questionId) } }).select('stem answer').lean();
+    const qById = new Map(qDocs.map((q) => [String(q._id), q]));
+    const total = attempts.length;
+    const correct = attempts.filter((a) => a.correct).length;
+    return {
+      ...base,
+      started: true,
+      skillName: session.practiceConfig?.skillName || '',
+      overall: {
+        answered: total, correct, accuracy: total ? Math.round((correct / total) * 100) : 0,
+        timeSpentSeconds: ps.startedAt && ps.endedAt ? Math.max(0, Math.round((new Date(ps.endedAt) - new Date(ps.startedAt)) / 1000)) : null,
+      },
+      questions: attempts.map((a) => {
+        const q = qById.get(String(a.questionId)) || {};
+        return { prompt: q.stem || '', correct: a.correct, studentAnswer: a.answer || '', correctAnswer: q.answer || '', timeMs: a.timeMs ?? null, workingImage: '' };
+      }),
+    };
+  }
+
+  // Diagnostic
+  const diag = await MathPathDiagnosticSession
+    .findOne({ sourceType: 'kiosk', sourceId: String(session._id), studentId: String(studentId) })
+    .select('diagnosticSessionId adaptiveState result perSkillSnapshot readinessScore startedAt completedAt').lean();
+  if (!diag) return { ...base, started: false };
+
+  const result = diag.result || {};
+  const responses = Array.isArray(diag.adaptiveState?.responses) ? diag.adaptiveState.responses : [];
+  const snapshots = diag.perSkillSnapshot?.length ? diag.perSkillSnapshot : (result.perSkillSnapshots || []);
+  const weakIds = new Set((result.weakSkillIds || result.weakSkills || []).map(String));
+
+  const nameByCode = await resolveSkillNames([...snapshots.map((s) => s.skillId), ...responses.map((r) => r.skillId)]);
+  const attempts = await MathPathAttempt
+    .find({ studentId: String(studentId), sessionId: diag.diagnosticSessionId })
+    .select('questionId correctAnswer studentAnswer workingImage fullscreenWorkingImage timeTaken').lean();
+  const attemptByQ = new Map(attempts.map((a) => [String(a.questionId), a]));
+
+  const answered = responses.length;
+  const correctCount = responses.filter((r) => r.correct).length;
+  return {
+    ...base,
+    started: true,
+    overall: {
+      readinessScore: result.readinessScore ?? diag.readinessScore ?? null,
+      readinessBand: result.readinessBand || result.overallReadinessBand || '',
+      answered,
+      correct: correctCount,
+      accuracy: answered ? Math.round((correctCount / answered) * 100) : 0,
+      timeSpentSeconds: diag.startedAt && diag.completedAt ? Math.max(0, Math.round((new Date(diag.completedAt) - new Date(diag.startedAt)) / 1000)) : null,
+    },
+    skills: snapshots.map((s) => ({
+      skillId: s.skillId,
+      name: nameByCode.get(String(s.skillId)) || s.skillId,
+      score: s.readinessScore ?? s.score ?? null,
+      weak: weakIds.has(String(s.skillId)),
+    })),
+    questions: responses.map((r) => {
+      const a = attemptByQ.get(String(r.questionId)) || {};
+      return {
+        skillName: nameByCode.get(String(r.skillId)) || r.skillId || '',
+        correct: r.correct,
+        studentAnswer: r.studentAnswer ?? a.studentAnswer ?? '',
+        correctAnswer: a.correctAnswer ?? '',
+        timeMs: r.timeTakenMs ?? (a.timeTaken != null ? a.timeTaken : null),
+        misconceptions: Array.isArray(r.detectedErrorTags) ? r.detectedErrorTags : [],
+        workingImage: a.fullscreenWorkingImage || a.workingImage || '',
+      };
+    }),
+  };
+}
+
+// Post-session grouping for the teacher: which SKILLS the class collectively
+// struggled with in THIS check-in and which students fall in each group — so the
+// teacher can pull a small group the moment the diagnostic ends. Diagnostic-only
+// (practice carries no per-skill weakness signal). Reuses the same
+// kiosk→MathPathDiagnosticSession link + skill-name resolution as the drill-down.
+export async function buildKioskWeakGroups(session) {
+  if ((session.type || 'diagnostic') !== 'diagnostic') {
+    return { groups: [], analysedStudents: 0 };
+  }
+  const nameByStudent = new Map((session.roster || []).map((r) => [String(r.studentId), r.name]));
+  const diags = await MathPathDiagnosticSession
+    .find({ sourceType: 'kiosk', sourceId: String(session._id) })
+    .select('studentId result completedAt').lean();
+
+  const bySkill = new Map(); // framework code -> Set<studentId>
+  let analysedStudents = 0;
+  for (const d of diags) {
+    const finished = Boolean(d.completedAt) || d.result?.readinessScore != null;
+    if (!finished) continue;
+    analysedStudents += 1;
+    const weak = d.result?.weakSkillIds || d.result?.weakSkills || [];
+    for (const code of Array.isArray(weak) ? weak : []) {
+      const key = String(code);
+      if (!key) continue;
+      if (!bySkill.has(key)) bySkill.set(key, new Set());
+      bySkill.get(key).add(String(d.studentId));
+    }
+  }
+
+  const nameByCode = await resolveSkillNames([...bySkill.keys()]);
+  const groups = [...bySkill.entries()]
+    .map(([code, studentSet]) => ({
+      skillId: code,
+      skillName: nameByCode.get(code) || code,
+      studentCount: studentSet.size,
+      students: [...studentSet].map((sid) => nameByStudent.get(sid) || 'Student').sort(),
+    }))
+    .sort((a, b) => b.studentCount - a.studentCount || a.skillName.localeCompare(b.skillName))
+    .slice(0, 8);
+
+  return { groups, analysedStudents };
+}
+
+export default {
+  generateSessionCode,
+  createClassDiagnosticSession,
+  createClassPracticeSession,
+  buildKioskStatus,
+  buildKioskStudentDetail,
+  buildKioskWeakGroups,
+};

@@ -38,6 +38,17 @@ export default function KioskLandingPage() {
     setBusyId(student.ref);
     setError('');
     try {
+      // Practice: a fixed set. Begin returns items[] up front; the practice screen
+      // walks them locally.
+      if (session.type === 'practice') {
+        const { data } = await kioskAPI.practiceBegin(code, student.ref);
+        setAttemptToken(data.attemptToken);
+        navigate(`/kiosk/${code}/practice/${data.sessionId}`, {
+          state: { items: data.items || [], studentName: student.name, skillName: data.skillName || '', code },
+        });
+        return;
+      }
+      // Diagnostic: the adaptive engine drives question-by-question.
       const { data } = await kioskAPI.begin(code, student.ref);
       setAttemptToken(data.attemptToken);
       const sessionId = data.sessionId || data.session?.sessionId;
@@ -73,15 +84,22 @@ export default function KioskLandingPage() {
     );
   }
 
+  const isPractice = session.type === 'practice';
   const domainName = DOMAIN_LABELS[session.domainId] || session.domainId;
+  const headerLabel = isPractice
+    ? `${session.practiceConfig?.skillName || 'Skill'} practice`
+    : `${domainName} check-in`;
+  const subtitle = isPractice
+    ? 'Have a go at each question — your teacher can see how you did.'
+    : 'Just do your best — this helps your teacher find the right starting point for you.';
 
   return (
     <div style={shell}>
       <div style={{ width: '100%', maxWidth: 720 }}>
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <p style={{ fontSize: 14, letterSpacing: 2, fontWeight: 700, color: '#3f8f6f', textTransform: 'uppercase' }}>{domainName} check-in</p>
+          <p style={{ fontSize: 14, letterSpacing: 2, fontWeight: 700, color: '#3f8f6f', textTransform: 'uppercase' }}>{headerLabel}</p>
           <h1 style={{ fontSize: 30, fontWeight: 800, color: '#1c2433', marginTop: 6 }}>Tap your name to begin</h1>
-          <p style={{ fontSize: 16, color: '#5a6675', marginTop: 6 }}>Just do your best — this helps your teacher find the right starting point for you.</p>
+          <p style={{ fontSize: 16, color: '#5a6675', marginTop: 6 }}>{subtitle}</p>
         </div>
         {error && <p style={{ textAlign: 'center', color: '#b23b54', marginBottom: 12 }}>{error}</p>}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 14 }}>

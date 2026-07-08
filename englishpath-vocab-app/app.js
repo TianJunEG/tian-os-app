@@ -16,12 +16,19 @@
 import {
   initState,
   buildSession,
+  buildFocusSession,
+  buildColdProbe,
+  weakWords,
   recordResult,
   summarize,
   vocabularyWordBank,
+  bankForLevels,
   TIERS,
+  LEVEL_GROUPS,
+  LEVEL_GROUP_LIST,
 } from '../shared/englishpath/vocabulary/index.js';
 import { CONFIG } from './config.js';
+import { initPartner } from './partner.js';
 
 const PRICE = CONFIG.PRICE || 'S$9/mo'; // display only — real pricing comes from Stripe
 const LEVELS = [
@@ -33,12 +40,23 @@ const K = {
   unlocked: 'vb.unlocked', // entitlement stub (Premium)
   lead: 'vb.lead', // captured lead (email + level)
   level: 'vb.level',
-  progress: 'vb.progress', // only written when Premium
+  levelGroup: 'vb.levelGroup',
+  progress: 'vb.progress', // only written when Premium (namespaced by group)
+  theme: 'vb.theme', // 'dark' | 'light' — absent means follow the OS setting
+  session: 'vb.session', // cross-device sync: signed-in session JWT
+  email: 'vb.email', // cross-device sync: the signed-in email (for display)
+  clientId: 'vb.clientId', // anonymous analytics id (whole-funnel measurement)
 };
 const app = document.getElementById('app');
 
 // ---- entitlement + lead (stubs) -------------------------------------------
-const isPremium = () => localStorage.getItem(K.unlocked) === '1';
+// Premium is currently FREE FOR EVERYONE — the Stripe paywall and email gate
+// are disabled while we run open. Every learner gets saved progress, spaced
+// review, weak-word focus and readiness. To re-enable the funnel later, restore
+// the entitlement check: `localStorage.getItem(K.unlocked) === '1'`. The paywall
+// / lead-capture / checkout code below is left dormant (never reached while this
+// returns true) so re-enabling is a one-line change.
+const isPremium = () => true;
 
 function captureLead(lead) {
   const record = { ...lead, app: 'vocab-builder', at: new Date().toISOString() };
@@ -86,7 +104,7 @@ function consumePaymentReturn() {
 function loadProgress() {
   if (!isPremium()) return initState(); // free = always fresh, nothing saved
   try {
-    const raw = localStorage.getItem(K.progress);
+    const raw = localStorage.getItem(progressKey());
     if (raw) {
       const p = JSON.parse(raw);
       if (p && p.words) return { ...initState(p.config), words: p.words };
@@ -97,9 +115,149 @@ function loadProgress() {
 function saveProgress(s) {
   if (!isPremium()) return; // free progress is intentionally not saved
   try {
-    localStorage.setItem(K.progress, JSON.stringify(s));
+    localStorage.setItem(progressKey(), JSON.stringify(s));
   } catch (_) {}
+  // If the learner has signed in for cross-device save, mirror this group's
+  // state up to the server (debounced) so it follows them to other devices.
+  if (isSignedIn()) schedulePush(currentGroup().id, s);
 }
+
+// ---- cross-device sync (magic-link) ---------------------------------------
+// Progress lives in localStorage by default (per-device). When a learner signs
+// in with a magic link, we also mirror it to /api/vocab so it follows them to
+// any device. localStorage stays the fast, offline-friendly source of truth;
+// the server is the durable copy, reconciled last-write-wins per level group.
+const apiBase = () => `${(CONFIG.API_BASE || '').replace(/\/+$/, '')}/api/vocab`;
+const isSignedIn = () => !!localStorage.getItem(K.session);
+const signedInEmail = () => localStorage.getItem(K.email) || '';
+
+async function api(path, { method = 'GET', body, auth = false } = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (auth) headers.Authorization = `Bearer ${localStorage.getItem(K.session) || ''}`;
+  const res = await fetch(apiBase() + path, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+  return data;
+}
+
+function signOut() {
+  localStorage.removeItem(K.session);
+  localStorage.removeItem(K.email);
+}
+
+// Request a magic sign-in link. Returns the API payload (in dev it includes a
+// devLink so the flow is testable without email).
+function requestMagicLink(email) {
+  return api('/auth/request', { method: 'POST', body: { email } });
+}
+
+// Redeem a ?vbtoken=… magic link on load: verify it, store the session, pull
+// the server's saved progress into localStorage, then clean the URL.
+async function consumeMagicToken() {
+  let token;
+  try {
+    token = new URLSearchParams(window.location.search).get('vbtoken');
+  } catch (_) {
+    return;
+  }
+  if (!token) return;
+  try {
+    const { token: session, email } = await api('/auth/verify', { method: 'POST', body: { token } });
+    localStorage.setItem(K.session, session);
+    localStorage.setItem(K.email, email);
+    logEvent('sign_in');
+    await reconcileOnSignIn();
+  } catch (_) {
+    // invalid/expired link — fall through; the UI will let them request another
+  } finally {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      params.delete('vbtoken');
+      window.history.replaceState({}, '', window.location.pathname + (params.toString() ? '?' + params : ''));
+    } catch (_) {}
+  }
+}
+
+// Reconcile local and server progress at sign-in. Per level group: if the
+// server already has progress, adopt it (it's the shared source of truth, so
+// server wins — last-write-wins across devices). If the server has nothing but
+// this device does, upload the local progress so it isn't stranded. This makes
+// "practise locally, then sign in" carry your existing progress up.
+async function reconcileOnSignIn() {
+  if (!isSignedIn()) return;
+  const { progress } = await api('/progress', { auth: true });
+  const server = progress || {};
+  for (const g of LEVEL_GROUP_LIST.map((x) => x.id)) {
+    const key = `${K.progress}.${g}`;
+    const serverState = server[g] && server[g].state;
+    if (serverState && serverState.words) {
+      try {
+        localStorage.setItem(key, JSON.stringify(serverState));
+      } catch (_) {}
+      continue;
+    }
+    // Server has nothing for this group — push local up if we have real progress.
+    try {
+      const local = JSON.parse(localStorage.getItem(key) || 'null');
+      if (local && local.words && Object.keys(local.words).length) {
+        await api('/progress', { method: 'PUT', auth: true, body: { group: g, state: local } });
+      }
+    } catch (_) {}
+  }
+}
+
+let _pushTimers = {};
+function schedulePush(group, state) {
+  clearTimeout(_pushTimers[group]);
+  _pushTimers[group] = setTimeout(() => {
+    api('/progress', { method: 'PUT', auth: true, body: { group, state } }).catch((err) => {
+      // A dead session (expired/cleared) shouldn't wedge local practice.
+      if (/40[13]/.test(err.message)) signOut();
+    });
+  }, 1200);
+}
+
+// ---- analytics (engagement + cold-word probe) -----------------------------
+// Fire-and-forget events so we can measure whether the product earns its keep:
+// retention (do they come back?), depth, and — via the probe — real growth on
+// unseen words. Anonymous by default (a stable client id covers the whole
+// funnel); the signed-in session token, when present, tags events with an email.
+function clientId() {
+  let id = localStorage.getItem(K.clientId);
+  if (!id) {
+    id =
+      (window.crypto && crypto.randomUUID && crypto.randomUUID()) ||
+      `c_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+    try {
+      localStorage.setItem(K.clientId, id);
+    } catch (_) {}
+  }
+  return id;
+}
+
+let _events = [];
+let _flushTimer = null;
+function logEvent(type, data = null, group = null) {
+  _events.push({ type, group, data });
+  clearTimeout(_flushTimer);
+  _flushTimer = setTimeout(flushEvents, 2500);
+}
+function flushEvents() {
+  clearTimeout(_flushTimer);
+  if (!_events.length) return;
+  const batch = _events.splice(0, 100);
+  api('/events', { method: 'POST', auth: isSignedIn(), body: { clientId: clientId(), sessionId: session?.id, events: batch } }).catch(
+    () => {} // analytics must never disrupt practice
+  );
+}
+// Best-effort flush when the tab is hidden/closed so we don't lose the tail.
+window.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') flushEvents();
+});
 
 // ---- light markup ---------------------------------------------------------
 function esc(s) {
@@ -120,25 +278,38 @@ function markup(text) {
 }
 
 // ---- app state ------------------------------------------------------------
+function currentGroup() {
+  const saved = localStorage.getItem(K.levelGroup);
+  return LEVEL_GROUP_LIST.find((g) => g.id === saved) || LEVEL_GROUPS.UPPER;
+}
+function setGroup(group) {
+  localStorage.setItem(K.levelGroup, group.id);
+  state = loadProgress();
+}
+function progressKey() {
+  return `${K.progress}.${currentGroup().id}`;
+}
 let state = loadProgress();
 let session = null;
 
-// One combined Primary 5 & 6 vocabulary pool.
 function bank() {
-  return vocabularyWordBank;
+  return bankForLevels(currentGroup().levels);
 }
 
 // ---- views ----------------------------------------------------------------
 function renderHome() {
   state = loadProgress();
   const premium = isPremium();
-  const s = premium ? summarize(state, { bank: bank() }) : null;
+  const group = currentGroup();
+  const b = bank();
+  const s = premium ? summarize(state, { bank: b }) : null;
 
+  const weak = premium ? weakWords(state, { bank: b }) : [];
   const ctaEyebrow = premium ? (s.counts.dueNow ? 'Review due' : 'Your practice') : 'Free · no sign-up';
   const ctaHeading =
     premium && s.counts.dueNow
       ? `${s.counts.dueNow} word${s.counts.dueNow === 1 ? '' : 's'} to review + new`
-      : 'Start a 10-question session';
+      : 'Start a 5-minute session';
 
   const premiumBlock = premium
     ? `
@@ -147,10 +318,20 @@ function renderHome() {
         <div class="stat"><div class="n">${s.counts.mastered}</div><div class="l">Mastered</div></div>
         <div class="stat"><div class="n">${s.counts.dueNow}</div><div class="l">Due to review</div></div>
       </div>
+      ${isSignedIn()
+        ? `<p class="muted center synced" style="margin:-6px 0 16px">☁️ Synced across your devices · ${esc(signedInEmail())} · <button class="linkbtn" data-signout>Sign out</button></p>`
+        : `<p class="muted center" style="margin:-6px 0 16px">📱 Saved on this device. <button class="linkbtn" data-savesync>Save across devices →</button></p>`}
+      ${weak.length ? `<div class="card focus">
+        <div class="eyebrow warn">Your tricky words · ${weak.length}</div>
+        <h3 style="margin:2px 0 8px">Words you keep getting wrong</h3>
+        <div class="chips">${weak.slice(0, 8).map((w) => `<span class="chip">${esc(w.word)}</span>`).join('')}${weak.length > 8 ? `<span class="chip more">+${weak.length - 8}</span>` : ''}</div>
+        <button class="btn full mt" data-focus>Drill these ${weak.length} word${weak.length === 1 ? '' : 's'} →</button>
+        <p class="hint center mt">A focused session — just your weak words, no new ones.</p>
+      </div>` : ''}
       <div class="card">
         <h3>Exam-section readiness</h3>
         ${readinessRow('vocab_mcq', 'Vocabulary MCQ', s.examReadiness)}
-        ${readinessRow('vocab_cloze', 'Vocabulary Cloze', s.examReadiness)}
+        ${group.id === 'upper' ? readinessRow('vocab_cloze', 'Vocabulary Cloze', s.examReadiness) : ''}
       </div>`
     : `
       <div class="card locked">
@@ -166,19 +347,30 @@ function renderHome() {
         <p class="hint center mt">Free to practise · progress is saved only with Premium.</p>
       </div>`;
 
+  const groupToggle = LEVEL_GROUP_LIST.map((g) =>
+    `<button class="btn ${g.id === group.id ? '' : 'secondary'} grp-btn" data-group="${g.id}">${g.label}</button>`
+  ).join('');
+
   app.innerHTML = `
     <div class="hero">
-      <div class="eyebrow">Primary 5 &amp; 6 English</div>
+      <div class="group-toggle">${groupToggle}</div>
       <h1>Master the words the exam tests</h1>
-      <p class="sub">The real vocabulary MCQ and cloze words — learned step by step, in 5-minute sessions.</p>
+      <p class="sub">${b.length} real vocabulary words — learned step by step, in 5-minute sessions.</p>
     </div>
 
-    <div class="card cta">
+    ${b.length ? `<div class="card cta">
       <div class="eyebrow">${ctaEyebrow}</div>
       <h2>${ctaHeading}</h2>
-      <p class="muted">Meet a few new words, then test yourself. About 5 minutes.</p>
+      <p class="muted">${
+        premium && s.counts.dueNow
+          ? 'First, review the words that are due (spaced to bring them back right before you forget), then meet a few new ones.'
+          : "A few new words to meet, then questions — with quick review of words you're already learning mixed in."
+      }</p>
       <button class="btn full mt" data-go="practice">${premium ? 'Continue' : 'Start practice'} →</button>
-    </div>
+    </div>` : `<div class="card" style="text-align:center;padding:32px 22px">
+      <h2 style="color:var(--ink-700)">Coming soon</h2>
+      <p class="muted">We're building the ${group.label} word bank from real exam papers. Switch to Upper Primary to start practising now.</p>
+    </div>`}
 
     ${premium ? premiumBlock : ''}
 
@@ -191,17 +383,37 @@ function renderHome() {
 
     ${premium ? '' : premiumBlock}
 
+    ${premium && s.counts.introduced ? `<button class="btn secondary full" data-words>📖 Review my words (${s.counts.introduced})</button>` : ''}
     ${premium ? '<button class="btn ghost" data-reset>↺ Reset my progress</button>' : ''}
   `;
 
-  app.querySelector('[data-go="practice"]').onclick = startSession;
+  const goBtn = app.querySelector('[data-go="practice"]');
+  if (goBtn) goBtn.onclick = startSession;
+  const wordsBtn = app.querySelector('[data-words]');
+  if (wordsBtn) wordsBtn.onclick = renderWords;
+  const focusBtn = app.querySelector('[data-focus]');
+  if (focusBtn) focusBtn.onclick = startFocusSession;
+  for (const btn of app.querySelectorAll('[data-group]')) {
+    btn.onclick = () => {
+      const g = LEVEL_GROUP_LIST.find((x) => x.id === btn.dataset.group);
+      if (g && g.id !== group.id) { setGroup(g); renderHome(); }
+    };
+  }
   const unlock = app.querySelector('[data-unlock]');
   if (unlock) unlock.onclick = () => openPaywall('home');
+  const saveSync = app.querySelector('[data-savesync]');
+  if (saveSync) saveSync.onclick = openSyncModal;
+  const signout = app.querySelector('[data-signout]');
+  if (signout)
+    signout.onclick = () => {
+      signOut();
+      renderHome();
+    };
   const reset = app.querySelector('[data-reset]');
   if (reset)
     reset.onclick = () => {
       if (confirm('Reset your saved progress?')) {
-        localStorage.removeItem(K.progress);
+        localStorage.removeItem(progressKey());
         state = initState();
         renderHome();
       }
@@ -216,6 +428,67 @@ function readinessRow(key, label, examReadiness) {
     </div>`;
 }
 
+// A browsable personal dictionary of every word the learner has met, so they can
+// look meanings back up. Grouped tricky → learning → reviewing → mastered; tap a
+// word to see its example sentence and similar words.
+function renderWords() {
+  state = loadProgress();
+  const b = bank();
+  const weakSet = new Set(weakWords(state, { bank: b }).map((w) => w.wordId));
+  const rows = [];
+  for (const wp of Object.values(state.words)) {
+    if (!wp.introduced) continue;
+    const entry = b.find((w) => w.id === wp.wordId);
+    if (!entry) continue;
+    const status = wp.mastered ? 'mastered' : weakSet.has(wp.wordId) ? 'tricky' : wp.box > 0 ? 'review' : 'learning';
+    rows.push({ id: wp.wordId, word: entry.word, pos: entry.pos, meaning: entry.meaning, example: entry.example, answer: entry.answer, synonyms: entry.synonyms, status });
+  }
+  const order = { tricky: 0, learning: 1, review: 2, mastered: 3 };
+  rows.sort((a, c) => order[a.status] - order[c.status] || a.word.localeCompare(c.word));
+  const tag = {
+    tricky: '<span class="tag warn">Tricky</span>',
+    learning: '<span class="tag">Learning</span>',
+    review: '<span class="tag gold">Review</span>',
+    mastered: '<span class="tag ok">Mastered</span>',
+  };
+
+  app.innerHTML = `
+    <button class="btn ghost" data-home>← Home</button>
+    <div class="hero" style="padding:6px 0 2px"><h1 style="font-size:24px">My words</h1>
+      <p class="sub" style="font-size:15px">${rows.length} word${rows.length === 1 ? '' : 's'} you've met — tap any to see its example.</p></div>
+    <input class="wordsearch" type="search" placeholder="Search your words…" aria-label="Search your words" />
+    <div class="wordlist">
+      ${rows
+        .map(
+          (r) => `<div class="wordrow" data-w="${esc(r.word.toLowerCase())}">
+        <button class="wordhead" data-toggle="${r.id}">
+          <span class="ww"><b>${esc(r.word)}</b> <span class="pos">${esc(r.pos || '')}</span></span>
+          ${tag[r.status] || ''}
+        </button>
+        <div class="wordmean">${esc(r.meaning)}</div>
+        <div class="worddetail" data-detail="${r.id}" hidden>
+          ${r.example ? `<div class="ex">${markup(r.example.replace(/_{3,}/g, `**${r.answer || r.word}**`))}</div>` : ''}
+          ${r.synonyms && r.synonyms.length ? `<p class="muted" style="margin:8px 0 0"><b>Similar:</b> ${esc(r.synonyms.join(', '))}</p>` : ''}
+        </div>
+      </div>`
+        )
+        .join('')}
+    </div>`;
+  app.querySelector('[data-home]').onclick = renderHome;
+  for (const btn of app.querySelectorAll('[data-toggle]')) {
+    btn.onclick = () => {
+      const d = app.querySelector(`[data-detail="${btn.getAttribute('data-toggle')}"]`);
+      if (d) d.hidden = !d.hidden;
+    };
+  }
+  const search = app.querySelector('.wordsearch');
+  if (search)
+    search.oninput = () => {
+      const q = search.value.trim().toLowerCase();
+      for (const row of app.querySelectorAll('.wordrow')) row.hidden = q && !row.dataset.w.includes(q);
+    };
+}
+
 function shuffle(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -225,12 +498,31 @@ function shuffle(arr) {
   return a;
 }
 
+function newSessionId() {
+  return `s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
+}
+
 function startSession() {
-  // Free sessions aren't saved, so vary the words each time rather than always
-  // starting from the top of the list. Premium follows the adaptive order.
+  const group = currentGroup();
   const sessionBank = isPremium() ? bank() : shuffle(bank());
-  const tasks = buildSession(state, { size: 10, bank: sessionBank });
-  session = { tasks, idx: 0, answered: false, log: [] };
+  const tasks = buildSession(state, { size: group.sessionSize, bank: sessionBank });
+  // Occasionally slip in one cold-word probe — a question on a word they've
+  // never met — to measure genuine growth on unseen words over time.
+  if (tasks.some((t) => t.kind !== 'teach') && Math.random() < 0.5) {
+    const probe = buildColdProbe(state, { bank: sessionBank });
+    if (probe) tasks.push(probe);
+  }
+  session = { id: newSessionId(), tasks, idx: 0, answered: false, log: [], focus: false };
+  logEvent('session_start', { size: tasks.length, focus: false }, group.id);
+  renderSession();
+}
+
+function startFocusSession() {
+  const group = currentGroup();
+  const tasks = buildFocusSession(state, { size: group.sessionSize, bank: bank() });
+  if (!tasks.length) return renderHome();
+  session = { id: newSessionId(), tasks, idx: 0, answered: false, log: [], focus: true };
+  logEvent('session_start', { size: tasks.length, focus: true }, group.id);
   renderSession();
 }
 
@@ -255,7 +547,7 @@ function renderSession() {
     <button class="btn ghost" data-home>← Home</button>
     <div class="sessionbar">
       <span class="mono">${counter}</span>
-      <span>${t.mode === 'review' ? '<span class="tag gold">Review</span> ' : ''}${t.kind === 'teach' ? '' : `<span class="tag">${tier ? tier.name : ''}</span>`}</span>
+      <span>${session.focus ? '<span class="tag warn">Focus</span> ' : t.mode === 'review' ? '<span class="tag gold">Review</span> ' : ''}${t.kind === 'teach' ? '' : `<span class="tag">${tier ? tier.name : ''}</span>`}</span>
     </div>
     <div class="bar" style="margin-bottom:18px"><span style="width:${(progressUnits / session.tasks.length) * 100}%"></span></div>`;
 
@@ -270,6 +562,7 @@ function renderSession() {
         ${c.example ? `<div class="ex">${markup(c.example)}</div>` : ''}
         <div class="meta">
           ${c.synonyms && c.synonyms.length ? `<p style="margin:0 0 4px"><b>Similar:</b> ${esc(c.synonyms.join(', '))}</p>` : ''}
+          ${c.wordFamily ? `<p style="margin:0 0 4px"><b>Word family:</b> ${esc(c.wordFamily)}</p>` : ''}
           ${c.mnemonic ? `<p style="margin:0">💡 ${esc(c.mnemonic)}</p>` : ''}
         </div>
         <div class="spacer"><button class="btn full" data-next>Got it →</button></div>
@@ -284,13 +577,14 @@ function renderSession() {
     return;
   }
 
+  session._shownAt = Date.now(); // for answer-time telemetry
   app.innerHTML = `${head}
     <div class="card">
       <div class="eyebrow">${esc(t.label)}</div>
       <p class="muted" style="margin:4px 0 0">${esc(t.instruction)}</p>
       <div class="prompt">${markup(t.prompt)}</div>
       <div class="options">
-        ${t.options.map((o) => `<button class="opt" data-opt="${o.id}">${esc(o.text)}<span class="mk" data-mk="${o.id}"></span></button>`).join('')}
+        ${t.options.map((o) => `<button class="opt" data-opt="${o.id}"><span class="opt-row"><span class="opt-text">${esc(o.text)}</span><span class="mk" data-mk="${o.id}"></span></span>${o.gloss ? `<span class="opt-gloss" hidden>${esc(o.gloss)}</span>` : ''}</button>`).join('')}
       </div>
       <div data-foot></div>
     </div>`;
@@ -305,13 +599,23 @@ function answer(t, optId) {
   session.answered = true;
   const option = t.options.find((o) => o.id === optId);
   const correct = !!option.correct;
-  state = recordResult(
-    state,
-    { wordId: t.wordId, taskType: t.taskType, correct, chosenText: correct ? undefined : option.text },
-    { bank: bank() }
-  );
-  saveProgress(state);
-  session.log.push({ kind: 'mcq', word: t.word, label: t.label, correct });
+  const ms = session._shownAt ? Date.now() - session._shownAt : undefined;
+
+  if (t.probe) {
+    // Measurement only — never fed into progress or the session score, so a
+    // probe can't inflate "words learned" or skew results.
+    logEvent('probe_result', { word: t.word, correct, ms }, currentGroup().id);
+    session.log.push({ kind: 'probe', word: t.word, correct });
+  } else {
+    state = recordResult(
+      state,
+      { wordId: t.wordId, taskType: t.taskType, correct, chosenText: correct ? undefined : option.text },
+      { bank: bank() }
+    );
+    saveProgress(state);
+    session.log.push({ kind: 'mcq', word: t.word, label: t.label, correct });
+    logEvent('answer', { word: t.word, taskType: t.taskType, tier: t.tier, correct, ms }, currentGroup().id);
+  }
 
   app.querySelectorAll('[data-opt]').forEach((btn) => {
     const o = t.options.find((x) => x.id === btn.getAttribute('data-opt'));
@@ -325,6 +629,12 @@ function answer(t, optId) {
     } else {
       btn.classList.add('dim');
     }
+  });
+  // Reveal every option's meaning — so each question teaches all four words,
+  // not just the answer (students often miss because they don't know the
+  // distractors). Hidden until now so glosses don't give the answer away.
+  app.querySelectorAll('.opt-gloss').forEach((el) => {
+    el.hidden = false;
   });
 
   const last = session.idx + 1 >= session.tasks.length;
@@ -348,6 +658,9 @@ function renderResults() {
   const pct = total ? Math.round((correct / total) * 100) : 100;
   const newCount = session.log.filter((e) => e.kind === 'teach').length;
   const premium = isPremium();
+
+  logEvent('session_complete', { correctCount: correct, total, size: session.tasks.length, focus: !!session.focus }, currentGroup().id);
+  flushEvents();
 
   // What's next — the answer differs for free vs Premium.
   const next = premium
@@ -455,6 +768,99 @@ function openPaywall(source) {
   };
 }
 
+// ---- cross-device sync modal ----------------------------------------------
+// Passwordless: enter an email, we send a one-time sign-in link. Opening that
+// link (on any device) signs in and syncs progress. No password to remember.
+function openSyncModal() {
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.innerHTML = `
+    <div class="modal">
+      <button class="x" data-close aria-label="Close">×</button>
+      <div class="eyebrow">Save across devices</div>
+      <h2 style="margin:4px 0 8px">Keep your progress anywhere</h2>
+      <p class="muted" style="margin:0 0 14px">Enter your email and we'll send a one-tap sign-in link — no password. Your saved words then follow you to any phone, tablet or laptop.</p>
+      <form data-form>
+        <label class="fld"><span>Your email</span>
+          <input type="email" name="email" required placeholder="you@email.com" autocomplete="email" /></label>
+        <button class="btn full" type="submit">Email me a sign-in link</button>
+        <p class="hint center mt" data-msg></p>
+      </form>
+    </div>`;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  overlay.querySelector('[data-close]').onclick = close;
+  overlay.onclick = (e) => {
+    if (e.target === overlay) close();
+  };
+  overlay.querySelector('[data-form]').onsubmit = async (e) => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    const msg = e.target.querySelector('[data-msg]');
+    const email = new FormData(e.target).get('email');
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    msg.textContent = '';
+    msg.style.color = '';
+    try {
+      const res = await requestMagicLink(email);
+      overlay.querySelector('.modal').innerHTML = `
+        <div class="center" style="padding:16px 6px">
+          <div style="font-size:44px">✉️</div>
+          <h2 style="margin:6px 0">Check your inbox</h2>
+          <p class="muted">We sent a sign-in link to <b>${esc(email)}</b>. Open it on any device to sync your progress. The link works once and expires in 20 minutes.</p>
+          ${res.devLink ? `<button class="btn mt" data-devopen>Open link now (dev)</button>` : ''}
+          <button class="btn ghost mt" data-close2>Close</button>
+        </div>`;
+      overlay.querySelector('[data-close2]').onclick = close;
+      const dev = overlay.querySelector('[data-devopen]');
+      if (dev) dev.onclick = () => (window.location.href = res.devLink);
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = 'Email me a sign-in link';
+      msg.textContent = err.message || 'Something went wrong. Please try again.';
+      msg.style.color = 'var(--error)';
+    }
+  };
+}
+
+// ---- theme (dark mode) -----------------------------------------------------
+// The <head> script has already applied the initial theme class (from the saved
+// preference, else the OS setting) to avoid a flash. Here we just keep the
+// toggle's icon in sync and let the user override + persist their choice.
+function initTheme() {
+  const btn = document.getElementById('theme-toggle');
+  if (!btn) return;
+  const sync = () => {
+    const dark = document.documentElement.classList.contains('dark');
+    btn.textContent = dark ? '☀️' : '🌙';
+    btn.setAttribute('aria-pressed', String(dark));
+  };
+  btn.onclick = () => {
+    const dark = !document.documentElement.classList.contains('dark');
+    document.documentElement.classList.toggle('dark', dark);
+    try {
+      localStorage.setItem(K.theme, dark ? 'dark' : 'light');
+    } catch (_) {}
+    sync();
+  };
+  sync();
+}
+
 // ---- boot -----------------------------------------------------------------
+// Embed / co-brand mode (e.g. ?partner=brightdesk) — shows a co-brand ribbon and
+// logs an anonymous attribution event. No-op when opened without the param.
+initPartner({ onLand: (id) => logEvent('partner_land', { partner: id }) });
+// Keep the partner/embed context when crossing to the cloze page.
+if (location.search) {
+  const toCloze = document.getElementById('to-cloze');
+  if (toCloze) toCloze.href = './cloze.html' + location.search;
+}
+initTheme();
 consumePaymentReturn(); // grant Premium if returning from a successful checkout
-renderHome();
+renderHome(); // render immediately so there's no blank frame
+// If arriving from a magic link, redeem it and re-render with synced progress.
+consumeMagicToken().then(() => {
+  state = loadProgress();
+  renderHome();
+});

@@ -139,17 +139,19 @@ const BUILDERS = {
       steps: [`Area of the whole circle = π × r × r = ${round2(pi * r * r)} cm².`, `Take ${quarter ? '¼' : '½'} of it = ${ans} cm².`],
       distractors: [round2(pi * r * r), quarter ? round2(pi * r * r / 2) : round2(pi * r * r / 4), round2(2 * pi * r)], diagram: { kind: 'circle-part', part: fraction, radius: r } };
   },
-  // ── Word-problem families (_003): real-world context, no diagram ──────────────
+  // ── Word-problem families (_003): real-world context, now with the figure ─────
+  // (the circle/circle-part with the given radius labelled — same scaffold as the
+  // non-word siblings; the diameter/circumference/area still has to be computed).
   'CI001W': (rng) => {
     const r = pick(rng, [3, 4, 5, 6, 7, 8, 10, 12]);
     const toDiameter = rng() < 0.5;
     const obj = pick(rng, ['coin', 'mirror', 'wheel', 'pizza base']);
     if (toDiameter) {
       return { prompt: `A circular ${obj} has a radius of ${r} cm. What is its diameter?`, value: 2 * r, unit: 'cm', tag: 'cir/radius-diameter',
-        steps: ['Diameter = 2 × radius.', `2 × ${r} = ${2 * r} cm.`], distractors: [r, 4 * r, r / 2] };
+        steps: ['Diameter = 2 × radius.', `2 × ${r} = ${2 * r} cm.`], distractors: [r, 4 * r, r / 2], diagram: { kind: 'circle', radius: r, label: 'radius' } };
     }
     return { prompt: `A circular ${obj} has a diameter of ${2 * r} cm. What is its radius?`, value: r, unit: 'cm', tag: 'cir/radius-diameter',
-      steps: ['Radius = diameter ÷ 2.', `${2 * r} ÷ 2 = ${r} cm.`], distractors: [2 * r, 4 * r, r + 1] };
+      steps: ['Radius = diameter ÷ 2.', `${2 * r} ÷ 2 = ${r} cm.`], distractors: [2 * r, 4 * r, r + 1], diagram: { kind: 'circle', radius: r, label: 'diameter' } };
   },
   'CI002W': (rng) => {
     const { r, pi, piStr } = radiusAndPi(rng);
@@ -159,7 +161,7 @@ const BUILDERS = {
     return { prompt: `A ${obj} has radius ${r} cm. Find the circumference of a circle with this radius. (Use π = ${piStr}.)${round(note)}`,
       value: ans, unit: 'cm', tag: 'cir/radius-diameter',
       steps: [`Circumference = 2 × π × r.`, `= 2 × ${piStr} × ${r} = ${ans} cm.`],
-      distractors: [round2(pi * r * r), round2(pi * r), round2(2 * pi * (2 * r))] };
+      distractors: [round2(pi * r * r), round2(pi * r), round2(2 * pi * (2 * r))], diagram: { kind: 'circle', radius: r } };
   },
   'CI003W': (rng) => {
     const { r, pi, piStr } = radiusAndPi(rng);
@@ -169,7 +171,7 @@ const BUILDERS = {
     return { prompt: `A ${obj} has radius ${r} cm. Find the area of a circle with this radius. (Use π = ${piStr}.)${round(note)}`,
       value: ans, unit: 'cm²', tag: 'cir/area-uses-diameter',
       steps: [`Area = π × r × r.`, `= ${piStr} × ${r} × ${r} = ${ans} cm².`],
-      distractors: [round2(2 * pi * r), round2(pi * (2 * r) * (2 * r)), r * r] };
+      distractors: [round2(2 * pi * r), round2(pi * (2 * r) * (2 * r)), r * r], diagram: { kind: 'circle', radius: r } };
   },
   'CI004W': (rng) => {
     const { r, pi, piStr } = radiusAndPi(rng);
@@ -187,13 +189,13 @@ const BUILDERS = {
       return { prompt: `A ${obj} is a ${fraction} with radius ${r} cm. Find the perimeter of a ${fraction} with this radius. Include the straight edge${quarter ? 's' : ''}. (Use π = ${piStr}.)${round(note)}`,
         value: ans, unit: 'cm', tag: 'cir/perimeter-arc-only',
         steps: [`Curved part = ${quarter ? '¼' : '½'} of the circumference = ${arc} cm.`, `Straight edge${quarter ? 's = 2 × radius' : ' = diameter'} = ${straight} cm.`, `Perimeter = ${arc} + ${straight} = ${ans} cm.`],
-        distractors: [arc, round2(2 * pi * r), round2((quarter ? pi * r * r / 4 : pi * r * r / 2))] };
+        distractors: [arc, round2(2 * pi * r), round2((quarter ? pi * r * r / 4 : pi * r * r / 2))], diagram: { kind: 'circle-part', part: fraction, radius: r } };
     }
     const ans = quarter ? round2(pi * r * r / 4) : round2(pi * r * r / 2);
     return { prompt: `A ${obj} is a ${fraction} with radius ${r} cm. Find the area of a ${fraction} with this radius. (Use π = ${piStr}.)${round(note)}`,
       value: ans, unit: 'cm²', tag: 'cir/half-wrong',
       steps: [`Area of the whole circle = π × r × r = ${round2(pi * r * r)} cm².`, `Take ${quarter ? '¼' : '½'} of it = ${ans} cm².`],
-      distractors: [round2(pi * r * r), quarter ? round2(pi * r * r / 2) : round2(pi * r * r / 4), round2(2 * pi * r)] };
+      distractors: [round2(pi * r * r), quarter ? round2(pi * r * r / 2) : round2(pi * r * r / 4), round2(2 * pi * r)], diagram: { kind: 'circle-part', part: fraction, radius: r } };
   },
 };
 

@@ -46,6 +46,7 @@ export function buildOperationsPracticeSession({
     difficulty: q.difficulty,
     workingRequired: Boolean(q.workingRequired),
     ...(q.diagram ? { diagram: q.diagram } : {}),
+    ...(q.answerFormat ? { answerFormat: q.answerFormat } : {}),
   }));
   return {
     domainId: DOMAIN_ID,

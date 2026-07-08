@@ -32,8 +32,26 @@ body {
   background: var(--paper);
   border-bottom: 1px solid var(--line);
   padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--ink-900); }
+.theme-toggle {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  font-size: 18px; line-height: 1; padding: 7px; border-radius: 9px; flex: none;
+  transition: background 0.15s;
+}
+.theme-toggle:hover { background: var(--emerald-tint); }
+/* inline text button (sync affordance in the on-device note) */
+.linkbtn {
+  appearance: none; border: 0; background: transparent; cursor: pointer; font: inherit;
+  color: var(--emerald); font-weight: 600; padding: 0; text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.linkbtn:hover { color: var(--emerald-deep); }
+.synced b { color: var(--ink-700); }
 .brand em { color: var(--ink-500); font-style: normal; font-weight: 500; }
 .logo {
   display: inline-flex; align-items: center; justify-content: center;
@@ -106,6 +124,14 @@ h3 { font-size: 15px; margin: 0 0 12px; }
 .sessionbar { display: flex; justify-content: space-between; align-items: center; color: var(--ink-500); font-size: 14px; margin-bottom: 8px; }
 .tag { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: #eef0f3; color: var(--ink-700); }
 .tag.gold { background: #f6ecda; color: var(--gold); }
+.tag.warn { background: var(--error-bg); color: var(--error); }
+
+/* weak-word focus card */
+.eyebrow.warn { color: var(--error); }
+.card.focus { border-color: #f3d6cd; background: linear-gradient(180deg, #fdf4f1 0%, var(--paper) 60%); }
+.card.focus .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 2px; }
+.card.focus .chip { font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 99px; background: var(--paper); border: 1px solid #f0d3ca; color: var(--ink-700); }
+.card.focus .chip.more { background: transparent; border-style: dashed; color: var(--ink-500); }
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 
 .prompt { font-size: 18px; margin: 6px 0 18px; }
@@ -117,14 +143,19 @@ h3 { font-size: 15px; margin: 0 0 12px; }
 .opt {
   text-align: left; width: 100%; cursor: pointer; font: inherit;
   background: var(--paper); border: 1px solid var(--line); border-radius: 11px; padding: 13px 15px;
-  display: flex; justify-content: space-between; align-items: center; gap: 10px; transition: border-color 0.12s, background 0.12s;
+  display: flex; flex-direction: column; align-items: stretch; gap: 6px; transition: border-color 0.12s, background 0.12s;
 }
+.opt-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .opt:hover:not(:disabled) { border-color: var(--emerald); background: var(--emerald-tint); }
 .opt:disabled { cursor: default; }
 .opt.correct { border-color: var(--emerald); background: var(--success-bg); color: var(--emerald-deep); }
 .opt.wrong { border-color: var(--error); background: var(--error-bg); color: var(--error); }
-.opt.dim { opacity: 0.5; }
+/* Dim only the word of a not-picked wrong option — keep its meaning readable. */
+.opt.dim .opt-text { opacity: 0.5; }
 .opt .mk { font-weight: 700; }
+/* Revealed after answering — teaches what each option means. */
+.opt-gloss { font-size: 13px; line-height: 1.35; color: var(--ink-500); }
+.opt.correct .opt-gloss, .opt.wrong .opt-gloss { color: var(--ink-700); }
 
 .feedback { margin-top: 18px; padding: 12px 14px; border-radius: 11px; font-size: 14px; display: flex; gap: 8px; }
 .feedback.ok { background: var(--success-bg); color: var(--emerald-deep); }
@@ -155,6 +186,10 @@ h3 { font-size: 15px; margin: 0 0 12px; }
 .hero .eyebrow { margin-bottom: 6px; }
 .hero h1 { font-size: 30px; line-height: 1.15; letter-spacing: -0.5px; margin: 0 0 8px; }
 .hero .sub { margin: 0; font-size: 16px; }
+
+/* level-group toggle */
+.group-toggle { display: flex; gap: 8px; margin-bottom: 14px; }
+.grp-btn { flex: 1; padding: 10px 8px; font-size: 14px; border-radius: 10px; }
 
 /* primary call-to-action card */
 .card.cta { background: linear-gradient(180deg, var(--emerald-tint) 0%, var(--paper) 72%); border-color: #d8ece1; }
@@ -188,3 +223,72 @@ h3 { font-size: 15px; margin: 0 0 12px; }
 .fld input, .fld select { width: 100%; font: inherit; padding: 11px 12px; border: 1px solid var(--line);
   border-radius: 10px; background: var(--paper); color: var(--ink-900); }
 .fld input:focus, .fld select:focus { outline: none; border-color: var(--emerald); box-shadow: 0 0 0 3px rgba(31,138,91,0.15); }
+
+/* ── Dark mode ──────────────────────────────────────────────────────────────
+   Applied via a `dark` class on <html> (set before paint by the inline <head>
+   script, toggled by the header button). Most of the UI recolours just by
+   overriding the palette variables; the handful of rules with baked-in hex
+   surfaces get explicit dark equivalents below. `--emerald-deep` flips to a
+   LIGHT emerald because it is used as accent TEXT, which must read on dark. */
+html.dark {
+  --emerald: #35a06d;
+  --emerald-deep: #6fd3a0;   /* accent text — light on dark */
+  --emerald-tint: #172a22;   /* dark green surface (chips, hover, bar track) */
+  --gold: #d7a154;
+  --ink-900: #e7ecf2;
+  --ink-700: #bcc5d1;
+  --ink-500: #8a94a2;
+  --ink-300: #626c7a;
+  --line: #2a3340;
+  --paper: #171e27;
+  --bg: #0f141b;
+  --success-bg: #16281f;
+  --error: #f0876e;          /* error text — light on dark */
+  --error-bg: #2c1a17;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 6px 20px rgba(0, 0, 0, 0.35);
+  color-scheme: dark;        /* native form controls / scrollbars go dark too */
+}
+
+/* baked-in hex surfaces that don't ride on the palette variables */
+html.dark .tag { background: #242e3b; }
+html.dark .tag.gold { background: #2e2717; }
+html.dark .btn.secondary:hover { background: #1f3a2d; }
+html.dark .teach .ex { background: #202834; }
+html.dark .card.cta { border-color: #23402f; }
+html.dark .card.focus { border-color: #452f2a; background: linear-gradient(180deg, #241a18 0%, var(--paper) 60%); }
+html.dark .card.focus .chip { border-color: #4a332e; }
+html.dark .locked { background: linear-gradient(180deg, #211d15 0%, var(--paper) 60%); border-color: #3a3320; }
+html.dark .lockpill { background: #2e2717; }
+
+/* Touch devices (iPad) keep :hover applied to the last element tapped, which
+   left an option looking pre-selected on the next question. Where there is no
+   true hovering pointer, cancel every hover effect back to its resting state.
+   All values use palette variables, so this holds in both light and dark. */
+@media (hover: none) {
+  .opt:hover:not(:disabled) { border-color: var(--line); background: var(--paper); }
+  .btn:hover { background: var(--emerald); }
+  .btn.secondary:hover, html.dark .btn.secondary:hover { background: var(--emerald-tint); }
+  .btn.ghost:hover { color: var(--ink-500); }
+  .theme-toggle:hover { background: transparent; }
+  .linkbtn:hover { color: var(--emerald); }
+  .modal .x:hover { color: var(--ink-300); }
+}
+
+/* "My words" review list */
+.tag.ok { background: var(--success-bg); color: var(--emerald-deep); }
+.wordsearch {
+  width: 100%; font: inherit; padding: 11px 14px; margin-bottom: 14px;
+  border: 1px solid var(--line); border-radius: 11px; background: var(--paper); color: var(--ink-900);
+}
+.wordsearch:focus { outline: none; border-color: var(--emerald); }
+.wordlist { display: flex; flex-direction: column; gap: 10px; }
+.wordrow { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.wordhead {
+  display: flex; width: 100%; justify-content: space-between; align-items: center; gap: 10px;
+  background: transparent; border: 0; padding: 0; cursor: pointer; font: inherit; text-align: left;
+}
+.wordhead .ww b { font-size: 16px; color: var(--ink-900); }
+.wordhead .pos { font-size: 12px; color: var(--ink-300); font-style: italic; margin-left: 4px; }
+.wordmean { font-size: 14px; color: var(--ink-700); margin-top: 5px; }
+.worddetail { margin-top: 8px; }
+.worddetail .ex { background: var(--emerald-tint); border-radius: 9px; padding: 10px 12px; font-size: 14px; }

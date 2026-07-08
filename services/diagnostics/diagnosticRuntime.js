@@ -119,6 +119,20 @@ export function resolveDiagnosticCompletion({
     };
   }
   if (generationFailed) {
+    // The question bank was exhausted before the target was reached — common in
+    // visual-heavy domains with thin diagnostic banks (e.g. volume), where an
+    // adaptive STEP_DOWN can leave no easier item to serve. If the student has
+    // already answered at least one question we have enough signal to place them,
+    // so finish as a coverage-complete placement rather than trapping them with a
+    // retryable error (a retry can't conjure a question that doesn't exist). Only
+    // surface the hard error when nothing has been answered (a genuine setup gap).
+    if (answered >= 1) {
+      return {
+        sessionComplete: true,
+        completionReason: COMPLETION_REASONS.COVERAGE_COMPLETE,
+        adaptiveStopDeferred: false,
+      };
+    }
     return {
       sessionComplete: false,
       completionReason: COMPLETION_REASONS.QUESTION_GENERATION_FAILED,
@@ -155,6 +169,29 @@ function sessionCodeFor(domainId = 'diagnostic') {
   return `${safe}diag_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
+// Cap client-supplied arrays so a hostile request (notably on the unauthenticated
+// kiosk path) can't persist unbounded working evidence. Generous limits — real
+// usage never approaches them; the express 10mb body limit is the primary bound.
+function boundedArray(value, cap) {
+  return Array.isArray(value) ? value.slice(0, cap) : [];
+}
+
+// Strip the correct answer (and any worked-solution fields) from a question
+// object before it is sent to the client. The engine always scores server-side
+// via getQuestionById + scoreAnswer, so the diagnostic item the student receives
+// must never carry its own answer — otherwise the answer sits in the network
+// response / React state, a real leak on shared classroom iPads (and any
+// browser). Non-mutating: internal question objects keep `answer` for scoring
+// and response logging; only the client-facing copy is scrubbed.
+export function scrubQuestionForClient(question) {
+  if (!question || typeof question !== 'object') return question;
+  const {
+    answer, correctAnswer, workedSolution, modelAnswer, solution, explanation,
+    ...safe
+  } = question;
+  return safe;
+}
+
 function normalizeResponseBody(body = {}, question = {}) {
   const answer = String(body.answer ?? body.studentAnswer ?? '');
   const skipped = Boolean(body.skipped);
@@ -175,21 +212,21 @@ function normalizeResponseBody(body = {}, question = {}) {
     workingSubmitted: Boolean(body.workingSubmitted || body.workingUploaded || body.fullscreenWorkingSubmitted),
     workingSubmittedAt: toDateLike(body.workingSubmittedAt),
     workingImage: String(body.workingImage || ''),
-    workingStrokes: Array.isArray(body.workingStrokes) ? body.workingStrokes : [],
+    workingStrokes: boundedArray(body.workingStrokes, 10000),
     workingNotNeeded: Boolean(body.workingNotNeeded),
     workingRequirementLevel: ['LOW', 'MEDIUM', 'HIGH'].includes(String(body.workingRequirementLevel || '').toUpperCase())
       ? String(body.workingRequirementLevel).toUpperCase()
       : '',
-    workingMathObjects: Array.isArray(body.workingMathObjects) ? body.workingMathObjects : [],
+    workingMathObjects: boundedArray(body.workingMathObjects, 2000),
     fullscreenWorkingImage: String(body.fullscreenWorkingImage || ''),
-    fullscreenWorkingStrokes: Array.isArray(body.fullscreenWorkingStrokes) ? body.fullscreenWorkingStrokes : [],
-    fullscreenWorkingMathObjects: Array.isArray(body.fullscreenWorkingMathObjects) ? body.fullscreenWorkingMathObjects : [],
+    fullscreenWorkingStrokes: boundedArray(body.fullscreenWorkingStrokes, 10000),
+    fullscreenWorkingMathObjects: boundedArray(body.fullscreenWorkingMathObjects, 2000),
     fullscreenWorkingSubmitted: Boolean(body.fullscreenWorkingSubmitted),
     fullscreenWorkingSubmittedAt: toDateLike(body.fullscreenWorkingSubmittedAt),
-    workingEvidence: Array.isArray(body.workingEvidence) ? body.workingEvidence : [],
+    workingEvidence: boundedArray(body.workingEvidence, 500),
     helpRequested: Boolean(body.helpRequested),
     timedOut: Boolean(body.timedOut),
-    detectedErrorTags: Array.isArray(body.detectedErrorTags) ? body.detectedErrorTags : [],
+    detectedErrorTags: boundedArray(body.detectedErrorTags, 200),
   };
 }
 
@@ -560,9 +597,9 @@ export async function startAdaptiveDiagnostic({
     sessionId: doc.diagnosticSessionId,
     subjectId: domain.subjectId,
     domainId: domain.domainId,
-    currentQuestion: firstQuestion,
-    nextQuestion: firstQuestion,
-    questions: firstQuestion ? [firstQuestion] : [],
+    currentQuestion: scrubQuestionForClient(firstQuestion),
+    nextQuestion: scrubQuestionForClient(firstQuestion),
+    questions: firstQuestion ? [scrubQuestionForClient(firstQuestion)] : [],
     progress: {
       answeredCount: 0,
       estimatedQuestionCount: count,
@@ -1007,7 +1044,7 @@ export async function answerAdaptiveDiagnostic({ student, sessionId, body = {} }
   return {
     isCorrect: correct,
     decision,
-    nextQuestion,
+    nextQuestion: scrubQuestionForClient(nextQuestion),
     progress: {
       answeredCount,
       estimatedQuestionCount: maxQuestions,

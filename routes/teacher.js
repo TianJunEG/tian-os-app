@@ -23,9 +23,11 @@ import { generateWorksheet } from '../utils/worksheetGen.js';
 import PSLSession from '../models/psl/PSLSession.js';
 import PSLSkill from '../models/psl/PSLSkill.js';
 import PSLAttempt from '../models/psl/PSLAttempt.js';
+import TestPaperSession from '../models/TestPaperSession.js';
+import { projectMarkedSitting } from '../utils/testPaperSitting.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 import ClassDiagnosticSession from '../models/ClassDiagnosticSession.js';
-import { createClassDiagnosticSession, buildKioskStatus } from '../services/kiosk/classDiagnosticService.js';
+import { createClassDiagnosticSession, createClassPracticeSession, buildKioskStatus, buildKioskStudentDetail, buildKioskWeakGroups } from '../services/kiosk/classDiagnosticService.js';
 import { getDiagnosticDomain } from '../services/diagnostics/diagnosticDomainRegistry.js';
 import { parseRosterCsv, importRoster, createStudentRecord } from '../services/school/schoolAdminService.js';
 import multer from 'multer';
@@ -35,6 +37,7 @@ import User from '../models/User.js';
 import Announcement from '../models/Announcement.js';
 import AnnouncementComment from '../models/AnnouncementComment.js';
 import { notifyNewAnnouncement, publicAnnouncement } from '../services/announcements/announcementService.js';
+import { linkGuardianByEmail } from '../services/guardians/guardianLinkService.js';
 
 const quickMarkPhotoUpload = multer({
   storage: multer.memoryStorage(),
@@ -364,6 +367,115 @@ router.get('/classes/:id/corrections/:studentId', asyncHandler(async (req, res) 
       correctionDone: CORRECTION_DONE.includes(m.learningStatus),
       occurredAt: m.occurredAt || m.createdAt,
     })),
+  });
+}));
+
+// ─── Test Papers — teacher visibility ───────────────────────────────────────
+// Test papers are self-serve (a student sits any published paper; they are NOT
+// assigned to a class), so the teacher view is by-student: which of my students
+// have sat papers, how they scored, and a full per-question review of any sitting.
+
+// Class roster with each student's completed-test-paper activity.
+router.get('/classes/:id/test-papers', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return;
+  const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
+  const ids = await rosterIds(c._id);
+  const students = await Student.find({ _id: { $in: ids } }).select('name level').lean();
+
+  const sittings = await TestPaperSession.find({ studentId: { $in: ids }, status: 'completed' })
+    .select('studentId paperCode paperTitle category topic summary completedAt')
+    .sort({ completedAt: -1 })
+    .lean();
+  const byStudent = new Map();
+  for (const s of sittings) {
+    const k = String(s.studentId);
+    if (!byStudent.has(k)) byStudent.set(k, []);
+    byStudent.get(k).push(s);
+  }
+
+  const roster = students.map((s) => {
+    const list = byStudent.get(String(s._id)) || [];           // already newest-first
+    const scores = list.map((l) => l.summary?.scorePct || 0);
+    const latest = list[0] || null;
+    return {
+      studentId: s._id, name: s.name, level: s.level,
+      sittingCount: list.length,
+      papersAttempted: new Set(list.map((l) => l.paperCode)).size,
+      bestScorePct: scores.length ? Math.max(...scores) : null,
+      latestScorePct: latest ? (latest.summary?.scorePct ?? null) : null,
+      latestPaperTitle: latest?.paperTitle || '',
+      latestAt: latest?.completedAt || null,
+    };
+  });
+  // Most active first; then most recent activity, then name.
+  roster.sort((a, b) => b.sittingCount - a.sittingCount
+    || (new Date(b.latestAt || 0) - new Date(a.latestAt || 0))
+    || a.name.localeCompare(b.name));
+
+  const allScores = sittings.map((s) => s.summary?.scorePct || 0);
+  res.json({
+    class: { id: c._id, name: c.name, level: c.level },
+    summary: {
+      totalStudents: roster.length,
+      studentsWithSittings: byStudent.size,
+      totalSittings: sittings.length,
+      avgScorePct: allScores.length ? Math.round(allScores.reduce((s, n) => s + n, 0) / allScores.length) : null,
+    },
+    students: roster,
+  });
+}));
+
+// One student's completed sittings (newest first).
+router.get('/classes/:id/test-papers/:studentId', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return;
+  const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
+  const ids = (await rosterIds(c._id)).map(String);
+  if (!ids.includes(String(req.params.studentId))) return res.status(403).json({ error: 'Student not in this class.' });
+
+  const student = await Student.findById(req.params.studentId).select('name level').lean();
+  const sittings = await TestPaperSession.find({ studentId: req.params.studentId, status: 'completed' })
+    .select('sessionId paperCode paperTitle level category topic durationMinutes summary completedAt')
+    .sort({ completedAt: -1 })
+    .lean();
+
+  res.json({
+    student: student ? { studentId: student._id, name: student.name, level: student.level } : null,
+    sittings: sittings.map((s) => ({
+      sessionId: s.sessionId,
+      paperCode: s.paperCode,
+      paperTitle: s.paperTitle,
+      level: s.level,
+      category: s.category || 'mock',
+      topic: s.topic || '',
+      durationMinutes: s.durationMinutes,
+      summary: s.summary,
+      completedAt: s.completedAt,
+    })),
+  });
+}));
+
+// Full per-question review of one sitting (what the student saw at submission).
+router.get('/classes/:id/test-papers/:studentId/sittings/:sessionId', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return;
+  const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
+  const ids = (await rosterIds(c._id)).map(String);
+  if (!ids.includes(String(req.params.studentId))) return res.status(403).json({ error: 'Student not in this class.' });
+
+  const session = await TestPaperSession.findOne({
+    sessionId: req.params.sessionId, studentId: req.params.studentId, status: 'completed',
+  }).lean();
+  if (!session) return res.status(404).json({ error: 'Sitting not found.' });
+
+  res.json({
+    sessionId: session.sessionId,
+    paperCode: session.paperCode,
+    title: session.paperTitle,
+    level: session.level,
+    category: session.category || 'mock',
+    topic: session.topic || '',
+    summary: session.summary,
+    completedAt: session.completedAt,
+    questions: projectMarkedSitting(session.questions, session.answers),
   });
 }));
 
@@ -1092,6 +1204,44 @@ router.post('/classes/:id/import-roster', asyncHandler(async (req, res) => {
   return res.json({ ...out, parseErrors });
 }));
 
+// Delete a class the teacher owns, cascading its enrolments, announcements
+// (+comments), and Quick-Mark / kiosk sessions. Students themselves are shared
+// (workspace-scoped) and are kept.
+router.delete('/classes/:id', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return undefined;
+  const klass = await getOwnedClass(req);
+  if (!klass) return res.status(404).json({ error: 'Class not found.' });
+  const classId = String(klass._id);
+  const anns = await Announcement.find({ sourceType: 'class', sourceId: classId }).select('_id').lean();
+  await Promise.all([
+    ClassStudent.deleteMany({ classId: klass._id }),
+    Announcement.deleteMany({ sourceType: 'class', sourceId: classId }),
+    AnnouncementComment.deleteMany({ announcementId: { $in: anns.map((a) => a._id) } }),
+    QuickMarkSession.deleteMany({ classId: klass._id }),
+    ClassDiagnosticSession.deleteMany({ classId: klass._id }),
+  ]);
+  await klass.deleteOne();
+  return res.json({ ok: true });
+}));
+
+// Quick-link a parent to a class student (so announcements/notifications reach them).
+router.post('/classes/:id/students/:studentId/link-parent', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return undefined;
+  const klass = await getOwnedClass(req);
+  if (!klass) return res.status(404).json({ error: 'Class not found.' });
+  const inClass = await ClassStudent.findOne({ classId: klass._id, studentId: req.params.studentId, status: 'active' });
+  if (!inClass) return res.status(404).json({ error: 'Student is not in this class.' });
+  try {
+    const result = await linkGuardianByEmail({
+      studentId: req.params.studentId, workspaceId: req.workspaceId,
+      email: req.body?.email, name: req.body?.name,
+    });
+    return res.status(201).json(result);
+  } catch (err) {
+    return res.status(Number(err?.status) || 500).json({ error: err?.message || 'Could not link the parent.' });
+  }
+}));
+
 // ── Announcements to parents (class-scoped) ──────────────────────────────
 // Post an announcement to the parents of a class → notifies them.
 router.post('/classes/:id/announcements', asyncHandler(async (req, res) => {
@@ -1231,27 +1381,55 @@ router.post('/classes/:id/kiosk-sessions', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return undefined;
   const klass = await getOwnedClass(req);
   if (!klass) return res.status(404).json({ error: 'Class not found.' });
-  const { domainId, mode = 'core', studentLevel = '', subjectId = 'math' } = req.body || {};
-  if (!domainId) return res.status(400).json({ error: 'A diagnostic topic (domainId) is required.' });
-  try {
-    getDiagnosticDomain({ subjectId, domainId });
-  } catch {
-    return res.status(400).json({ error: `Unknown diagnostic topic: ${domainId}` });
+  const { type = 'diagnostic', mode = 'core', studentLevel = '', subjectId = 'math' } = req.body || {};
+
+  let session;
+  if (type === 'practice') {
+    // Practice: a fixed set of questions on ONE skill. Resolve the skill server-side
+    // (so the client can't spoof it) and derive a domainId for the session.
+    const { skillId, questionCount = 10 } = req.body || {};
+    if (!skillId) return res.status(400).json({ error: 'A skill is required for a practice check-in.' });
+    const skill = await Skill.findById(skillId).populate({ path: 'topicId', select: '_id' }).lean();
+    if (!skill) return res.status(400).json({ error: 'That skill was not found.' });
+    const count = Math.min(20, Math.max(3, Number(questionCount) || 10));
+    session = await createClassPracticeSession({
+      classId: klass._id,
+      workspaceId: req.workspaceId,
+      teacherUserId: req.user.id,
+      subjectId,
+      domainId: skill.domain || 'practice', // keep domainId populated (schema requires it)
+      skillId: String(skill._id),
+      skillName: skill.name || '',
+      questionCount: count,
+      studentLevel: studentLevel || klass.level || '',
+    });
+  } else {
+    const { domainId } = req.body || {};
+    if (!domainId) return res.status(400).json({ error: 'A diagnostic topic (domainId) is required.' });
+    try {
+      getDiagnosticDomain({ subjectId, domainId });
+    } catch {
+      return res.status(400).json({ error: `Unknown diagnostic topic: ${domainId}` });
+    }
+    session = await createClassDiagnosticSession({
+      classId: klass._id,
+      workspaceId: req.workspaceId,
+      teacherUserId: req.user.id,
+      subjectId,
+      domainId,
+      mode,
+      studentLevel: studentLevel || klass.level || '',
+    });
   }
-  const session = await createClassDiagnosticSession({
-    classId: klass._id,
-    workspaceId: req.workspaceId,
-    teacherUserId: req.user.id,
-    subjectId,
-    domainId,
-    mode,
-    studentLevel: studentLevel || klass.level || '',
-  });
+
   return res.status(201).json({
     sessionId: String(session._id),
     code: session.code,
+    type: session.type,
     domainId: session.domainId,
     mode: session.mode,
+    skillName: session.practiceConfig?.skillName || undefined,
+    questionCount: session.type === 'practice' ? session.practiceConfig?.questionCount : undefined,
     status: session.status,
     kioskUrl: `/kiosk/${session.code}`,
     expiresAt: session.expiresAt,
@@ -1271,8 +1449,10 @@ router.get('/classes/:id/kiosk-sessions', asyncHandler(async (req, res) => {
     sessions: sessions.map((s) => ({
       sessionId: String(s._id),
       code: s.code,
+      type: s.type || 'diagnostic',
       domainId: s.domainId,
       mode: s.mode,
+      skillName: s.practiceConfig?.skillName || undefined,
       status: s.status,
       rosterCount: s.roster?.length || 0,
       createdAt: s.createdAt,
@@ -1291,6 +1471,34 @@ router.get('/classes/:id/kiosk-sessions/:sessionId', asyncHandler(async (req, re
   });
   if (!session) return res.status(404).json({ error: 'Session not found.' });
   return res.json(await buildKioskStatus(session));
+}));
+
+// A2b. Per-student results detail (teacher drill-down after a check-in): time,
+// overall stats, weak skills, and the per-question breakdown incl. workings.
+router.get('/classes/:id/kiosk-sessions/:sessionId/students/:studentId', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return undefined;
+  const klass = await getOwnedClass(req);
+  if (!klass) return res.status(404).json({ error: 'Class not found.' });
+  const session = await ClassDiagnosticSession.findOne({
+    _id: req.params.sessionId, classId: klass._id, workspaceId: req.workspaceId,
+  });
+  if (!session) return res.status(404).json({ error: 'Session not found.' });
+  const detail = await buildKioskStudentDetail(session, req.params.studentId);
+  if (!detail) return res.status(404).json({ error: 'Student is not in this session.' });
+  return res.json(detail);
+}));
+
+// Post-session weak groups: skills the class struggled with in this check-in,
+// with the students in each group — so the teacher can pull a small group.
+router.get('/classes/:id/kiosk-sessions/:sessionId/weak-groups', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return undefined;
+  const klass = await getOwnedClass(req);
+  if (!klass) return res.status(404).json({ error: 'Class not found.' });
+  const session = await ClassDiagnosticSession.findOne({
+    _id: req.params.sessionId, classId: klass._id, workspaceId: req.workspaceId,
+  });
+  if (!session) return res.status(404).json({ error: 'Session not found.' });
+  return res.json(await buildKioskWeakGroups(session));
 }));
 
 // A3. Close a session (blocks new joins; in-flight attempts can still finish).

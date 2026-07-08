@@ -80,10 +80,12 @@ describe('GeometryQuestionGenerator', () => {
   });
 
   it('word-problem families (_003) cycle in at every 3rd position', () => {
-    // GE001W: shaped like a polygon — same "How many sides" phrase, no diagram
+    // GE001W: shaped like a polygon — same "How many sides" phrase. Carries the
+    // polygon figure to count (like its non-word sibling) but with labelMode:'none'
+    // so the renderer does NOT print the "N sides" caption, which reveals the answer.
     const ge1 = generateGeometryQuestionSet({ skillId: 'GE001', count: 9 });
     for (const i of [2, 5, 8]) {
-      expect(ge1[i].diagram).toBeUndefined();
+      expect(ge1[i].diagram).toMatchObject({ kind: 'polygon', labelMode: 'none' });
       expect(ge1[i].prompt).toMatch(/shaped like/);
       expect(Number(dig(ge1[i].answer.display))).toBeGreaterThan(0);
     }

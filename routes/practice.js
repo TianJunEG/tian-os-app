@@ -16,6 +16,7 @@ import { selectSimilarQuestions } from '../utils/worksheetGen.js';
 import { generateQuestionsForSkill } from '../shared/mathpath/genericQuestionGenerator.js';
 import { normalizeConfidence, recordLearningEvents } from '../services/telemetry/learningTelemetryService.js';
 import { updateFluencyCompletionForSession } from '../services/fluency/fluencyCompletionService.js';
+import { awardPerfectRoundSticker, awardMasterySticker } from '../services/rewards/stickerService.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
@@ -111,7 +112,7 @@ export async function ensureQuestionsForSkills(skillIds, perSkill = 6) {
 // "What fraction of the shape is shaded?") is impossible without its diagram, and
 // the client renderer keys off diagramSpec / requiresVisual / requiredVisualTypes.
 // These fields carry no answer, so forwarding them does not leak the solution.
-const clientQuestion = (q) => ({
+export const clientQuestion = (q) => ({
   questionId: q._id, stem: q.stem, type: q.type, choices: q.choices,
   difficulty: q.difficulty, skillId: q.skillId?._id || q.skillId,
   skillName: q.skillId?.name, topicId: q.skillId?.topicId,
@@ -357,6 +358,8 @@ router.post('/sessions/:id/attempts', protect, asyncHandler(async (req, res) => 
         sessionId: String(session._id),
         metadata: { masteryScore: mastery.after?.score, module: sessModule },
       });
+      // Reward mastering a skill (best-effort; a sticker failure never blocks the attempt).
+      awardMasterySticker({ studentId: student._id, skillId: q.skillId }).catch(() => {});
     }
     await recordLearningEvents(telemetryEvents);
 
@@ -423,6 +426,9 @@ router.post('/sessions/:id/complete', protect, asyncHandler(async (req, res) => 
     const correct = attempts.filter((a) => a.correct).length;
     const times = attempts.map((a) => a.timeMs).filter((t) => typeof t === 'number');
     const scorePct = total ? Math.round((correct / total) * 100) : 0;
+
+    // Reward a flawless round (best-effort + idempotent on sessionId; never blocks completion).
+    awardPerfectRoundSticker({ studentId: student._id, sessionId: session._id, correct, total }).catch(() => {});
 
     const endedAt = wasCompleted && session.endedAt ? session.endedAt : new Date();
     let fluencyCompletion = null;

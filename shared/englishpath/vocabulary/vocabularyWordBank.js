@@ -1,4 +1,4 @@
-// EnglishPath · Vocabulary Builder — seed word bank
+// ELPath · Vocabulary Builder — seed word bank
 // ----------------------------------------------------------------------------
 // Every entry here was mined from real P6 (PSLE) Prelim/SA papers in the test
 // paper archive. The `confusables` are the *actual* multiple-choice distractors
@@ -16,6 +16,7 @@
 
 import { normalizeWordEntry } from './vocabularyModel.js';
 import { harvestedEntries } from './harvestedEntries.js';
+import { harvestedEntriesMP } from './harvestedEntriesMP.js';
 
 const RAW_ENTRIES = [
   // — Cluster: encroachment (environment / "moving onto") — Nanyang Prelim 2024 Q11
@@ -91,7 +92,7 @@ const RAW_ENTRIES = [
     word: 'bring up',
     answer: 'bring up',
     isPhrasalVerb: true,
-    pos: 'verb',
+    pos: 'phrasal_verb',
     theme: 'discussion',
     cluster: 'bring_phrasals',
     meaning: 'to mention or start talking about a subject',
@@ -109,7 +110,7 @@ const RAW_ENTRIES = [
     word: 'bring about',
     answer: 'bring about',
     isPhrasalVerb: true,
-    pos: 'verb',
+    pos: 'phrasal_verb',
     theme: 'cause',
     cluster: 'bring_phrasals',
     meaning: 'to make something happen; to cause',
@@ -247,7 +248,7 @@ const RAW_ENTRIES = [
     word: 'keep up with',
     answer: 'keep up with',
     isPhrasalVerb: true,
-    pos: 'verb',
+    pos: 'phrasal_verb',
     theme: 'progress',
     cluster: 'pace_phrasals',
     meaning: 'to move or progress at the same speed as something; to stay informed about',
@@ -270,7 +271,7 @@ const RAW_ENTRIES = [
     meaning: 'easily harmed, influenced or affected by something',
     example: 'We must be careful with this delicate equipment as it is highly ____ to damage.',
     synonyms: ['vulnerable', 'prone', 'liable'],
-    confusables: ['hard', 'sensitive', 'opposed'],
+    confusables: ['hard', 'opposed', 'immune'],
     connotation: 'negative',
     collocations: ['susceptible to', 'susceptible to illness'],
     examTags: ['vocab_mcq'],
@@ -306,7 +307,7 @@ const RAW_ENTRIES = [
     meaning: 'a false outward appearance that hides the true feelings or facts',
     example: 'After being terminated from his job, Ravi hid his distress behind a cheerful ____.',
     synonyms: ['mask', 'front', 'pretence'],
-    confusables: ['disguise', 'pretense', 'impression'],
+    confusables: ['disguise', 'impression', 'attitude'],
     connotation: 'negative',
     collocations: ['put on a facade', 'a facade of calm'],
     examTags: ['vocab_mcq'],
@@ -374,7 +375,7 @@ const RAW_ENTRIES = [
     theme: 'determination',
     cluster: 'insist',
     meaning: 'the quality of continuing firmly despite difficulty or opposition',
-    example: 'It was her mother’s ____ that she not learn to read until eight that shaped her early years.',
+    example: 'Through sheer ____, she kept practising every day until she finally mastered the piece.',
     synonyms: ['insistence', 'determination', 'perseverance'],
     confusables: ['indulgence', 'indifference', 'intolerance'],
     connotation: 'positive',
@@ -578,7 +579,7 @@ function mergeEntries(seed, harvested) {
 // The curated seed only (the harvest pipeline dedupes against this).
 export const seedEntries = RAW_ENTRIES.map(normalizeWordEntry);
 
-export const vocabularyWordBank = mergeEntries(RAW_ENTRIES, harvestedEntries).map(normalizeWordEntry);
+export const vocabularyWordBank = mergeEntries(RAW_ENTRIES, [...harvestedEntries, ...harvestedEntriesMP]).map(normalizeWordEntry);
 
 export const wordBankById = Object.fromEntries(vocabularyWordBank.map((w) => [w.id, w]));
 
@@ -591,4 +592,9 @@ export const wordBankByCluster = vocabularyWordBank.reduce((acc, w) => {
 
 export function getWord(id) {
   return wordBankById[id] || null;
+}
+
+export function bankForLevels(levels) {
+  const set = new Set(levels.map((l) => l.toUpperCase()));
+  return vocabularyWordBank.filter((w) => set.has((w.level || 'P6').toUpperCase()));
 }

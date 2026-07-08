@@ -10,11 +10,11 @@ import {
   BarChart3,
   BookOpen,
   ChevronRight,
-  ArrowLeft,
   Sparkles,
 } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import MasteryStars from '../../../components/mathpath/learning/MasteryStars';
+import { BackLink, Badge, Button, Card } from '../../../components/ui';
 
 const DOMAIN_GROUPS = [
   {
@@ -118,18 +118,6 @@ const DOMAIN_GROUPS = [
   },
 ];
 
-const COLOR_MAP = {
-  blue: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', badge: 'bg-blue-100 text-blue-800', icon: 'text-blue-500' },
-  purple: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700', badge: 'bg-purple-100 text-purple-800', icon: 'text-purple-500' },
-  teal: { bg: 'bg-emerald-tint', border: 'border-teal-200', text: 'text-emerald-deep', badge: 'bg-emerald-tint text-teal-800', icon: 'text-teal-500' },
-  rose: { bg: 'bg-danger-tint', border: 'border-danger-border', text: 'text-danger-deep', badge: 'bg-danger-tint text-rose-800', icon: 'text-rose-500' },
-  amber: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', badge: 'bg-amber-100 text-amber-800', icon: 'text-amber-500' },
-  indigo: { bg: 'bg-indigo-50', border: 'border-indigo-200', text: 'text-indigo-700', badge: 'bg-indigo-100 text-indigo-800', icon: 'text-indigo-500' },
-  emerald: { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', badge: 'bg-emerald-100 text-emerald-800', icon: 'text-emerald-500' },
-  cyan: { bg: 'bg-cyan-50', border: 'border-cyan-200', text: 'text-cyan-700', badge: 'bg-cyan-100 text-cyan-800', icon: 'text-cyan-500' },
-  orange: { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700', badge: 'bg-orange-100 text-orange-800', icon: 'text-orange-500' },
-};
-
 function MasteryBadge({ mastery }) {
   // Stars (1–3) by mastery %, plus a medal once the skill is mastered (>= 90%).
   return <MasteryStars percentage={mastery} showLabel />;
@@ -183,96 +171,80 @@ export default function P5LearningPathPage() {
   const masteredCount = Object.values(skillStates).filter((s) => (s.masteryPercentage || 0) >= 90).length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30">
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        {/* Header */}
-        <div className="mb-6">
-          <button
-            onClick={() => navigate('/student/mathpath')}
-            className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-3 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back to MathPath
-          </button>
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <Sparkles className="w-6 h-6 text-indigo-500" />
-                Primary 5 Mathematics
-              </h1>
-              <p className="text-gray-500 mt-1">{totalSkills} skills across {DOMAIN_GROUPS.length} domains — Singapore MOE P5 syllabus</p>
-            </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-indigo-600">{masteredCount}/{totalSkills}</div>
-              <div className="text-xs text-gray-500">skills mastered</div>
-            </div>
+    <div className="mx-auto max-w-4xl px-4 py-6">
+      {/* Header */}
+      <div className="mb-6">
+        <BackLink to="/student/mathpath" className="mb-3">Back to MathPath</BackLink>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="flex items-center gap-2 text-2xl font-bold text-ink">
+              <Sparkles className="h-6 w-6 text-emerald" />
+              Primary 5 Mathematics
+            </h1>
+            <p className="mt-1 text-body-muted">{totalSkills} skills across {DOMAIN_GROUPS.length} domains — Singapore MOE P5 syllabus</p>
           </div>
-          <div className="flex gap-2 mt-4">
-            <button
-              onClick={handleDiagnostic}
-              className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
-            >
-              Start Diagnostic
-            </button>
-            <button
-              onClick={() => handleStartPractice('P5-WN-01')}
-              className="px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Continue Practice
-            </button>
+          <div className="shrink-0 text-right">
+            <div className="font-mono text-2xl font-bold tabular-nums text-emerald">{masteredCount}/{totalSkills}</div>
+            <div className="text-xs text-body-muted">skills mastered</div>
           </div>
         </div>
+        <div className="mt-4 flex gap-2">
+          <Button size="s" onClick={handleDiagnostic}>Start Diagnostic</Button>
+          <Button variant="secondary" size="s" onClick={() => handleStartPractice('P5-WN-01')}>Continue Practice</Button>
+        </div>
+      </div>
 
-        {/* Domain sections */}
-        <div className="space-y-4">
-          {DOMAIN_GROUPS.map((group) => {
-            const colors = COLOR_MAP[group.color];
-            const Icon = group.icon;
-            return (
-              <div key={group.key} className={`rounded-xl border ${colors.border} ${colors.bg} p-4`}>
-                <div className="flex items-center gap-2 mb-3">
-                  <Icon className={`w-5 h-5 ${colors.icon}`} />
-                  <h2 className={`font-semibold ${colors.text}`}>{group.label}</h2>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${colors.badge}`}>{group.skills.length} skills</span>
-                </div>
-                <div className="grid gap-2">
-                  {group.skills.map((skill) => {
-                    const state = skillStates[skill.id];
-                    const mastery = state?.masteryPercentage || 0;
-                    return (
-                      <button
-                        key={skill.id}
-                        onClick={() => handleStartPractice(skill.id)}
-                        className="flex items-center justify-between bg-white/70 hover:bg-white rounded-lg px-3 py-2.5 border border-transparent hover:border-gray-200 transition-all group text-left"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-8 h-8 rounded-full bg-white border border-gray-100 flex items-center justify-center text-xs font-medium text-gray-500 shrink-0">
-                            {mastery > 0 ? `${Math.round(mastery)}%` : '—'}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="text-sm font-medium text-gray-800 truncate">{skill.name}</div>
-                            <div className="text-xs text-gray-400">{skill.id}</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <MasteryBadge mastery={mastery} />
-                          <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-                {group.deepLink && (
-                  <button
-                    onClick={() => navigate(group.deepLink)}
-                    className="mt-2 text-xs font-semibold text-emerald-deep hover:text-teal-900"
-                  >
-                    See full {group.label} path →
-                  </button>
-                )}
+      {/* Domain sections */}
+      <div className="space-y-4">
+        {DOMAIN_GROUPS.map((group) => {
+          const Icon = group.icon;
+          return (
+            <Card key={group.key} className="p-4">
+              <div className="mb-3 flex items-center gap-2">
+                <span className="grid h-8 w-8 place-items-center rounded-shell bg-emerald-tint text-emerald">
+                  <Icon className="h-5 w-5" />
+                </span>
+                <h2 className="font-semibold text-ink">{group.label}</h2>
+                <Badge tone="neutral">{group.skills.length} skills</Badge>
               </div>
-            );
-          })}
-        </div>
+              <div className="grid gap-2">
+                {group.skills.map((skill) => {
+                  const state = skillStates[skill.id];
+                  const mastery = state?.masteryPercentage || 0;
+                  return (
+                    <button
+                      key={skill.id}
+                      onClick={() => handleStartPractice(skill.id)}
+                      className="group flex items-center justify-between rounded-lg border border-transparent bg-surface-raised px-3 py-2.5 text-left transition-all hover:border-line hover:bg-surface-white"
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line bg-surface-white text-xs font-medium text-body-muted">
+                          {mastery > 0 ? `${Math.round(mastery)}%` : '—'}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-medium text-ink">{skill.name}</div>
+                          <div className="text-xs text-body-faint">{skill.id}</div>
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <MasteryBadge mastery={mastery} />
+                        <ChevronRight className="h-4 w-4 text-line-strong transition-colors group-hover:text-body-muted" />
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              {group.deepLink && (
+                <button
+                  onClick={() => navigate(group.deepLink)}
+                  className="mt-2 text-xs font-semibold text-emerald hover:text-emerald-deep"
+                >
+                  See full {group.label} path →
+                </button>
+              )}
+            </Card>
+          );
+        })}
       </div>
     </div>
   );

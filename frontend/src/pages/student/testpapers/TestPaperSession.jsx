@@ -51,6 +51,31 @@ export default function TestPaperSession() {
     return () => { alive = false; };
   }, [sessionId, session]);
 
+  // Protect an in-progress sitting from accidental loss (answers live only in
+  // memory — a reload sends the student back to Q1 with nothing). (a) disable the
+  // pull-to-refresh gesture while the paper is open (scoped: restored on unmount);
+  // (b) warn on a real reload/close once they've started answering.
+  useEffect(() => {
+    const docEl = document.documentElement;
+    const prevDoc = docEl.style.overscrollBehaviorY;
+    const prevBody = document.body.style.overscrollBehaviorY;
+    docEl.style.overscrollBehaviorY = 'contain';
+    document.body.style.overscrollBehaviorY = 'contain';
+    const onBeforeUnload = (e) => {
+      if (submittedRef.current) return undefined;
+      if (!Object.keys(answersRef.current || {}).length) return undefined;
+      e.preventDefault();
+      e.returnValue = ''; // triggers the browser's native "leave / reload?" prompt
+      return '';
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', onBeforeUnload);
+      docEl.style.overscrollBehaviorY = prevDoc;
+      document.body.style.overscrollBehaviorY = prevBody;
+    };
+  }, []);
+
   const handleSubmit = useCallback(async () => {
     if (submittedRef.current) return;
     submittedRef.current = true;

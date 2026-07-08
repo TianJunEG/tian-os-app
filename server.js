@@ -17,6 +17,7 @@ import authRoutes from './routes/auth.js';
 import tutorRoutes from './routes/tutors.js';
 import parentRoutes from './routes/parents.js';
 import parentMathPathDashboardRoutes from './routes/parentMathPathDashboard.js';
+import parentTestPapersRoutes from './routes/parentTestPapers.js';
 import searchRoutes from './routes/search.js';
 import bookingRoutes from './routes/bookings.js';
 import paymentRoutes from './routes/payments.js';
@@ -39,6 +40,7 @@ import mistakeRoutes from './routes/mistakes.js';
 import masteryRoutes from './routes/mastery.js';
 import diagnosticRoutes from './routes/diagnostics.js';
 import kioskDiagnosticRoutes from './routes/kioskDiagnostics.js';
+import vocabRoutes from './routes/vocab.js';
 import announcementRoutes from './routes/announcements.js';
 import studentProfileRoutes from './routes/studentProfile.js';
 import studentAnalyticsRoutes from './routes/studentAnalytics.js';
@@ -128,6 +130,42 @@ if (fs.existsSync(path.join(clientDist, 'index.html'))) {
   app.use(express.static(clientDist));
 }
 
+// Standalone Vocabulary Builder (lead-gen app) — served at /vocab. It is a
+// static ES-module app whose app.js imports the self-contained vocabulary
+// engine via `../shared/englishpath/vocabulary/index.js`, so both the app dir
+// and that engine dir must be reachable. Mounted here (before CORS / rate-limit,
+// like frontend/dist) so its JS/CSS/ESM load cleanly and aren't rate-limited.
+const vocabAppDir = path.resolve(__dirname, 'englishpath-vocab-app');
+if (fs.existsSync(path.join(vocabAppDir, 'index.html'))) {
+  // ELPath is offered as a FREE, EMBEDDABLE practice resource (e.g. inside the
+  // BrightDesk tutoring marketplace). Relax the frame headers for these static
+  // routes ONLY, so partners can iframe them; every other route keeps helmet's
+  // default `frame-ancestors 'self'` + `X-Frame-Options: SAMEORIGIN`. Lock the
+  // embed down to specific partner origins by setting EMBED_FRAME_ANCESTORS
+  // (space-separated list of origins); defaults to '*' for an open resource.
+  const embedAncestors = (process.env.EMBED_FRAME_ANCESTORS || '*').trim();
+  const allowEmbed = (req, res, next) => {
+    res.removeHeader('X-Frame-Options');
+    res.setHeader('Content-Security-Policy', [
+      "default-src 'self'",
+      "base-uri 'self'",
+      "font-src 'self' https: data:",
+      "form-action 'self'",
+      "img-src 'self' data:",
+      "object-src 'none'",
+      "script-src 'self'",
+      "script-src-attr 'none'",
+      "style-src 'self' 'unsafe-inline'",
+      `frame-ancestors ${embedAncestors}`,
+      'upgrade-insecure-requests',
+    ].join(';'));
+    next();
+  };
+  app.use('/vocab', allowEmbed, express.static(vocabAppDir));
+  // The self-contained EnglishPath engines the app's ES modules import from.
+  app.use('/shared/englishpath', allowEmbed, express.static(path.resolve(__dirname, 'shared', 'englishpath')));
+}
+
 // Allowed origins come from CORS_ORIGIN (comma-separated); defaults to local dev.
 // Vercel preview domains are also allowed by pattern.
 const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173')
@@ -171,6 +209,11 @@ app.use(sanitizeInputs);
 // per-IP cap; it gets its own, higher limit instead.
 app.use('/api/kiosk', rateLimit(800, 15 * 60 * 1000), kioskDiagnosticRoutes);
 
+// Standalone Vocabulary Builder cross-device save (public, passwordless). Its
+// endpoints carry their own per-route rate limits, so mount before the global
+// apiRateLimit like the kiosk above.
+app.use('/api/vocab', vocabRoutes);
+
 app.use(apiRateLimit);
 
 // Serve uploaded files. When object storage is configured, 302-redirect to a
@@ -212,6 +255,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/tutors', tutorRoutes);
 app.use('/api/parents', parentRoutes);
 app.use('/api/parents', parentMathPathDashboardRoutes);
+app.use('/api/parents', parentTestPapersRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/payments', paymentRoutes);

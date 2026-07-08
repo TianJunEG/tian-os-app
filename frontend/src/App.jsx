@@ -48,6 +48,7 @@ import { ROLE_HOME } from './config/nav';
 import FeatureGuard from './components/FeatureGuard';
 const StudentDashboard = lazy(() => import('./pages/student/StudentDashboard'));
 const StudentProfile = lazy(() => import('./pages/student/StudentProfile'));
+const RewardChart = lazy(() => import('./pages/student/RewardChart'));
 const MorePage = lazy(() => import('./pages/MorePage'));
 // MathPath (Phase 2)
 const MathPathHome = lazy(() => import('./pages/student/mathpath/MathPathHome'));
@@ -200,6 +201,7 @@ const RecommendedActions = lazy(() => import('./pages/parent/RecommendedActions'
 const AssignPractice = lazy(() => import('./pages/parent/AssignPractice'));
 const MistakeHistory = lazy(() => import('./pages/parent/MistakeHistory'));
 const ChildAssignments = lazy(() => import('./pages/parent/ChildAssignments'));
+const ChildTestPapers = lazy(() => import('./pages/parent/ChildTestPapers'));
 const StudentCareDashboard = lazy(() => import('./pages/studentCare/StudentCareDashboard'));
 const StudentCareHomework = lazy(() => import('./pages/studentCare/StudentCareHomework'));
 const StudentCareRecoveryPacks = lazy(() => import('./pages/studentCare/StudentCareRecoveryPacks'));
@@ -236,6 +238,8 @@ const PendingUpgradesPage = lazy(() => import('./pages/admin/PendingUpgradesPage
 const ClassMasteryMap = lazy(() => import('./pages/teacher/ClassMasteryMap'));
 const ClassStudents = lazy(() => import('./pages/teacher/ClassStudents'));
 const ClassCorrections = lazy(() => import('./pages/teacher/ClassCorrections'));
+const ClassTestPapers = lazy(() => import('./pages/teacher/ClassTestPapers'));
+const ClassTestPaperStudent = lazy(() => import('./pages/teacher/ClassTestPaperStudent'));
 const Grouping = lazy(() => import('./pages/teacher/Grouping'));
 const WeakGroups = lazy(() => import('./pages/teacher/WeakGroups'));
 const ClassDiagnosticKiosk = lazy(() => import('./pages/teacher/ClassDiagnosticKiosk'));
@@ -243,8 +247,10 @@ const ClassQuickMark = lazy(() => import('./pages/teacher/ClassQuickMark'));
 const ClassAnnouncements = lazy(() => import('./pages/teacher/ClassAnnouncements'));
 const ParentAnnouncements = lazy(() => import('./pages/parent/ParentAnnouncements'));
 const ParentAnnouncementDetail = lazy(() => import('./pages/parent/ParentAnnouncementDetail'));
+const TutorAnnouncements = lazy(() => import('./pages/tutor/TutorAnnouncements'));
 const KioskLandingPage = lazy(() => import('./pages/kiosk/KioskLandingPage'));
 const KioskQuestionScreen = lazy(() => import('./pages/kiosk/KioskQuestionScreen'));
+const KioskPracticeScreen = lazy(() => import('./pages/kiosk/KioskPracticeScreen'));
 const KioskResultPage = lazy(() => import('./pages/kiosk/KioskResultPage'));
 const TeacherAssignPractice = lazy(() => import('./pages/teacher/AssignPractice'));
 const TeacherAssessments = lazy(() => import('./pages/teacher/Assessments'));
@@ -493,6 +499,7 @@ function App() {
           {/* In-class diagnostic kiosk — PUBLIC (teacher-supervised iPads, no login) */}
           <Route path="/kiosk/:code" element={<KioskLandingPage />} />
           <Route path="/kiosk/:code/q/:sessionId" element={<KioskQuestionScreen />} />
+          <Route path="/kiosk/:code/practice/:sessionId" element={<KioskPracticeScreen />} />
           <Route path="/kiosk/:code/result/:sessionId" element={<KioskResultPage />} />
 
           {/* Auth Routes */}
@@ -634,6 +641,7 @@ function App() {
             {/* Student — dashboard shell is live */}
             <Route path="/student" element={<StudentDashboard />} />
             <Route path="/student/profile" element={<StudentProfile />} />
+            <Route path="/student/rewards" element={<RewardChart />} />
             <Route path="/student/mathpath" element={<MathPathHome />} />
             <Route path="/student/mathpath/topics/:topicId" element={<TopicDetail />} />
             <Route path="/student/mathpath/practice/:sessionId" element={<PracticeSession />} />
@@ -794,6 +802,7 @@ function App() {
             <Route path="/parent/children/:studentId/assign-practice" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><AssignPractice /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/mistakes" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><MistakeHistory /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/assignments" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildAssignments /></FeatureGuard>} />
+            <Route path="/parent/children/:studentId/test-papers" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildTestPapers /></FeatureGuard>} />
             {/* Mastery Worksheet Generator (Phase 4) */}
             <Route path="/parent/children/:studentId/worksheets" element={<FeatureGuard feature="parent"><WorksheetHome /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/worksheets/new" element={<FeatureGuard feature="parent"><WorksheetSetup /></FeatureGuard>} />
@@ -811,6 +820,7 @@ function App() {
             {/* Tutor (Phase 4) */}
             <Route path="/tutor" element={<FeatureGuard feature="tutor"><TutorHome /></FeatureGuard>} />
             <Route path="/tutor/students" element={<FeatureGuard feature="tutor"><AssignedStudents /></FeatureGuard>} />
+            <Route path="/tutor/announcements" element={<FeatureGuard feature="tutor"><TutorAnnouncements /></FeatureGuard>} />
             <Route path="/tutor/students/:id" element={<FeatureGuard feature="tutor"><TutorStudentProfile /></FeatureGuard>} />
             <Route path="/tutor/students/:id/mathpath" element={<FeatureGuard feature="tutor"><TutorMathPathDashboardPage /></FeatureGuard>} />
             <Route path="/tutor/students/:id/psl" element={<FeatureGuard feature="tutor"><TutorPSLDashboardPage /></FeatureGuard>} />
@@ -825,6 +835,7 @@ function App() {
             <Route path="/agency" element={<AgencyDashboard />} />
             <Route path="/admin/partners/:pid/licence" element={<PartnerLicencePage />} />
             <Route path="/tutor/students/:id/mistakes" element={<FeatureGuard feature="tutor"><TutorMistakesPage /></FeatureGuard>} />
+            <Route path="/tutor/students/:id/rewards" element={<FeatureGuard feature="tutor"><RewardChart /></FeatureGuard>} />
             <Route path="/tutor/students/:id/assign-homework" element={<FeatureGuard feature="tutor"><AssignHomework /></FeatureGuard>} />
             <Route path="/tutor/homework" element={<FeatureGuard feature="tutor"><TutorHomework /></FeatureGuard>} />
             <Route path="/tutor/students/:id/mistakes/:mistakeId/explain" element={<FeatureGuard feature="tutor"><TutorExplanationRecorder /></FeatureGuard>} />
@@ -848,6 +859,8 @@ function App() {
             <Route path="/teacher/classes/:id/announcements" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassAnnouncements /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/students" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassStudents /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/corrections" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassCorrections /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/test-papers" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassTestPapers /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/test-papers/:studentId" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassTestPaperStudent /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/groups" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><Grouping /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/weak-groups" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><WeakGroups /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/assign" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherAssignPractice /></FeatureGuard></RoleGuard>} />

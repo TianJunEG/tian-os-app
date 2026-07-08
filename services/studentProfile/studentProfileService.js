@@ -4,6 +4,8 @@ import MathPathAttempt from '../../models/mathpath/MathPathAttempt.js';
 import MathPathAssessmentSession from '../../models/mathpath/MathPathAssessmentSession.js';
 import MathPathDiagnosticSession from '../../models/mathpath/MathPathDiagnosticSession.js';
 import MathPathPracticeSession from '../../models/mathpath/MathPathPracticeSession.js';
+import PracticeSession from '../../models/PracticeSession.js';
+import PracticeAttempt from '../../models/PracticeAttempt.js';
 import MathPathStudentSkillState from '../../models/mathpath/MathPathStudentSkillState.js';
 import MathPathSkill from '../../models/mathpath/MathPathSkill.js';
 import MathPathWorkingSession from '../../models/mathpath/MathPathWorkingSession.js';
@@ -321,7 +323,7 @@ export function computeAwardMetrics(sessions = []) {
   return { perfectSessions, accuracyImprovedSessions, rePracticeSessions, rePracticeImprovedSessions };
 }
 
-async function deriveMetrics(student) {
+export async function deriveMetrics(student) {
   const studentObjectId = student._id;
   const studentId = String(student._id);
 
@@ -345,6 +347,7 @@ async function deriveMetrics(student) {
     recentMasteredStates,
     masteryStreakRows,
     totalFractionsSkills,
+    mathPracticeSessions,
   ] = await Promise.all([
     MathPathAttempt.countDocuments({ studentId, ...excludeIncompleteDiagnostics }),
     MathPathDiagnosticSession.countDocuments({ studentId, status: 'completed' }),
@@ -379,6 +382,15 @@ async function deriveMetrics(student) {
     MathPathStudentSkillState.find({ studentId, status: { $in: MASTERED_STATES } }).sort({ masteredAt: -1, updatedAt: -1 }).limit(10).lean(),
     MasteryRecord.find({ studentId: studentObjectId }).select('streak bestStreak lastPracticedAt').lean(),
     Skill.countDocuments({ slug: /^fr\./i }),
+    // Fluency, generic MathPath practice and kiosk practice write to the
+    // PracticeSession/PracticeAttempt collections (NOT MathPath*), so every
+    // profile metric below that only read MathPath* silently undercounted them
+    // (fluency earned no XP, questions-solved missed practice, streaks broke on
+    // fluency-only days). Scope to module:'MathPath' so Spelling/other-module
+    // practice never leaks into the Math profile. Mirrors getStudentPersonalBests.
+    PracticeSession.find({ studentId, module: 'MathPath' })
+      .select('_id mode status endedAt completedAt updatedAt createdAt')
+      .lean(),
   ]);
 
   // skillId is now populated to {_id, slug}; String(_id) keeps masteredCodes
@@ -389,11 +401,26 @@ async function deriveMetrics(student) {
     ...masteredSkillStates.map((row) => row.skillId),
     ...masteredRecords.map(recordSkillCode),
   ];
+  // Fold the PracticeSession/PracticeAttempt activity (fluency + generic + kiosk
+  // MathPath practice) into the profile. Buckets stay DISJOINT so XP is not
+  // double-awarded: a fluency session counts ONLY as a fluency session, every
+  // other non-diagnostic practice session counts ONLY as a practice session.
+  const mathPracticeSessionIds = mathPracticeSessions.map((s) => s._id);
+  const practiceAttemptCount = mathPracticeSessionIds.length
+    ? await PracticeAttempt.countDocuments({ studentId, sessionId: { $in: mathPracticeSessionIds } })
+    : 0;
+  const completedMathPractice = mathPracticeSessions.filter((s) => s.status === 'completed');
+  const fluencySessionsFromPractice = completedMathPractice.filter((s) => s.mode === 'fluency').length;
+  const genericPracticeSessions = completedMathPractice
+    .filter((s) => s.mode !== 'fluency' && s.mode !== 'diagnostic').length;
+  const practiceActivityDates = completedMathPractice
+    .map((s) => s.endedAt || s.completedAt || s.updatedAt || s.createdAt);
   const workingSubmissions = Math.max(workingAttempts, uploadedWorkings);
   const activityDates = [
     ...recentAttempts.map((row) => row.createdAt || row.timestamp),
     ...recentPracticeSessions.map((row) => row.completedAt || row.updatedAt || row.createdAt),
     ...recentDiagnostics.map((row) => row.completedAt || row.updatedAt || row.createdAt),
+    ...practiceActivityDates,
   ];
   const recentAttempt = recentAttempts[0] || {};
   const recentState = await MathPathStudentSkillState.findOne({ studentId })
@@ -447,11 +474,11 @@ async function deriveMetrics(student) {
 
   return {
     studentId,
-    questionsSolved,
+    questionsSolved: questionsSolved + practiceAttemptCount,
     ...awardMetrics,
     diagnosticsCompleted,
-    practiceSessions,
-    fluencySessions: uniqueCount(fluencySessionIds),
+    practiceSessions: practiceSessions + genericPracticeSessions,
+    fluencySessions: uniqueCount(fluencySessionIds) + fluencySessionsFromPractice,
     workingSubmissions,
     skillsMastered: uniqueCount(masteredCodes),
     masteredInCurrentDomain,
@@ -675,7 +702,7 @@ export async function getStudentPersonalBests(student, offsetHours = 8) {
   // not skewed by an abandoned/in-progress diagnostic.
   const excludeIncompleteDiagnostics = await buildDiagnosticAttemptExclusion(studentId);
 
-  const [allAttempts, completedSessions] = await Promise.all([
+  const [mathPathAttempts, completedSessions, mathPracticeSessions] = await Promise.all([
     MathPathAttempt.find({ studentId, ...excludeIncompleteDiagnostics })
       .sort({ createdAt: -1 })
       .select('correct timeTaken createdAt sessionId skillId')
@@ -684,7 +711,32 @@ export async function getStudentPersonalBests(student, offsetHours = 8) {
       .sort({ completedAt: -1 })
       .select('summary completedAt startedAt practiceSessionId targetSkillId')
       .lean(),
+    // Fluency + generic MathPath practice write to PracticeAttempt (a SEPARATE
+    // collection from MathPathAttempt), so the profile missed them entirely —
+    // most visibly, a student's fluency work never showed up in these stats.
+    // Scope to this student's MathPath PracticeSessions so other modules
+    // (spelling, mechanisms) don't leak into the math personal-bests.
+    PracticeSession.find({ studentId, module: 'MathPath' }).select('_id').lean(),
   ]);
+
+  const practiceSessionIds = mathPracticeSessions.map((s) => s._id);
+  const practiceAttempts = practiceSessionIds.length
+    ? await PracticeAttempt.find({ studentId, sessionId: { $in: practiceSessionIds } })
+      .select('correct timeMs timeTakenSeconds createdAt sessionId skillId')
+      .lean()
+    : [];
+  // Normalise PracticeAttempt to the MathPathAttempt shape (timeTaken in ms) and
+  // merge, so every personal-best stat below reflects diagnostics + practice +
+  // fluency uniformly.
+  const normalizedPractice = practiceAttempts.map((a) => ({
+    correct: a.correct,
+    timeTaken: a.timeMs ?? (a.timeTakenSeconds != null ? Math.round(Number(a.timeTakenSeconds) * 1000) : null),
+    createdAt: a.createdAt,
+    sessionId: a.sessionId,
+    skillId: a.skillId,
+  }));
+  const allAttempts = [...mathPathAttempts, ...normalizedPractice]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   // 1. Best session accuracy (min 3 questions)
   let bestSessionAccuracy = 0;

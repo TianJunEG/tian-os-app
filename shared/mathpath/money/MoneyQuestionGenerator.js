@@ -404,19 +404,53 @@ export function generateMoneyQuestionSet({ skillId, count = 6, mode = 'practice'
   return questions;
 }
 
-// Normalise a money / numeric response to an integer-cent key so that
-// "$3.00", "3.00", "$3" and "3" all compare equal. Non-numeric answers fall
-// back to a whitespace/comma-insensitive string compare.
-function moneyKey(s) {
-  const t = String(s).trim().toLowerCase().replace(/\s+/g, '').replace(/,/g, '').replace(/\$/g, '');
-  if (/^-?\d+(\.\d+)?$/.test(t)) return `c${Math.round(parseFloat(t) * 100)}`;
-  return t;
+// Parse a money answer into the set of integer-cent values it could reasonably
+// mean, so grading accepts any natural form a child types:
+//   "$0.40", "0.40", "0.4"     → {40}
+//   "40c", "40¢", "40 cents"   → {40}        (explicit cents)
+//   "$40"                      → {4000}      (explicit dollars)
+//   bare "40"                  → {4000, 40}  (a coin count is usually meant as
+//                                             cents, but "$40" is valid too)
+// Returns null for non-numeric input so the caller can fall back to a string
+// compare. This fixes coin-value questions like "total value of 8 5-cent coins"
+// where the answer is $0.40 but a child writes 40, 40¢, or 40c.
+function moneyCentCandidates(s) {
+  let t = String(s).trim().toLowerCase().replace(/\s+/g, '').replace(/,/g, '');
+  const explicitCents = /(?:¢|cents?|c)$/.test(t);
+  const explicitDollars = t.includes('$');
+  t = t.replace(/\$/g, '').replace(/(?:¢|cents?|c)$/, '');
+  if (!/^-?\d+(\.\d+)?$/.test(t)) return null;
+  const num = parseFloat(t);
+  if (explicitCents) return new Set([Math.round(num)]);
+  if (explicitDollars) return new Set([Math.round(num * 100)]);
+  // Bare number: dollars by default; also accept whole-number cents (so "40"
+  // grades a 40-cent answer correct without rejecting "$40"-style answers).
+  const cands = new Set([Math.round(num * 100)]);
+  if (Number.isInteger(num)) cands.add(Math.round(num));
+  return cands;
+}
+
+// Whitespace/case/punctuation-insensitive key for the non-numeric fallback.
+function moneyStringKey(s) {
+  return String(s).trim().toLowerCase().replace(/\s+/g, '').replace(/,/g, '').replace(/\$/g, '');
 }
 
 export function checkMoneyAnswer({ question, studentResponse }) {
   if (!question || studentResponse == null) return { correct: false };
-  const expected = String(question.answer?.display ?? question.answer ?? '');
-  return { correct: moneyKey(studentResponse) === moneyKey(expected) };
+  const expectedList = [
+    question.answer?.display ?? question.answer ?? '',
+    ...(Array.isArray(question.acceptedAnswers) ? question.acceptedAnswers : []),
+  ].map((e) => String(e)).filter(Boolean);
+  const studentCents = moneyCentCandidates(studentResponse);
+  for (const expected of expectedList) {
+    const expectedCents = moneyCentCandidates(expected);
+    if (studentCents && expectedCents) {
+      for (const cents of studentCents) if (expectedCents.has(cents)) return { correct: true };
+    } else if (moneyStringKey(studentResponse) === moneyStringKey(expected)) {
+      return { correct: true };
+    }
+  }
+  return { correct: false };
 }
 
 export default { generateMoneyQuestionSet, checkMoneyAnswer };

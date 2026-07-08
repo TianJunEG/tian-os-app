@@ -24,4 +24,10 @@ export const CONFIG = {
   // so the app grants Premium when the customer returns. Leave '' to unlock
   // instantly after email (demo mode).
   STRIPE_PAYMENT_LINK: '',
+
+  // CROSS-DEVICE SAVE — base URL of the backend that hosts /api/vocab (magic-link
+  // sign-in + progress sync). Leave '' when the app is served by that same
+  // backend (e.g. Railway at /vocab) so calls go to the same origin. Set a full
+  // URL (e.g. 'http://localhost:5001') only when hosting the app separately.
+  API_BASE: '',
 };

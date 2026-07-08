@@ -4,6 +4,7 @@ import {
   generateTask,
   generateLadder,
   generatableTaskTypes,
+  glossFor,
   makeRng,
 } from './vocabularyTaskGenerator.js';
 import { TASK_TYPES } from './vocabularyModel.js';
@@ -13,18 +14,27 @@ function exactlyOneCorrect(task) {
 }
 
 describe('vocabulary task generator', () => {
-  it('builds a fair MCQ for every applicable rung of every word', () => {
+  // Exhaustive: every word (712) × every ladder rung (~26k MCQs). Two speedups vs
+  // the old ~17s version: (1) invariant checks run in plain JS with a single expect
+  // at the end (not ~5 eager expect() calls per task); (2) the generator now memoises
+  // its per-word distractor pools + a word/answer index (see vocabularyTaskGenerator),
+  // ~44% faster. The remainder (~6–8s) is irreducible — each MCQ deterministically
+  // shuffles a ~700-item distractor pool — so keep a timeout above the default 5s.
+  it('builds a fair MCQ for every applicable rung of every word', { timeout: 20000 }, () => {
+    const failures = [];
     for (const w of vocabularyWordBank) {
       for (const task of generateLadder(w)) {
-        expect(task.options.length, `${w.word}/${task.taskType} option count`).toBeGreaterThanOrEqual(3);
-        expect(exactlyOneCorrect(task), `${w.word}/${task.taskType} single answer`).toBe(true);
-        // options are distinct (case-insensitive)
+        const where = `${w.word}/${task.taskType}`;
+        if (task.options.length < 3) failures.push(`${where}: <3 options`);
+        if (!exactlyOneCorrect(task)) failures.push(`${where}: not exactly one correct option`);
         const texts = task.options.map((o) => o.text.toLowerCase());
-        expect(new Set(texts).size, `${w.word}/${task.taskType} distinct options`).toBe(texts.length);
-        expect(task.answer).toBeTruthy();
-        expect(task.options.find((o) => o.correct).text).toBe(task.answer);
+        if (new Set(texts).size !== texts.length) failures.push(`${where}: duplicate options [${texts.join(', ')}]`);
+        if (!task.answer) failures.push(`${where}: missing answer`);
+        const correct = task.options.find((o) => o.correct);
+        if (!correct || correct.text !== task.answer) failures.push(`${where}: correct option "${correct?.text}" !== answer "${task.answer}"`);
       }
     }
+    expect(failures, `${failures.length} bad MCQ(s):\n${failures.slice(0, 20).join('\n')}`).toEqual([]);
   });
 
   it('meaning_match asks for the meaning and marks the true definition correct', () => {
@@ -82,5 +92,64 @@ describe('vocabulary task generator', () => {
     const sorted = [...tiers].sort((x, y) => x - y);
     expect(tiers).toEqual(sorted);
     expect(ids[0]).toBe('meaning_match'); // tier 1 first
+  });
+
+  it('never offers the question word itself as the "same word family" answer', () => {
+    // Regression: words like "consent" (verb) / "consent" (noun) have a same-
+    // spelling family member, which used to surface as the correct option — so
+    // the answer was literally the word being asked about.
+    const n = (s) => String(s).trim().toLowerCase();
+    const rng = makeRng(7);
+    let checked = 0;
+    for (const w of vocabularyWordBank) {
+      const task = generateTask(w, 'morphology_match', { bank: vocabularyWordBank, rng });
+      if (!task) continue;
+      checked++;
+      const correct = task.options.find((o) => o.correct);
+      expect(n(correct.text), `morphology answer for "${w.word}"`).not.toBe(n(w.word));
+    }
+    expect(checked).toBeGreaterThan(100);
+  });
+
+  it('word-option questions carry a meaning gloss on every option (to teach the distractors too)', () => {
+    // A student often misses because they don't know the DISTRACTORS. word_recall
+    // options are words, so each should reveal its meaning.
+    const task = generateTask(getWord('vw_encroachment'), 'word_recall', { rng: makeRng(3) });
+    expect(task.options.every((o) => typeof o.gloss === 'string' && o.gloss.length > 3)).toBe(true);
+    // ...and glossFor resolves both a taught headword and an untaught distractor.
+    expect(glossFor('encroachment')).toBeTruthy();
+    expect(glossFor('insight')).toBeTruthy(); // an untaught distractor, from the glossary
+    expect(glossFor('this is a full sentence, not a word')).toBeNull();
+  });
+
+  it('meaning-option questions do NOT gloss options (they are already meanings)', () => {
+    const task = generateTask(getWord('vw_encroachment'), 'meaning_match', { rng: makeRng(3) });
+    expect(task.options.every((o) => o.gloss === undefined)).toBe(true);
+  });
+
+  it('collocation_pick never leaves only a function word as the phrase stem', () => {
+    // Regression: "____ to" (a preposition-only stem) is filled equally well by
+    // near-synonyms — reluctant / resistant / receptive to — so it isn't a fair
+    // single-answer question.
+    const FW = new Set([
+      'to', 'of', 'on', 'in', 'with', 'for', 'at', 'by', 'a', 'an', 'the', 'and', 'or',
+      'up', 'off', 'out', 'as', 'into', 'from', 'over', 'about', 'that', 'this',
+      'his', 'her', 'its', 'their', 'your', 'my', 'our', 'is', 'was', 'be', 'been',
+      'so', 'than', 'too', 'it', 'them', 'you',
+    ]);
+    const rng = makeRng(9);
+    let checked = 0;
+    for (const w of vocabularyWordBank) {
+      const task = generateTask(w, 'collocation_pick', { bank: vocabularyWordBank, rng });
+      if (!task) continue;
+      checked++;
+      const stem = (task.prompt.match(/“([\s\S]+)”/) || [])[1] || '';
+      const content = stem.replace(/_+/g, ' ').toLowerCase().split(/[^a-z]+/).filter(Boolean);
+      expect(
+        content.some((t) => !FW.has(t)),
+        `collocation stem for "${w.word}": "${stem.trim()}"`
+      ).toBe(true);
+    }
+    expect(checked).toBeGreaterThan(100);
   });
 });

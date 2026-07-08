@@ -15,6 +15,8 @@ import TutorCertification from '../models/TutorCertification.js';
 import { buildLessonPrep } from '../utils/tutorLessonPrep.js';
 import { getTutorLessonPrep } from '../services/mathpath/tutorLessonPrepEngine.js';
 import { createAssignmentFromLessonPrep } from '../services/mathpath/mathPathAssignmentService.js';
+import { sanitizeHomeworkResults } from '../utils/homeworkResults.js';
+import { awardSticker, awardHomeworkSticker } from '../services/rewards/stickerService.js';
 import {
   listPartnerStudentIdsForUser,
   userCanAccessPartnerStudent,
@@ -26,6 +28,10 @@ import PSLAttempt from '../models/psl/PSLAttempt.js';
 import multer from 'multer';
 import r2 from '../services/storage/r2.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
+import Announcement from '../models/Announcement.js';
+import AnnouncementComment from '../models/AnnouncementComment.js';
+import { notifyNewAnnouncement, publicAnnouncement } from '../services/announcements/announcementService.js';
+import { linkGuardianByEmail } from '../services/guardians/guardianLinkService.js';
 
 const router = express.Router();
 const audioUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
@@ -235,10 +241,43 @@ router.post('/students/:id/lesson-notes', asyncHandler(async (req, res) => {
     notes: b.notes || b.covered || '', nextAction: b.nextAction || b.nextRecommendation || '',
     covered: b.covered || '', didWell: b.didWell || '', struggledWith: b.struggledWith || '',
     misconceptions: b.misconceptions || '', homeworkAssigned: b.homeworkAssigned || '',
+    homeworkResults: sanitizeHomeworkResults(b.homeworkResults),
     nextRecommendation: b.nextRecommendation || '', parentSummary: b.parentSummary || '',
     parentUpdateStatus: 'draft',
   });
-  res.status(201).json({ lessonNote: note });
+  // A strong homework week auto-earns a sticker for the reward chart (idempotent
+  // per note). Non-fatal — never block saving the note on a reward write.
+  let earnedSticker = null;
+  try {
+    const hw = note.homeworkResults || [];
+    earnedSticker = await awardHomeworkSticker({
+      studentId: student._id,
+      noteId: note._id,
+      correct: hw.reduce((s, r) => s + (r.correct || 0), 0),
+      total: hw.reduce((s, r) => s + (r.total || 0), 0),
+    });
+  } catch (err) {
+    console.error('[tutor] homework sticker award failed (non-fatal):', err.message);
+  }
+  res.status(201).json({ lessonNote: note, earnedSticker });
+}));
+
+// @route POST /api/tutor/students/:id/stickers — manually award a reward sticker
+router.post('/students/:id/stickers', asyncHandler(async (req, res) => {
+  if (!ensureTutorWorkspace(req, res)) return;
+  const student = await requireLinkedStudent(req, res); if (!student) return;
+  try {
+    const { sticker } = await awardSticker({
+      studentId: student._id,
+      stickerCode: req.body?.stickerCode,
+      source: 'tutor',
+      awardedByUserId: req.user.id,
+      note: req.body?.note || '',
+    });
+    res.status(201).json({ sticker });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Could not award sticker.' });
+  }
 }));
 
 // @route POST /api/tutor/students/:id/lesson-notes/:noteId/send
@@ -427,6 +466,7 @@ router.post('/lesson-notes', asyncHandler(async (req, res) => {
     struggledWith: b.struggledWith || '',
     misconceptions: b.misconceptions || '',
     homeworkAssigned: b.homeworkAssigned || '',
+    homeworkResults: sanitizeHomeworkResults(b.homeworkResults),
     nextRecommendation: b.nextRecommendation || b.nextAction || '',
     parentSummary: b.parentSummary || '',
     parentUpdateStatus: 'draft',
@@ -601,6 +641,60 @@ router.get('/students/:id/psl/dashboard', asyncHandler(async (req, res) => {
     topMisconceptions,
     recentSessions,
   });
+}));
+
+// Quick-link a parent to one of the tutor's students.
+router.post('/students/:id/link-parent', asyncHandler(async (req, res) => {
+  if (!ensureTutorWorkspace(req, res)) return;
+  const student = await requireLinkedStudent(req, res); if (!student) return;
+  try {
+    const result = await linkGuardianByEmail({
+      studentId: req.params.id, workspaceId: req.workspaceId,
+      email: req.body?.email, name: req.body?.name,
+    });
+    return res.status(201).json(result);
+  } catch (err) {
+    return res.status(Number(err?.status) || 500).json({ error: err?.message || 'Could not link the parent.' });
+  }
+}));
+
+// ── Announcements to parents (tutor-scoped) ──────────────────────────────
+// Post an announcement to the parents of all the tutor's active students.
+router.post('/announcements', asyncHandler(async (req, res) => {
+  if (!ensureTutorWorkspace(req, res)) return;
+  const title = String(req.body?.title || '').trim();
+  if (!title) return res.status(400).json({ error: 'A title is required.' });
+  const author = await User.findById(req.user.id).select('name');
+  const announcement = await Announcement.create({
+    workspaceId: req.workspaceId,
+    authorId: req.user.id,
+    authorName: author?.name || 'Tutor',
+    sourceType: 'tutor',
+    sourceId: String(req.user.id), // recipient fan-out keys off the tutorUserId
+    title,
+    body: String(req.body?.body || '').trim().slice(0, 5000),
+    allowComments: req.body?.allowComments !== false,
+  });
+  notifyNewAnnouncement(announcement).catch(() => {});
+  return res.status(201).json({ announcement: publicAnnouncement(announcement) });
+}));
+
+// List the tutor's announcements.
+router.get('/announcements', asyncHandler(async (req, res) => {
+  if (!ensureTutorWorkspace(req, res)) return;
+  const list = await Announcement.find({ sourceType: 'tutor', sourceId: String(req.user.id) })
+    .sort({ createdAt: -1 }).limit(50).lean();
+  return res.json({ announcements: list.map(publicAnnouncement) });
+}));
+
+// Delete an announcement (author only) + its comments.
+router.delete('/announcements/:aid', asyncHandler(async (req, res) => {
+  if (!ensureTutorWorkspace(req, res)) return;
+  const a = await Announcement.findOne({ _id: req.params.aid, sourceType: 'tutor', authorId: req.user.id });
+  if (!a) return res.status(404).json({ error: 'Announcement not found.' });
+  await AnnouncementComment.deleteMany({ announcementId: a._id });
+  await a.deleteOne();
+  return res.json({ ok: true });
 }));
 
 export default router;

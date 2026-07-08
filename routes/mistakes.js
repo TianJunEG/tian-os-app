@@ -434,4 +434,22 @@ router.patch('/:id/learning', protect, asyncHandler(async (req, res) => {
   }
 }));
 
+// @route DELETE /api/mistakes/:id
+// @desc  Remove a falsely-logged mistake (system/grading error) so it stops
+//        skewing the review + counts. Hard delete — these records have no
+//        analytical value. Access: the student themselves, or a guardian/tutor/
+//        teacher with write access to that student (via resolveStudent).
+router.delete('/:id', protect, asyncHandler(async (req, res) => {
+  try {
+    const m = await Mistake.findById(req.params.id);
+    if (!m) return res.status(404).json({ error: 'Mistake not found.' });
+    await resolveStudent(req, m.studentId, { write: true });
+    await Mistake.deleteOne({ _id: m._id });
+    console.info('[mistakes] deleted', { mistakeId: String(m._id), studentId: String(m.studentId), by: req.user.id, role: req.user.role });
+    res.json({ success: true, id: String(m._id) });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to remove mistake.' });
+  }
+}));
+
 export default router;

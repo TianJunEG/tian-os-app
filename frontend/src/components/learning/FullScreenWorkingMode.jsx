@@ -394,6 +394,7 @@ export default function FullScreenWorkingMode({
   const [hasObjectEdit, setHasObjectEdit] = useState(false);
   const [mathDraft, setMathDraft] = useState(null);
   const [textDraft, setTextDraft] = useState(null);
+  const [toolsOpen, setToolsOpen] = useState(true); // drawer: tools overlay the canvas, open/close
   // Draw ↔ Four Ops (column arithmetic). 'draw' is the default, so the existing
   // canvas behaviour is unchanged; Four Ops adds the column grid here too.
   const [workingMode, setWorkingMode] = useState('draw');
@@ -542,6 +543,9 @@ export default function FullScreenWorkingMode({
     event?.preventDefault?.();
     if (event?.pointerId !== undefined) canvasRef.current?.releasePointerCapture?.(event.pointerId);
     drawingRef.current = false;
+    // Drop any selection the lift started so the canvas isn't left highlighted
+    // until the next tap (iPad/stylus quirk — see WorkingCanvas.endStroke).
+    if (typeof window !== 'undefined') window.getSelection?.()?.removeAllRanges?.();
     const raw = currentStrokeRef.current;
     currentStrokeRef.current = null;
     const stroke = finalizeStroke(raw);
@@ -857,9 +861,9 @@ export default function FullScreenWorkingMode({
         </>
       )}
     >
-      <div className="flex h-full min-h-0 flex-col gap-2">
+      <div className="relative flex h-full min-h-0 flex-col gap-2">
         {/* Draw ↔ Four Ops tabs (Four Ops = column arithmetic grid). */}
-        <div className="flex gap-1.5">
+        <div className="flex items-center gap-1.5">
           {[{ id: 'draw', label: 'Draw', Icon: PenLine }, { id: 'column', label: 'Four Ops', Icon: Calculator }].map(({ id, label, Icon }) => (
             <button
               key={id}
@@ -870,10 +874,28 @@ export default function FullScreenWorkingMode({
               <Icon className="h-3.5 w-3.5" /> {label}
             </button>
           ))}
+          {workingMode === 'draw' && (
+            <button
+              type="button"
+              onClick={() => setToolsOpen((o) => !o)}
+              aria-expanded={toolsOpen}
+              className="ml-auto inline-flex items-center gap-1 rounded-lg border border-line-soft bg-white px-3 py-1.5 text-xs font-semibold text-emerald-deep transition hover:bg-emerald-tint"
+            >
+              {toolsOpen ? 'Hide tools' : 'Show tools'}
+            </button>
+          )}
         </div>
         {workingMode === 'draw' && (
         <>
+        {/* Tools DRAWER — overlays the top of the canvas so the drawing area keeps
+            full flex space; slides away when closed. */}
+        <div
+          className={`absolute inset-x-0 top-11 z-30 origin-top px-0.5 transition-all duration-200 ${toolsOpen ? 'pointer-events-auto translate-y-0 opacity-100' : 'pointer-events-none -translate-y-3 opacity-0'}`}
+          aria-hidden={!toolsOpen}
+        >
+        <div className="max-h-[60vh] space-y-2 overflow-y-auto rounded-xl border border-line-soft bg-surface-raised/95 p-2 shadow-lg backdrop-blur">
         <WorkingToolbar
+          compact
           tool={tool}
           colour={colour}
           brushSize={brushSize}
@@ -973,6 +995,8 @@ export default function FullScreenWorkingMode({
             </div>
           ))}
         </div>}
+        </div>
+        </div>
         {(questionContent || questionText) && (
           <div className="flex-shrink-0 rounded-xl border border-line-soft bg-surface-raised px-4 py-2.5">
             <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-ink-400">Q</span>

@@ -1,4 +1,4 @@
-// EnglishPath · Vocabulary Builder — task generator
+// ELPath · Vocabulary Builder — task generator
 // ----------------------------------------------------------------------------
 // Turns a single word entry into a concrete, renderable exercise for a given
 // task type. Distractors are drawn first from the word's *real exam confusables*
@@ -14,6 +14,7 @@ import {
   gradedLadder,
 } from './vocabularyModel.js';
 import { vocabularyWordBank } from './vocabularyWordBank.js';
+import { distractorGlossary } from './distractorGlossary.js';
 
 const BLANK_RE = /_{3,}/;
 export const BLANK_DISPLAY = '________';
@@ -41,7 +42,17 @@ function shuffle(arr, rng) {
   return a;
 }
 
-const norm = (s) => String(s).trim().toLowerCase();
+// `norm` is called on the same handful of words/answers millions of times while
+// building distractor pools (every task re-scans the whole bank). Memoise by input
+// so each distinct string is trimmed/lower-cased once — pure, so generated output
+// is byte-identical, but it turns ~168M string allocations into cheap Map hits.
+const NORM_CACHE = new Map();
+const norm = (s) => {
+  const key = typeof s === 'string' ? s : String(s);
+  let v = NORM_CACHE.get(key);
+  if (v === undefined) { v = key.trim().toLowerCase(); NORM_CACHE.set(key, v); }
+  return v;
+};
 
 // ---- option assembly ------------------------------------------------------
 
@@ -93,27 +104,97 @@ function hasBlank(example) {
   return BLANK_RE.test(example || '');
 }
 
-// ---- distractor pools from the wider bank ---------------------------------
+// Function words that don't, on their own, pin down which word fills a blank.
+// A collocation whose only remaining context is one of these ("____ to") is a
+// weak single-answer question because many near-synonyms share it.
+const COLLOCATION_FUNCTION_WORDS = new Set([
+  'to', 'of', 'on', 'in', 'with', 'for', 'at', 'by', 'a', 'an', 'the', 'and', 'or',
+  'up', 'off', 'out', 'as', 'into', 'from', 'over', 'about', 'that', 'this',
+  'his', 'her', 'its', 'their', 'your', 'my', 'our', 'is', 'was', 'be', 'been',
+  'so', 'than', 'too', 'it', 'them', 'you',
+]);
 
-function otherWords(entry, bank, { samePos = false } = {}) {
-  return bank
-    .filter((w) => w.id !== entry.id && (!samePos || w.pos === entry.pos))
-    .filter((w) => norm(w.word) !== norm(entry.word));
+// True when blanking `re` (the target word) out of `phrase` leaves a distinctive
+// content word behind — not just prepositions/articles.
+function hasContentRemainder(phrase, re) {
+  const rest = String(phrase).replace(re, ' ');
+  return rest
+    .toLowerCase()
+    .split(/[^a-z]+/)
+    .some((tok) => tok && !COLLOCATION_FUNCTION_WORDS.has(tok));
 }
 
-function poolWords(entry, bank, opts) {
+// ---- distractor pools from the wider bank ---------------------------------
+
+// These three re-scan the whole word bank, and several ladder rungs of the SAME
+// word each ask for the same pool — so building a word's full ladder used to scan
+// the bank a dozen times over (the bulk of the ~168M norm() calls). The pools
+// depend only on (bank, entry, samePos), so memoise them per bank: each is built
+// once per word and the result array is returned as-is (callers never mutate it),
+// keeping generated output byte-identical.
+const POOL_MEMO = new WeakMap();
+function poolMemo(bank) {
+  let m = POOL_MEMO.get(bank);
+  if (!m) { m = new Map(); POOL_MEMO.set(bank, m); }
+  return m;
+}
+
+// norm(word) | norm(answer) -> the FIRST bank entry with that word/answer, so a
+// `bank.find(w => norm(w.word)===c || norm(w.answer)===c)` becomes an O(1) lookup.
+// Built once per bank (first-wins in bank order preserves find()'s semantics).
+function bankWordAnswerIndex(bank) {
+  const memo = poolMemo(bank);
+  let idx = memo.get('__wordAnswerIndex');
+  if (idx) return idx;
+  idx = new Map();
+  for (const w of bank) {
+    const nw = norm(w.word);
+    const na = norm(w.answer);
+    if (!idx.has(nw)) idx.set(nw, w);
+    if (!idx.has(na)) idx.set(na, w);
+  }
+  memo.set('__wordAnswerIndex', idx);
+  return idx;
+}
+
+function otherWords(entry, bank, { samePos = false } = {}) {
+  const memo = poolMemo(bank);
+  const key = `o:${entry.id}:${samePos ? 1 : 0}`;
+  const cached = memo.get(key);
+  if (cached) return cached;
+  const en = norm(entry.word);
+  const result = bank
+    .filter((w) => w.id !== entry.id && (!samePos || w.pos === entry.pos))
+    .filter((w) => norm(w.word) !== en);
+  memo.set(key, result);
+  return result;
+}
+
+function poolWords(entry, bank, opts = {}) {
+  const memo = poolMemo(bank);
+  const key = `pw:${entry.id}:${opts.samePos ? 1 : 0}`;
+  const cached = memo.get(key);
+  if (cached) return cached;
   // prefer same-theme words for plausibility, then everything else
   const others = otherWords(entry, bank, opts);
   const sameTheme = others.filter((w) => w.theme === entry.theme).map((w) => w.answer);
   const rest = others.filter((w) => w.theme !== entry.theme).map((w) => w.answer);
-  return [...sameTheme, ...rest];
+  const result = [...sameTheme, ...rest];
+  memo.set(key, result);
+  return result;
 }
 
 function poolMeanings(entry, bank) {
+  const memo = poolMemo(bank);
+  const key = `pm:${entry.id}`;
+  const cached = memo.get(key);
+  if (cached) return cached;
   const others = otherWords(entry, bank);
   const sameTheme = others.filter((w) => w.theme === entry.theme).map((w) => w.meaning);
   const rest = others.filter((w) => w.theme !== entry.theme).map((w) => w.meaning);
-  return [...sameTheme, ...rest];
+  const result = [...sameTheme, ...rest];
+  memo.set(key, result);
+  return result;
 }
 
 // ---- per task-type generators ---------------------------------------------
@@ -130,6 +211,9 @@ const GENERATORS = {
         synonyms: entry.synonyms,
         connotation: entry.connotation,
         mnemonic: entry.mnemonic,
+        wordFamily: entry.wordFamily.length
+          ? entry.wordFamily.map((f) => `${f.word} (${f.pos})`).join(', ')
+          : '',
       },
     };
   },
@@ -176,6 +260,83 @@ const GENERATORS = {
       prompt: `Which word is closest in meaning to **${entry.word}**?`,
       options,
       rationale: `“${entry.word}” means ${entry.meaning}, so it is closest to “${correct}”.`,
+    };
+  },
+
+  context_infer(entry, bank, rng) {
+    if (!entry.example) return null;
+    const sentence = hasBlank(entry.example)
+      ? fillBlank(entry.example, `**${entry.answer}**`)
+      : entry.example.replace(
+          new RegExp(`\\b(${entry.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})\\b`, 'i'),
+          '**$1**',
+        );
+    const byWordOrAnswer = bankWordAnswerIndex(bank);
+    const confusableMeanings = entry.confusables
+      .map((c) => byWordOrAnswer.get(norm(c)))       // first entry whose word OR answer === c (as bank.find did)
+      .filter(Boolean)
+      .map((w) => w.meaning);
+    const options = buildOptions({
+      correct: entry.meaning,
+      distractors: confusableMeanings,
+      padPool: poolMeanings(entry, bank),
+      rng,
+    });
+    if (!options) return null;
+    return {
+      kind: 'mcq',
+      prompt: `What does the bold word most likely mean?\n\n${sentence}`,
+      options,
+      rationale: `"${entry.word}" means: ${entry.meaning}. The sentence gives clues to its meaning.`,
+    };
+  },
+
+  morphology_match(entry, bank, rng) {
+    // The correct answer must be a DIFFERENTLY-spelled family member — otherwise
+    // it's just the question word again (e.g. "consent" the verb vs "consent" the
+    // noun), which reads as "the answer is the word being asked about". Skip the
+    // task for words whose family has no distinct-form member.
+    const members = entry.wordFamily.filter((f) => norm(f.word) !== norm(entry.word));
+    if (!members.length) return null;
+    const member = members[Math.floor(rng() * members.length)];
+    const distractors = [
+      ...entry.confusables,
+      ...otherWords(entry, bank)
+        .filter((w) => !entry.wordFamily.some((f) => norm(f.word) === norm(w.word)))
+        .map((w) => w.word),
+    ];
+    const options = buildOptions({ correct: member.word, distractors, rng });
+    if (!options) return null;
+    const posLabel = member.pos !== 'other' ? ` (${member.pos})` : '';
+    return {
+      kind: 'mcq',
+      prompt: `Which word belongs to the same word family as **${entry.word}**?`,
+      options,
+      rationale: `"${member.word}"${posLabel} and "${entry.word}" (${entry.pos}) are in the same word family.`,
+    };
+  },
+
+  collocation_natural(entry, bank, rng) {
+    const real = entry.collocations.find((c) => norm(c).includes(norm(entry.word)));
+    if (!real) return null;
+    const others = otherWords(entry, bank).filter((w) => w.collocations?.length);
+    const fakes = [];
+    for (const w of shuffle(others, rng)) {
+      for (const col of w.collocations) {
+        if (!norm(col).includes(norm(w.word))) continue;
+        const fake = col.replace(new RegExp(w.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), entry.word);
+        if (norm(fake) !== norm(real) && norm(fake) !== norm(col)) { fakes.push(fake); break; }
+      }
+      if (fakes.length >= 3) break;
+    }
+    if (fakes.length < 2) return null;
+    const options = buildOptions({ correct: real, distractors: fakes.slice(0, 3), rng });
+    if (!options) return null;
+    return {
+      kind: 'mcq',
+      prompt: `Which phrase uses **${entry.word}** naturally?`,
+      options,
+      rationale: `"${real}" is the natural pairing — these words collocate.`,
     };
   },
 
@@ -227,9 +388,16 @@ const GENERATORS = {
   },
 
   collocation_pick(entry, bank, rng) {
-    const phrase = entry.collocations.find((c) => norm(c).includes(norm(entry.word)));
-    if (!phrase) return null;
     const re = new RegExp(entry.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    // Only use a collocation whose remaining words (after blanking the target)
+    // include a distinctive content word. A stem that leaves only a function word
+    // — e.g. "____ to" — is satisfied by many near-synonyms (reluctant / resistant
+    // / receptive to), so it isn't a fair single-answer question. The distractors
+    // here ARE near-synonyms, which is exactly what makes such stems ambiguous.
+    const phrase = entry.collocations.find(
+      (c) => norm(c).includes(norm(entry.word)) && hasContentRemainder(c, re)
+    );
+    if (!phrase) return null;
     const blanked = phrase.replace(re, BLANK_DISPLAY);
     const options = buildOptions({
       correct: entry.word,
@@ -316,6 +484,28 @@ const GENERATORS = {
  * Generate a single task for an entry + task type. Returns null when the task
  * does not apply or there are not enough distractors to make a fair question.
  */
+// A word -> one-line meaning lookup covering every option a student can see:
+// a taught headword uses its own (authoritative) meaning; an untaught distractor
+// uses its generated gloss. Built once, lazily. Used to teach ALL four options
+// in the answer feedback, not just the correct one.
+let _glossMap = null;
+function glossMap() {
+  if (_glossMap) return _glossMap;
+  _glossMap = new Map();
+  for (const [word, gloss] of Object.entries(distractorGlossary)) _glossMap.set(norm(word), gloss);
+  for (const w of vocabularyWordBank) {
+    if (!w.meaning) continue;
+    _glossMap.set(norm(w.word), w.meaning);
+    _glossMap.set(norm(w.answer), w.meaning);
+  }
+  return _glossMap;
+}
+
+/** One-line meaning for an option's text, or null (e.g. an option that is itself a meaning). */
+export function glossFor(text) {
+  return glossMap().get(norm(text)) || null;
+}
+
 export function generateTask(entry, taskTypeId, { bank = vocabularyWordBank, rng = makeRng(1) } = {}) {
   const taskType = TASK_TYPE_BY_ID[taskTypeId];
   if (!taskType) throw new Error(`Unknown task type: ${taskTypeId}`);
@@ -324,7 +514,7 @@ export function generateTask(entry, taskTypeId, { bank = vocabularyWordBank, rng
   if (!gen) return null;
   const body = gen(entry, bank, rng);
   if (!body) return null;
-  return {
+  const task = {
     id: `${entry.id}::${taskTypeId}`,
     taskType: taskTypeId,
     label: taskType.label,
@@ -337,6 +527,15 @@ export function generateTask(entry, taskTypeId, { bank = vocabularyWordBank, rng
     ...body,
     answer: body.kind === 'mcq' ? body.options.find((o) => o.correct)?.text : entry.answer,
   };
+  // Attach a one-line meaning to each word-option so the feedback can teach every
+  // option. Meaning-valued options (e.g. "What does X mean?") get no gloss.
+  if (task.kind === 'mcq' && Array.isArray(task.options)) {
+    task.options = task.options.map((o) => {
+      const gloss = glossFor(o.text);
+      return gloss ? { ...o, gloss } : o;
+    });
+  }
+  return task;
 }
 
 /** Every graded task that can be built for an entry, in ladder (tier) order. */

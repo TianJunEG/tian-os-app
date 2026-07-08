@@ -1,6 +1,7 @@
 import Mistake from '../../models/Mistake.js';
 import MathPathMistakeRecord from '../../models/mathpath/MathPathMistakeRecord.js';
 import { recordLearningEvents } from '../telemetry/learningTelemetryService.js';
+import { awardPerfectRoundSticker, awardMasterySticker } from '../rewards/stickerService.js';
 
 // Shared mistake persistence for every non-fractions MathPath domain practice
 // submission. Replaces the inline MathPathMistakeRecord loop that was
@@ -44,6 +45,19 @@ export async function persistDomainPracticeMistakes({ student, domainId, session
       })));
     } catch { /* telemetry is best-effort */ }
   }
+
+  // Practice-earned stickers (students earn from their OWN domain practice; this
+  // shared hook runs for every domain submit). MUST be BEFORE the no-mistakes
+  // early-return below — a perfect round has no mistakes yet is exactly when the
+  // perfect-round sticker should fire. Best-effort + idempotent per milestone;
+  // generic practice (routes/practice.js) and fluency award their own separately.
+  try {
+    const acc = scored.accuracySummary || {};
+    await awardPerfectRoundSticker({ studentId, sessionId, correct: acc.correct, total: acc.total });
+    for (const [skillId, s] of Object.entries(scored.perSkill || {})) {
+      if (s && s.status === 'mastered' && s.total > 0) await awardMasterySticker({ studentId, skillId });
+    }
+  } catch { /* stickers are best-effort */ }
 
   const mistakes = Array.isArray(scored.mistakes) ? scored.mistakes : [];
   if (!mistakes.length) return { aggregateCount: 0, mistakeCount: 0 };

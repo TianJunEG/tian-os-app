@@ -22,13 +22,39 @@ export default function KioskQuestionScreen() {
   const [confidence, setConfidence] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  // A mid-attempt refresh loses the in-memory question, but the attempt token
+  // survives in sessionStorage — so rehydrate the current question from the server
+  // rather than dumping the student back to the name list.
+  const [resuming, setResuming] = useState(() => !question && Boolean(getAttemptToken()));
+  const [resumeFailed, setResumeFailed] = useState(false);
   const startedAt = useRef(Date.now());
 
-  // If the page is refreshed mid-attempt we lose the in-memory question (the kiosk
-  // has no per-question rehydrate endpoint in P1). Send them back to the name list.
-  const lostState = !question && !getAttemptToken();
+  // Only truly lost if the token is gone too, or the resume attempt failed.
+  const lostState = (!question && !getAttemptToken()) || resumeFailed;
 
   useEffect(() => { startedAt.current = Date.now(); setAnswer(''); setConfidence(''); }, [question?.questionId]);
+
+  useEffect(() => {
+    if (!resuming) return undefined;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await kioskAPI.resume(sessionId);
+        if (cancelled) return;
+        if (data?.sessionComplete) {
+          navigate(`/kiosk/${code}/result/${sessionId}`, { state: { studentName, code }, replace: true });
+          return;
+        }
+        if (data?.currentQuestion) { setQuestion(data.currentQuestion); setProgress(data.progress || null); }
+        else { clearAttempt(); setResumeFailed(true); }
+      } catch {
+        if (!cancelled) { clearAttempt(); setResumeFailed(true); }
+      } finally {
+        if (!cancelled) setResuming(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [resuming, sessionId, code, navigate, studentName]);
 
   const stem = useMemo(() => question?.prompt || question?.stem || '', [question]);
   const choices = useMemo(
@@ -97,7 +123,7 @@ export default function KioskQuestionScreen() {
 
         <div style={{ background: '#fff', borderRadius: 18, padding: 24, boxShadow: '0 2px 14px rgba(28,36,51,0.06)' }}>
           <div style={{ fontSize: 22, fontWeight: 600, color: '#1c2433', lineHeight: 1.4 }}>
-            <MathText>{stem}</MathText>
+            <MathText text={stem} />
           </div>
 
           {canRenderQuestionDiagram(question) && (
@@ -120,7 +146,7 @@ export default function KioskQuestionScreen() {
                       background: answer === c ? '#eaf5ef' : '#fff', color: '#1c2433',
                     }}
                   >
-                    <MathText>{String(c)}</MathText>
+                    <MathText text={String(c)} />
                   </button>
                 ))}
               </div>

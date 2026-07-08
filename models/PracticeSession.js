@@ -14,6 +14,9 @@ const practiceSessionSchema = new mongoose.Schema({
     default: 'independent',
   },
   skillIds: { type: [mongoose.Schema.Types.ObjectId], ref: 'Skill', default: [] },
+  // Ordered question list for a FIXED set (e.g. the kiosk practice walk), so a
+  // mid-set page refresh can rehydrate the exact same items in the same order.
+  questionIds: { type: [mongoose.Schema.Types.ObjectId], ref: 'Question', default: [] },
   // Spelling Practice: the human-readable word-list name the student practised,
   // persisted so per-list analytics (LearningResult.topic) don't collapse to
   // the generic 'spelling' topic. null for non-spelling sessions.

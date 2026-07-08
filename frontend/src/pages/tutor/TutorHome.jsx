@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { AlertCircle, Check, ChevronRight, FileText, GraduationCap, Search } from 'lucide-react';
+import { AlertCircle, Check, ChevronRight, FileText, GraduationCap, Megaphone, Search } from 'lucide-react';
 import { tutorAPI } from '../../services/api';
 import { Spinner, PageHeader, Segmented } from '../../components/ui';
 
@@ -280,6 +280,20 @@ export default function TutorHome() {
                 >
                   <Search style={{ width: 15, height: 15, color: '#8a93a3' }} />
                   All students
+                </div>
+                <div
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    background: '#fff', border: '1px solid #e2e6ec', borderRadius: 11,
+                    padding: '9px 13px', fontSize: 13.5, fontWeight: 600, color: '#46505f',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => navigate('/tutor/announcements')}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <Megaphone style={{ width: 15, height: 15, color: '#8a93a3' }} />
+                  Announcements
                 </div>
               </div>
 

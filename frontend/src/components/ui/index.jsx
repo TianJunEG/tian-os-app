@@ -1,7 +1,7 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { Link, NavLink } from 'react-router-dom';
-import { ChevronDown, ChevronRight, X } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronRight, X } from 'lucide-react';
 import { getMascotForModule } from '../../config/mascots';
 
 // Tian OS shared UI primitives — Hanken Grotesk design system, all ages.
@@ -356,6 +356,16 @@ export function Breadcrumb({ items, className = '' }) {
       })}
     </nav>
   );
+}
+
+// Canonical "up one level" affordance — a subtle ArrowLeft text link sitting at
+// the top of a page. Pass `to` for a route link or `onClick` for navigate(-1)/
+// custom handlers. No baked-in margin: callers add mb-3/mb-4 to match their header.
+export function BackLink({ to, onClick, children = 'Back', className = '' }) {
+  const cls = `inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-body-muted transition hover:text-emerald focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald/30 ${className}`;
+  const content = <><ArrowLeft className="h-4 w-4" aria-hidden />{children}</>;
+  if (to) return <Link to={to} className={cls}>{content}</Link>;
+  return <button type="button" onClick={onClick} className={cls}>{content}</button>;
 }
 
 export function Divider({ className = '' }) {

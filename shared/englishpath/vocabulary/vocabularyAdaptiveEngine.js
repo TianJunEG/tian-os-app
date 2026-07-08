@@ -1,4 +1,4 @@
-// EnglishPath · Vocabulary Builder — adaptive engine
+// ELPath · Vocabulary Builder — adaptive engine
 // ----------------------------------------------------------------------------
 // Decides what to put in front of the student next and tracks how well they
 // know each word. Two ideas drive it:
@@ -289,6 +289,112 @@ export function buildSession(state, { size, now = Date.now(), bank = vocabularyW
 
 function firstGradedRung(entry, bank) {
   return ladderFor(entry, bank)[0] || 'meaning_match';
+}
+
+// ---- weak-word focus mode --------------------------------------------------
+
+/** Total wrong answers across every rung this word has been tried on. */
+function missCount(wp) {
+  let wrong = 0;
+  for (const s of Object.values(wp.taskStats)) wrong += Math.max(0, s.attempts - s.correct);
+  return wrong;
+}
+
+/**
+ * Words the student is currently struggling with — the material for a focused
+ * remediation drill. A word qualifies when it has an unresolved slip (its last
+ * answer on some rung was wrong) or it lapsed in spaced review and is not yet
+ * re-mastered. Getting it right again clears it, so the list shrinks as the
+ * student improves rather than remembering every historical mistake forever.
+ */
+export function weakWords(state, { bank = vocabularyWordBank } = {}) {
+  const out = [];
+  for (const wp of Object.values(state.words)) {
+    if (!wp.introduced) continue;
+    const struggling = hasFreshSlip(wp) || (wp.lapses > 0 && !wp.mastered);
+    if (!struggling) continue;
+    const entry = entryFor(wp.wordId, bank);
+    if (!entry) continue;
+    const attempts = Object.values(wp.taskStats).reduce((n, s) => n + s.attempts, 0);
+    const misses = missCount(wp) + wp.lapses;
+    out.push({
+      wordId: wp.wordId,
+      word: entry.word,
+      misses,
+      lapses: wp.lapses,
+      accuracy: attempts ? (attempts - missCount(wp)) / attempts : 0,
+      topConfusion: topKey(wp.confusions),
+      mastered: wp.mastered,
+      lastSeenAt: wp.lastSeenAt || 0,
+    });
+  }
+  // Most-missed first, then lowest accuracy, then alphabetical for stability.
+  return out.sort(
+    (a, b) => b.misses - a.misses || a.accuracy - b.accuracy || String(a.word).localeCompare(String(b.word))
+  );
+}
+
+/** The rung this word is weakest on — most misses, else its exam-form rung. */
+function weakestTaskType(wp, entry, bank) {
+  const ladder = ladderFor(entry, bank);
+  let worst = null;
+  let worstMiss = 0;
+  for (const tt of ladder) {
+    const s = wp.taskStats[tt];
+    if (!s || s.attempts === 0) continue;
+    const miss = s.attempts - s.correct;
+    if (miss > worstMiss) {
+      worstMiss = miss;
+      worst = tt;
+    }
+  }
+  return worst || reviewTaskType(wp, entry, bank);
+}
+
+/**
+ * Build a session made only of the student's weak words, each re-tested on the
+ * rung it was weakest on. Unlike buildSession this introduces no new words — it
+ * is a concentrated drill of exactly the gaps before an exam.
+ *
+ * Words are drilled least-recently-practised first (not most-missed first), so
+ * repeated drills work through the WHOLE backlog and old tricky words aren't
+ * permanently buried under a fresh batch of mistakes. Answering one correctly
+ * clears it; getting it wrong pushes it to the back of the queue to come round
+ * again — so nothing is lost.
+ */
+export function buildFocusSession(
+  state,
+  { size, bank = vocabularyWordBank, now = Date.now(), rng = makeRng(now >>> 0 || 1) } = {}
+) {
+  const limit = size || state.config.sessionSize;
+  const weak = weakWords(state, { bank }).slice().sort((a, b) => a.lastSeenAt - b.lastSeenAt);
+  return weak
+    .slice(0, limit)
+    .map((w) => {
+      const entry = entryFor(w.wordId, bank);
+      const wp = state.words[w.wordId];
+      const task = generateTask(entry, weakestTaskType(wp, entry, bank), { bank, rng });
+      return task ? { ...task, mode: 'focus' } : null;
+    })
+    .filter(Boolean);
+}
+
+// ---- cold-word probe -------------------------------------------------------
+
+/**
+ * A measurement task on a word the learner has NEVER been introduced to — a
+ * quiet check of whether their vocabulary is genuinely growing (transfer to
+ * unseen words), separate from the words they've drilled. The result is meant
+ * to be logged, NOT fed back into progress (recordResult), so probing never
+ * inflates "words learned" or perturbs the ladder. Returns null once every word
+ * has been seen. `mode: 'probe'` and `probe: true` mark it for the caller.
+ */
+export function buildColdProbe(state, { bank = vocabularyWordBank, now = Date.now(), rng = makeRng(now >>> 0 || 1) } = {}) {
+  const unseen = bank.filter((w) => !state.words[w.id] || !state.words[w.id].introduced);
+  if (!unseen.length) return null;
+  const entry = unseen[Math.floor(rng() * unseen.length)];
+  const task = generateTask(entry, 'meaning_match', { bank, rng });
+  return task ? { ...task, mode: 'probe', probe: true } : null;
 }
 
 // ---- progress summary ------------------------------------------------------

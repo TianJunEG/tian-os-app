@@ -359,6 +359,15 @@ describe('evaluateStep — solve', () => {
       expect(r.score).toBe(0);
       expect(r.misconceptionTag).toBe('psl/used-wrong-numbers');
     });
+
+    it('handed in a valid intermediate as the final answer → forgot to finish (not "wrong numbers")', () => {
+      // Student computed 100 - 35 = 65 (a real step) but stopped there; the answer
+      // needs + 100 = 165. Their numbers were right — they just did not finish.
+      const r = evaluateStep('solve', { answer: 65, intermediates: [65] }, twoStepExpected);
+      expect(r.correct).toBe(false);
+      expect(r.partial).toBe(true);
+      expect(r.misconceptionTag).toBe('psl/forgot-subtract');
+    });
   });
 });
 

@@ -327,6 +327,7 @@ export const mathpathAPI = {
   completeFluencySession: (data) => api.post('/fluency/session/complete', data),
   mistakes: (params) => api.get('/mistakes', { params }),
   mistake: (id) => api.get(`/mistakes/${id}`),
+  deleteMistake: (id) => api.delete(`/mistakes/${id}`),
   recordMistakes: (mistakes) => api.post('/mistakes/bulk', { mistakes }),
   reviewMistake: (id, data) => api.post(`/mistakes/${id}/review`, data),
   updateMistakeLearning: (id, data) => api.patch(`/mistakes/${id}/learning`, data),
@@ -406,6 +407,8 @@ export const studentProfileAPI = {
   achievements: () => api.get('/student-profile/achievements'),
   timeline: () => api.get('/student-profile/timeline'),
   personalBests: () => api.get('/student-profile/personal-bests'),
+  // Reward chart: own stickers, or a tutee's via ?studentId (resolveStudent-gated).
+  stickers: (studentId) => api.get('/student-profile/stickers', { params: studentId ? { studentId } : {} }),
   updateName: (name) => api.patch('/student-profile/name', { name }),
   updateVisualMode: (mode) => api.patch('/student-profile/visual-mode', { mode }),
 };
@@ -494,6 +497,7 @@ export const tutorAPI = {
   lessonNotes: (id) => api.get(`/tutor/students/${id}/lesson-notes`),
   createLessonNote: (id, data) => api.post(`/tutor/students/${id}/lesson-notes`, data),
   sendLessonNote: (id, noteId) => api.post(`/tutor/students/${id}/lesson-notes/${noteId}/send`),
+  awardSticker: (id, data) => api.post(`/tutor/students/${id}/stickers`, data),
   mathPathLessonNotes: (params = {}) => api.get('/tutor/lesson-notes', { params }),
   createMathPathLessonNote: (data) => api.post('/tutor/lesson-notes', data),
   homework: () => api.get('/tutor/homework'),
@@ -507,6 +511,11 @@ export const tutorAPI = {
     api.post(`/tutor/students/${studentId}/mistakes/${mistakeId}/explanation-audio`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
+  // Announcements to parents (all of the tutor's students)
+  createAnnouncement: (data) => api.post('/tutor/announcements', data),
+  listAnnouncements: () => api.get('/tutor/announcements'),
+  deleteAnnouncement: (aid) => api.delete(`/tutor/announcements/${aid}`),
+  linkParent: (studentId, data) => api.post(`/tutor/students/${studentId}/link-parent`, data),
 };
 
 export const tutorInviteAPI = {
@@ -608,8 +617,10 @@ export const teacherAPI = {
   deleteAssessment: (id) => api.delete(`/teacher/assessments/${id}`),
   // Class & roster management
   createClass: (data) => api.post('/teacher/classes', data),
+  deleteClass: (id) => api.delete(`/teacher/classes/${id}`),
   addStudent: (id, data) => api.post(`/teacher/classes/${id}/students`, data),
   importRoster: (id, text) => api.post(`/teacher/classes/${id}/import-roster`, { text }),
+  linkParent: (id, studentId, data) => api.post(`/teacher/classes/${id}/students/${studentId}/link-parent`, data),
   // Quick Mark (triage a worksheet stack)
   createQuickMark: (id, data) => api.post(`/teacher/classes/${id}/quickmarks`, data),
   listQuickMarks: (id) => api.get(`/teacher/classes/${id}/quickmarks`),
@@ -620,11 +631,17 @@ export const teacherAPI = {
   createKioskSession: (id, data) => api.post(`/teacher/classes/${id}/kiosk-sessions`, data),
   listKioskSessions: (id) => api.get(`/teacher/classes/${id}/kiosk-sessions`),
   kioskSessionStatus: (id, sessionId) => api.get(`/teacher/classes/${id}/kiosk-sessions/${sessionId}`),
+  kioskStudentDetail: (id, sessionId, studentId) => api.get(`/teacher/classes/${id}/kiosk-sessions/${sessionId}/students/${studentId}`),
+  kioskWeakGroups: (id, sessionId) => api.get(`/teacher/classes/${id}/kiosk-sessions/${sessionId}/weak-groups`),
   closeKioskSession: (id, sessionId) => api.post(`/teacher/classes/${id}/kiosk-sessions/${sessionId}/close`),
   // Announcements to parents
   createAnnouncement: (id, data) => api.post(`/teacher/classes/${id}/announcements`, data),
   listAnnouncements: (id) => api.get(`/teacher/classes/${id}/announcements`),
   deleteAnnouncement: (id, aid) => api.delete(`/teacher/classes/${id}/announcements/${aid}`),
+  // Test papers (self-serve exam-style papers) — teacher visibility, by student.
+  classTestPapers: (id) => api.get(`/teacher/classes/${id}/test-papers`),
+  studentTestPapers: (id, studentId) => api.get(`/teacher/classes/${id}/test-papers/${studentId}`),
+  studentTestPaperSitting: (id, studentId, sessionId) => api.get(`/teacher/classes/${id}/test-papers/${studentId}/sittings/${sessionId}`),
 };
 
 // Announcements (shared: parents read + comment; the author reads + replies).
@@ -705,6 +722,9 @@ export const parentsAPI = {
     api.get(`/parents/${studentId}/mathpath/dashboard`, { params: { subjectId, domainId } }),
   mathPathDomains: ({ studentId, subjectId = 'math' }) =>
     api.get(`/parents/${studentId}/mathpath/domains`, { params: { subjectId } }),
+  // Test papers — a child's completed sittings + one sitting's full review.
+  testPapers: (studentId) => api.get(`/parents/${studentId}/test-papers`),
+  testPaperSitting: (studentId, sessionId) => api.get(`/parents/${studentId}/test-papers/sittings/${sessionId}`),
 };
 
 // BrightDesk integration API

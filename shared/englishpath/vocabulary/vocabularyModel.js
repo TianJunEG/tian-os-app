@@ -1,4 +1,4 @@
-// EnglishPath · Vocabulary Builder — domain model
+// ELPath · Vocabulary Builder — domain model
 // ----------------------------------------------------------------------------
 // The P6 (PSLE) English paper has three vocabulary-heavy sections that students
 // routinely lose marks on for one root reason: they do not know what the words
@@ -94,6 +94,36 @@ export const TASK_TYPES = [
     instruction: 'Choose the word closest in meaning to the word in bold.',
   },
   {
+    id: 'context_infer',
+    label: 'Work out the meaning',
+    tier: 3,
+    kind: 'mcq',
+    subskills: [VOCAB_SUBSKILLS.MEANING, VOCAB_SUBSKILLS.NUANCE],
+    examSection: VOCAB_EXAM_SECTIONS.VOCAB_MCQ,
+    requires: ['example'],
+    instruction: 'Read the sentence and work out what the bold word most likely means.',
+  },
+  {
+    id: 'morphology_match',
+    label: 'Same word family',
+    tier: 3,
+    kind: 'mcq',
+    subskills: [VOCAB_SUBSKILLS.WORD_FORM],
+    examSection: VOCAB_EXAM_SECTIONS.COMPREHENSION_CLOZE,
+    requires: ['wordFamily'],
+    instruction: 'Choose the word that belongs to the same word family.',
+  },
+  {
+    id: 'collocation_natural',
+    label: 'Natural pairing',
+    tier: 3,
+    kind: 'mcq',
+    subskills: [VOCAB_SUBSKILLS.COLLOCATION],
+    examSection: VOCAB_EXAM_SECTIONS.VOCAB_MCQ,
+    requires: ['collocations'],
+    instruction: 'Choose the phrase that uses the word naturally.',
+  },
+  {
     id: 'odd_one_out',
     label: 'Odd one out',
     tier: 3,
@@ -187,6 +217,13 @@ export const TIERS = [
   { tier: 4, name: 'Use precisely', summary: 'Choose precisely between near-synonyms, collocations and forms.' },
   { tier: 5, name: 'Exam form', summary: 'Answer the question exactly as the paper asks it.' },
 ];
+
+export const LEVEL_GROUPS = {
+  UPPER: { id: 'upper', label: 'Upper Primary', levels: ['P5', 'P6'], sessionSize: 10 },
+  MIDDLE: { id: 'middle', label: 'Middle Primary', levels: ['P3', 'P4'], sessionSize: 6 },
+};
+
+export const LEVEL_GROUP_LIST = Object.values(LEVEL_GROUPS);
 
 const REQUIRED_ENTRY_FIELDS = ['id', 'word', 'meaning'];
 

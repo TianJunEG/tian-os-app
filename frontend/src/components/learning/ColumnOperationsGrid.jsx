@@ -13,11 +13,13 @@ const FORMATS = {
     { label: '2 digits addition', digits: 2, rows: 2 },
     { label: '3 digits addition', digits: 3, rows: 2 },
     { label: '4 digits addition', digits: 4, rows: 2 },
+    { label: 'Decimals / money (2 dp)', digits: 4, rows: 2, decimals: 2 },
   ],
   subtraction: [
     { label: '2 digits subtraction', digits: 2, rows: 2 },
     { label: '3 digits subtraction', digits: 3, rows: 2 },
     { label: '4 digits subtraction', digits: 4, rows: 2 },
+    { label: 'Decimals / money (2 dp)', digits: 4, rows: 2, decimals: 2 },
   ],
   multiplication: [
     { label: '2 × 1 digit', digits: 2, rows: 2, multiplierDigits: 1 },
@@ -78,7 +80,11 @@ function makeEmptyGrid(operation, format) {
 
   rows.push(Array(cols).fill('')); // final answer / sum row
   const carries = Array(cols).fill('');
-  return { operation, format, cols, rows, carries };
+  // decimals: how many of the rightmost columns are fractional. A fixed decimal
+  // point is rendered before the first fractional column so it stays aligned down
+  // every row — the cells themselves remain single-digit (the student can't
+  // misplace the point). 0 = whole-number working (unchanged).
+  return { operation, format, cols, rows, carries, decimals: f.decimals || 0 };
 }
 
 // Returns a stable ref-setter for a given cell key, cached on the refs object so
@@ -118,8 +124,32 @@ function CellInput({ value, onChange, onKeyDown, inputRef, small = false, highli
   );
 }
 
+// Fixed decimal point shown between the integer and fractional columns. `blank`
+// keeps the same width (so columns stay aligned) without drawing the dot — used
+// in the carry row, where a point would be meaningless.
+function DecimalDot({ small = false, blank = false }) {
+  return (
+    <div className={`grid ${small ? 'h-8' : 'h-10'} w-3 place-items-center self-end pb-1 text-2xl font-bold leading-none text-ink-900`}>
+      {blank ? '' : '.'}
+    </div>
+  );
+}
+
+// Insert the decimal point before the first fractional cell so it lines up down
+// every row. Returns the cells unchanged when there are no decimals.
+function injectDecimalPoint(cells, { decimals, cols, small = false, blank = false }) {
+  if (!decimals) return cells;
+  const pointIndex = cols - decimals;
+  const out = [];
+  cells.forEach((cell, ci) => {
+    if (ci === pointIndex) out.push(<DecimalDot key={`dot-${ci}`} small={small} blank={blank} />);
+    out.push(cell);
+  });
+  return out;
+}
+
 function StandardGrid({ grid, onChange, cellRefs, readOnly }) {
-  const { operation, cols, rows, carries } = grid;
+  const { operation, cols, rows, carries, decimals = 0 } = grid;
   const opSymbol = OPERATIONS.find((o) => o.id === operation)?.icon || '+';
 
   const setCellValue = (section, row, col, value) => {
@@ -173,7 +203,7 @@ function StandardGrid({ grid, onChange, cellRefs, readOnly }) {
     <div className="inline-flex flex-col items-end gap-1">
       <div className="flex gap-1">
         <div className="w-10" />
-        {carries.map((v, ci) => (
+        {injectDecimalPoint(carries.map((v, ci) => (
           <CellInput
             key={`c-${ci}`}
             value={v}
@@ -183,7 +213,7 @@ function StandardGrid({ grid, onChange, cellRefs, readOnly }) {
             small
             highlight
           />
-        ))}
+        )), { decimals, cols, small: true, blank: true })}
       </div>
 
       {rows.map((row, ri) => (
@@ -191,14 +221,14 @@ function StandardGrid({ grid, onChange, cellRefs, readOnly }) {
           {ri === answerRow && (
             <div className="my-1 flex items-center gap-1">
               <div className="w-10" />
-              <div className="h-0.5 flex-1 bg-ink-900" style={{ width: `${cols * 44 + (cols - 1) * 4}px` }} />
+              <div className="h-0.5 flex-1 bg-ink-900" style={{ width: `${cols * 44 + (cols - 1) * 4 + (decimals ? 16 : 0)}px` }} />
             </div>
           )}
           <div className="flex gap-1">
             <div className="grid h-10 w-10 place-items-center text-lg font-bold text-ink-700">
               {ri === 1 && ri < answerRow ? opSymbol : ''}
             </div>
-            {row.map((v, ci) => (
+            {injectDecimalPoint(row.map((v, ci) => (
               <CellInput
                 key={`${ri}-${ci}`}
                 value={v}
@@ -206,7 +236,7 @@ function StandardGrid({ grid, onChange, cellRefs, readOnly }) {
                 onKeyDown={(e) => handleKeyDown(e, 'row', ri, ci)}
                 inputRef={makeRefSetter(cellRefs, `row-${ri}-${ci}`)}
               />
-            ))}
+            )), { decimals, cols })}
           </div>
         </React.Fragment>
       ))}
