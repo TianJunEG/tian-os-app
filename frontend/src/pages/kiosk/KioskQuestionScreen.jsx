@@ -141,7 +141,7 @@ export default function KioskQuestionScreen() {
                     type="button"
                     onClick={() => setAnswer(c)}
                     style={{
-                      padding: '16px', borderRadius: 12, fontSize: 18, fontWeight: 700, cursor: 'pointer',
+                      minHeight: 48, padding: '16px', borderRadius: 12, fontSize: 18, fontWeight: 700, cursor: 'pointer',
                       border: '2px solid', borderColor: answer === c ? '#3f8f6f' : '#dfe4ea',
                       background: answer === c ? '#eaf5ef' : '#fff', color: '#1c2433',
                     }}
@@ -166,14 +166,17 @@ export default function KioskQuestionScreen() {
 
           <div style={{ marginTop: 20 }}>
             <p style={{ fontSize: 13, color: '#8a94a3', marginBottom: 8 }}>How sure are you?</p>
-            <div style={{ display: 'flex', gap: 10 }}>
+            {/* Wrap on narrow phones so the label never clips, and keep every
+                button a ≥44px touch target (WCAG 2.5.5 / iPad-in-class use). */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
               {CONFIDENCE.map((c) => (
                 <button
                   key={c.value}
                   type="button"
                   onClick={() => setConfidence(c.value)}
                   style={{
-                    flex: 1, padding: '12px', borderRadius: 12, fontSize: 15, fontWeight: 600, cursor: 'pointer',
+                    flex: '1 1 96px', minWidth: 96, minHeight: 48, padding: '12px', borderRadius: 12,
+                    fontSize: 15, fontWeight: 600, cursor: 'pointer',
                     border: '2px solid', borderColor: confidence === c.value ? '#3f8f6f' : '#e3e7eb',
                     background: confidence === c.value ? '#eaf5ef' : '#fff', color: '#1c2433',
                   }}
