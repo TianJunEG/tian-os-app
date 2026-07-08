@@ -9,7 +9,7 @@ import {
   recordAttempt,
   selectNextPassageId,
 } from '../../../../../shared/englishpath/cloze/index.js';
-import { loadClozeState, saveClozeState } from './clozeStore';
+import { loadClozeState, saveClozeState, loadClozeLevel } from './clozeStore';
 
 // One comprehension-cloze passage: type a word into each blank, Check to grade
 // against the multi-answer accept-sets, then the attempt is recorded (per-skill
@@ -27,8 +27,11 @@ export default function ClozeSession() {
   useEffect(() => {
     const st = loadClozeState(studentId);
     stateRef.current = st;
-    const nextId = selectNextPassageId(st, { passages: clozePassages });
-    setPassage(clozePassages.find((p) => p.id === nextId) || clozePassages[0] || null);
+    const level = loadClozeLevel(studentId);
+    const pool = clozePassages.filter((p) => p.level === level);
+    const usePool = pool.length ? pool : clozePassages;
+    const nextId = selectNextPassageId(st, { passages: usePool });
+    setPassage(usePool.find((p) => p.id === nextId) || usePool[0] || null);
     setAnswers({});
     setResult(null);
   }, [studentId]);

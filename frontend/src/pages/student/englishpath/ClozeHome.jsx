@@ -1,11 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Clock, Sparkles, RotateCcw } from 'lucide-react';
-import { Card, Button, PageHeader, ProgressBar, StatTile, Badge } from '../../../components/ui';
+import { Card, Button, PageHeader, ProgressBar, StatTile, Badge, Segmented } from '../../../components/ui';
 import { MascotBubble } from '../../../components/MascotAvatar';
 import { useAuth } from '../../../context/AuthContext';
 import { clozePassages, SKILL_LABELS, summarizeCloze } from '../../../../../shared/englishpath/cloze/index.js';
-import { loadClozeState, resetClozeState } from './clozeStore';
+import { loadClozeState, resetClozeState, loadClozeLevel, saveClozeLevel } from './clozeStore';
 
 // ELPath · Comprehension Cloze — home. Shows per-skill readiness, progress, and
 // starts an adaptive passage (unseen → due for review → extra practice). Runs on
@@ -16,8 +16,20 @@ export default function ClozeHome() {
   const studentId = user?.id || user?._id;
   const [nonce, setNonce] = useState(0);
 
+  const levels = useMemo(() => [...new Set(clozePassages.map((p) => p.level))].sort(), []);
+  const [level, setLevel] = useState(() => {
+    const saved = loadClozeLevel(studentId);
+    return levels.includes(saved) ? saved : levels[levels.length - 1];
+  });
+  const passages = useMemo(() => clozePassages.filter((p) => p.level === level), [level]);
+
+  const chooseLevel = (l) => {
+    setLevel(l);
+    saveClozeLevel(studentId, l);
+  };
+
   const state = useMemo(() => loadClozeState(studentId), [studentId, nonce]);
-  const summary = useMemo(() => summarizeCloze(state, { passages: clozePassages }), [state]);
+  const summary = useMemo(() => summarizeCloze(state, { passages }), [state, passages]);
   const { counts, readiness } = summary;
   const started = counts.done > 0;
 
@@ -47,6 +59,18 @@ export default function ClozeHome() {
         size="sm"
         className="mb-5"
       />
+
+      {levels.length > 1 && (
+        <div className="mb-5 flex items-center gap-3">
+          <span className="text-sm font-medium text-ink-500">Level</span>
+          <Segmented
+            label="Level"
+            value={level}
+            onChange={chooseLevel}
+            options={levels.map((l) => ({ value: l, label: `Primary ${l.slice(1)}` }))}
+          />
+        </div>
+      )}
 
       <Card className="mb-6 p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -97,7 +121,7 @@ export default function ClozeHome() {
       <Card className="mb-6 p-5">
         <h3 className="mb-3 font-semibold text-ink-700">Passages</h3>
         <ul className="divide-y divide-line-soft">
-          {clozePassages.map((p) => {
+          {passages.map((p) => {
             const rec = state.passages[p.id];
             return (
               <li key={p.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">

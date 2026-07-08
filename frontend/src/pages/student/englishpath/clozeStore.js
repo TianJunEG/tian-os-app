@@ -40,3 +40,23 @@ export function resetClozeState(studentId) {
     /* ignore */
   }
 }
+
+// Chosen level (P5 | P6) — which passages to practise. Persisted per student.
+const LEVEL_KEY = 'tianos.englishpath.cloze.level';
+export function loadClozeLevel(studentId, fallback = 'P6') {
+  if (typeof window === 'undefined' || !window.localStorage) return fallback;
+  try {
+    return window.localStorage.getItem(`${LEVEL_KEY}.${studentId || ''}`) || fallback;
+  } catch (_) {
+    return fallback;
+  }
+}
+
+export function saveClozeLevel(studentId, level) {
+  if (typeof window === 'undefined' || !window.localStorage) return;
+  try {
+    window.localStorage.setItem(`${LEVEL_KEY}.${studentId || ''}`, level);
+  } catch (_) {
+    /* ignore */
+  }
+}
