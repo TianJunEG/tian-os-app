@@ -29,6 +29,7 @@ import {
 } from '../shared/englishpath/vocabulary/index.js';
 import { CONFIG } from './config.js';
 import { initPartner } from './partner.js';
+import { initTipsSignup } from './tipsSignup.js';
 
 const PRICE = CONFIG.PRICE || 'S$9/mo'; // display only — real pricing comes from Stripe
 const LEVELS = [
@@ -850,12 +851,14 @@ function initTheme() {
 // ---- boot -----------------------------------------------------------------
 // Embed / co-brand mode (e.g. ?partner=brightdesk) — shows a co-brand ribbon and
 // logs an anonymous attribution event. No-op when opened without the param.
-initPartner({ onLand: (id) => logEvent('partner_land', { partner: id }) });
+const partnerId = initPartner({ onLand: (id) => logEvent('partner_land', { partner: id }) });
 // Keep the partner/embed context when crossing to the cloze page.
 if (location.search) {
   const toCloze = document.getElementById('to-cloze');
   if (toCloze) toCloze.href = './cloze.html' + location.search;
 }
+// Optional "free study tips by email" opt-in → BrightDesk marketing list.
+initTipsSignup(partnerId ? 'elpath-' + partnerId : 'elpath');
 initTheme();
 consumePaymentReturn(); // grant Premium if returning from a successful checkout
 renderHome(); // render immediately so there's no blank frame

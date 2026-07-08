@@ -3,14 +3,17 @@
 // when served by the API host, and so it can be embedded as a free resource.
 import { clozePassages, gradePassage, SKILL_LABELS } from '../shared/englishpath/cloze/index.js';
 import { initPartner } from './partner.js';
+import { initTipsSignup } from './tipsSignup.js';
 
 // Embed / co-brand mode (e.g. ?partner=brightdesk). No-op without the param.
-initPartner();
+const partnerId = initPartner();
 // Keep the partner/embed context when crossing to the vocabulary page.
 if (location.search) {
   const toVocab = document.getElementById('to-vocab');
   if (toVocab) toVocab.href = './index.html' + location.search;
 }
+// Optional "free study tips by email" opt-in → BrightDesk marketing list.
+initTipsSignup(partnerId ? 'elpath-' + partnerId : 'elpath');
 
 let passage = clozePassages[0];
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));

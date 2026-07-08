@@ -25,6 +25,12 @@ export const CONFIG = {
   // instantly after email (demo mode).
   STRIPE_PAYMENT_LINK: '',
 
+  // MARKETING TIPS SIGN-UP — full URL of BrightDesk's public subscribe endpoint,
+  // e.g. 'https://YOUR-BRIGHTDESK-HOST/api/marketing/subscribe'. When set, a small
+  // opt-in "free study tips by email" card appears; submissions POST there with
+  // explicit consent. Leave '' to hide the card entirely.
+  MARKETING_ENDPOINT: '',
+
   // CROSS-DEVICE SAVE — base URL of the backend that hosts /api/vocab (magic-link
   // sign-in + progress sync). Leave '' when the app is served by that same
   // backend (e.g. Railway at /vocab) so calls go to the same origin. Set a full
