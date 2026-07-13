@@ -26,10 +26,7 @@ import {
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { Card, Button } from '../../components/ui';
-import {
-  ASSESSMENT_LOCK_MESSAGE,
-  getFractionAssessmentBlueprintReadiness,
-} from '../../mathpath/fractions/fractionAssessmentReadinessGate';
+import { ASSESSMENT_LOCK_MESSAGE } from '../../mathpath/fractions/fractionAssessmentReadinessGate';
 import FEATURE_FLAGS from '../../config/featureFlags';
 
 function actionMeta(nextAction = {}, assessmentReady = true) {
@@ -100,13 +97,10 @@ function LowerPrimaryStatCard({ icon: Icon, img, label, value, subtitle, caption
   );
 }
 
-function LowerPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, masteredSkillCount = 0, visual, studentLevel, isKindergarten }) {
+export function LowerPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, assessmentGate = { ready: false }, visual, studentLevel, isKindergarten }) {
   // Brand-new students shouldn't see "Pick up where you left off" — only treat
   // them as returning when there's a real skill name to point at.
   const isReturning = hasPlacement && Boolean(currentSkill?.skillName);
-  const assessmentGate = getFractionAssessmentBlueprintReadiness({
-    completedSkillIds: Array.from({ length: masteredSkillCount }, (_, index) => `F${String(index + 1).padStart(3, '0')}`),
-  });
   const action = actionMeta(nextAction, assessmentGate.ready);
   const continueState = hasPlacement
     ? {
@@ -420,7 +414,7 @@ export default function StudentDashboardLowerPrimary({
         currentSkill={vm.currentSkill}
         nextAction={vm.nextAction}
         hasPlacement={vm.hasPlacement}
-        masteredSkillCount={safeMasteredCount}
+        assessmentGate={assessmentGate}
         visual={visual}
         studentLevel={studentLevel}
         isKindergarten={isKindergarten}
