@@ -120,4 +120,22 @@ describe('TimeQuestionGenerator', () => {
     expect(eq('45 min', '45')).toBe(true);
     expect(eq('9:31', '9:30')).toBe(false);
   });
+
+  it('treats a plain clock face as a.m./p.m.-ambiguous (both accepted), but a wrong time or a meridiem-keyed answer still fails', () => {
+    const eq = (a, b) => checkTimeAnswer({ question: { answer: { display: b } }, studentResponse: a }).correct;
+    // A "read the clock" answer has no meridiem — an added a.m./p.m. must not
+    // flip the mark (regression: p.m. used to be rejected at 3:00, a.m. at 12:00).
+    expect(eq('3:00 a.m.', '3:00')).toBe(true);
+    expect(eq('3:00 p.m.', '3:00')).toBe(true);
+    expect(eq('12:00 a.m.', '12:00')).toBe(true);
+    expect(eq('12:00 p.m.', '12:00')).toBe(true);
+    // A genuinely wrong clock position still fails.
+    expect(eq('4:00 p.m.', '3:00')).toBe(false);
+    // When the KEY fixes the time of day, the meridiem stays required…
+    expect(eq('3:00 a.m.', '3:00 p.m.')).toBe(false);
+    expect(eq('3:00 p.m.', '3:00 p.m.')).toBe(true);
+    // …and a 24-hour key (no colon) still needs the student's meridiem to convert.
+    expect(eq('2:30', '1430')).toBe(false);
+    expect(eq('2:30 pm', '1430')).toBe(true);
+  });
 });

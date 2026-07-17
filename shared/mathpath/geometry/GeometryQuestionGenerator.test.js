@@ -134,4 +134,22 @@ describe('GeometryQuestionGenerator', () => {
     expect(checkGeometryAnswer({ question: mk('37.68 cm'), studentResponse: '37.68' }).correct).toBe(true);
     expect(checkGeometryAnswer({ question: mk('acute'), studentResponse: 'obtuse' }).correct).toBe(false);
   });
+
+  it('GE009 quadrilateral clues single out ONE shape (rectangle clue excludes the square; parallelogram clue excludes rectangle/rhombus/square)', () => {
+    // Regression: GE009W's word clues used to be under-specified — "4 right angles
+    // and opposite sides equal" (a square fits too) and "two pairs of parallel
+    // sides" (every option fits) — so a student picking a genuinely-valid shape
+    // was marked wrong. Both word + non-word variants must carry the qualifier.
+    let sawRect = false, sawPara = false;
+    for (let c = 0; c < 60; c++) {
+      for (const q of generateGeometryQuestionSet({ skillId: 'GE009', count: 9 })) {
+        const ans = String(q.answer.display).toLowerCase();
+        if (!/quadrilateral|shape is it/i.test(q.prompt)) continue;
+        if (ans === 'rectangle') { sawRect = true; expect(q.prompt.toLowerCase(), q.prompt).toMatch(/not all (four )?sides equal/); }
+        if (ans === 'parallelogram') { sawPara = true; expect(q.prompt.toLowerCase(), q.prompt).toMatch(/no right angles/); }
+      }
+    }
+    expect(sawRect).toBe(true);
+    expect(sawPara).toBe(true);
+  });
 });
