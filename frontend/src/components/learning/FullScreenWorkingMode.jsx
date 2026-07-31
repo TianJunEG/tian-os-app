@@ -6,11 +6,21 @@ import ColumnOperationsGrid, { makeEmptyGrid } from './ColumnOperationsGrid';
 import { FEATURE_FLAGS } from '../../config/featureFlags';
 import {
   drawStroke,
-  drawMathStamp,
   pointFromEvent as extractPoint,
   beginStrokeData,
   finalizeStroke,
 } from './drawingUtils';
+import {
+  TEXT_OBJECT_DEFAULT,
+  MathObjectView,
+  MathStampBuilder,
+  drawMathObject,
+  wrapText,
+  createMathObject,
+  createTextObject,
+  stampStrokeToMathObject,
+  normaliseMathObject,
+} from './workingMath';
 
 const CANVAS_WIDTH = 1400;
 const CANVAS_HEIGHT = 900;
@@ -28,261 +38,8 @@ function fitZoomFor(el) {
 const QUESTION_PANEL = { x: 48, y: 44, width: 620, height: 170 };
 const EMPTY_STROKES = [];
 const EMPTY_MATH_OBJECTS = [];
-const MATH_STAMPS = [
-  { id: 'fraction', label: 'x/y' },
-  { id: 'subscript', label: 'xₐ' },
-  { id: 'power', label: 'xᵇ' },
-  { id: 'subscriptPower', label: 'xₐᵇ' },
-  { id: 'mixed', label: 'xᵇ/a' },
-  { id: 'root', label: 'ⁿ√x' },
-  { id: 'degree', label: 'x°' },
-  { id: 'angle', label: '∠' },
-  { id: 'pi', label: 'π' },
-  { id: 'theta', label: 'θ' },
-];
-
-const MATH_BUILDERS = {
-  fraction: ['numerator', 'denominator'],
-  subscript: ['base', 'subscript'],
-  power: ['base', 'exponent'],
-  subscriptPower: ['base', 'exponent', 'subscript'],
-  mixed: ['base', 'numerator', 'denominator'],
-  root: ['index', 'radicand'],
-  degree: ['base'],
-};
-
-const MATH_OBJECT_DEFAULT = {
-  width: 132,
-  height: 96,
-};
-
-const TEXT_OBJECT_DEFAULT = {
-  width: 220,
-  height: 48,
-};
-
 /* drawStroke → imported from ./drawingUtils */
 const FS_STAMP_SCALE = CANVAS_WIDTH / 900; // ~1.56 for 1400px canvas
-
-function drawMathObject(ctx, object) {
-  if (!object) return;
-  if (object.type === 'text') {
-    ctx.save();
-    ctx.fillStyle = object.colour || '#111827';
-    ctx.font = '600 30px Arial';
-    wrapText(ctx, object.text || object.value?.text || '', object.x, object.y + 30, object.width || 260, 36);
-    ctx.restore();
-    return;
-  }
-  drawMathStamp(ctx, {
-    tool: 'stamp',
-    template: object.type,
-    colour: object.colour,
-    ...object.value,
-    points: [{ x: object.x, y: object.y }],
-  }, { stampScale: FS_STAMP_SCALE });
-}
-
-/* drawMathStamp → imported from ./drawingUtils (used with FS_STAMP_SCALE) */
-
-function createMathObject(template, values = {}, count = 0) {
-  return {
-    id: `math-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    type: template,
-    x: 740 + ((count % 5) * 130),
-    y: 300 + (Math.floor(count / 5) * 110),
-    value: { ...values },
-    colour: '#f97316',
-    ...MATH_OBJECT_DEFAULT,
-  };
-}
-
-function createTextObject({ text = '', x = 740, y = 300, colour = '#111827' } = {}) {
-  return {
-    id: `text-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    type: 'text',
-    text,
-    x,
-    y,
-    colour,
-    ...TEXT_OBJECT_DEFAULT,
-  };
-}
-
-function stampStrokeToMathObject(stroke, index = 0) {
-  if (stroke?.tool !== 'stamp') return null;
-  const point = stroke.points?.[0] || {};
-  const { tool, template, points, colour, size, ...value } = stroke;
-  return {
-    id: stroke.id || `legacy-math-${index}`,
-    type: template,
-    x: Number(point.x ?? 740),
-    y: Number(point.y ?? 300),
-    value,
-    colour: colour || '#f97316',
-    width: stroke.width || MATH_OBJECT_DEFAULT.width,
-    height: stroke.height || MATH_OBJECT_DEFAULT.height,
-  };
-}
-
-function normaliseMathObject(object, index = 0) {
-  if (!object) return null;
-  if (object.tool === 'stamp') return stampStrokeToMathObject(object, index);
-  return {
-    id: object.id || `math-${index}`,
-    type: object.type || object.template || 'pi',
-    x: Number(object.x ?? object.points?.[0]?.x ?? 740),
-    y: Number(object.y ?? object.points?.[0]?.y ?? 300),
-    text: object.type === 'text' ? String(object.text ?? object.value?.text ?? '') : undefined,
-    value: object.value && typeof object.value === 'object' ? object.value : {},
-    colour: object.colour || (object.type === 'text' ? '#111827' : '#f97316'),
-    width: object.width || (object.type === 'text' ? TEXT_OBJECT_DEFAULT.width : MATH_OBJECT_DEFAULT.width),
-    height: object.height || (object.type === 'text' ? TEXT_OBJECT_DEFAULT.height : MATH_OBJECT_DEFAULT.height),
-  };
-}
-
-function MathObjectView({ object, selected, onPointerDown, onSelect, onDelete, onEdit, ...pointerHandlers }) {
-  const value = object.value || {};
-  if (object.type === 'text') {
-    return (
-      <div
-        role="button"
-        tabIndex={0}
-        aria-label="Text label"
-        data-testid="math-object-text"
-        onPointerDown={onPointerDown}
-        {...pointerHandlers}
-        onClick={(event) => {
-          event.stopPropagation();
-          onSelect?.();
-        }}
-        onDoubleClick={(event) => {
-          event.stopPropagation();
-          onEdit?.();
-        }}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter') {
-            event.preventDefault();
-            onEdit?.();
-          }
-          if (event.key === 'Backspace' || event.key === 'Delete') {
-            event.preventDefault();
-            onDelete?.();
-          }
-        }}
-        className={`pointer-events-auto absolute z-20 touch-none select-none rounded-lg px-2 py-1 text-2xl font-semibold leading-tight text-ink-900 ${
-          selected ? 'outline outline-3 outline-orange-500 outline-offset-3 ring-4 ring-orange-200/80' : 'hover:outline hover:outline-2 hover:outline-orange-200'
-        }`}
-        style={{ left: `${object.x}px`, top: `${object.y}px`, minWidth: `${object.width}px`, minHeight: `${object.height}px`, color: object.colour || '#111827' }}
-      >
-        <span className="whitespace-pre-wrap">{object.text || object.value?.text || 'Text'}</span>
-        {selected && (
-          <>
-            <button
-              type="button"
-              aria-label="Edit selected text"
-              onPointerDown={(event) => event.stopPropagation()}
-              onClick={(event) => {
-                event.stopPropagation();
-                onEdit?.();
-              }}
-              className="absolute -right-12 -top-3 grid h-8 w-8 place-items-center rounded-full bg-emerald-deep text-xs font-bold text-white shadow-card"
-            >
-              Edit
-            </button>
-            <button
-              type="button"
-              aria-label="Delete selected text"
-              onPointerDown={(event) => event.stopPropagation()}
-              onClick={(event) => {
-                event.stopPropagation();
-                onDelete?.();
-              }}
-              className="absolute -right-3 -top-3 grid h-8 w-8 place-items-center rounded-full bg-orange-500 text-base font-bold text-white shadow-card"
-            >
-              ×
-            </button>
-          </>
-        )}
-      </div>
-    );
-  }
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      aria-label={`Math object ${object.type}`}
-      data-testid={`math-object-${object.type}`}
-      onPointerDown={onPointerDown}
-      {...pointerHandlers}
-      onClick={(event) => {
-        event.stopPropagation();
-        onSelect?.();
-      }}
-      onKeyDown={(event) => {
-        if (event.key === 'Backspace' || event.key === 'Delete') {
-          event.preventDefault();
-          onDelete?.();
-        }
-      }}
-      className={`pointer-events-auto absolute z-20 touch-none select-none rounded-xl px-3 py-2 font-serif text-[42px] leading-none text-orange-500 ${
-        selected ? 'outline outline-3 outline-orange-500 outline-offset-4 ring-4 ring-orange-200/80' : 'hover:outline hover:outline-2 hover:outline-orange-200'
-      }`}
-      style={{ left: `${object.x}px`, top: `${object.y}px`, minWidth: `${object.width}px`, minHeight: `${object.height}px` }}
-    >
-      {object.type === 'fraction' ? (
-        <span className="inline-flex min-w-[72px] flex-col items-center text-[38px]">
-          <span>{value.numerator || 'x'}</span>
-          <span className="my-1 h-1 w-full rounded-full bg-orange-500" />
-          <span>{value.denominator || 'y'}</span>
-        </span>
-      ) : object.type === 'subscript' ? (
-        <span>{value.base || 'x'}<sub className="text-[26px]">{value.subscript || 'a'}</sub></span>
-      ) : object.type === 'power' ? (
-        <span>{value.base || 'x'}<sup className="text-[26px]">{value.exponent || 'b'}</sup></span>
-      ) : object.type === 'subscriptPower' ? (
-        <span>{value.base || 'x'}<sup className="text-[24px]">{value.exponent || 'b'}</sup><sub className="text-[24px]">{value.subscript || 'a'}</sub></span>
-      ) : object.type === 'mixed' ? (
-        <span className="inline-flex items-center gap-2">
-          <span>{value.base || 'x'}</span>
-          <span className="inline-flex min-w-[58px] flex-col items-center text-[32px]">
-            <span>{value.numerator || 'b'}</span>
-            <span className="my-1 h-1 w-full rounded-full bg-orange-500" />
-            <span>{value.denominator || 'a'}</span>
-          </span>
-        </span>
-      ) : object.type === 'root' ? (
-        <span className="inline-flex items-start">
-          <sup className="mr-1 text-[22px]">{value.index || 'n'}</sup>
-          <span>√</span>
-          <span className="border-t-4 border-orange-500 px-2 pt-1">{value.radicand || 'x'}</span>
-        </span>
-      ) : object.type === 'degree' ? (
-        <span>{value.base || 'x'}°</span>
-      ) : object.type === 'angle' ? (
-        <span>∠</span>
-      ) : object.type === 'theta' ? (
-        <span>θ</span>
-      ) : (
-        <span>π</span>
-      )}
-      {selected && (
-        <button
-          type="button"
-          aria-label="Delete selected math object"
-          onPointerDown={(event) => event.stopPropagation()}
-          onClick={(event) => {
-            event.stopPropagation();
-            onDelete?.();
-          }}
-          className="absolute -right-3 -top-3 grid h-8 w-8 place-items-center rounded-full bg-orange-500 text-base font-bold text-white shadow-card"
-        >
-          ×
-        </button>
-      )}
-    </div>
-  );
-}
 
 function paintPaper(ctx) {
   ctx.fillStyle = '#ffffff';
@@ -295,23 +52,6 @@ function paintPaper(ctx) {
     ctx.lineTo(CANVAS_WIDTH, y);
     ctx.stroke();
   }
-}
-
-function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-  const words = String(text || '').split(/\s+/).filter(Boolean);
-  const lines = [];
-  let line = '';
-  words.forEach((word) => {
-    const testLine = line ? `${line} ${word}` : word;
-    if (ctx.measureText(testLine).width > maxWidth && line) {
-      lines.push(line);
-      line = word;
-    } else {
-      line = testLine;
-    }
-  });
-  if (line) lines.push(line);
-  lines.slice(0, 6).forEach((row, index) => ctx.fillText(row, x, y + index * lineHeight));
 }
 
 function paintQuestionPanel(ctx, questionText) {
@@ -335,19 +75,6 @@ function paintQuestionPanel(ctx, questionText) {
   ctx.font = '24px Arial';
   wrapText(ctx, questionText, QUESTION_PANEL.x + 28, QUESTION_PANEL.y + 78, QUESTION_PANEL.width - 56, 34);
   ctx.restore();
-}
-
-function MathDraftInput({ value, placeholder, onChange, onEnter, compact = false, autoFocus = false }) {
-  return (
-    <input
-      autoFocus={autoFocus}
-      value={value || ''}
-      onChange={(event) => onChange?.(event.target.value)}
-      onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
-      className={`${compact ? 'h-12 w-14 text-xl' : 'h-14 w-20 text-2xl'} rounded-xl border-2 border-transparent bg-surface-raised px-2 text-center font-serif italic text-ink-700 placeholder:text-ink-300 focus:border-orange-500 focus:bg-surface-raised focus:outline-none`}
-      placeholder={placeholder}
-    />
-  );
 }
 
 export default function FullScreenWorkingMode({
@@ -592,7 +319,7 @@ export default function FullScreenWorkingMode({
     paintPaper(exportCtx);
     paintQuestionPanel(exportCtx, questionText);
     strokesRef.current.forEach((stroke) => drawStroke(exportCtx, stroke, { stampScale: FS_STAMP_SCALE }));
-    mathObjectsRef.current.forEach((object) => drawMathObject(exportCtx, object));
+    mathObjectsRef.current.forEach((object) => drawMathObject(exportCtx, object, { stampScale: FS_STAMP_SCALE }));
     onSave?.({
       workingImage: exportCanvas?.toDataURL('image/png') || canvas?.toDataURL('image/png') || '',
       workingStrokes: strokesRef.current,
@@ -827,25 +554,6 @@ export default function FullScreenWorkingMode({
     objectDragRef.current = null;
   };
 
-  const openMathTool = (template) => {
-    const fields = MATH_BUILDERS[template];
-    if (!fields) {
-      addStamp(template);
-      return;
-    }
-    const values = fields.reduce((acc, field) => ({ ...acc, [field]: '' }), {});
-    setMathDraft((current) => current?.template === template ? null : { template, ...values });
-  };
-
-  const insertDraftMath = () => {
-    const template = mathDraft?.template;
-    const fields = MATH_BUILDERS[template] || [];
-    const values = fields.reduce((acc, field) => ({ ...acc, [field]: String(mathDraft?.[field] || '').trim() }), {});
-    if (!template || Object.values(values).some((value) => !value)) return;
-    addStamp(template, values);
-  };
-
-  const draftReady = Boolean(mathDraft?.template && (MATH_BUILDERS[mathDraft.template] || []).every((field) => String(mathDraft?.[field] || '').trim()));
 
   return (
     <Modal
@@ -913,88 +621,14 @@ export default function FullScreenWorkingMode({
           onZoomReset={resetZoom}
           onPan={pan}
         />
-        {FEATURE_FLAGS.workingMathInserts && <div className="flex flex-wrap gap-2" aria-label="Math insert tools">
-          {MATH_STAMPS.map((stamp) => (
-            <div key={stamp.id} className="relative">
-              {mathDraft?.template === stamp.id && (
-                <div
-                  className={`absolute left-1/2 top-full z-30 mt-3 -translate-x-1/2 rounded-3xl border border-line-soft bg-white p-4 shadow-card ${
-                    stamp.id === 'fraction' ? 'w-36' : stamp.id === 'root' ? 'w-56' : 'w-52'
-                  }`}
-                  aria-label={`${stamp.label} builder`}
-                >
-                  {stamp.id === 'fraction' ? (
-                    <div className="flex flex-col items-center gap-3">
-                      <MathDraftInput autoFocus value={mathDraft.numerator} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), numerator: value }))} onEnter={insertDraftMath} />
-                      <div className="h-px w-20 bg-ink-300" aria-hidden="true" />
-                      <MathDraftInput value={mathDraft.denominator} placeholder="y" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), denominator: value }))} onEnter={insertDraftMath} />
-                    </div>
-                  ) : stamp.id === 'subscript' ? (
-                    <div className="grid grid-cols-[1fr_auto] items-center gap-3">
-                      <MathDraftInput autoFocus value={mathDraft.base} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), base: value }))} onEnter={insertDraftMath} />
-                      <MathDraftInput value={mathDraft.subscript} placeholder="a" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), subscript: value }))} onEnter={insertDraftMath} />
-                    </div>
-                  ) : stamp.id === 'power' ? (
-                    <div className="grid grid-cols-[1fr_auto] items-start gap-3">
-                      <MathDraftInput autoFocus value={mathDraft.base} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), base: value }))} onEnter={insertDraftMath} />
-                      <MathDraftInput value={mathDraft.exponent} placeholder="b" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), exponent: value }))} onEnter={insertDraftMath} />
-                    </div>
-                  ) : stamp.id === 'subscriptPower' ? (
-                    <div className="grid grid-cols-[1fr_auto] items-center gap-3">
-                      <MathDraftInput autoFocus value={mathDraft.base} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), base: value }))} onEnter={insertDraftMath} />
-                      <div className="grid gap-2">
-                        <MathDraftInput value={mathDraft.exponent} placeholder="b" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), exponent: value }))} onEnter={insertDraftMath} />
-                        <MathDraftInput value={mathDraft.subscript} placeholder="a" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), subscript: value }))} onEnter={insertDraftMath} />
-                      </div>
-                    </div>
-                  ) : stamp.id === 'mixed' ? (
-                    <div className="grid grid-cols-[1fr_auto] items-center gap-3">
-                      <MathDraftInput autoFocus value={mathDraft.base} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), base: value }))} onEnter={insertDraftMath} />
-                      <div className="grid gap-2">
-                        <MathDraftInput value={mathDraft.numerator} placeholder="b" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), numerator: value }))} onEnter={insertDraftMath} />
-                        <MathDraftInput value={mathDraft.denominator} placeholder="a" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), denominator: value }))} onEnter={insertDraftMath} />
-                      </div>
-                    </div>
-                  ) : stamp.id === 'root' ? (
-                    <div className="grid grid-cols-[auto_1fr] items-center gap-2">
-                      <MathDraftInput autoFocus value={mathDraft.index} placeholder="n" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), index: value }))} onEnter={insertDraftMath} />
-                      <div className="flex items-center gap-1">
-                        <span className="font-serif text-6xl leading-none text-ink-900">√</span>
-                        <span className="h-px flex-1 self-start bg-ink-900" aria-hidden="true" />
-                        <MathDraftInput value={mathDraft.radicand} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), radicand: value }))} onEnter={insertDraftMath} />
-                      </div>
-                    </div>
-                  ) : stamp.id === 'degree' ? (
-                    <div className="flex items-start justify-center gap-1">
-                      <MathDraftInput autoFocus value={mathDraft.base} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), base: value }))} onEnter={insertDraftMath} />
-                      <span className="font-serif text-3xl text-ink-500">°</span>
-                    </div>
-                  ) : null}
-                  <button
-                    type="button"
-                    disabled={!draftReady}
-                    onClick={insertDraftMath}
-                    className="mt-5 w-full text-center text-xl font-bold text-ink-300 transition enabled:text-orange-500 enabled:hover:text-orange-600 disabled:cursor-not-allowed"
-                  >
-                    Insert
-                  </button>
-                </div>
-              )}
-              <button
-                type="button"
-                onClick={() => openMathTool(stamp.id)}
-                className={`grid h-11 min-w-12 place-items-center rounded-lg border px-3 font-serif text-xl font-semibold transition ${
-                  mathDraft?.template === stamp.id
-                    ? 'border-orange-500 bg-orange-500 text-white'
-                    : 'border-line-soft bg-orange-50 text-orange-600 hover:border-orange-300 hover:bg-orange-100'
-                }`}
-                title={`Insert ${stamp.label}`}
-              >
-                {stamp.label}
-              </button>
-            </div>
-          ))}
-        </div>}
+        {FEATURE_FLAGS.workingMathInserts && (
+          <MathStampBuilder
+            mathDraft={mathDraft}
+            setMathDraft={setMathDraft}
+            onInsert={addStamp}
+            placement="below"
+          />
+        )}
         </div>
         </div>
         {(questionContent || questionText) && (
