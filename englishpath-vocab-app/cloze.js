@@ -82,9 +82,21 @@ function reveal() {
   document.getElementById('results').innerHTML = '';
 }
 
-// Passage picker — browse all authored passages.
+// Passage picker — browse all authored passages, grouped by level so a P6
+// student prepping for PSLE (or a P5 student) can tell which passages fit.
 const picker = document.getElementById('picker');
-picker.innerHTML = clozePassages.map((p, i) => `<option value="${i}">${esc(p.title)}</option>`).join('');
+const levelLabel = (lvl) => (lvl ? `Primary ${String(lvl).replace(/^P/i, '')}` : 'Other');
+const levels = [...new Set(clozePassages.map((p) => p.level))];
+picker.innerHTML = levels
+  .map(
+    (lvl) =>
+      `<optgroup label="${esc(levelLabel(lvl))}">` +
+      clozePassages
+        .map((p, i) => (p.level === lvl ? `<option value="${i}">${esc(p.title)}</option>` : ''))
+        .join('') +
+      `</optgroup>`
+  )
+  .join('');
 picker.onchange = () => {
   passage = clozePassages[+picker.value];
   document.getElementById('results').innerHTML = '';

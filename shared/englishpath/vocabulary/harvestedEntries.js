@@ -3416,7 +3416,7 @@ export const harvestedEntries = [
     "level": "P5",
     "theme": "emotion",
     "cluster": null,
-    "meaning": "so shocked or surprised that you cannot speak or react (though note: the example sentence's 'shouted' contradicts this — a sentence like 'John was ____ and could not say a word' would fit better)",
+    "meaning": "so shocked or surprised that you cannot speak or react",
     "example": "When he opened the box and found a brand-new bicycle inside, Faizal was left ____ and simply stared without saying a word.",
     "answer": "dumbfounded",
     "synonyms": [
@@ -12743,12 +12743,12 @@ export const harvestedEntries = [
   },
   {
     "id": "vw_delectable",
-    "word": "appetising",
+    "word": "delectable",
     "pos": "adjective",
     "level": "P6",
     "theme": "food",
     "cluster": null,
-    "meaning": "very attractive and delicious-looking; making you want to eat it (note: headword should read 'delectable', not 'appetising')",
+    "meaning": "very attractive and delicious-looking; making you want to eat it",
     "example": "The bakery arranged the pastries in the window so they looked utterly ____, tempting every passer-by to step inside.",
     "answer": "delectable",
     "synonyms": [
@@ -12762,15 +12762,10 @@ export const harvestedEntries = [
     ],
     "connotation": "positive",
     "collocations": [
-      "appetising food",
-      "look appetising"
+      "delectable spread",
+      "look delectable"
     ],
-    "wordFamily": [
-      {
-        "word": "appetite",
-        "pos": "noun"
-      }
-    ],
+    "wordFamily": [],
     "isPhrasalVerb": false,
     "examTags": [
       "vocab_cloze"
@@ -13208,9 +13203,9 @@ export const harvestedEntries = [
     "level": "P6",
     "theme": "time",
     "cluster": null,
-    "meaning": "immediately, without hesitation or delay (note: this entry tests 'promptly' as a plain synonym; it does not actually exercise the idiom 'at the drop of a hat', which never appears in the example)",
-    "example": "As soon as the teacher gave the instruction, the students ____ lined up in an orderly manner without any fuss.",
-    "answer": "promptly",
+    "meaning": "immediately, without any hesitation",
+    "example": "My little brother is always up for an adventure — he would agree to a spontaneous trip to the beach ____.",
+    "answer": "at the drop of a hat",
     "synonyms": [],
     "confusables": [
       "briefly",
