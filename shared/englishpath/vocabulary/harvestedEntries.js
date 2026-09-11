@@ -1,5 +1,6 @@
 // AUTO-GENERATED — harvested P5/P6 vocabulary entries.
-// Do not hand-edit. Example sentences rewritten to original + QA-corrected 2026-07-08.
+// Do not hand-edit. Example sentences are original (no exam text reproduced).
+// Extended with 2026 Prelim harvest (44 new P6 words) on 2026-09-11.
 
 export const harvestedEntries = [
   {
@@ -36303,5 +36304,1149 @@ export const harvestedEntries = [
     ],
     "mnemonic": "",
     "source": "SCGS SA2 2020"
+  },
+  {
+    "id": "vw_repulsive",
+    "word": "repulsive",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "causing a strong feeling of dislike or disgust",
+    "example": "The smell from the clogged drain outside the canteen was so ____ that students covered their noses and hurried past.",
+    "answer": "repulsive",
+    "synonyms": [],
+    "confusables": [
+      "alluring",
+      "enticing",
+      "aggressive"
+    ],
+    "connotation": "negative",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "ACS Junior"
+  },
+  {
+    "id": "vw_trifle",
+    "word": "trifle",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "to treat someone or something carelessly or without proper respect, risking their anger",
+    "example": "Uncle Tan's patience was legendary, but everyone at the market knew it was not to be ____ with lightly.",
+    "answer": "trifled",
+    "synonyms": [],
+    "confusables": [
+      "dealt",
+      "infringed",
+      "meddled"
+    ],
+    "connotation": "negative",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "ACS Junior"
+  },
+  {
+    "id": "vw_mull_over",
+    "word": "mull over",
+    "pos": "phrasal_verb",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "to think about something carefully for a while before deciding",
+    "example": "Before replying to the job offer, Farah took a quiet walk in the park to ____ her options.",
+    "answer": "mull over",
+    "synonyms": [],
+    "confusables": [
+      "sink in",
+      "weigh down",
+      "revolve around"
+    ],
+    "connotation": "neutral",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "ACS Junior"
+  },
+  {
+    "id": "vw_agility",
+    "word": "agility",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "the ability to move quickly, smoothly and with control",
+    "example": "The winger weaved swiftly between three defenders, his remarkable ____ allowing him to change direction in an instant.",
+    "answer": "agility",
+    "synonyms": [],
+    "confusables": [
+      "accuracy",
+      "strength",
+      "stamina"
+    ],
+    "connotation": "positive",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Ai Tong School"
+  },
+  {
+    "id": "vw_modest",
+    "word": "modest",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "not boastful or showing off about one's abilities or achievements",
+    "example": "Even after topping the entire cohort, Mei remained ____, downplaying her success and crediting her teachers instead.",
+    "answer": "modest",
+    "synonyms": [],
+    "confusables": [
+      "confident",
+      "selfless",
+      "proud"
+    ],
+    "connotation": "positive",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Ai Tong School"
+  },
+  {
+    "id": "vw_defuse",
+    "word": "defuse",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "to make a tense, dangerous or difficult situation calmer",
+    "example": "Sensing the quarrel between the two boys was about to turn physical, the prefect stepped in to ____ it calmly.",
+    "answer": "defuse",
+    "synonyms": [],
+    "confusables": [
+      "minimise",
+      "subside",
+      "reduce"
+    ],
+    "connotation": "positive",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Ai Tong School"
+  },
+  {
+    "id": "vw_expand",
+    "word": "expand",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "to become or make larger in size, number or extent",
+    "example": "The bakery hopes to ____ into three neighbouring towns, opening new outlets to reach more customers.",
+    "answer": "expand",
+    "synonyms": [],
+    "confusables": [
+      "improve",
+      "multiply",
+      "aid"
+    ],
+    "connotation": "positive",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Ai Tong School"
+  },
+  {
+    "id": "vw_flourish",
+    "word": "flourish",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "to grow, develop or do well, especially after a period of difficulty",
+    "example": "After months of care from the gardening club, the once-dying plants in the school garden began to ____ again.",
+    "answer": "flourish",
+    "synonyms": [],
+    "confusables": [
+      "excel",
+      "mature",
+      "survive"
+    ],
+    "connotation": "positive",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Ai Tong School"
+  },
+  {
+    "id": "vw_fulfilling",
+    "word": "fulfilling",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "giving a strong feeling of satisfaction or purpose",
+    "example": "Volunteering at the animal shelter every weekend gave Wei Jie a deeply ____ sense of purpose he had never felt before.",
+    "answer": "fulfilling",
+    "synonyms": [],
+    "confusables": [
+      "enjoyable",
+      "valuable",
+      "inspiring"
+    ],
+    "connotation": "positive",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Ai Tong School"
+  },
+  {
+    "id": "vw_lively",
+    "word": "lively",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "full of energy, enthusiasm and cheerfulness",
+    "example": "Unlike her quiet older brother, little Mei Ling was a ____ child who loved singing and dancing around the house.",
+    "answer": "lively",
+    "synonyms": [],
+    "confusables": [
+      "fierce",
+      "playful",
+      "uptight"
+    ],
+    "connotation": "positive",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Ai Tong School"
+  },
+  {
+    "id": "vw_unanimously",
+    "word": "unanimously",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "done with everyone in full agreement, with nobody objecting",
+    "example": "When the class committee held a meeting, every member voted ____ to hold the concert in June instead of July.",
+    "answer": "unanimously",
+    "synonyms": [],
+    "confusables": [
+      "mutually",
+      "intuitively",
+      "concurrently"
+    ],
+    "connotation": "positive",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Catholic High"
+  },
+  {
+    "id": "vw_rampant",
+    "word": "rampant",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "spreading quickly and widely out of control, usually something unwanted",
+    "example": "Littering was ____ along the riverbank last year, with rubbish scattered everywhere until the town council introduced strict fines.",
+    "answer": "rampant",
+    "synonyms": [],
+    "confusables": [
+      "bountiful",
+      "stringent",
+      "infamous"
+    ],
+    "connotation": "negative",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Catholic High"
+  },
+  {
+    "id": "vw_break_up",
+    "word": "break up",
+    "pos": "phrasal_verb",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "to stop a fight or disturbance by separating the people involved",
+    "example": "The security guard rushed over to ____ the fight between the two customers, pulling them apart before it turned violent.",
+    "answer": "break up",
+    "synonyms": [],
+    "confusables": [
+      "break off",
+      "break down",
+      "break away"
+    ],
+    "connotation": "neutral",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Catholic High"
+  },
+  {
+    "id": "vw_solidarity",
+    "word": "solidarity",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "unity and mutual support shown by a group of people who share the same goal or feeling",
+    "example": "When one classmate was bullied, the whole class stood together and showed ____ by walking her to class every morning.",
+    "answer": "solidarity",
+    "synonyms": [],
+    "confusables": [
+      "tolerance",
+      "alignment",
+      "consensus"
+    ],
+    "connotation": "positive",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Catholic High"
+  },
+  {
+    "id": "vw_wilfully",
+    "word": "wilfully",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "done on purpose and stubbornly, even though one knows the action is wrong",
+    "example": "Even after being warned twice, the boy ____ ignored the safety instructions and climbed over the fence at the construction site.",
+    "answer": "wilfully",
+    "synonyms": [],
+    "confusables": [
+      "blindly",
+      "impulsively",
+      "unwittingly"
+    ],
+    "connotation": "negative",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Henry Park"
+  },
+  {
+    "id": "vw_devastated",
+    "word": "devastated",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "extremely shocked and overwhelmed with grief because of a terrible event",
+    "example": "The farmers were ____ when the sudden flood swept away their entire harvest just days before it was ready to be sold.",
+    "answer": "devastated",
+    "synonyms": [],
+    "confusables": [
+      "dejected",
+      "disturbed",
+      "disappointed"
+    ],
+    "connotation": "negative",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Henry Park"
+  },
+  {
+    "id": "vw_resourceful",
+    "word": "resourceful",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "good at finding clever, practical solutions to problems, especially with limited means",
+    "example": "Wei Jie was surprisingly ____, lighting the campfire with a lens from his glasses after the matches got wet.",
+    "answer": "resourceful",
+    "synonyms": [],
+    "confusables": [
+      "industrious",
+      "exceptional",
+      "collaborative"
+    ],
+    "connotation": "positive",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Methodist Girls'"
+  },
+  {
+    "id": "vw_wear_off",
+    "word": "wear off",
+    "pos": "phrasal_verb",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "to gradually become weaker until it disappears completely, especially a feeling or effect",
+    "example": "Mei Ling's jaw felt numb after the dentist's injection, but the feeling slowly began to ____ within the hour.",
+    "answer": "wear off",
+    "synonyms": [],
+    "confusables": [
+      "wear on",
+      "wear out",
+      "wear away"
+    ],
+    "connotation": "neutral",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Methodist Girls'"
+  },
+  {
+    "id": "vw_implication",
+    "word": "implication",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "a possible effect or consequence of something, which may not be obvious right away",
+    "example": "Before deciding on the new online homework policy, teachers carefully weighed its possible ____ for families without reliable internet access.",
+    "answer": "implication",
+    "synonyms": [],
+    "confusables": [
+      "result",
+      "outcome",
+      "inference"
+    ],
+    "connotation": "neutral",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Methodist Girls'"
+  },
+  {
+    "id": "vw_rapport",
+    "word": "rapport",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "a friendly, trusting relationship or understanding between people",
+    "example": "Through weekly lunches, the new counsellor built a warm ____ with the shy transfer student, who slowly began to trust her.",
+    "answer": "rapport",
+    "synonyms": [],
+    "confusables": [
+      "influence",
+      "familiarity",
+      "reputation"
+    ],
+    "connotation": "positive",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nan Hua"
+  },
+  {
+    "id": "vw_neglect",
+    "word": "neglect",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "failure to take proper care of someone or something",
+    "example": "Because of the gardener's ____, the flower beds became overrun with weeds and pests.",
+    "answer": "neglect",
+    "synonyms": [],
+    "confusables": [
+      "disrepair",
+      "nourishment",
+      "deterioration"
+    ],
+    "connotation": "negative",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang Primary School"
+  },
+  {
+    "id": "vw_intimidate",
+    "word": "intimidate",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "to frighten or threaten someone, often to make them feel small or afraid",
+    "example": "The older boys' loud teasing was meant to ____ her, but she refused to let fear stop her from speaking up.",
+    "answer": "intimidate",
+    "synonyms": [],
+    "confusables": [
+      "excite",
+      "subdue",
+      "aggravate"
+    ],
+    "connotation": "negative",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang Primary School"
+  },
+  {
+    "id": "vw_unconventional",
+    "word": "unconventional",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "not following what is usual or normally done",
+    "example": "The chef surprised diners with an ____ dessert that combined chilli, chocolate and crushed crackers on one plate.",
+    "answer": "unconventional",
+    "synonyms": [],
+    "confusables": [
+      "unfazed",
+      "unassuming",
+      "unbecoming"
+    ],
+    "connotation": "neutral",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang Primary School"
+  },
+  {
+    "id": "vw_insistently",
+    "word": "insistently",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "in a firm, repeated way that demands attention or action",
+    "example": "The toddler tugged ____ at her mother's sleeve, refusing to stop until she was given the toy.",
+    "answer": "insistently",
+    "synonyms": [],
+    "confusables": [
+      "laboriously",
+      "persuasively",
+      "compulsively"
+    ],
+    "connotation": "neutral",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang Primary School"
+  },
+  {
+    "id": "vw_put_forward",
+    "word": "put forward",
+    "pos": "phrasal_verb",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "to suggest or propose an idea for others to consider",
+    "example": "At the meeting, Ravi decided to ____ his own idea for a class recycling project, hoping others would support it.",
+    "answer": "put forward",
+    "synonyms": [],
+    "confusables": [
+      "take up",
+      "count on",
+      "see through"
+    ],
+    "connotation": "neutral",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Nanyang Primary School"
+  },
+  {
+    "id": "vw_cordon_off",
+    "word": "cordon off",
+    "pos": "phrasal_verb",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "to enclose or block off an area with a barrier so people cannot enter",
+    "example": "To stop shoppers from wandering into the renovation zone, mall staff quickly ____ the area with red-and-white tape.",
+    "answer": "cordoned off",
+    "synonyms": [],
+    "confusables": [
+      "fended off",
+      "marked off",
+      "rounded off"
+    ],
+    "connotation": "neutral",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Raffles Girls' Primary School"
+  },
+  {
+    "id": "vw_attribute",
+    "word": "attribute",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "to say that something is the result of or caused by a particular person or thing",
+    "example": "The award-winning chef ____ his restaurant's success to the fresh ingredients his grandmother taught him to choose carefully.",
+    "answer": "attributed",
+    "synonyms": [],
+    "confusables": [
+      "assigned",
+      "associated",
+      "acknowledged"
+    ],
+    "connotation": "neutral",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Raffles Girls' Primary School"
+  },
+  {
+    "id": "vw_concise",
+    "word": "concise",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "giving information clearly, in few words, without unnecessary detail",
+    "example": "Given only two minutes to pitch her idea, Mei kept her explanation ____, using just three short sentences.",
+    "answer": "concise",
+    "synonyms": [],
+    "confusables": [
+      "precise",
+      "specific",
+      "accurate"
+    ],
+    "connotation": "positive",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Raffles Girls' Primary School"
+  },
+  {
+    "id": "vw_steadfast",
+    "word": "steadfast",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "staying firm and loyal in what you believe or do, even when things get difficult",
+    "example": "Although many neighbours moved away after the flood, Uncle Tan remained ____ in his promise to rebuild the village hall.",
+    "answer": "steadfast",
+    "synonyms": [],
+    "confusables": [
+      "hesitant",
+      "unfaltering",
+      "immovable"
+    ],
+    "connotation": "positive",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Red Swastika School"
+  },
+  {
+    "id": "vw_reassuringly",
+    "word": "reassuringly",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "in a way that makes someone feel calmer and less worried",
+    "example": "When the new student began to cry before her exam, the teacher patted her shoulder and smiled ____, easing her worry.",
+    "answer": "reassuringly",
+    "synonyms": [],
+    "confusables": [
+      "casually",
+      "reluctantly",
+      "impatiently"
+    ],
+    "connotation": "positive",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Red Swastika School"
+  },
+  {
+    "id": "vw_question",
+    "word": "question",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "to start doubting whether something is true, good or possible",
+    "example": "After failing twice, Ryan started to ____ his own ability to finish the marathon, and he almost gave up training altogether.",
+    "answer": "question",
+    "synonyms": [],
+    "confusables": [
+      "prove",
+      "accept",
+      "dismiss"
+    ],
+    "connotation": "negative",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Red Swastika School"
+  },
+  {
+    "id": "vw_administration",
+    "word": "administration",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "the act of giving something, such as medicine, to someone in the correct way",
+    "example": "Clear diagrams on the box are meant to guide parents in the correct ____ of the cough syrup to young children.",
+    "answer": "administration",
+    "synonyms": [],
+    "confusables": [
+      "digestion",
+      "supervision",
+      "organisation"
+    ],
+    "connotation": "neutral",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Red Swastika School"
+  },
+  {
+    "id": "vw_apprehensively",
+    "word": "apprehensively",
+    "pos": "adverb",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "in a way that shows worry or fear about something that might happen",
+    "example": "Mei Ling stared ____ at the roller coaster, unsure if she was brave enough to get on for the first time.",
+    "answer": "apprehensively",
+    "synonyms": [],
+    "confusables": [
+      "cynically",
+      "quizzically",
+      "reproachfully"
+    ],
+    "connotation": "negative",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "St Nicholas"
+  },
+  {
+    "id": "vw_intensify",
+    "word": "intensify",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "to become much stronger or more extreme",
+    "example": "Throughout the afternoon, the storm continued to ____, with darker clouds gathering and the rain falling ever harder.",
+    "answer": "intensify",
+    "synonyms": [],
+    "confusables": [
+      "advance",
+      "maximise",
+      "accelerate"
+    ],
+    "connotation": "neutral",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "St Nicholas"
+  },
+  {
+    "id": "vw_tough",
+    "word": "tough",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "strong and hard to defeat or deal with",
+    "example": "The visiting rugby team was ____ to beat, rarely losing a match even against much bigger opponents.",
+    "answer": "tough",
+    "synonyms": [],
+    "confusables": [
+      "fiery",
+      "frightening",
+      "tremendous"
+    ],
+    "connotation": "neutral",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "St Nicholas"
+  },
+  {
+    "id": "vw_persistence",
+    "word": "persistence",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "the quality of continuing to try hard even when something is difficult",
+    "example": "It was Hana's quiet ____ in the face of failure, not raw talent, that finally helped her master the difficult violin piece.",
+    "answer": "persistence",
+    "synonyms": [],
+    "confusables": [
+      "stamina",
+      "efficiency",
+      "resistance"
+    ],
+    "connotation": "positive",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "St Nicholas"
+  },
+  {
+    "id": "vw_pursue",
+    "word": "pursue",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "to go after something, such as a goal or dream, with continued effort",
+    "example": "After finishing his exams, Kai decided to ____ his lifelong dream of becoming a guitarist, no matter how long the journey took.",
+    "answer": "pursue",
+    "synonyms": [],
+    "confusables": [
+      "fake",
+      "plan",
+      "execute"
+    ],
+    "connotation": "positive",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "St Nicholas"
+  },
+  {
+    "id": "vw_repercussion",
+    "word": "repercussion",
+    "pos": "noun",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "an unpleasant result that happens later because of something you did",
+    "example": "Skipping football practice for two weeks straight, Ryan soon faced the ____ of being dropped from the starting line-up.",
+    "answer": "repercussion",
+    "synonyms": [],
+    "confusables": [
+      "damage",
+      "retaliation",
+      "deterrence"
+    ],
+    "connotation": "negative",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan School"
+  },
+  {
+    "id": "vw_disrupted",
+    "word": "disrupted",
+    "pos": "verb",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "interrupted something and stopped it from continuing smoothly",
+    "example": "A sudden power outage ____ the school's morning assembly, forcing teachers to postpone the presentation until the afternoon.",
+    "answer": "disrupted",
+    "synonyms": [],
+    "confusables": [
+      "diverted",
+      "disabled",
+      "disturbed"
+    ],
+    "connotation": "negative",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan School"
+  },
+  {
+    "id": "vw_brush_off",
+    "word": "brush off",
+    "pos": "phrasal_verb",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "to ignore or dismiss something without taking it seriously",
+    "example": "Although the smoke alarm beeped oddly every night, Mrs Tan chose to ____ the warning and carried on watching her favourite drama.",
+    "answer": "brush off",
+    "synonyms": [],
+    "confusables": [
+      "call off",
+      "hold off",
+      "wear off"
+    ],
+    "connotation": "negative",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": true,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan School"
+  },
+  {
+    "id": "vw_coherent",
+    "word": "coherent",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "clear, logical, and easy to follow or understand",
+    "example": "Even without notes, the young debater stayed remarkably ____, linking each point smoothly so judges could follow her logical argument.",
+    "answer": "coherent",
+    "synonyms": [],
+    "confusables": [
+      "objective",
+      "dexterous",
+      "consistent"
+    ],
+    "connotation": "positive",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan School"
+  },
+  {
+    "id": "vw_succulent",
+    "word": "succulent",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "(of food) juicy, tender and delicious",
+    "example": "The ripe mango was so ____ that juice dripped down her fingers with every bite.",
+    "answer": "succulent",
+    "synonyms": [],
+    "confusables": [
+      "savoury",
+      "palatable",
+      "delectable"
+    ],
+    "connotation": "positive",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan School"
+  },
+  {
+    "id": "vw_robust",
+    "word": "robust",
+    "pos": "adjective",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "strong and sturdy in construction; not easily damaged",
+    "example": "The old wooden bridge looked ____ enough to support the weight of the heavy delivery truck.",
+    "answer": "robust",
+    "synonyms": [],
+    "confusables": [
+      "intricate",
+      "versatile",
+      "malleable"
+    ],
+    "connotation": "positive",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan School"
+  },
+  {
+    "id": "vw_better_safe_than_sorry",
+    "word": "better safe than sorry",
+    "pos": "idiom",
+    "level": "P6",
+    "theme": "general",
+    "cluster": null,
+    "meaning": "it is wiser to take precautions now than to regret being unprepared later",
+    "example": "Even though he had never fallen off his bike, Kai always wore a helmet, believing it is ____.",
+    "answer": "better safe than sorry",
+    "synonyms": [],
+    "confusables": [
+      "think on your feet",
+      "save for a rainy day",
+      "look before you leap"
+    ],
+    "connotation": "positive",
+    "collocations": [],
+    "wordFamily": [],
+    "isPhrasalVerb": false,
+    "examTags": [
+      "vocab_mcq"
+    ],
+    "mnemonic": "",
+    "source": "Tao Nan School"
   }
 ];

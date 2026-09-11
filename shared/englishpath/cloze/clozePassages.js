@@ -7,7 +7,7 @@
 //   accept — every word a marker would accept (best answer first)
 //   skill  — grammar | collocation | content  (drives per-skill readiness)
 //   note   — a one-line "why" shown in feedback
-// 54 passages · 810 blanks · by level {"P5":30,"P6":24}. Grader: ./clozeGrader.js
+// 65 passages · 975 blanks · by level {"P5":30,"P6":35}. Grader: ./clozeGrader.js
 
 export const clozePassages = [
   {
@@ -7575,6 +7575,1547 @@ export const clozePassages = [
         ],
         "skill": "collocation",
         "note": "Idiom: 'a waste of time'."
+      }
+    ]
+  },
+  {
+    "id": "cz_p6_fish_farms",
+    "level": "P6",
+    "source": "ELPath (original)",
+    "title": "Farming the Sea",
+    "text": "Singapore imports most of its seafood {1} its waters are too small to {2} large-scale fishing. To narrow this gap, local companies have begun building fish farms {3} the coast, {4} they raise species such as red snapper and grouper in sturdy floating cages. Modern farms now use sensors and cameras to keep a {5} eye on water quality, feeding schedules and the health {6} every fish in the batch.\n\nOne such farm sits a short boat ride from Pulau Ubin. Workers there wake at first light to check the cages, {7} fish are most active in the cool morning hours. Engineer Priya Nair explained that {8} feeders release just the right {9} of pellets, so that little food goes to waste. Cameras linked to a computer alert the team the moment a fish appears {10}, allowing quick action {11} disease spreads further.\n\nSome farms have gone a {12} further by growing seaweed alongside their fish. The seaweed absorbs waste from the cages and can later be {13} and sold, turning a problem {14} a resource. Marine officials hope such methods will help the nation edge closer to producing a larger share of its own food.\n\nAlthough fish farming cannot replace the sea entirely, it offers a promising way for Singapore to feed its growing population {15} easing pressure on wild fish stocks.",
+    "blanks": [
+      {
+        "n": 1,
+        "accept": [
+          "because",
+          "as",
+          "since"
+        ],
+        "skill": "grammar",
+        "note": "conjunction introducing the reason fish farms are needed"
+      },
+      {
+        "n": 2,
+        "accept": [
+          "support",
+          "sustain"
+        ],
+        "skill": "content",
+        "note": "verb meaning to provide enough for; fits 'too small to ___'"
+      },
+      {
+        "n": 3,
+        "accept": [
+          "along",
+          "near"
+        ],
+        "skill": "grammar",
+        "note": "preposition describing position relative to the coastline"
+      },
+      {
+        "n": 4,
+        "accept": [
+          "where"
+        ],
+        "skill": "grammar",
+        "note": "relative pronoun introducing a clause about a place"
+      },
+      {
+        "n": 5,
+        "accept": [
+          "close"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'keep a close eye on'"
+      },
+      {
+        "n": 6,
+        "accept": [
+          "of"
+        ],
+        "skill": "grammar",
+        "note": "preposition linking 'health' to what it belongs to"
+      },
+      {
+        "n": 7,
+        "accept": [
+          "since",
+          "as",
+          "because"
+        ],
+        "skill": "grammar",
+        "note": "conjunction of reason linking the two clauses"
+      },
+      {
+        "n": 8,
+        "accept": [
+          "automated",
+          "automatic"
+        ],
+        "skill": "content",
+        "note": "adjective describing machines that work without a person controlling them"
+      },
+      {
+        "n": 9,
+        "accept": [
+          "amount"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'the right amount of'"
+      },
+      {
+        "n": 10,
+        "accept": [
+          "unwell",
+          "sick",
+          "ill"
+        ],
+        "skill": "content",
+        "note": "adjective describing a fish that is not healthy"
+      },
+      {
+        "n": 11,
+        "accept": [
+          "before"
+        ],
+        "skill": "grammar",
+        "note": "preposition/conjunction of time showing what happens first"
+      },
+      {
+        "n": 12,
+        "accept": [
+          "step"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'a step further'"
+      },
+      {
+        "n": 13,
+        "accept": [
+          "harvested",
+          "collected",
+          "gathered"
+        ],
+        "skill": "content",
+        "note": "verb meaning to gather a crop, here the seaweed"
+      },
+      {
+        "n": 14,
+        "accept": [
+          "into"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'turn a problem into a resource'"
+      },
+      {
+        "n": 15,
+        "accept": [
+          "while",
+          "whilst"
+        ],
+        "skill": "grammar",
+        "note": "conjunction showing two things happening at the same time"
+      }
+    ]
+  },
+  {
+    "id": "cz_p6_recess_fruit_corner",
+    "level": "P6",
+    "source": "ELPath (original)",
+    "title": "The Recess Fruit Corner",
+    "text": "Last term, students at Sunrise Primary School noticed that many classmates chose fried snacks over fruit during recess. Ms Farah, the school's health committee teacher, felt that something had {1} be done. Together with a group of Primary Five volunteers, she set {2} a small fruit corner by the canteen, selling apples, oranges and bananas cheaply.\n\nThe volunteers took turns manning the stall {3} Monday to Thursday. They arrived early {4} wash and slice the fruit before the bell rang. At first, few students paid {5} attention, but the volunteers were not discouraged. They designed {6} posters on the benefits of eating fruit and pinned them near the canteen entrance.\n\nWord spread {7} the fruit corner, {8} the volunteers noticed something encouraging: students who bought fruit often persuaded friends to try it. Teachers reported that pupils seemed more {9} during afternoon lessons, and food wastage in the canteen dropped {10}. Even parents began asking {11} the stall could open on Fridays as well.\n\nEncouraged {12} this response, the school is now planning to turn the fruit corner into a weekly programme. The school hopes it can eventually be {13} entirely by the students. Ms Farah believes that {14} more pupils join in, healthy eating will spread {15} the whole school. What began as a small idea has grown into something the school takes pride in.",
+    "blanks": [
+      {
+        "n": 1,
+        "accept": [
+          "to"
+        ],
+        "skill": "grammar",
+        "note": "infinitive marker after 'had' (had to be done)"
+      },
+      {
+        "n": 2,
+        "accept": [
+          "up"
+        ],
+        "skill": "collocation",
+        "note": "phrasal verb 'set up' meaning to establish"
+      },
+      {
+        "n": 3,
+        "accept": [
+          "from"
+        ],
+        "skill": "grammar",
+        "note": "preposition pairing 'from...to...' for a time range"
+      },
+      {
+        "n": 4,
+        "accept": [
+          "to"
+        ],
+        "skill": "grammar",
+        "note": "infinitive of purpose"
+      },
+      {
+        "n": 5,
+        "accept": [
+          "much",
+          "any"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'pay much/any attention'"
+      },
+      {
+        "n": 6,
+        "accept": [
+          "colourful",
+          "eye-catching",
+          "attractive"
+        ],
+        "skill": "content",
+        "note": "adjective describing the posters"
+      },
+      {
+        "n": 7,
+        "accept": [
+          "about",
+          "of"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'word spread about/of something'"
+      },
+      {
+        "n": 8,
+        "accept": [
+          "and"
+        ],
+        "skill": "grammar",
+        "note": "connector joining two clauses"
+      },
+      {
+        "n": 9,
+        "accept": [
+          "alert",
+          "attentive",
+          "focused"
+        ],
+        "skill": "content",
+        "note": "adjective describing the pupils' state"
+      },
+      {
+        "n": 10,
+        "accept": [
+          "noticeably",
+          "significantly",
+          "considerably"
+        ],
+        "skill": "content",
+        "note": "adverb showing degree of change"
+      },
+      {
+        "n": 11,
+        "accept": [
+          "if",
+          "whether"
+        ],
+        "skill": "grammar",
+        "note": "conjunction introducing a reported question"
+      },
+      {
+        "n": 12,
+        "accept": [
+          "by"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'encouraged by'"
+      },
+      {
+        "n": 13,
+        "accept": [
+          "run",
+          "managed",
+          "operated"
+        ],
+        "skill": "content",
+        "note": "verb meaning to operate or manage something"
+      },
+      {
+        "n": 14,
+        "accept": [
+          "as",
+          "once"
+        ],
+        "skill": "grammar",
+        "note": "conjunction meaning 'when/while'"
+      },
+      {
+        "n": 15,
+        "accept": [
+          "across",
+          "throughout",
+          "through"
+        ],
+        "skill": "grammar",
+        "note": "preposition showing spread over an area"
+      }
+    ]
+  },
+  {
+    "id": "cz_p6_building_reservoir",
+    "level": "P6",
+    "source": "ELPath (original)",
+    "title": "Building a New Reservoir",
+    "text": "As Singapore's population grew quickly in the 1980s, the country needed a reliable source {1} fresh water. Rainfall alone was not enough, and there {2} little space left to build large new reservoirs on land. Engineers wondered where they {3} find a solution that would not take up precious space needed for homes and factories.\n\nOne bold idea was {4} dam up a river mouth and turn the seawater trapped behind it into fresh water over time. Building such a barrage was risky {5} untested, but it offered a way to gain a large body of water without clearing more land. Careful studies were carried {6} to check whether the plan would work {7} harming nearby wildlife.\n\nThe construction project was {8}, requiring huge gates and pumps strong enough to hold back the sea. Workers battled unpredictable tides and had to {9} concrete only when conditions were exactly right. {10} facing several delays caused by stormy weather, the project team pressed on, determined to finish {11} time. Their hard work paid {12} when the barrage was completed months ahead of its original deadline.\n\nToday, the reservoir provides a steady {13} of drinking water and doubles up as a spot for boating and picnics. Families gather there {14} weekends to enjoy the open water, {15} of them fully aware that beneath the calm surface lies an impressive feat of engineering.",
+    "blanks": [
+      {
+        "n": 1,
+        "accept": [
+          "of"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase: a source of (something)"
+      },
+      {
+        "n": 2,
+        "accept": [
+          "was"
+        ],
+        "skill": "grammar",
+        "note": "past tense 'there was' with singular/uncountable subject 'little space'"
+      },
+      {
+        "n": 3,
+        "accept": [
+          "could",
+          "would",
+          "might"
+        ],
+        "skill": "grammar",
+        "note": "past modal verb after 'wondered where they ___ find'"
+      },
+      {
+        "n": 4,
+        "accept": [
+          "to"
+        ],
+        "skill": "grammar",
+        "note": "infinitive marker after 'idea was ___ dam up'"
+      },
+      {
+        "n": 5,
+        "accept": [
+          "and"
+        ],
+        "skill": "grammar",
+        "note": "conjunction linking two adjectives, 'risky and untested'"
+      },
+      {
+        "n": 6,
+        "accept": [
+          "out"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase: carried out (a study)"
+      },
+      {
+        "n": 7,
+        "accept": [
+          "without"
+        ],
+        "skill": "grammar",
+        "note": "preposition meaning 'not doing something'"
+      },
+      {
+        "n": 8,
+        "accept": [
+          "massive",
+          "enormous",
+          "huge",
+          "immense"
+        ],
+        "skill": "content",
+        "note": "content adjective describing the scale of the project"
+      },
+      {
+        "n": 9,
+        "accept": [
+          "pour",
+          "lay"
+        ],
+        "skill": "content",
+        "note": "content verb collocating with 'concrete'"
+      },
+      {
+        "n": 10,
+        "accept": [
+          "Despite",
+          "Notwithstanding"
+        ],
+        "skill": "grammar",
+        "note": "concessive connector opening the sentence"
+      },
+      {
+        "n": 11,
+        "accept": [
+          "on"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase: on time"
+      },
+      {
+        "n": 12,
+        "accept": [
+          "off"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase: paid off"
+      },
+      {
+        "n": 13,
+        "accept": [
+          "supply",
+          "source"
+        ],
+        "skill": "content",
+        "note": "content noun meaning a steady amount provided"
+      },
+      {
+        "n": 14,
+        "accept": [
+          "on"
+        ],
+        "skill": "grammar",
+        "note": "preposition of time: on weekends"
+      },
+      {
+        "n": 15,
+        "accept": [
+          "few",
+          "hardly any",
+          "some"
+        ],
+        "skill": "content",
+        "note": "quantifier contrasting enjoying the water with being unaware of the engineering feat"
+      }
+    ]
+  },
+  {
+    "id": "cz_p6_baobab_tree",
+    "level": "P6",
+    "source": "ELPath (original)",
+    "title": "Africa's Ancient Baobab",
+    "text": "Across the dry grasslands of eastern and southern Africa stands an extraordinary tree — the baobab. With its swollen trunk and short, twisted branches, it is often called the Tree {1} Life by local communities who depend {2} it for survival. Some baobabs are believed {3} be more than a thousand years old, {4} makes them among the oldest living things on Earth.\n\nWhat gives the baobab its incredible {5} is its ability to store enormous amounts of water. During the rainy season, the spongy wood inside the trunk soaks {6} huge amounts of rainfall, {7} allows the trunk to swell and expand. {8} the dry season begins and rain may not fall for months, the tree slowly draws on this {9} reserve to stay alive.\n\nThe baobab is far more than a water tank. {10} hollow trunk often provides shelter for bats, birds and small animals, while the fruit, rich {11} vitamin C, has long been harvested by villagers for food and traditional medicine. Over many generations, people have gathered beneath its wide {12} to rest, trade and share stories.\n\nSadly, several ancient baobabs have {13} suddenly in recent years, and conservationists believe careless land clearing for farming may be to {14}. Groups are now working hard {15} protect these giants, so that future generations can still marvel at their quiet strength.",
+    "blanks": [
+      {
+        "n": 1,
+        "accept": [
+          "of"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'Tree of Life'"
+      },
+      {
+        "n": 2,
+        "accept": [
+          "on",
+          "upon"
+        ],
+        "skill": "collocation",
+        "note": "verb-preposition collocation 'depend on'"
+      },
+      {
+        "n": 3,
+        "accept": [
+          "to"
+        ],
+        "skill": "grammar",
+        "note": "infinitive marker after 'believed'"
+      },
+      {
+        "n": 4,
+        "accept": [
+          "which"
+        ],
+        "skill": "grammar",
+        "note": "relative pronoun referring back to the whole preceding clause"
+      },
+      {
+        "n": 5,
+        "accept": [
+          "resilience",
+          "toughness",
+          "strength",
+          "hardiness"
+        ],
+        "skill": "content",
+        "note": "noun naming the tree's ability to survive harsh conditions"
+      },
+      {
+        "n": 6,
+        "accept": [
+          "up"
+        ],
+        "skill": "collocation",
+        "note": "phrasal verb 'soak up'"
+      },
+      {
+        "n": 7,
+        "accept": [
+          "which"
+        ],
+        "skill": "grammar",
+        "note": "relative pronoun referring back to the preceding clause"
+      },
+      {
+        "n": 8,
+        "accept": [
+          "Once",
+          "When",
+          "As soon as"
+        ],
+        "skill": "grammar",
+        "note": "time connector joining the two clauses"
+      },
+      {
+        "n": 9,
+        "accept": [
+          "hidden",
+          "secret",
+          "stored",
+          "inner"
+        ],
+        "skill": "content",
+        "note": "adjective describing the water reserve inside the trunk"
+      },
+      {
+        "n": 10,
+        "accept": [
+          "Its",
+          "The"
+        ],
+        "skill": "grammar",
+        "note": "possessive determiner referring back to the baobab"
+      },
+      {
+        "n": 11,
+        "accept": [
+          "in"
+        ],
+        "skill": "grammar",
+        "note": "preposition in the fixed phrase 'rich in'"
+      },
+      {
+        "n": 12,
+        "accept": [
+          "canopy",
+          "shade",
+          "branches"
+        ],
+        "skill": "content",
+        "note": "noun naming the wide, leafy top of the tree"
+      },
+      {
+        "n": 13,
+        "accept": [
+          "vanished",
+          "disappeared",
+          "died"
+        ],
+        "skill": "content",
+        "note": "verb describing the sudden loss of the ancient trees"
+      },
+      {
+        "n": 14,
+        "accept": [
+          "blame"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'to blame'"
+      },
+      {
+        "n": 15,
+        "accept": [
+          "to"
+        ],
+        "skill": "grammar",
+        "note": "infinitive marker after 'working hard'"
+      }
+    ]
+  },
+  {
+    "id": "cz_p6_understanding_stuttering",
+    "level": "P6",
+    "source": "ELPath (original)",
+    "title": "Understanding Stuttering",
+    "text": "Stuttering is a speech condition that affects how smoothly a person speaks. It can cause someone {1} repeat sounds, pause unexpectedly, or stretch out certain words {2} communicating. Doctors believe that stuttering is connected {3} how the brain controls speech, and it often begins {4} early childhood.\n\nFor a child {5} stutters, ordinary situations such as reading aloud in class or answering a teacher's question can feel stressful. Some children become anxious about speaking in front {6} others, fearing that classmates might laugh or lose {7} with them. Over time, this worry can make the stutter even more noticeable, creating a difficult cycle to {8}.\n\nFortunately, there is plenty that classmates and teachers can do to help. Giving a student extra time to finish a sentence, rather {9} guessing or finishing it for them, shows genuine respect. Teachers can also create a calm classroom {10} where speaking up is never rushed. Small gestures, like maintaining eye {11} and waiting patiently, can make a tremendous {12} to a child's confidence.\n\nChildren who stutter can gradually grow more comfortable expressing themselves, with understanding and support from those around {13}. Just {14} everyone learns and grows at their own pace, every voice deserves the chance to be {15}, no matter how it sounds.",
+    "blanks": [
+      {
+        "n": 1,
+        "accept": [
+          "to"
+        ],
+        "skill": "grammar",
+        "note": "infinitive after 'cause someone'"
+      },
+      {
+        "n": 2,
+        "accept": [
+          "while",
+          "when"
+        ],
+        "skill": "grammar",
+        "note": "conjunction introducing a time clause"
+      },
+      {
+        "n": 3,
+        "accept": [
+          "to"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'connected to'"
+      },
+      {
+        "n": 4,
+        "accept": [
+          "in",
+          "during"
+        ],
+        "skill": "grammar",
+        "note": "preposition of time"
+      },
+      {
+        "n": 5,
+        "accept": [
+          "who",
+          "that"
+        ],
+        "skill": "grammar",
+        "note": "relative pronoun for a person"
+      },
+      {
+        "n": 6,
+        "accept": [
+          "of"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'in front of'"
+      },
+      {
+        "n": 7,
+        "accept": [
+          "patience"
+        ],
+        "skill": "content",
+        "note": "noun completing 'lose ___'"
+      },
+      {
+        "n": 8,
+        "accept": [
+          "break"
+        ],
+        "skill": "content",
+        "note": "verb meaning to end a repeated pattern"
+      },
+      {
+        "n": 9,
+        "accept": [
+          "than"
+        ],
+        "skill": "grammar",
+        "note": "comparative connector after 'rather'"
+      },
+      {
+        "n": 10,
+        "accept": [
+          "atmosphere",
+          "environment"
+        ],
+        "skill": "content",
+        "note": "noun describing the classroom mood"
+      },
+      {
+        "n": 11,
+        "accept": [
+          "contact"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'eye contact'"
+      },
+      {
+        "n": 12,
+        "accept": [
+          "difference"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'make a difference'"
+      },
+      {
+        "n": 13,
+        "accept": [
+          "them"
+        ],
+        "skill": "grammar",
+        "note": "pronoun referring back to 'children'"
+      },
+      {
+        "n": 14,
+        "accept": [
+          "as"
+        ],
+        "skill": "grammar",
+        "note": "conjunction 'just as' for comparison"
+      },
+      {
+        "n": 15,
+        "accept": [
+          "heard"
+        ],
+        "skill": "content",
+        "note": "verb meaning to be listened to"
+      }
+    ]
+  },
+  {
+    "id": "cz_p6_trading_card_craze",
+    "level": "P6",
+    "source": "ELPath (original)",
+    "title": "The Trading Card Craze",
+    "text": "Every recess, a small crowd gathers {1} the canteen's stationery corner, eager to buy the newest packet {2} trading cards. Nobody knows {3} cards are inside until the wrapper is torn open, and {4} mystery is exactly what keeps students coming back for more.\n\nTrading cards are not {5} new invention. Decades ago, children swapped cards featuring football players and cartoon characters, trading duplicates {6} cards they still needed. Today, the pictures have changed to popular game characters, but the {7} of ripping open a fresh pack remains just as strong.\n\nPart of the appeal lies {8} the surprise of not knowing what you will get. Collectors also enjoy completing full sets, {9} a binder full of matching cards feels like a personal achievement. Trading with classmates adds an {10} layer of fun, as friends compare their collections and {11} swaps during break time.\n\nHowever, teachers have noticed that some students spend far {12} than they should chasing rare cards. A single missing card can {13} a child to buy pack after pack, hoping for a lucky pull. Parents are now encouraging their children to {14} a weekly budget before joining the craze, so that collecting stays a hobby rather {15} a costly habit.",
+    "blanks": [
+      {
+        "n": 1,
+        "accept": [
+          "around",
+          "near",
+          "outside",
+          "beside"
+        ],
+        "skill": "grammar",
+        "note": "preposition of place after 'gathers'"
+      },
+      {
+        "n": 2,
+        "accept": [
+          "of"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'packet of'"
+      },
+      {
+        "n": 3,
+        "accept": [
+          "which"
+        ],
+        "skill": "grammar",
+        "note": "relative/interrogative determiner introducing the indirect question"
+      },
+      {
+        "n": 4,
+        "accept": [
+          "that",
+          "this"
+        ],
+        "skill": "grammar",
+        "note": "demonstrative determiner referring back to the mystery just described"
+      },
+      {
+        "n": 5,
+        "accept": [
+          "a"
+        ],
+        "skill": "grammar",
+        "note": "indefinite article before 'new invention'"
+      },
+      {
+        "n": 6,
+        "accept": [
+          "for"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'trade/swap X for Y'"
+      },
+      {
+        "n": 7,
+        "accept": [
+          "excitement",
+          "thrill",
+          "joy",
+          "fun"
+        ],
+        "skill": "content",
+        "note": "meaning-bearing noun naming the feeling of opening a pack"
+      },
+      {
+        "n": 8,
+        "accept": [
+          "in"
+        ],
+        "skill": "grammar",
+        "note": "preposition after the verb 'lies'"
+      },
+      {
+        "n": 9,
+        "accept": [
+          "since",
+          "as",
+          "because"
+        ],
+        "skill": "grammar",
+        "note": "conjunction linking reason and result"
+      },
+      {
+        "n": 10,
+        "accept": [
+          "exciting",
+          "extra",
+          "added",
+          "enjoyable"
+        ],
+        "skill": "content",
+        "note": "meaning-bearing adjective describing the layer of fun trading adds"
+      },
+      {
+        "n": 11,
+        "accept": [
+          "negotiate",
+          "arrange",
+          "discuss"
+        ],
+        "skill": "content",
+        "note": "meaning-bearing verb describing how friends agree on swaps"
+      },
+      {
+        "n": 12,
+        "accept": [
+          "more"
+        ],
+        "skill": "grammar",
+        "note": "comparative determiner paired with 'than'"
+      },
+      {
+        "n": 13,
+        "accept": [
+          "tempt",
+          "entice",
+          "persuade"
+        ],
+        "skill": "content",
+        "note": "meaning-bearing verb describing the pull of a missing card"
+      },
+      {
+        "n": 14,
+        "accept": [
+          "set",
+          "fix"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'set a budget'"
+      },
+      {
+        "n": 15,
+        "accept": [
+          "than"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'rather than'"
+      }
+    ]
+  },
+  {
+    "id": "cz_p6_history_debates",
+    "level": "P6",
+    "source": "ELPath (original)",
+    "title": "Debating History Lessons",
+    "text": "Many students find memorising historical dates dull, but Mr Tan, a teacher at Riverside Primary, believes learning does not have to feel {1} a chore. Last term, he began turning history lessons {2} lively debates instead {3} long lectures.\n\nBefore each debate, small groups {4} the viewpoint {5} they have been assigned, whether it belongs to a general, a trader or an ordinary villager. They must gather {6} evidence to make their arguments convincing, {7} a weak case can quickly be picked apart by the opposing team.\n\nThe debates have also given quieter students a chance {8} shine. Because they can prepare their points in advance, they feel less {9} than they would answering a sudden question aloud. Priya, who rarely spoke up before, now looks {10} to her turn at the podium. \"I used {11} freeze whenever a teacher called on me,\" she admitted, \"but planning my answer beforehand has given me confidence.\"\n\nNaturally, debating alone cannot replace steady revision. Mr Tan reminds his class {12} facts must still be practised regularly, {13} lively discussion works best when paired with quiet study at home. A pupil who debates {14} but rarely opens a textbook will still find examinations difficult. A balanced routine gives every student the best {15} of doing well.",
+    "blanks": [
+      {
+        "n": 1,
+        "accept": [
+          "like"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'feel like a chore'"
+      },
+      {
+        "n": 2,
+        "accept": [
+          "into"
+        ],
+        "skill": "grammar",
+        "note": "preposition after 'turning X into Y'"
+      },
+      {
+        "n": 3,
+        "accept": [
+          "of"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'instead of'"
+      },
+      {
+        "n": 4,
+        "accept": [
+          "research",
+          "study"
+        ],
+        "skill": "content",
+        "note": "content verb — what the groups do to the viewpoint"
+      },
+      {
+        "n": 5,
+        "accept": [
+          "that",
+          "which"
+        ],
+        "skill": "grammar",
+        "note": "relative pronoun introducing the clause"
+      },
+      {
+        "n": 6,
+        "accept": [
+          "enough"
+        ],
+        "skill": "grammar",
+        "note": "determiner meaning 'sufficient'"
+      },
+      {
+        "n": 7,
+        "accept": [
+          "because",
+          "since",
+          "as"
+        ],
+        "skill": "grammar",
+        "note": "conjunction giving the reason"
+      },
+      {
+        "n": 8,
+        "accept": [
+          "to"
+        ],
+        "skill": "grammar",
+        "note": "infinitive marker after 'a chance'"
+      },
+      {
+        "n": 9,
+        "accept": [
+          "nervous",
+          "anxious"
+        ],
+        "skill": "content",
+        "note": "content adjective describing how they feel"
+      },
+      {
+        "n": 10,
+        "accept": [
+          "forward"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'look forward to'"
+      },
+      {
+        "n": 11,
+        "accept": [
+          "to"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'used to' for past habits"
+      },
+      {
+        "n": 12,
+        "accept": [
+          "that"
+        ],
+        "skill": "grammar",
+        "note": "conjunction introducing a noun clause after 'reminds'"
+      },
+      {
+        "n": 13,
+        "accept": [
+          "and"
+        ],
+        "skill": "grammar",
+        "note": "connector joining two clauses"
+      },
+      {
+        "n": 14,
+        "accept": [
+          "confidently",
+          "well",
+          "skilfully"
+        ],
+        "skill": "content",
+        "note": "content adverb describing how the pupil debates"
+      },
+      {
+        "n": 15,
+        "accept": [
+          "chance",
+          "opportunity"
+        ],
+        "skill": "content",
+        "note": "content noun — what a balanced routine gives"
+      }
+    ]
+  },
+  {
+    "id": "cz_p6_good_neighbour",
+    "level": "P6",
+    "source": "ELPath (original)",
+    "title": "Being a Good Neighbour",
+    "text": "Life in a Housing Board estate means sharing corridors, lifts and gardens {1} many other families. A considerate neighbour greets people warmly and is always ready to {2} a helping hand when it is needed.\n\nFollowing estate rules is part {3} being thoughtful too. Residents are expected {4} keep corridors clear of shoes and bicycles so that everyone can move about safely. Loud music late at night, or letting a pet {5} without a leash, can easily upset other households.\n\nSmall gestures of kindness go a long way {6} building trust. Helping an elderly neighbour carry {7} groceries, or reminding a family to switch off a tap left running, shows genuine {8} for others. Block parties and festive open houses also help neighbours grow more {9}.\n\nA caring neighbourhood does not happen by chance; {10} is built through many small choices. Residents who look out {11} one another, keep noise down during rest hours, and take {12} in shared spaces help the whole estate feel safer. Older residents, {13} have often lived there the longest, can offer valuable advice to newer families, and {14} everyone plays their part, the block can truly feel like {15} extended family.",
+    "blanks": [
+      {
+        "n": 1,
+        "accept": [
+          "with"
+        ],
+        "skill": "grammar",
+        "note": "preposition after 'sharing X with Y'"
+      },
+      {
+        "n": 2,
+        "accept": [
+          "lend",
+          "offer",
+          "give"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'lend a helping hand'"
+      },
+      {
+        "n": 3,
+        "accept": [
+          "of"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'part of'"
+      },
+      {
+        "n": 4,
+        "accept": [
+          "to"
+        ],
+        "skill": "grammar",
+        "note": "infinitive marker after 'expected'"
+      },
+      {
+        "n": 5,
+        "accept": [
+          "wander",
+          "roam"
+        ],
+        "skill": "content",
+        "note": "verb describing an unleashed pet moving freely"
+      },
+      {
+        "n": 6,
+        "accept": [
+          "towards",
+          "to",
+          "in"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'go a long way towards'"
+      },
+      {
+        "n": 7,
+        "accept": [
+          "their",
+          "her",
+          "his"
+        ],
+        "skill": "grammar",
+        "note": "possessive determiner agreeing with 'an elderly neighbour'"
+      },
+      {
+        "n": 8,
+        "accept": [
+          "concern",
+          "care"
+        ],
+        "skill": "content",
+        "note": "noun expressing genuine care for others"
+      },
+      {
+        "n": 9,
+        "accept": [
+          "familiar",
+          "friendly",
+          "close"
+        ],
+        "skill": "content",
+        "note": "adjective describing neighbours growing closer"
+      },
+      {
+        "n": 10,
+        "accept": [
+          "it"
+        ],
+        "skill": "grammar",
+        "note": "pronoun referring back to 'a caring neighbourhood'"
+      },
+      {
+        "n": 11,
+        "accept": [
+          "for"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'look out for'"
+      },
+      {
+        "n": 12,
+        "accept": [
+          "pride"
+        ],
+        "skill": "content",
+        "note": "noun completing 'take pride in shared spaces'"
+      },
+      {
+        "n": 13,
+        "accept": [
+          "who"
+        ],
+        "skill": "grammar",
+        "note": "relative pronoun introducing a clause about 'older residents'"
+      },
+      {
+        "n": 14,
+        "accept": [
+          "when",
+          "if"
+        ],
+        "skill": "grammar",
+        "note": "conjunction introducing a conditional/temporal clause"
+      },
+      {
+        "n": 15,
+        "accept": [
+          "an"
+        ],
+        "skill": "grammar",
+        "note": "article before the vowel sound in 'extended'"
+      }
+    ]
+  },
+  {
+    "id": "cz_p6_mangrove_restoration",
+    "level": "P6",
+    "source": "ELPath (original)",
+    "title": "Restoring the Mangroves",
+    "text": "In 2022, a group of residents near Sungei Buloh launched a project {1} restore the mangrove forest that once lined the shore. Over the years, storms had washed {2} much of the vegetation, leaving the mudflats bare. The volunteers hoped that {3} planting new mangrove saplings, the coastline could slowly recover.\n\nEach Saturday morning, volunteers gather {4} the riverbank, pull on boots, and wade {5} the soft mud to plant young saplings. It is tiring, muddy work, {6} most volunteers agree it is worth the effort. Mangrove roots hold the soil {7} place, reducing erosion, while their tangled branches provide {8} for crabs, mudskippers and fish. Without them, many coastal creatures would lose their habitat.\n\nNearby schools have also taken {9} interest in the project. Students visit the site to learn how mangroves filter pollutants and {10} carbon dioxide from the air. Some schools have set up nurseries {11} they grow seedlings before planting them along the shore. Teachers say the hands-on experience helps pupils develop a deeper {12} of coastal ecosystems, {13} than reading about them in textbooks.\n\nThree years {14}, over two thousand saplings have taken root along the riverbank, and fish and birds are returning to the area. Organisers hope that {15} continued community support, the mangrove forest will one day stretch along the coastline again.",
+    "blanks": [
+      {
+        "n": 1,
+        "accept": [
+          "to"
+        ],
+        "skill": "grammar",
+        "note": "to-infinitive expressing purpose after 'launched a project'"
+      },
+      {
+        "n": 2,
+        "accept": [
+          "away"
+        ],
+        "skill": "collocation",
+        "note": "phrasal verb 'wash away' — removed by water"
+      },
+      {
+        "n": 3,
+        "accept": [
+          "by"
+        ],
+        "skill": "grammar",
+        "note": "preposition 'by' + gerund to express means"
+      },
+      {
+        "n": 4,
+        "accept": [
+          "at",
+          "along"
+        ],
+        "skill": "grammar",
+        "note": "preposition after the verb 'gather'"
+      },
+      {
+        "n": 5,
+        "accept": [
+          "through",
+          "into"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'wade through' mud"
+      },
+      {
+        "n": 6,
+        "accept": [
+          "but",
+          "yet"
+        ],
+        "skill": "grammar",
+        "note": "contrasting conjunction linking two clauses"
+      },
+      {
+        "n": 7,
+        "accept": [
+          "in"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'hold something in place'"
+      },
+      {
+        "n": 8,
+        "accept": [
+          "shelter",
+          "homes",
+          "refuge"
+        ],
+        "skill": "content",
+        "note": "meaning-bearing noun — what branches give to wildlife"
+      },
+      {
+        "n": 9,
+        "accept": [
+          "an"
+        ],
+        "skill": "grammar",
+        "note": "indefinite article in the fixed phrase 'take an interest'"
+      },
+      {
+        "n": 10,
+        "accept": [
+          "absorb",
+          "trap"
+        ],
+        "skill": "content",
+        "note": "meaning-bearing verb — what mangroves do to carbon dioxide"
+      },
+      {
+        "n": 11,
+        "accept": [
+          "where"
+        ],
+        "skill": "grammar",
+        "note": "relative adverb introducing a clause describing 'nurseries'"
+      },
+      {
+        "n": 12,
+        "accept": [
+          "understanding",
+          "appreciation",
+          "knowledge"
+        ],
+        "skill": "content",
+        "note": "meaning-bearing noun — what pupils develop"
+      },
+      {
+        "n": 13,
+        "accept": [
+          "rather"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'rather than'"
+      },
+      {
+        "n": 14,
+        "accept": [
+          "later",
+          "on"
+        ],
+        "skill": "content",
+        "note": "time adverb — 'years later/on' marking elapsed time"
+      },
+      {
+        "n": 15,
+        "accept": [
+          "with"
+        ],
+        "skill": "grammar",
+        "note": "preposition 'with' introducing an accompanying condition"
+      }
+    ]
+  },
+  {
+    "id": "cz_p6_illustrator_journey",
+    "level": "P6",
+    "source": "ELPath (original)",
+    "title": "Drawing With Heart",
+    "text": "Mei Fen grew up in a cramped flat where art supplies were hard to come by, but her passion {1} drawing never faded. Every evening, once her chores were done, she would sketch the cats and birds that {2} through her estate, filling old exercise books with careful pictures.\n\nAs a teenager, she made up her {3} to take art seriously and joined evening classes at the community centre. Her teacher noticed {4} she paid close attention to details which other students often overlooked. Although her progress was slow, Mei Fen practised patiently, never once losing {5} in her own ability.\n\nYears later, a publishing house was searching for {6} illustrator for a picture book about kampong life. {7} dozens of artists sent in samples, the editors were drawn to Mei Fen's gentle, detailed style. She worked closely {8} the author for several months, redrawing pages again and again {9} every scene felt right. She often stayed {10} late into the night to meet each deadline.\n\nWhen the picture book was finally published, children across the island fell in {11} with her warm illustrations. Teachers began reading {12} aloud in class, and parents wrote to thank the shy artist {13} had once feared her drawings were not good enough. Mei Fen realised that her years of quiet dedication had finally {14} off. She now tells young artists that talent matters less than the willingness to keep {15}, one small step at a time.",
+    "blanks": [
+      {
+        "n": 1,
+        "accept": [
+          "for"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase: have a passion for something"
+      },
+      {
+        "n": 2,
+        "accept": [
+          "wandered",
+          "roamed",
+          "strolled"
+        ],
+        "skill": "content",
+        "note": "meaning-bearing verb describing how animals moved around"
+      },
+      {
+        "n": 3,
+        "accept": [
+          "mind"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase: make up one's mind"
+      },
+      {
+        "n": 4,
+        "accept": [
+          "that"
+        ],
+        "skill": "grammar",
+        "note": "conjunction introducing a noun clause after 'noticed'"
+      },
+      {
+        "n": 5,
+        "accept": [
+          "faith",
+          "confidence",
+          "belief"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase: lose faith/confidence in oneself"
+      },
+      {
+        "n": 6,
+        "accept": [
+          "an"
+        ],
+        "skill": "grammar",
+        "note": "indefinite article before a vowel sound (illustrator)"
+      },
+      {
+        "n": 7,
+        "accept": [
+          "Although",
+          "While",
+          "Though"
+        ],
+        "skill": "grammar",
+        "note": "contrast connector linking two clauses"
+      },
+      {
+        "n": 8,
+        "accept": [
+          "with"
+        ],
+        "skill": "grammar",
+        "note": "preposition: work closely with someone"
+      },
+      {
+        "n": 9,
+        "accept": [
+          "until",
+          "till"
+        ],
+        "skill": "grammar",
+        "note": "conjunction showing an action continues up to a point"
+      },
+      {
+        "n": 10,
+        "accept": [
+          "up"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase: stay up late"
+      },
+      {
+        "n": 11,
+        "accept": [
+          "love"
+        ],
+        "skill": "content",
+        "note": "meaning-bearing noun: fall in love with something"
+      },
+      {
+        "n": 12,
+        "accept": [
+          "it"
+        ],
+        "skill": "grammar",
+        "note": "pronoun referring back to the picture book"
+      },
+      {
+        "n": 13,
+        "accept": [
+          "who",
+          "that"
+        ],
+        "skill": "grammar",
+        "note": "relative pronoun referring to a person (the artist)"
+      },
+      {
+        "n": 14,
+        "accept": [
+          "paid"
+        ],
+        "skill": "content",
+        "note": "meaning-bearing verb: dedication paid off"
+      },
+      {
+        "n": 15,
+        "accept": [
+          "trying",
+          "practising",
+          "going",
+          "working"
+        ],
+        "skill": "content",
+        "note": "meaning-bearing verb showing continued effort"
+      }
+    ]
+  },
+  {
+    "id": "cz_p6_school_milk",
+    "level": "P6",
+    "source": "ELPath (original)",
+    "title": "The Story of School Milk",
+    "text": "Many schools around the world give students a small carton of milk {1} recess time. This simple habit did not appear by {2}. It began decades ago, when doctors noticed that a large {3} of children were not getting enough calcium for strong bones and teeth.\n\nTo solve this problem, several governments started special programmes {4} encouraged schools to serve milk every day. At {5}, some children complained because they were not used {6} drinking plain milk. Teachers needed {7} patience, gently reminding students {8} how the drink would help {9} grow taller and stay healthy.\n\nSlowly, most students grew {10} of the daily routine and even looked forward to it. Today, school milk programmes exist {11} many countries, though the flavours and packaging differ. Some schools offer chocolate or strawberry milk to make it more appealing, {12} others keep to the plain variety for its simplicity.\n\nNutritionists still {13} that milk remains one of the easiest ways for growing children to get the nutrients they need. Although trends in school meals keep changing, the humble carton of milk has {14} the test of time. It shows that small habits, practised {15}, can shape healthy generations.",
+    "blanks": [
+      {
+        "n": 1,
+        "accept": [
+          "during",
+          "at"
+        ],
+        "skill": "grammar",
+        "note": "preposition of time (during + noun phrase)"
+      },
+      {
+        "n": 2,
+        "accept": [
+          "chance"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'by chance' = accidentally"
+      },
+      {
+        "n": 3,
+        "accept": [
+          "number",
+          "proportion"
+        ],
+        "skill": "content",
+        "note": "meaning-bearing noun quantifying children"
+      },
+      {
+        "n": 4,
+        "accept": [
+          "that",
+          "which"
+        ],
+        "skill": "grammar",
+        "note": "relative pronoun introducing clause modifying 'programmes'"
+      },
+      {
+        "n": 5,
+        "accept": [
+          "first"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'at first' = in the beginning"
+      },
+      {
+        "n": 6,
+        "accept": [
+          "to"
+        ],
+        "skill": "grammar",
+        "note": "fixed structure 'be used to' + gerund"
+      },
+      {
+        "n": 7,
+        "accept": [
+          "great",
+          "much",
+          "more"
+        ],
+        "skill": "content",
+        "note": "adjective/quantifier describing amount of patience"
+      },
+      {
+        "n": 8,
+        "accept": [
+          "about"
+        ],
+        "skill": "grammar",
+        "note": "preposition collocating with 'remind ... about'"
+      },
+      {
+        "n": 9,
+        "accept": [
+          "them"
+        ],
+        "skill": "grammar",
+        "note": "object pronoun agreeing with 'students'"
+      },
+      {
+        "n": 10,
+        "accept": [
+          "fond"
+        ],
+        "skill": "collocation",
+        "note": "fixed phrase 'grow fond of'"
+      },
+      {
+        "n": 11,
+        "accept": [
+          "in"
+        ],
+        "skill": "grammar",
+        "note": "preposition of location after 'exist'"
+      },
+      {
+        "n": 12,
+        "accept": [
+          "while",
+          "whereas"
+        ],
+        "skill": "grammar",
+        "note": "connector showing contrast between two clauses"
+      },
+      {
+        "n": 13,
+        "accept": [
+          "believe",
+          "maintain",
+          "argue",
+          "agree"
+        ],
+        "skill": "content",
+        "note": "verb expressing nutritionists' opinion"
+      },
+      {
+        "n": 14,
+        "accept": [
+          "stood"
+        ],
+        "skill": "collocation",
+        "note": "idiom 'stand the test of time'"
+      },
+      {
+        "n": 15,
+        "accept": [
+          "consistently",
+          "regularly",
+          "daily",
+          "habitually"
+        ],
+        "skill": "content",
+        "note": "adverb describing how habits are practised"
       }
     ]
   }
