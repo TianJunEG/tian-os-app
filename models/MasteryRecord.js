@@ -50,5 +50,10 @@ const masteryRecordSchema = new mongoose.Schema({
 });
 
 masteryRecordSchema.index({ studentId: 1, skillId: 1 }, { unique: true });
+// Serves the teacher class-dashboard load (buildClassDashboard), which queries
+// a whole roster by subject: MasteryRecord.find({ studentId: { $in }, subject }).
+// Not a prefix of the index above (subject isn't skillId), so that query would
+// otherwise scan every skill record per student before filtering by subject.
+masteryRecordSchema.index({ studentId: 1, subject: 1 });
 
 export default mongoose.model('MasteryRecord', masteryRecordSchema);

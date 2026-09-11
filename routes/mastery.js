@@ -1820,16 +1820,27 @@ function readinessBandFromLevel(level = '') {
   return 'beginner';
 }
 
+// Fraction Skill documents are seed-time reference data (only ever written by
+// scripts/seed*.js, never by a live route) so a per-process cache is safe and
+// avoids re-running this regex scan on every /mastery request. Cache the
+// in-flight PROMISE (not just the resolved value) so concurrent callers during
+// the first population share one query instead of racing duplicate ones.
+let fractionsSkillsCache = null;
 async function loadFractionsSkills() {
-  const skills = await Skill.find({ slug: /^fr\./ }).sort({ order: 1 });
-  const byFrameworkId = new Map();
-  const byObjectId = new Map();
-  for (const s of skills) {
-    const fid = s.metadata?.mathPathSkillId || s.metadata?.frameworkCode || '';
-    if (fid) byFrameworkId.set(String(fid).toUpperCase(), s);
-    byObjectId.set(String(s._id), s);
+  if (!fractionsSkillsCache) {
+    fractionsSkillsCache = (async () => {
+      const skills = await Skill.find({ slug: /^fr\./ }).sort({ order: 1 });
+      const byFrameworkId = new Map();
+      const byObjectId = new Map();
+      for (const s of skills) {
+        const fid = s.metadata?.mathPathSkillId || s.metadata?.frameworkCode || '';
+        if (fid) byFrameworkId.set(String(fid).toUpperCase(), s);
+        byObjectId.set(String(s._id), s);
+      }
+      return { skills, byFrameworkId, byObjectId };
+    })().catch((err) => { fractionsSkillsCache = null; throw err; });
   }
-  return { skills, byFrameworkId, byObjectId };
+  return fractionsSkillsCache;
 }
 
 // Shape fractions MathPathStudentSkillState docs into /mastery records keyed by the
