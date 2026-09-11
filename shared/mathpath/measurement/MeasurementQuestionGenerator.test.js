@@ -114,4 +114,17 @@ describe('MeasurementQuestionGenerator', () => {
     expect(checkMeasurementAnswer({ question: mk('>'), studentResponse: '>' }).correct).toBe(true);
     expect(checkMeasurementAnswer({ question: mk('400 cm'), studentResponse: '401' }).correct).toBe(false);
   });
+
+  it('rejects a wrong-DIMENSION unit even when digits match', () => {
+    const mk = (display) => ({ answer: { display } });
+    // The core bug: "96 cm²" was being marked correct for "96 m²".
+    expect(checkMeasurementAnswer({ question: mk('96 m²'), studentResponse: '96 cm²' }).correct).toBe(false);
+    expect(checkMeasurementAnswer({ question: mk('96 m²'), studentResponse: '96 cm2' }).correct).toBe(false);
+    expect(checkMeasurementAnswer({ question: mk('8000 g'), studentResponse: '8000 kg' }).correct).toBe(false);
+    expect(checkMeasurementAnswer({ question: mk('7000 ml'), studentResponse: '7000 kg' }).correct).toBe(false);
+    // But the SAME unit still passes, and unitless still passes.
+    expect(checkMeasurementAnswer({ question: mk('96 m²'), studentResponse: '96 m²' }).correct).toBe(true);
+    expect(checkMeasurementAnswer({ question: mk('96 m²'), studentResponse: '96' }).correct).toBe(true);
+    expect(checkMeasurementAnswer({ question: mk('96 m²'), studentResponse: '96m2' }).correct).toBe(true);
+  });
 });

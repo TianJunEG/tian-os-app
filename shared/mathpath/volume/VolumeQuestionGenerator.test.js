@@ -85,6 +85,25 @@ describe('VolumeQuestionGenerator', () => {
     expect(checkVolumeAnswer({ question: q, studentResponse: String(Number(dig(q.answer.display)) + 1) }).correct).toBe(false);
   });
 
+  describe('checkVolumeAnswer rejects a wrong-DIMENSION unit', () => {
+    const mk = (display) => ({ answer: { display } });
+    it('rejects area, capacity, or mass units when the answer is a volume', () => {
+      // The core bug: "75 cm²" was being marked correct for "75 cm³".
+      expect(checkVolumeAnswer({ question: mk('75 cm³'), studentResponse: '75 cm²' }).correct).toBe(false);
+      expect(checkVolumeAnswer({ question: mk('75 cm³'), studentResponse: '75 cm2' }).correct).toBe(false);
+      expect(checkVolumeAnswer({ question: mk('75 cm³'), studentResponse: '75 m³' }).correct).toBe(false);
+      expect(checkVolumeAnswer({ question: mk('75 cm³'), studentResponse: '75 kg' }).correct).toBe(false);
+      expect(checkVolumeAnswer({ question: mk('32 L'), studentResponse: '32 kg' }).correct).toBe(false);
+    });
+    it('still accepts the right unit or a bare number', () => {
+      expect(checkVolumeAnswer({ question: mk('75 cm³'), studentResponse: '75 cm³' }).correct).toBe(true);
+      expect(checkVolumeAnswer({ question: mk('75 cm³'), studentResponse: '75 cm3' }).correct).toBe(true);
+      expect(checkVolumeAnswer({ question: mk('75 cm³'), studentResponse: '75' }).correct).toBe(true);
+      expect(checkVolumeAnswer({ question: mk('32 L'), studentResponse: '32 L' }).correct).toBe(true);
+      expect(checkVolumeAnswer({ question: mk('32 L'), studentResponse: '32' }).correct).toBe(true);
+    });
+  });
+
   describe('Secondary 1 (G1) — VL005 prism, VL006 surface area', () => {
     it('tags both skills as Secondary 1', () => {
       for (const id of ['VL005', 'VL006']) {

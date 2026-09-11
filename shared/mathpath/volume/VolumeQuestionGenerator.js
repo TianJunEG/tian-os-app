@@ -301,12 +301,19 @@ export function generateVolumeQuestionSet({ skillId, count = 6, mode = 'practice
   return questions;
 }
 
-// Unit-tolerant: "60", "60cm3", "60 cm³" all match.
+// Unit-tolerant: "60", "60cm3", "60 cm³" all match. But REJECTS a wrong-
+// DIMENSION unit (e.g. "60 cm²" or "60 kg" for "60 cm³"). Uses the shared
+// unitCategory helper so measurement + volume agree on categories.
+import { extractUnit } from '../measurement/MeasurementQuestionGenerator.js';
+
 export function checkVolumeAnswer({ question, studentResponse }) {
   if (!question || studentResponse == null) return { correct: false };
   const raw = String(studentResponse).trim().toLowerCase();
   const exp = String(question.answer?.display ?? question.answer ?? '').trim().toLowerCase();
   if (raw === exp) return { correct: true };
+  const expUnit = extractUnit(exp);
+  const rawUnit = extractUnit(raw);
+  if (expUnit && rawUnit && expUnit !== rawUnit) return { correct: false };
   // Strip unit tokens first so the "3" in "cm3" isn't read as a digit.
   const stripUnits = (s) => s.replace(/cm³|cm3|cm²|cm2|m³|m3|m²|m2|cubes?|litres?|cm|km|mm|ml|kg|\bl\b|\bg\b/g, '');
   const digits = (s) => stripUnits(s).replace(/[^0-9.\-]/g, '');

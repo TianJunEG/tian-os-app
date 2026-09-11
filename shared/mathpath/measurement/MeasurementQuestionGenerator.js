@@ -488,14 +488,32 @@ export function generateMeasurementQuestionSet({ skillId, count = 6, mode = 'pra
   return questions;
 }
 
+// Canonical unit token (normalising ³/², so "cm3"→"cm3", "cm³"→"cm3") — used to
+// reject wrong-UNIT answers ("96 cm²" for "96 m²", "8000 kg" for "8000 g")
+// while still accepting unitless numbers and same-unit answers. Returns null
+// when the string has no recognised unit (→ don't gate on unit).
+export function extractUnit(s) {
+  const t = String(s || '').toLowerCase().replace(/³/g, '3').replace(/²/g, '2');
+  const m = t.match(/(?:cm3|m3|cm2|m2|mm|cm|km|kg|ml|litres?|\bl\b|\bg\b|(?<![a-z0-9])m(?![a-z0-9]))/);
+  return m ? m[0].replace(/^litres?$/, 'l') : null;
+}
+
 // Unit-tolerant: compares the numeric content, so "400", "400cm" and "400 cm"
 // all match; "$3.50", "3.50" and "3.5" match; "<"/">"/"=" compare directly.
+// But REJECTS a wrong-DIMENSION unit ("96 cm²" for "96 m²" is wrong).
 export function checkMeasurementAnswer({ question, studentResponse }) {
   if (!question || studentResponse == null) return { correct: false };
   const raw = String(studentResponse).trim().toLowerCase();
   const exp = String(question.answer?.display ?? question.answer ?? '').trim().toLowerCase();
   if (['<', '>', '='].includes(exp)) return { correct: raw === exp };
   if (raw === exp) return { correct: true };
+  // Gate on unit: if the student typed a unit that DIFFERS from the expected
+  // answer's, it's wrong regardless of matching digits ("96 cm²" for "96 m²",
+  // "8000 kg" for "8000 g"). Unitless student responses — the common case, since
+  // the UI often shows the unit as a fixed adornment — are unaffected.
+  const expUnit = extractUnit(exp);
+  const rawUnit = extractUnit(raw);
+  if (expUnit && rawUnit && expUnit !== rawUnit) return { correct: false };
   // Strip unit tokens first so the "3" in "cm3" isn't read as a digit.
   const stripUnits = (s) => s.replace(/cm³|cm3|cm²|cm2|m³|m3|m²|m2|cm|km|mm|ml|kg|\bl\b|\bg\b/g, '');
   const digits = (s) => stripUnits(s).replace(/[^0-9.\-]/g, '');
