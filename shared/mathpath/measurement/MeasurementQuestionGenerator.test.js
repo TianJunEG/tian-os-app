@@ -114,4 +114,19 @@ describe('MeasurementQuestionGenerator', () => {
     expect(checkMeasurementAnswer({ question: mk('>'), studentResponse: '>' }).correct).toBe(true);
     expect(checkMeasurementAnswer({ question: mk('400 cm'), studentResponse: '401' }).correct).toBe(false);
   });
+
+  it('rejects a wrong-DIMENSION unit even when the digits match', () => {
+    // Regression: stripUnits used to remove the unit entirely before comparing
+    // digits, so "96 cm²" was wrongly accepted for a "96 m²" key (and likewise
+    // "5 cm" for a "5 m" key) — same number, wrong unit. A response with NO
+    // unit at all (the common case; the UI shows the unit as a fixed adornment)
+    // must still be accepted.
+    const mk = (display) => ({ answer: { display } });
+    expect(checkMeasurementAnswer({ question: mk('96 m²'), studentResponse: '96 cm²' }).correct).toBe(false);
+    expect(checkMeasurementAnswer({ question: mk('96 m²'), studentResponse: '96 cm2' }).correct).toBe(false);
+    expect(checkMeasurementAnswer({ question: mk('5 m'), studentResponse: '5 cm' }).correct).toBe(false);
+    expect(checkMeasurementAnswer({ question: mk('5 m'), studentResponse: '5 m' }).correct).toBe(true);
+    expect(checkMeasurementAnswer({ question: mk('5 m'), studentResponse: '5' }).correct).toBe(true);
+    expect(checkMeasurementAnswer({ question: mk('96 m²'), studentResponse: '96' }).correct).toBe(true);
+  });
 });
