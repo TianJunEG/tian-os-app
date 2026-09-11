@@ -5,8 +5,12 @@ import {
   selectNextPassageId,
   skillReadiness,
   summarizeCloze,
+  weakBlanks,
+  buildFocusPassage,
+  recordFocusResult,
   CLOZE_INTERVALS_DAYS,
 } from './clozeEngine.js';
+import { gradePassage } from './clozeGrader.js';
 
 const DAY = 24 * 60 * 60 * 1000;
 const PASSAGES = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
@@ -81,5 +85,100 @@ describe('cloze engine', () => {
     const sum1 = summarizeCloze(s, { passages: PASSAGES, now });
     expect(sum1.counts.done).toBe(1);
     expect(sum1.counts.mastered).toBe(1);
+  });
+});
+
+describe('cloze mistake tracking', () => {
+  // A tiny 3-blank "passage" (real ones have 15) so the fixture stays readable.
+  const RICH = [
+    {
+      id: 'p1',
+      title: 'Passage One',
+      text: 'The cat sat {1} the mat.\n\nIt was {2} and {3}.',
+      blanks: [
+        { n: 1, accept: ['on'], skill: 'grammar', note: 'preposition' },
+        { n: 2, accept: ['happy', 'content'], skill: 'content', note: 'mood' },
+        { n: 3, accept: ['warm'], skill: 'content', note: 'temperature' },
+      ],
+    },
+    {
+      id: 'p2',
+      title: 'Passage Two',
+      text: 'She ran {1} the park {2} her dog.',
+      blanks: [
+        { n: 1, accept: ['through', 'across'], skill: 'grammar', note: 'preposition' },
+        { n: 2, accept: ['with'], skill: 'collocation', note: 'accompanied by' },
+      ],
+    },
+  ];
+
+  it('recordAttempt with perBlank tracks per-blank misses', () => {
+    let s = initClozeState();
+    const res = gradePassage({ 1: 'off', 2: 'happy', 3: 'warm' }, RICH[0]); // blank 1 wrong
+    s = recordAttempt(s, 'p1', res, 1000);
+    expect(s.passages.p1.blankStats[1]).toEqual({ misses: 1, lastCorrect: false });
+    expect(s.passages.p1.blankStats[2]).toEqual({ misses: 0, lastCorrect: true });
+    expect(s.passages.p1.blankStats[3]).toEqual({ misses: 0, lastCorrect: true });
+  });
+
+  it('weakBlanks surfaces only blanks whose last attempt was wrong', () => {
+    let s = initClozeState();
+    s = recordAttempt(s, 'p1', gradePassage({ 1: 'off', 2: 'sad', 3: 'warm' }, RICH[0]), 1000);
+    const weak = weakBlanks(s, { passages: RICH });
+    expect(weak.map((w) => w.n).sort()).toEqual([1, 2]);
+    expect(weak.every((w) => w.passageId === 'p1')).toBe(true);
+  });
+
+  it('answering a missed blank right again clears it', () => {
+    let s = initClozeState();
+    s = recordAttempt(s, 'p1', gradePassage({ 1: 'off', 2: 'happy', 3: 'warm' }, RICH[0]), 1000);
+    expect(weakBlanks(s, { passages: RICH })).toHaveLength(1);
+    s = recordAttempt(s, 'p1', gradePassage({ 1: 'on', 2: 'happy', 3: 'warm' }, RICH[0]), 2000);
+    expect(weakBlanks(s, { passages: RICH })).toHaveLength(0);
+    // the miss count is kept as history even after it's cleared
+    expect(s.passages.p1.blankStats[1].misses).toBe(1);
+  });
+
+  it('buildFocusPassage returns null with nothing weak', () => {
+    const s = initClozeState();
+    expect(buildFocusPassage(s, { passages: RICH })).toBeNull();
+  });
+
+  it('buildFocusPassage assembles a gradable mini-passage across multiple source passages', () => {
+    let s = initClozeState();
+    s = recordAttempt(s, 'p1', gradePassage({ 1: 'off', 2: 'happy', 3: 'warm' }, RICH[0]), 1000);
+    s = recordAttempt(s, 'p2', gradePassage({ 1: 'via', 2: 'with' }, RICH[1]), 1000);
+    const focus = buildFocusPassage(s, { passages: RICH });
+    expect(focus.blanks).toHaveLength(2); // p1#1 and p2#1
+    // renumbered 1..2, and grading it with the right answers is full marks
+    const answers = {};
+    for (const b of focus.blanks) answers[b.n] = b.accept[0];
+    const res = gradePassage(answers, focus);
+    expect(res.score).toBe(res.total);
+    // p2's blank 2 ("with") was answered correctly and isn't part of the drill,
+    // but it shares a paragraph with p2's (weak) blank 1 — it should read
+    // naturally, pre-filled, rather than leaving a second open blank.
+    expect(focus.text).toContain('She ran');
+    expect(focus.text).toContain('with her dog');
+    expect(focus.text.match(/\{\d+\}/g)).toHaveLength(2); // only the 2 weak blanks stay open
+  });
+
+  it('recordFocusResult folds a focus-drill result back onto the real passages', () => {
+    let s = initClozeState();
+    s = recordAttempt(s, 'p1', gradePassage({ 1: 'off', 2: 'happy', 3: 'warm' }, RICH[0]), 1000);
+    const focus = buildFocusPassage(s, { passages: RICH });
+    const answers = {};
+    for (const b of focus.blanks) answers[b.n] = b.accept[0]; // get it right this time
+    const res = gradePassage(answers, focus);
+    s = recordFocusResult(s, focus.mapping, res.perBlank);
+    expect(weakBlanks(s, { passages: RICH })).toHaveLength(0);
+    expect(s.passages.p1.blankStats[1].lastCorrect).toBe(true);
+  });
+
+  it('a blank whose passage no longer exists in the bank is skipped, not thrown', () => {
+    let s = initClozeState();
+    s = recordAttempt(s, 'gone', gradePassage({ 1: 'x' }, { blanks: [{ n: 1, accept: ['on'], skill: 'grammar' }] }), 1000);
+    expect(() => weakBlanks(s, { passages: RICH })).not.toThrow();
+    expect(weakBlanks(s, { passages: RICH })).toEqual([]);
   });
 });

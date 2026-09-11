@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, Clock, Sparkles, RotateCcw } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Clock, Sparkles, RotateCcw, AlertTriangle } from 'lucide-react';
 import { Card, Button, PageHeader, ProgressBar, StatTile, Badge, Segmented } from '../../../components/ui';
 import { MascotBubble } from '../../../components/MascotAvatar';
 import { useAuth } from '../../../context/AuthContext';
-import { clozePassages, SKILL_LABELS, summarizeCloze } from '../../../../../shared/englishpath/cloze/index.js';
+import { clozePassages, SKILL_LABELS, summarizeCloze, weakBlanks } from '../../../../../shared/englishpath/cloze/index.js';
 import { loadClozeState, resetClozeState, loadClozeLevel, saveClozeLevel } from './clozeStore';
 
 // ELPath · Comprehension Cloze — home. Shows per-skill readiness, progress, and
@@ -32,6 +32,9 @@ export default function ClozeHome() {
   const summary = useMemo(() => summarizeCloze(state, { passages }), [state, passages]);
   const { counts, readiness } = summary;
   const started = counts.done > 0;
+  // Mistakes are tracked across ALL levels a student has attempted (not just the
+  // one currently selected) so switching the toggle never hides a tricky blank.
+  const weak = useMemo(() => weakBlanks(state, { passages: clozePassages }), [state]);
 
   const readinessRows = ['grammar', 'collocation', 'content'].map((key) => ({
     key,
@@ -98,6 +101,27 @@ export default function ClozeHome() {
         <StatTile label="Mastered" value={counts.mastered} />
         <StatTile label="Due to review" value={counts.dueNow} />
       </div>
+
+      {weak.length > 0 && (
+        <Card tone="rose" className="mb-6 p-5">
+          <div className="mb-1 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-error-700">
+            <AlertTriangle className="h-3.5 w-3.5" /> Your tricky blanks · {weak.length}
+          </div>
+          <h3 className="mb-3 font-semibold text-ink-700">Blanks you keep getting wrong</h3>
+          <div className="mb-4 flex flex-wrap gap-2">
+            {weak.slice(0, 8).map((w) => (
+              <span key={`${w.passageId}-${w.n}`} className="rounded-pill bg-surface-white px-2.5 py-1 text-xs font-medium text-ink-600">
+                {w.passageTitle} · #{w.n}
+              </span>
+            ))}
+            {weak.length > 8 && <span className="px-1 py-1 text-xs text-ink-400">+{weak.length - 8} more</span>}
+          </div>
+          <Button size="l" icon={ArrowRight} className="w-full" onClick={() => navigate('/student/english/cloze/focus')}>
+            Drill these {weak.length} blank{weak.length > 1 ? 's' : ''}
+          </Button>
+          <p className="mt-2 text-center text-xs text-ink-500">A focused review — just the sentences you missed, no new passages.</p>
+        </Card>
+      )}
 
       <Card className="mb-6 p-5">
         <h3 className="mb-3 font-semibold text-ink-700">Skill readiness</h3>

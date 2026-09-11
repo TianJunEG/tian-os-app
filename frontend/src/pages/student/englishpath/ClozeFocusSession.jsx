@@ -1,37 +1,35 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Eye } from 'lucide-react';
-import { Card, Button } from '../../../components/ui';
+import { ArrowLeft, ArrowRight, Eye, CheckCircle2 } from 'lucide-react';
+import { Card, Button, EmptyState } from '../../../components/ui';
 import { useAuth } from '../../../context/AuthContext';
 import {
   clozePassages,
   gradePassage,
-  recordAttempt,
-  selectNextPassageId,
+  buildFocusPassage,
+  recordFocusResult,
 } from '../../../../../shared/englishpath/cloze/index.js';
-import { loadClozeState, saveClozeState, loadClozeLevel } from './clozeStore';
+import { loadClozeState, saveClozeState } from './clozeStore';
 
-// One comprehension-cloze passage: type a word into each blank, Check to grade
-// against the multi-answer accept-sets, then the attempt is recorded (per-skill
-// accuracy + spaced-review box) before moving to the results screen.
-export default function ClozeSession() {
+// A focused review of just the blanks the student keeps getting wrong, pulled
+// from across every passage they've attempted (not a fresh 15-blank passage).
+// Each item is its own sentence with the surrounding blanks pre-filled so it
+// still reads naturally. Getting one right here clears it from the tricky list
+// the same way getting it right on a full passage replay would.
+export default function ClozeFocusSession() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const studentId = user?.id || user?._id;
 
   const stateRef = useRef(null);
-  const [passage, setPassage] = useState(null);
+  const [focus, setFocus] = useState(undefined); // undefined = loading, null = nothing weak
   const [answers, setAnswers] = useState({});
   const [result, setResult] = useState(null);
 
   useEffect(() => {
     const st = loadClozeState(studentId);
     stateRef.current = st;
-    const level = loadClozeLevel(studentId);
-    const pool = clozePassages.filter((p) => p.level === level);
-    const usePool = pool.length ? pool : clozePassages;
-    const nextId = selectNextPassageId(st, { passages: usePool });
-    setPassage(usePool.find((p) => p.id === nextId) || usePool[0] || null);
+    setFocus(buildFocusPassage(st, { passages: clozePassages }));
     setAnswers({});
     setResult(null);
   }, [studentId]);
@@ -42,43 +40,37 @@ export default function ClozeSession() {
     return m;
   }, [result]);
 
-  if (!passage) return null;
+  if (focus === undefined) return null;
+
+  if (focus === null) {
+    return (
+      <div className="mx-auto max-w-xl">
+        <BackLink navigate={navigate} />
+        <EmptyState icon={CheckCircle2} message="Nothing tricky right now — every blank you've tried is on track!">
+          <Button to="/student/english/cloze" variant="secondary" size="s">Back to Cloze</Button>
+        </EmptyState>
+      </div>
+    );
+  }
 
   const graded = !!result;
   const setAnswer = (n, v) => setAnswers((a) => ({ ...a, [n]: v }));
 
   const check = () => {
-    const res = gradePassage(answers, passage);
+    const res = gradePassage(answers, focus);
     setResult(res);
-    const next = recordAttempt(stateRef.current, passage.id, {
-      score: res.score,
-      total: res.total,
-      bySkill: res.bySkill,
-      perBlank: res.perBlank,
-    });
+    const next = recordFocusResult(stateRef.current, focus.mapping, res.perBlank);
     stateRef.current = next;
     saveClozeState(studentId, next);
   };
 
   const reveal = () => {
     const filled = {};
-    for (const b of passage.blanks) filled[b.n] = b.accept[0];
+    for (const b of focus.blanks) filled[b.n] = b.accept[0];
     setAnswers(filled);
   };
 
-  const seeResults = () => {
-    navigate('/student/english/cloze/results', {
-      state: {
-        passageId: passage.id,
-        title: passage.title,
-        score: result.score,
-        total: result.total,
-        bySkill: result.bySkill,
-        perBlank: result.perBlank,
-      },
-      replace: true,
-    });
-  };
+  const finish = () => navigate('/student/english/cloze', { replace: true });
 
   const blankClass = (n) => {
     const base =
@@ -94,19 +86,16 @@ export default function ClozeSession() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <button
-        onClick={() => navigate('/student/english/cloze')}
-        className="mb-3 inline-flex items-center gap-1 text-sm font-semibold text-ink-500 hover:text-emerald-deep"
-      >
-        <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Comprehension Cloze
-      </button>
+      <BackLink navigate={navigate} />
 
       <Card className="mb-5 p-6">
-        <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-gold-deep">Open cloze · 15 blanks</div>
-        <h2 className="mb-4 font-display text-xl font-semibold text-emerald-deep">{passage.title}</h2>
+        <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-gold-deep">
+          Focus review · {focus.blanks.length} blank{focus.blanks.length > 1 ? 's' : ''}
+        </div>
+        <h2 className="mb-4 font-display text-xl font-semibold text-emerald-deep">Tricky blanks</h2>
 
         <div className="cloze-passage text-[17px] leading-[2.4] text-ink-900">
-          {passage.text.split('\n\n').map((para, pi) => (
+          {focus.text.split('\n\n').map((para, pi) => (
             <p key={pi} className="mb-3.5">
               {para.split(/\{(\d+)\}/).map((part, i) =>
                 i % 2 === 0 ? (
@@ -123,7 +112,6 @@ export default function ClozeSession() {
                       spellCheck={false}
                       className={blankClass(Number(part))}
                     />
-                    <sup className="ml-0.5 text-[11px] text-ink-400">{part}</sup>
                   </span>
                 )
               )}
@@ -138,9 +126,9 @@ export default function ClozeSession() {
             <p className="font-display text-2xl font-semibold text-emerald-deep">
               {result.score}<span className="text-lg text-ink-400"> / {result.total}</span>
             </p>
-            <p className="text-sm text-ink-500">{pct}% · green is spot-on, amber is a spelling slip, red is one to review.</p>
+            <p className="text-sm text-ink-500">{pct}% · get one right and it drops off your tricky list.</p>
           </div>
-          <Button size="l" icon={ArrowRight} className="w-full" onClick={seeResults}>See results</Button>
+          <Button size="l" icon={ArrowRight} className="w-full" onClick={finish}>Done</Button>
         </div>
       ) : (
         <div className="flex flex-col gap-3 sm:flex-row">
@@ -149,5 +137,16 @@ export default function ClozeSession() {
         </div>
       )}
     </div>
+  );
+}
+
+function BackLink({ navigate }) {
+  return (
+    <button
+      onClick={() => navigate('/student/english/cloze')}
+      className="mb-3 inline-flex items-center gap-1 text-sm font-semibold text-ink-500 hover:text-emerald-deep"
+    >
+      <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Comprehension Cloze
+    </button>
   );
 }
