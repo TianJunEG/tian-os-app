@@ -3,6 +3,7 @@ import { getQuestionFamiliesBySkill } from './p1EqualGroupsQuestionFamilies.js';
 import {
   equalGroupsDiagram,
   pictureCollectionDiagram,
+  objectSetDiagram,
 } from './p1DiagramHelpers.js';
 
 const OBJECTS = ['counters', 'stickers', 'sweets', 'pencils', 'cookies', 'marbles'];
@@ -61,7 +62,11 @@ function generateMakeEqualGroups(familyId) {
     answerType: 'number',
     instructionHint: 'Write your answer in numerals.',
     solutionText: `${total} ÷ ${groups} = ${itemsPerGroup}. Each group has ${itemsPerGroup} ${obj}.`,
-    diagramSpec: equalGroupsDiagram(groups, itemsPerGroup, { title: `${total} ${obj} in ${groups} groups` }),
+    // Show the objects UNGROUPED — the student's job is to work out how many go
+    // in each group. A pre-split equalGroupsDiagram(groups, itemsPerGroup, ...)
+    // would render exactly `itemsPerGroup` dots per group AND caption "N groups
+    // of {itemsPerGroup}", handing the student the answer outright.
+    diagramSpec: objectSetDiagram(obj, total, { title: `${total} ${obj} to share into ${groups} equal groups` }),
     misconceptionTraps: ['equal_groups_uneven'],
   };
 }
@@ -79,15 +84,28 @@ function generateIdentifyUnequalGroups(familyId) {
     // Build equal option
     const equalOption = { groups: numGroups, counts: Array(numGroups).fill(equalCount), label: `${numGroups} groups of ${equalCount}` };
 
-    // Build 3 unequal distractors
+    // Build 3 unequal distractors, each genuinely unequal AND distinct from the
+    // other options — the old fixed formula `equalCount + (g===0 ? 1 : -(d+1)%2)`
+    // depended only on `d` (not `g`) for every non-first slot, so distractors 0
+    // and 2 always produced the IDENTICAL counts array (e.g. two MCQ choices
+    // both reading "5, 3") for every numGroups value.
     const distractors = [];
-    for (let d = 0; d < 3; d++) {
-      const counts = [];
-      for (let g = 0; g < numGroups; g++) {
-        counts.push(equalCount + (g === 0 ? 1 : -(d + 1) % 2));
-      }
-      // Make sure they are actually unequal
-      if (new Set(counts).size === 1) counts[0] += 1;
+    const usedKeys = new Set([equalOption.counts.join(',')]);
+    let attempts = 0;
+    while (distractors.length < 3 && attempts < 50) {
+      attempts += 1;
+      const counts = Array.from({ length: numGroups }, () => Math.max(1, equalCount + randInt(-2, 2)));
+      if (new Set(counts).size === 1) continue; // must be genuinely unequal
+      const key = counts.join(',');
+      if (usedKeys.has(key)) continue; // must differ from every option so far
+      usedKeys.add(key);
+      distractors.push({ groups: numGroups, counts, label: counts.join(', ') });
+    }
+    // Extremely unlikely fallback if the random search couldn't find 3 unique
+    // unequal patterns within the attempt budget.
+    while (distractors.length < 3) {
+      const bump = distractors.length + 1;
+      const counts = equalOption.counts.map((v, i) => (i === 0 ? v + bump : v));
       distractors.push({ groups: numGroups, counts, label: counts.join(', ') });
     }
 
@@ -207,7 +225,9 @@ function generateShareEqually(familyId) {
     answerType: 'number',
     instructionHint: 'Write your answer in numerals.',
     solutionText: `${total} ÷ ${people} = ${each}. Each child gets ${each} ${obj}.`,
-    diagramSpec: equalGroupsDiagram(people, each, { title: `${total} ${obj} shared among ${people}` }),
+    // Ungrouped, same reasoning as P1-EQG-01: a pre-split diagram would render
+    // exactly `each` dots per child and caption the answer directly.
+    diagramSpec: objectSetDiagram(obj, total, { title: `${total} ${obj} to share among ${people} children` }),
     misconceptionTraps: ['sharing_gives_all_to_one', 'sharing_unequal'],
   };
 }
@@ -232,7 +252,12 @@ function generateLeftovers(familyId) {
       answerType: 'number',
       instructionHint: 'Write your answer in numerals.',
       solutionText: `Each child gets ${each} ${obj}. ${people} × ${each} = ${people * each}. ${total} − ${people * each} = ${leftover} left over.`,
-      diagramSpec: equalGroupsDiagram(people, each, { title: `${total} ${obj} shared among ${people}` }),
+      // Show ALL ${total} objects (incl. the leftover ones) ungrouped. The old
+      // equalGroupsDiagram(people, each, ...) rendered only people*each dots —
+      // it never depicted the leftover items at all, so the picture silently
+      // contradicted the word problem's real total, and separately gave away
+      // `each` (though `each` isn't the asked-for answer here).
+      diagramSpec: objectSetDiagram(obj, total, { title: `${total} ${obj} to share among ${people} children` }),
       misconceptionTraps: ['leftover_ignored', 'leftover_forced_equal'],
     };
   }
@@ -255,7 +280,12 @@ function generateLeftovers(familyId) {
     solutionText: hasLeftover
       ? `Each child gets ${each}. ${people} × ${each} = ${people * each}. There are ${leftover} left over, so there are leftovers.`
       : `Each child gets ${each}. ${people} × ${each} = ${total}. All ${obj} are shared with none left over, so it is exact.`,
-    diagramSpec: equalGroupsDiagram(people, each, { title: `${total} ${obj} shared among ${people}` }),
+    // Same fix as above: show all ${total} objects. The old diagram rendered
+    // only people*each dots regardless of hasLeftover, so whenever there WAS a
+    // leftover the picture showed a perfectly clean division with nothing left
+    // over — visually supporting the WRONG answer ("Exact") for this exact
+    // question ("is the sharing exact or are there leftovers?").
+    diagramSpec: objectSetDiagram(obj, total, { title: `${total} ${obj} to share among ${people} children` }),
     misconceptionTraps: ['leftover_ignored', 'leftover_gives_total'],
   };
 }

@@ -134,7 +134,9 @@ describe('p1EqualGroupsQuestionGenerator', () => {
       expect(q.answerType).toBe('number');
       expect(q.prompt).toContain('equal groups');
       expect(q.diagramSpec).toBeDefined();
-      expect(q.diagramSpec.type).toBe('equal_groups');
+      // picture_collections (raw ungrouped objects), NOT equal_groups — see the
+      // "diagram must not leak the answer" block below for why.
+      expect(q.diagramSpec.type).toBe('picture_collections');
     });
 
     it('small family keeps total in 6–12 range', () => {
@@ -240,7 +242,7 @@ describe('p1EqualGroupsQuestionGenerator', () => {
       expect(q.answerType).toBe('number');
       expect(q.prompt).toContain('equally');
       expect(q.diagramSpec).toBeDefined();
-      expect(q.diagramSpec.type).toBe('equal_groups');
+      expect(q.diagramSpec.type).toBe('picture_collections');
     });
 
     it('sharing is always exact (no remainder)', () => {
@@ -358,6 +360,78 @@ describe('p1EqualGroupsQuestionGenerator', () => {
       const q = generateQuestion(skillId);
       expect(q.diagramSpec).toBeDefined();
       expect(q.diagramSpec.type).toBeTruthy();
+    }
+  });
+
+  // Regression: the diagram for a question that ASKS the student to work out a
+  // per-group/per-person count must never pre-render that count (an
+  // equal_groups diagram literally draws N dots per group AND captions
+  // "X groups of N" — showing it for the very question that asks "how many in
+  // each group?" hands the student the answer). These skills must instead show
+  // the raw ungrouped total as a single picture_collections category.
+  describe('diagram must not leak the answer (P1-EQG-01/04/05)', () => {
+    it('P1-EQG-01: diagram shows the ungrouped total, not the per-group answer', () => {
+      for (let i = 0; i < 20; i++) {
+        const q = generateQuestion('P1-EQG-01');
+        expect(q.diagramSpec.type).toBe('picture_collections');
+        const cats = q.diagramSpec.data.categories;
+        expect(cats).toHaveLength(1);
+        const nums = q.prompt.match(/\d+/g).map(Number);
+        const total = nums[0];
+        expect(cats[0].count).toBe(total); // NOT q.answer (itemsPerGroup)
+      }
+    });
+
+    it('P1-EQG-04: diagram shows the ungrouped total, not the per-child answer', () => {
+      for (let i = 0; i < 20; i++) {
+        const q = generateQuestion('P1-EQG-04');
+        expect(q.diagramSpec.type).toBe('picture_collections');
+        const cats = q.diagramSpec.data.categories;
+        const nums = q.prompt.match(/\d+/g).map(Number);
+        const total = nums[0];
+        expect(cats[0].count).toBe(total); // NOT q.answer (each)
+      }
+    });
+
+    it('P1-EQG-05 (find leftover): diagram total matches the TRUE story total, including the leftover items', () => {
+      for (let i = 0; i < 20; i++) {
+        const q = generateQuestion('P1-EQG-05', { questionFamilyId: 'QF_P1-EQG-05_001' });
+        const nums = q.prompt.match(/\d+/g).map(Number);
+        const storyTotal = nums[0];
+        expect(q.diagramSpec.type).toBe('picture_collections');
+        const cats = q.diagramSpec.data.categories;
+        // The old diagram only rendered people*each dots — silently missing the
+        // leftover items, so the picture contradicted the word problem.
+        expect(cats[0].count).toBe(storyTotal);
+      }
+    });
+
+    it('P1-EQG-05 (exact or leftovers): diagram total matches the story even when there IS a leftover', () => {
+      for (let i = 0; i < 30; i++) {
+        const q = generateQuestion('P1-EQG-05', { questionFamilyId: 'QF_P1-EQG-05_002' });
+        const nums = q.prompt.match(/\d+/g).map(Number);
+        const storyTotal = nums[0];
+        const cats = q.diagramSpec.data.categories;
+        // This is the sharpest version of the bug: when hasLeftover is true, the
+        // old diagram rendered a perfectly clean grouping with nothing left
+        // over — visually suggesting "Exact" even when the correct answer is
+        // "Leftovers". Asserting the diagram total always matches the story
+        // total catches that regardless of which branch (Exact/Leftovers) fired.
+        expect(cats[0].count).toBe(storyTotal);
+      }
+    });
+  });
+
+  // Regression: the old per-`d` formula for the 3 MCQ distractors depended only
+  // on `d` (not `g`) for every non-first group slot, so distractor 0 and
+  // distractor 2 always produced the IDENTICAL counts array — two of the four
+  // MCQ options reading the same thing (e.g. both "5, 3").
+  it('P1-EQG-02 MCQ: all 4 options are visually distinct (no duplicate distractor)', () => {
+    for (let i = 0; i < 30; i++) {
+      const q = generateQuestion('P1-EQG-02', { questionFamilyId: 'QF_P1-EQG-02_001' });
+      const optionLines = q.prompt.split('\n').slice(1); // drop the question line
+      const labels = optionLines.map((line) => line.replace(/^[A-D]\)\s*/, ''));
+      expect(new Set(labels).size).toBe(labels.length);
     }
   });
 });
