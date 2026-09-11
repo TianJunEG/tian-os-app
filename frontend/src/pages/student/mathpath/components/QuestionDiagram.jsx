@@ -254,6 +254,7 @@ function canRenderSpec(spec) {
   try {
     return Boolean(renderers[spec.type](spec));
   } catch (err) {
+    console.debug('[QuestionDiagram] renderer threw while probing a candidate spec', spec.type, err);
     return false;
   }
 }
@@ -282,6 +283,7 @@ export function validateQuestionDiagram(question = {}) {
       ? { ok: true, requiresDiagram: true, spec }
       : { ok: false, requiresDiagram: true, spec, error: DIAGRAM_LOAD_ERROR_MESSAGE };
   } catch (err) {
+    console.debug('[QuestionDiagram] renderer threw during validation', spec.type, err);
     return { ok: false, requiresDiagram: true, spec, error: DIAGRAM_LOAD_ERROR_MESSAGE };
   }
 }
@@ -312,6 +314,7 @@ export default function QuestionDiagram({ question }) {
   try {
     svg = renderer(spec);
   } catch (err) {
+    console.debug('[QuestionDiagram] renderer threw during render', spec.type, err);
     return (
       <div className="mb-5 rounded-xl border border-danger-border bg-danger-tint px-3 py-4 text-sm text-rose-800">
         <p className="font-semibold">Diagram render error</p>
