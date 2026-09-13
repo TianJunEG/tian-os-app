@@ -121,6 +121,20 @@ function isExplicitFreeText(question = {}) {
   return ['expression', 'algebra', 'equation', 'text'].includes(explicit);
 }
 
+// A question whose correct answer can be negative needs a way to enter the minus
+// sign. On iOS the 'numeric' AND 'decimal' software keypads have NO '-' key, so
+// no inputMode can supply one — we render an on-screen sign toggle beside the box
+// instead. The negatable set is the Number Sense negative-integer strand: NS021
+// (number line), NS023 (temperature / levels in context) and NS024–NS029 (integer
+// arithmetic and word problems). NS022 is a comparison picker, so it never reaches
+// a text input. skillId survives the server-side answer strip, so this triggers
+// without the client ever seeing (or leaking) the answer's sign.
+const NEGATIVE_ANSWER_SKILL_RE = /^NS0(21|2[3-9])$/;
+function answerCanBeNegative(question = {}) {
+  const skillId = String(question.skillId || question.skill_id || question.skill || '');
+  return NEGATIVE_ANSWER_SKILL_RE.test(skillId);
+}
+
 function extractOrderingItems(question = {}) {
   const prompt = String(question.prompt || question.stem || '');
   const match = prompt.match(/:\s*([^.?]+)[.?]?$/);
@@ -215,9 +229,11 @@ export default function AnswerInputRenderer({
   }
 
   // iPad keyboard selection: decimal/numeric answers must get the number pad.
-  // 'decimal' gives the pad with '.' and '-'; 'numeric' is digits-only. The
-  // generic short-answer/numeric fallback defaults to 'decimal'; only genuine
-  // free-text / algebraic-expression answers keep the full 'text' keyboard.
+  // 'decimal' gives the pad with a '.'; 'numeric' is digits-only. NOTE: neither
+  // iOS keypad exposes a '-' key, so negative answers rely on the on-screen sign
+  // toggle below (see answerCanBeNegative), not on inputMode. The generic
+  // short-answer/numeric fallback defaults to 'decimal'; only genuine free-text /
+  // algebraic-expression answers keep the full 'text' keyboard.
   const inputMode = type === 'decimal'
     ? 'decimal'
     : type === 'whole_number'
@@ -231,23 +247,52 @@ export default function AnswerInputRenderer({
   // answer (and so can't break marking). Currency-style units sit before the box.
   const unit = type === 'expression' ? '' : String(question?.unit || '').trim();
   const unitIsPrefix = /^(\$|s\$|rm|£|€)$/i.test(unit);
+  // On-screen minus toggle for questions whose answer can be negative (iOS number
+  // pads have no '-' key). Prepends/removes a leading ASCII '-' on the value the
+  // grader sees; the button glyph is a typographic '−' for legibility.
+  const canNegate = type !== 'expression' && answerCanBeNegative(question);
+  const rawValue = String(value ?? '');
+  const isNegative = rawValue.startsWith('-');
+  const toggleSign = () => onChange?.(isNegative ? rawValue.slice(1) : `-${rawValue}`);
   return (
     <div className="block">
       <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{label}{unit ? ` (in ${unit})` : ''}</span>
-      <div className="relative flex items-center">
-        {unit && unitIsPrefix && <span className="pointer-events-none absolute left-4 text-lg font-semibold text-ink-400">{unit}</span>}
-        <input
-          value={value}
-          onChange={(event) => onChange?.(event.target.value)}
-          disabled={disabled}
-          inputMode={inputMode}
-          aria-label={`Your answer${unit ? ` in ${unit}` : ''}${label === 'Answer' ? '' : ` (${label})`}`}
-          placeholder={question?.placeholder || (type === 'decimal' ? 'e.g. 0.25' : type === 'whole_number' ? 'e.g. 12' : 'Type your answer')}
-          className={`w-full rounded-xl border border-line-soft py-3 font-mono text-lg text-ink-900 focus:border-emerald focus:outline-none focus:ring-2 focus:ring-emerald/20 ${unit && unitIsPrefix ? 'pl-10 pr-4' : unit ? 'pl-4 pr-14' : 'px-4'}`}
-          onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
-        />
-        {unit && !unitIsPrefix && <span className="pointer-events-none absolute right-4 text-lg font-semibold text-ink-400">{unit}</span>}
+      <div className="flex items-center gap-2">
+        {canNegate && (
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={toggleSign}
+            aria-pressed={isNegative}
+            aria-label={isNegative ? 'Answer is negative — tap to make it positive' : 'Make the answer negative'}
+            title="Negative sign"
+            className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl border-2 text-2xl font-bold transition
+              ${isNegative
+                ? 'border-emerald bg-emerald text-white shadow-md'
+                : 'border-line-soft bg-white text-ink-700 hover:border-emerald hover:bg-emerald-tint'}
+              disabled:opacity-50`}
+          >
+            −
+          </button>
+        )}
+        <div className="relative flex flex-1 items-center">
+          {unit && unitIsPrefix && <span className="pointer-events-none absolute left-4 text-lg font-semibold text-ink-400">{unit}</span>}
+          <input
+            value={value}
+            onChange={(event) => onChange?.(event.target.value)}
+            disabled={disabled}
+            inputMode={inputMode}
+            aria-label={`Your answer${unit ? ` in ${unit}` : ''}${label === 'Answer' ? '' : ` (${label})`}`}
+            placeholder={question?.placeholder || (type === 'decimal' ? 'e.g. 0.25' : type === 'whole_number' ? 'e.g. 12' : 'Type your answer')}
+            className={`w-full rounded-xl border border-line-soft py-3 font-mono text-lg text-ink-900 focus:border-emerald focus:outline-none focus:ring-2 focus:ring-emerald/20 ${unit && unitIsPrefix ? 'pl-10 pr-4' : unit ? 'pl-4 pr-14' : 'px-4'}`}
+            onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
+          />
+          {unit && !unitIsPrefix && <span className="pointer-events-none absolute right-4 text-lg font-semibold text-ink-400">{unit}</span>}
+        </div>
       </div>
+      {canNegate && (
+        <p className="mt-1 text-xs text-ink-400">Tap <span className="font-semibold text-ink-500">−</span> for a negative answer.</p>
+      )}
       {type === 'expression' && (
         <MathSymbolBar symbols={EXPRESSION_SYMBOLS} value={value} onChange={onChange} disabled={disabled} className="mt-3 justify-center" />
       )}
