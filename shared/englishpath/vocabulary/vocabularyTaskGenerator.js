@@ -467,8 +467,12 @@ const GENERATORS = {
 
   word_form_pick(entry, bank, rng) {
     // Ask for a part-of-speech form that only one family member has, so the
-    // answer is unambiguous.
-    const candidate = entry.wordFamily.find((f) => f.pos !== entry.pos && f.pos !== 'other');
+    // answer is unambiguous. Exclude family members spelled like the headword
+    // (e.g. "consent" noun vs "consent" verb) — otherwise the "answer" is just
+    // the headword shown in the prompt, so the question has no real answer.
+    const candidate = entry.wordFamily.find(
+      (f) => f.pos !== entry.pos && f.pos !== 'other' && norm(f.word) !== norm(entry.word),
+    );
     if (!candidate) return null;
     const sharesPos = entry.wordFamily.filter((f) => f.pos === candidate.pos).length;
     if (sharesPos !== 1) return null;
