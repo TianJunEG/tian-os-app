@@ -12,7 +12,7 @@ import {
 import { loadClozeState, saveClozeState, loadClozeLevel } from './clozeStore';
 
 // One comprehension-cloze passage: type a word into each blank, Check to grade
-// against the multi-answer accept-sets, then the attempt is recorded (per-skill
+// against the accepted answer, then the attempt is recorded (per-skill
 // accuracy + spaced-review box) before moving to the results screen.
 export default function ClozeSession() {
   const navigate = useNavigate();

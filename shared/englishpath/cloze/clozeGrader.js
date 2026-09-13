@@ -1,17 +1,11 @@
 // ELPath · Comprehension Cloze — grader
 // ----------------------------------------------------------------------------
 // Open cloze ("fill in each blank with a suitable word") has no options — the
-// student types a word — and most blanks accept MORE THAN ONE right answer. So
-// grading is the hard part, and it must be FAIR: a child who types a legitimately
-// correct word must never see a red cross.
+// student types a word. Each blank accepts exactly one correct answer.
 //
 // The grader is layered, cheapest first, and works fully offline:
-//   1. accept-set match  — the blank's curated list of valid words (the bulk)
+//   1. exact match       — the blank's accepted word
 //   2. typo tolerance    — right word, one letter off (kids mis-spell)
-//   3. (future) AI check — an LLM judges a word the accept-set missed, then
-//                          caches it back into the set so the online cost decays.
-// This module ships layers 1–2; `needsReview` marks the blanks a real deployment
-// would hand to layer 3.
 //
 // Pure and framework-agnostic, like the vocabulary engine.
 
@@ -40,14 +34,12 @@ export function editDistance(a, b) {
 }
 
 /**
- * Grade one typed answer against a blank's accept-set.
+ * Grade one typed answer against a blank's accepted word.
  * Returns { verdict, ... }:
  *   'blank'   — nothing typed
- *   'correct' — exact match in the accept-set
- *   'typo'    — one letter off a valid word (counts as correct, flags spelling)
- *   'review'  — not matched; in production this is handed to the AI check
- * `accepted` (the valid words) is always returned for 'review' so feedback can
- * teach the range of right answers.
+ *   'correct' — exact match
+ *   'typo'    — one letter off the correct word (counts as correct, flags spelling)
+ *   'review'  — wrong answer
  */
 export function gradeBlank(raw, blank) {
   const a = norm(raw);

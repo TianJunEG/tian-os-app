@@ -4,7 +4,7 @@
 // each is freshly written on its own theme, then blanked. The open comprehension
 // cloze is a P5/P6 exam component (P3/P4 use the word-bank grammar cloze), so the
 // bank is P5 + P6 only. Each blank carries:
-//   accept — every word a marker would accept (best answer first)
+//   accept — the single correct word for the blank
 //   skill  — grammar | collocation | content  (drives per-skill readiness)
 //   note   — a one-line "why" shown in feedback
 // 65 passages · 975 blanks · by level {"P5":30,"P6":35}. Grader: ./clozeGrader.js
@@ -20,8 +20,7 @@ export const clozePassages = [
       {
         "n": 1,
         "accept": [
-          "since",
-          "from"
+          "since"
         ],
         "skill": "grammar",
         "note": "Preposition of time - shows when the rain began."
@@ -29,8 +28,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "with",
-          "in"
+          "with"
         ],
         "skill": "collocation",
         "note": "Collocation: covered with/in (something)."
@@ -46,9 +44,7 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "because",
-          "as",
-          "since"
+          "because"
         ],
         "skill": "grammar",
         "note": "Conjunction giving the reason for being disappointed."
@@ -64,8 +60,7 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "took",
-          "brought"
+          "took"
         ],
         "skill": "collocation",
         "note": "Collocation: take out - to bring something out for use."
@@ -73,9 +68,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "mind",
-          "care",
-          "worry"
+          "mind"
         ],
         "skill": "content",
         "note": "Content word - to be bothered by something."
@@ -83,9 +76,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "decided",
-          "chose",
-          "preferred"
+          "decided"
         ],
         "skill": "content",
         "note": "Content word - made a choice."
@@ -101,9 +92,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "soaked",
-          "wet",
-          "drenched"
+          "soaked"
         ],
         "skill": "content",
         "note": "Content word describing being very wet."
@@ -127,8 +116,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "finally",
-          "eventually"
+          "finally"
         ],
         "skill": "content",
         "note": "Content word - after some time, at last."
@@ -136,8 +124,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "Although",
-          "Though"
+          "Although"
         ],
         "skill": "grammar",
         "note": "Conjunction showing contrast or concession."
@@ -162,8 +149,7 @@ export const clozePassages = [
       {
         "n": 1,
         "accept": [
-          "busiest",
-          "liveliest"
+          "busiest"
         ],
         "skill": "content",
         "note": "Content word - superlative describing the most crowded place."
@@ -171,9 +157,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "toward",
-          "towards",
-          "to"
+          "toward"
         ],
         "skill": "grammar",
         "note": "Preposition showing direction of movement."
@@ -189,8 +173,7 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "hard",
-          "difficult"
+          "hard"
         ],
         "skill": "collocation",
         "note": "Collocation: hard to resist."
@@ -222,9 +205,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "disappointed",
-          "upset",
-          "sad"
+          "disappointed"
         ],
         "skill": "content",
         "note": "Content word describing her feeling."
@@ -240,8 +221,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "but",
-          "yet"
+          "but"
         ],
         "skill": "grammar",
         "note": "Connector showing contrast."
@@ -249,8 +229,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "touched",
-          "moved"
+          "touched"
         ],
         "skill": "content",
         "note": "Content word describing being emotionally affected."
@@ -282,8 +261,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "simple",
-          "small"
+          "simple"
         ],
         "skill": "content",
         "note": "Content word describing the humble meal."
@@ -316,8 +294,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "thrilled",
-          "excited"
+          "thrilled"
         ],
         "skill": "content",
         "note": "Content word describing strong excitement."
@@ -325,8 +302,7 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "this",
-          "the"
+          "this"
         ],
         "skill": "grammar",
         "note": "Determiner referring to the outing just mentioned."
@@ -358,8 +334,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "while",
-          "as"
+          "while"
         ],
         "skill": "grammar",
         "note": "Conjunction linking two actions happening at the same time."
@@ -375,9 +350,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "snatched",
-          "grabbed",
-          "took"
+          "snatched"
         ],
         "skill": "content",
         "note": "Content word describing a sudden, quick taking."
@@ -393,9 +366,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "once",
-          "when",
-          "after"
+          "once"
         ],
         "skill": "grammar",
         "note": "Conjunction meaning as soon as."
@@ -403,10 +374,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "unharmed",
-          "unhurt",
-          "fine",
-          "safe"
+          "unharmed"
         ],
         "skill": "content",
         "note": "Content word meaning not hurt."
@@ -414,8 +382,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "but",
-          "yet"
+          "but"
         ],
         "skill": "grammar",
         "note": "Connector showing contrast between two feelings."
@@ -423,8 +390,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "wildlife",
-          "animals"
+          "wildlife"
         ],
         "skill": "content",
         "note": "Content word summarising the trip's subject."
@@ -441,8 +407,7 @@ export const clozePassages = [
       {
         "n": 1,
         "accept": [
-          "volunteer",
-          "help"
+          "volunteer"
         ],
         "skill": "content",
         "note": "verb meaning to offer one's time to help"
@@ -458,8 +423,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "chopping",
-          "cutting"
+          "chopping"
         ],
         "skill": "content",
         "note": "verb describing preparing vegetables"
@@ -483,8 +447,7 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "while",
-          "as"
+          "while"
         ],
         "skill": "grammar",
         "note": "conjunction linking two actions happening together"
@@ -500,8 +463,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "but",
-          "while"
+          "but"
         ],
         "skill": "grammar",
         "note": "connector showing contrast"
@@ -549,10 +511,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "joy",
-          "happiness",
-          "satisfaction",
-          "pleasure"
+          "joy"
         ],
         "skill": "content",
         "note": "noun for the good feeling described"
@@ -593,8 +552,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "have",
-          "possess"
+          "have"
         ],
         "skill": "grammar",
         "note": "present tense verb agreement with plural subject \"crabs\""
@@ -626,8 +584,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "at",
-          "by"
+          "at"
         ],
         "skill": "collocation",
         "note": "\"amazed at/by\" fixed phrase"
@@ -635,10 +592,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "colour",
-          "color",
-          "colours",
-          "colors"
+          "colour"
         ],
         "skill": "content",
         "note": "noun - what the crabs change to blend in"
@@ -654,9 +608,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "this",
-          "the",
-          "such"
+          "this"
         ],
         "skill": "grammar",
         "note": "determiner referring back to \"camouflage\""
@@ -664,9 +616,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "eaten",
-          "caught",
-          "hunted"
+          "eaten"
         ],
         "skill": "content",
         "note": "verb - being preyed on"
@@ -674,9 +624,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "respect",
-          "appreciation",
-          "admiration"
+          "respect"
         ],
         "skill": "content",
         "note": "noun for a feeling of high regard"
@@ -684,11 +632,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "imagined",
-          "thought",
-          "realised",
-          "believed",
-          "knew"
+          "imagined"
         ],
         "skill": "content",
         "note": "verb - to think something is true"
@@ -696,8 +640,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "As",
-          "While"
+          "As"
         ],
         "skill": "grammar",
         "note": "conjunction linking time clauses"
@@ -746,8 +689,7 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "wearing",
-          "in"
+          "wearing"
         ],
         "skill": "content",
         "note": "verb describing what he had on"
@@ -787,8 +729,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "snap",
-          "click"
+          "snap"
         ],
         "skill": "collocation",
         "note": "\"a snap/click of the fingers\" fixed phrase"
@@ -796,8 +737,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "widened",
-          "opened"
+          "widened"
         ],
         "skill": "content",
         "note": "verb describing her eyes' reaction of surprise"
@@ -805,8 +745,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "tried",
-          "attempted"
+          "tried"
         ],
         "skill": "content",
         "note": "verb meaning to attempt something"
@@ -822,9 +761,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "many",
-          "most",
-          "some"
+          "many"
         ],
         "skill": "grammar",
         "note": "determiner showing quantity"
@@ -840,10 +777,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "amazed",
-          "astonished",
-          "stunned",
-          "fascinated"
+          "amazed"
         ],
         "skill": "content",
         "note": "adjective describing strong surprise"
@@ -876,8 +810,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "until",
-          "so"
+          "until"
         ],
         "skill": "grammar",
         "note": "connector linking cause and result"
@@ -893,9 +826,7 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "towards",
-          "toward",
-          "for"
+          "towards"
         ],
         "skill": "grammar",
         "note": "preposition showing direction"
@@ -903,8 +834,7 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "until",
-          "till"
+          "until"
         ],
         "skill": "grammar",
         "note": "connector of time before an event happens"
@@ -920,9 +850,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "unfold",
-          "open",
-          "appear"
+          "unfold"
         ],
         "skill": "content",
         "note": "verb: leaves opening out towards the light"
@@ -946,10 +874,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "proper",
-          "good",
-          "careful",
-          "regular"
+          "proper"
         ],
         "skill": "content",
         "note": "adjective describing the quality of care given"
@@ -957,8 +882,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "as",
-          "while"
+          "as"
         ],
         "skill": "grammar",
         "note": "connector meaning \"during\" (as the weeks go by)"
@@ -966,8 +890,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "deeper",
-          "further"
+          "deeper"
         ],
         "skill": "content",
         "note": "adverb describing how the roots spread"
@@ -1000,9 +923,7 @@ export const clozePassages = [
       {
         "n": 1,
         "accept": [
-          "under",
-          "below",
-          "beneath"
+          "under"
         ],
         "skill": "grammar",
         "note": "preposition of place (deep ___ the ground)"
@@ -1010,9 +931,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "colony",
-          "nest",
-          "home"
+          "colony"
         ],
         "skill": "content",
         "note": "noun for where the ants live together"
@@ -1028,10 +947,7 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "could",
-          "would",
-          "can",
-          "might"
+          "could"
         ],
         "skill": "grammar",
         "note": "modal verb before \"not survive\""
@@ -1047,9 +963,7 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "tunnels",
-          "holes",
-          "passages"
+          "tunnels"
         ],
         "skill": "content",
         "note": "noun implied by \"dig ... and build new chambers\""
@@ -1073,8 +987,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "who",
-          "which"
+          "who"
         ],
         "skill": "grammar",
         "note": "relative pronoun introducing extra information"
@@ -1082,8 +995,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "against",
-          "from"
+          "against"
         ],
         "skill": "collocation",
         "note": "fixed phrase: guard against (danger)"
@@ -1091,9 +1003,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "enemy",
-          "intruder",
-          "attacker"
+          "enemy"
         ],
         "skill": "content",
         "note": "noun implied by the soldiers rushing to defend"
@@ -1117,8 +1027,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "part",
-          "role"
+          "part"
         ],
         "skill": "collocation",
         "note": "fixed phrase: a part to play"
@@ -1126,8 +1035,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "with",
-          "through"
+          "with"
         ],
         "skill": "grammar",
         "note": "preposition beginning the sentence"
@@ -1144,10 +1052,7 @@ export const clozePassages = [
       {
         "n": 1,
         "accept": [
-          "nervous",
-          "anxious",
-          "worried",
-          "scared"
+          "nervous"
         ],
         "skill": "content",
         "note": "adjective describing how she felt before the visit"
@@ -1155,9 +1060,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "might",
-          "would",
-          "could"
+          "might"
         ],
         "skill": "grammar",
         "note": "modal verb expressing possibility"
@@ -1165,10 +1068,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "However",
-          "Still",
-          "But",
-          "Nevertheless"
+          "However"
         ],
         "skill": "grammar",
         "note": "connector showing contrast with her worry"
@@ -1224,8 +1124,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "cavity",
-          "hole"
+          "cavity"
         ],
         "skill": "content",
         "note": "noun: a small hole in the tooth"
@@ -1241,8 +1140,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "hurt",
-          "ache"
+          "hurt"
         ],
         "skill": "content",
         "note": "verb: to cause pain"
@@ -1258,9 +1156,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "proud",
-          "relieved",
-          "pleased"
+          "proud"
         ],
         "skill": "content",
         "note": "adjective describing how she felt afterwards"
@@ -1301,10 +1197,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "steady",
-          "still",
-          "firm",
-          "firmly"
+          "steady"
         ],
         "skill": "content",
         "note": "meaning: held firmly in place, without moving"
@@ -1312,9 +1205,7 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "empty",
-          "quiet",
-          "deserted"
+          "empty"
         ],
         "skill": "content",
         "note": "meaning clue: a car park with no cars, suitable for practising"
@@ -1322,8 +1213,7 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "as",
-          "while"
+          "as"
         ],
         "skill": "grammar",
         "note": "conjunction meaning 'at the same time as'"
@@ -1331,10 +1221,7 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "wobbled",
-          "swayed",
-          "staggered",
-          "shook"
+          "wobbled"
         ],
         "skill": "content",
         "note": "meaning: moved unsteadily from side to side"
@@ -1374,8 +1261,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "but",
-          "yet"
+          "but"
         ],
         "skill": "grammar",
         "note": "conjunction showing contrast between two ideas"
@@ -1464,8 +1350,7 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "waterfall",
-          "falls"
+          "waterfall"
         ],
         "skill": "content",
         "note": "meaning: a large flow of falling water, hinted at by 'Rain Vortex'"
@@ -1489,8 +1374,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "rest",
-          "relax"
+          "rest"
         ],
         "skill": "content",
         "note": "meaning: to take a break, as suggested by 'while waiting'"
@@ -1571,9 +1455,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "for",
-          "as",
-          "because"
+          "for"
         ],
         "skill": "grammar",
         "note": "conjunction meaning 'because', giving the reason"
@@ -1621,8 +1503,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "under",
-          "beneath"
+          "under"
         ],
         "skill": "grammar",
         "note": "preposition describing a position below the tree"
@@ -1630,8 +1511,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "events",
-          "happenings"
+          "events"
         ],
         "skill": "content",
         "note": "meaning: things that happened during the day"
@@ -1639,11 +1519,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "curry",
-          "soup",
-          "stew",
-          "food",
-          "rice"
+          "curry"
         ],
         "skill": "content",
         "note": "meaning: a dish cooked in a big pot to share"
@@ -1651,10 +1527,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "street",
-          "kampung",
-          "neighbourhood",
-          "village"
+          "street"
         ],
         "skill": "content",
         "note": "meaning: the whole community living nearby"
@@ -1695,8 +1568,7 @@ export const clozePassages = [
       {
         "n": 1,
         "accept": [
-          "into",
-          "to"
+          "into"
         ],
         "skill": "grammar",
         "note": "preposition after 'turn' (turn into = become)"
@@ -1728,10 +1600,7 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "gently",
-          "slowly",
-          "lightly",
-          "softly"
+          "gently"
         ],
         "skill": "content",
         "note": "adverb describing how light clouds float"
@@ -1739,8 +1608,7 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "as",
-          "when"
+          "as"
         ],
         "skill": "grammar",
         "note": "connector meaning 'while' (as + clause)"
@@ -1764,8 +1632,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "part",
-          "role"
+          "part"
         ],
         "skill": "collocation",
         "note": "'play a part/role in'"
@@ -1773,8 +1640,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "flowing",
-          "running"
+          "flowing"
         ],
         "skill": "content",
         "note": "verb showing rivers stay in motion"
@@ -1782,8 +1648,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "die",
-          "wither"
+          "die"
         ],
         "skill": "content",
         "note": "meaning: without water, plants would dry up and die"
@@ -1815,9 +1680,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "around",
-          "on",
-          "near"
+          "around"
         ],
         "skill": "content",
         "note": "preposition showing rain falling all around the reader"
@@ -1850,8 +1713,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "that",
-          "which"
+          "that"
         ],
         "skill": "grammar",
         "note": "relative pronoun for 'boardwalks' (a thing)"
@@ -1867,10 +1729,7 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "very",
-          "perfectly",
-          "completely",
-          "absolutely"
+          "very"
         ],
         "skill": "content",
         "note": "adverb of degree before 'still'"
@@ -1926,10 +1785,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "precious",
-          "special",
-          "important",
-          "valuable"
+          "precious"
         ],
         "skill": "content",
         "note": "adjective showing the reserve is worth protecting"
@@ -1978,8 +1834,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "who",
-          "that"
+          "who"
         ],
         "skill": "grammar",
         "note": "relative pronoun for a person"
@@ -1987,9 +1842,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "quiet",
-          "silent",
-          "subdued"
+          "quiet"
         ],
         "skill": "content",
         "note": "adjective showing mother's unusual mood"
@@ -1997,8 +1850,7 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "if",
-          "whether"
+          "if"
         ],
         "skill": "grammar",
         "note": "conjunction introducing an indirect question after 'wonder'"
@@ -2014,8 +1866,7 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "into",
-          "to"
+          "into"
         ],
         "skill": "grammar",
         "note": "preposition showing movement into a place"
@@ -2031,11 +1882,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "astonished",
-          "surprised",
-          "shocked",
-          "stunned",
-          "amazed"
+          "astonished"
         ],
         "skill": "content",
         "note": "adjective meaning extremely surprised"
@@ -2075,10 +1922,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "wonderful",
-          "special",
-          "amazing",
-          "memorable"
+          "wonderful"
         ],
         "skill": "content",
         "note": "adjective describing the special day"
@@ -2127,8 +1971,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "on",
-          "across"
+          "on"
         ],
         "skill": "grammar",
         "note": "preposition of place (gathered on the field)"
@@ -2136,8 +1979,7 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "house",
-          "team"
+          "house"
         ],
         "skill": "content",
         "note": "the group each student belonged to for sports day"
@@ -2153,8 +1995,7 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "As",
-          "When"
+          "As"
         ],
         "skill": "grammar",
         "note": "connector introducing a time clause"
@@ -2162,8 +2003,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "fast",
-          "quickly"
+          "fast"
         ],
         "skill": "content",
         "note": "word describing the manner in which she ran"
@@ -2171,8 +2011,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "but",
-          "yet"
+          "but"
         ],
         "skill": "grammar",
         "note": "conjunction showing contrast"
@@ -2196,9 +2035,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "forward",
-          "over",
-          "up"
+          "forward"
         ],
         "skill": "content",
         "note": "word describing how her classmates moved towards her"
@@ -2214,10 +2051,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "pride",
-          "achievement",
-          "satisfaction",
-          "joy"
+          "pride"
         ],
         "skill": "content",
         "note": "the feeling she had after succeeding"
@@ -2225,8 +2059,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "During",
-          "At"
+          "During"
         ],
         "skill": "grammar",
         "note": "preposition introducing a time phrase"
@@ -2234,8 +2067,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "very",
-          "level"
+          "very"
         ],
         "skill": "collocation",
         "note": "fixed phrase: (give one's) very best / level best"
@@ -2260,8 +2092,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "along",
-          "across"
+          "along"
         ],
         "skill": "grammar",
         "note": "preposition showing movement along a surface"
@@ -2285,8 +2116,7 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "known",
-          "called"
+          "known"
         ],
         "skill": "content",
         "note": "verb meaning to be named (known as a chrysalis)"
@@ -2294,8 +2124,7 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "patient",
-          "calm"
+          "patient"
         ],
         "skill": "content",
         "note": "adjective describing how Aisyah waited"
@@ -2303,8 +2132,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "though",
-          "when"
+          "though"
         ],
         "skill": "grammar",
         "note": "conjunction: even though"
@@ -2320,9 +2148,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "squeezed",
-          "pushed",
-          "forced"
+          "squeezed"
         ],
         "skill": "content",
         "note": "verb describing how the butterfly emerged"
@@ -2346,8 +2172,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "called",
-          "termed"
+          "called"
         ],
         "skill": "content",
         "note": "verb meaning to be named (was called metamorphosis)"
@@ -2388,8 +2213,7 @@ export const clozePassages = [
       {
         "n": 1,
         "accept": [
-          "while",
-          "as"
+          "while"
         ],
         "skill": "grammar",
         "note": "conjunction introducing a time clause"
@@ -2437,8 +2261,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "as",
-          "while"
+          "as"
         ],
         "skill": "grammar",
         "note": "conjunction showing two actions happening together"
@@ -2470,9 +2293,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "common",
-          "frequent",
-          "usual"
+          "common"
         ],
         "skill": "content",
         "note": "adjective meaning happening often"
@@ -2480,8 +2301,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "shared",
-          "exchanged"
+          "shared"
         ],
         "skill": "content",
         "note": "verb describing how they talked about memories together"
@@ -2505,8 +2325,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "Although",
-          "Though"
+          "Although"
         ],
         "skill": "grammar",
         "note": "connector introducing a contrast"
@@ -2531,9 +2350,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "hurry",
-          "rush",
-          "run"
+          "hurry"
         ],
         "skill": "content",
         "note": "Verb meaning to move quickly"
@@ -2549,8 +2366,7 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "spot",
-          "place"
+          "spot"
         ],
         "skill": "content",
         "note": "Noun for a favourite location"
@@ -2574,9 +2390,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "repair",
-          "fix",
-          "mend"
+          "repair"
         ],
         "skill": "content",
         "note": "Verb meaning to mend something broken"
@@ -2584,8 +2398,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "following",
-          "next"
+          "following"
         ],
         "skill": "content",
         "note": "Adjective for the week after"
@@ -2617,8 +2430,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "When",
-          "Once"
+          "When"
         ],
         "skill": "grammar",
         "note": "Connector showing time"
@@ -2626,8 +2438,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "while",
-          "whereas"
+          "while"
         ],
         "skill": "grammar",
         "note": "Connector showing contrast"
@@ -2676,8 +2487,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "before",
-          "as"
+          "before"
         ],
         "skill": "grammar",
         "note": "Connector showing time"
@@ -2693,9 +2503,7 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "as",
-          "because",
-          "since"
+          "as"
         ],
         "skill": "grammar",
         "note": "Connector showing reason"
@@ -2703,9 +2511,7 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "about",
-          "nearly",
-          "almost"
+          "about"
         ],
         "skill": "content",
         "note": "Adverb of approximation"
@@ -2713,9 +2519,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "hole",
-          "nest",
-          "pit"
+          "hole"
         ],
         "skill": "content",
         "note": "Noun for what a turtle digs"
@@ -2723,8 +2527,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "as",
-          "while"
+          "as"
         ],
         "skill": "grammar",
         "note": "Connector showing two actions at once"
@@ -2740,8 +2543,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "still",
-          "quiet"
+          "still"
         ],
         "skill": "collocation",
         "note": "\"keep still/quiet\" = stay calm and silent"
@@ -2749,8 +2551,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "hatchlings",
-          "turtles"
+          "hatchlings"
         ],
         "skill": "content",
         "note": "Noun for baby turtles"
@@ -2855,8 +2656,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "enjoyed",
-          "ate"
+          "enjoyed"
         ],
         "skill": "content",
         "note": "Verb describing what they did with the food"
@@ -2872,8 +2672,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "but",
-          "yet"
+          "but"
         ],
         "skill": "grammar",
         "note": "Connector showing contrast"
@@ -2881,8 +2680,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "next",
-          "following"
+          "next"
         ],
         "skill": "content",
         "note": "Adjective for the day after"
@@ -2914,8 +2712,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "that",
-          "which"
+          "that"
         ],
         "skill": "grammar",
         "note": "Relative pronoun introducing a clause"
@@ -2956,8 +2753,7 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "that",
-          "which"
+          "that"
         ],
         "skill": "grammar",
         "note": "relative pronoun introducing a clause describing 'a tram'"
@@ -2973,8 +2769,7 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "grazing",
-          "grazed"
+          "grazing"
         ],
         "skill": "content",
         "note": "verb for deer feeding calmly"
@@ -2990,9 +2785,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "as",
-          "since",
-          "because"
+          "as"
         ],
         "skill": "grammar",
         "note": "conjunction giving a reason"
@@ -3000,9 +2793,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "frighten",
-          "scare",
-          "startle"
+          "frighten"
         ],
         "skill": "content",
         "note": "verb meaning to make afraid"
@@ -3034,8 +2825,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "strolled",
-          "walked"
+          "strolled"
         ],
         "skill": "content",
         "note": "verb for a leisurely walk"
@@ -3051,8 +2841,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "but",
-          "yet"
+          "but"
         ],
         "skill": "grammar",
         "note": "conjunction showing contrast"
@@ -3085,8 +2874,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "grates",
-          "grinds"
+          "grates"
         ],
         "skill": "content",
         "note": "verb for preparing the coconut"
@@ -3126,8 +2914,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "while",
-          "as"
+          "while"
         ],
         "skill": "grammar",
         "note": "conjunction for two actions happening together"
@@ -3135,8 +2922,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "steaming",
-          "cooking"
+          "steaming"
         ],
         "skill": "content",
         "note": "verb for the cooking method used for kueh"
@@ -3152,9 +2938,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "taste",
-          "try",
-          "eat"
+          "taste"
         ],
         "skill": "content",
         "note": "verb meaning to eat a little to sample it"
@@ -3186,8 +2970,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "as",
-          "when"
+          "as"
         ],
         "skill": "grammar",
         "note": "conjunction of time"
@@ -3252,8 +3035,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "colouring",
-          "dye"
+          "colouring"
         ],
         "skill": "content",
         "note": "noun - substance added to change the foam's colour"
@@ -3269,8 +3051,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "while",
-          "as"
+          "while"
         ],
         "skill": "grammar",
         "note": "conjunction for two actions happening together"
@@ -3310,8 +3091,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "Although",
-          "Though"
+          "Although"
         ],
         "skill": "grammar",
         "note": "conjunction of contrast, capitalised at start of sentence"
@@ -3336,8 +3116,7 @@ export const clozePassages = [
       {
         "n": 1,
         "accept": [
-          "when",
-          "as"
+          "when"
         ],
         "skill": "grammar",
         "note": "Time conjunction linking the two clauses"
@@ -3345,10 +3124,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "sound",
-          "noise",
-          "cry",
-          "whimper"
+          "sound"
         ],
         "skill": "content",
         "note": "Noun for the whining she heard"
@@ -3356,8 +3132,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "in",
-          "from"
+          "in"
         ],
         "skill": "grammar",
         "note": "Preposition after \"shivering\""
@@ -3389,9 +3164,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "description",
-          "write-up",
-          "account"
+          "description"
         ],
         "skill": "content",
         "note": "A brief written account of the puppy's look"
@@ -3407,11 +3180,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "anxious",
-          "eager",
-          "worried",
-          "hopeful",
-          "nervous"
+          "anxious"
         ],
         "skill": "content",
         "note": "Adjective for how the man felt arriving"
@@ -3443,10 +3212,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "gesture",
-          "act",
-          "action",
-          "effort"
+          "gesture"
         ],
         "skill": "content",
         "note": "Noun for a small kind deed"
@@ -3454,8 +3220,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "can",
-          "could"
+          "can"
         ],
         "skill": "grammar",
         "note": "Modal verb expressing possibility"
@@ -3463,9 +3228,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "onwards",
-          "on",
-          "forward"
+          "onwards"
         ],
         "skill": "collocation",
         "note": "\"from that day onwards/on\" = a fixed time phrase"
@@ -3482,9 +3245,7 @@ export const clozePassages = [
       {
         "n": 1,
         "accept": [
-          "in",
-          "throughout",
-          "across"
+          "in"
         ],
         "skill": "grammar",
         "note": "Preposition of place"
@@ -3500,8 +3261,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "salt",
-          "sugar"
+          "salt"
         ],
         "skill": "content",
         "note": "A common ingredient mixed into bread dough"
@@ -3509,9 +3269,7 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "because",
-          "as",
-          "since"
+          "because"
         ],
         "skill": "grammar",
         "note": "Conjunction giving the reason"
@@ -3519,9 +3277,7 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "rise",
-          "expand",
-          "grow"
+          "rise"
         ],
         "skill": "content",
         "note": "What yeast makes dough do"
@@ -3545,9 +3301,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "since",
-          "because",
-          "as"
+          "since"
         ],
         "skill": "grammar",
         "note": "Conjunction giving the reason kneading matters"
@@ -3571,10 +3325,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "bubbles",
-          "air pockets",
-          "air bubbles",
-          "holes"
+          "bubbles"
         ],
         "skill": "content",
         "note": "What forms inside rising dough"
@@ -3598,9 +3349,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "golden",
-          "brown",
-          "golden-brown"
+          "golden"
         ],
         "skill": "content",
         "note": "The colour of a well-baked crust"
@@ -3641,9 +3390,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "engine",
-          "truck",
-          "lorry"
+          "engine"
         ],
         "skill": "content",
         "note": "The vehicle firefighters use to reach fires"
@@ -3667,9 +3414,7 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "carefully",
-          "attentively",
-          "closely"
+          "carefully"
         ],
         "skill": "content",
         "note": "How the pupils listened while taking notes"
@@ -3685,8 +3430,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "heavy",
-          "bulky"
+          "heavy"
         ],
         "skill": "content",
         "note": "Describes the weight of the jacket"
@@ -3702,8 +3446,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "every",
-          "each"
+          "every"
         ],
         "skill": "grammar",
         "note": "Determiner before a singular noun"
@@ -3735,8 +3478,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "who",
-          "that"
+          "who"
         ],
         "skill": "grammar",
         "note": "Relative pronoun referring to people"
@@ -3744,10 +3486,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "community",
-          "neighbourhood",
-          "public",
-          "town"
+          "community"
         ],
         "skill": "content",
         "note": "The people firefighters protect"
@@ -3764,9 +3503,7 @@ export const clozePassages = [
       {
         "n": 1,
         "accept": [
-          "by",
-          "near",
-          "beside"
+          "by"
         ],
         "skill": "grammar",
         "note": "preposition of place (sit by the window)"
@@ -3774,9 +3511,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "across",
-          "through",
-          "over"
+          "across"
         ],
         "skill": "grammar",
         "note": "preposition showing movement across the sky"
@@ -3784,8 +3519,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "while",
-          "whereas"
+          "while"
         ],
         "skill": "grammar",
         "note": "connector showing contrast between two clauses"
@@ -3793,8 +3527,7 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "into",
-          "in"
+          "into"
         ],
         "skill": "grammar",
         "note": "preposition: stretch out into thin streaks"
@@ -3818,8 +3551,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "whereas",
-          "while"
+          "whereas"
         ],
         "skill": "grammar",
         "note": "connector showing contrast with the previous clause"
@@ -3827,8 +3559,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "as",
-          "when"
+          "as"
         ],
         "skill": "grammar",
         "note": "conjunction of time (as the sun set)"
@@ -3836,11 +3567,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "amazed",
-          "surprised",
-          "astonished",
-          "delighted",
-          "excited"
+          "amazed"
         ],
         "skill": "content",
         "note": "adjective describing her strong reaction (so...that)"
@@ -3856,10 +3583,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "spot",
-          "find",
-          "pick out",
-          "make out"
+          "spot"
         ],
         "skill": "content",
         "note": "verb meaning to notice or identify shapes"
@@ -3867,10 +3591,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "appear",
-          "shine",
-          "twinkle",
-          "come out"
+          "appear"
         ],
         "skill": "content",
         "note": "verb describing what stars do at night"
@@ -3886,8 +3607,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "book",
-          "guidebook"
+          "book"
         ],
         "skill": "content",
         "note": "noun for what she borrowed from the library"
@@ -3912,8 +3632,7 @@ export const clozePassages = [
       {
         "n": 1,
         "accept": [
-          "at",
-          "in"
+          "at"
         ],
         "skill": "grammar",
         "note": "preposition of place"
@@ -3921,9 +3640,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "When",
-          "As",
-          "Once"
+          "When"
         ],
         "skill": "grammar",
         "note": "time conjunction linking two clauses"
@@ -3931,9 +3648,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "pitch",
-          "put up",
-          "set up"
+          "pitch"
         ],
         "skill": "collocation",
         "note": "fixed phrase 'pitch a tent'"
@@ -3941,8 +3656,7 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "while",
-          "as"
+          "while"
         ],
         "skill": "grammar",
         "note": "conjunction showing two actions happening at the same time"
@@ -3958,9 +3672,7 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "around",
-          "by",
-          "near"
+          "around"
         ],
         "skill": "collocation",
         "note": "fixed phrase 'sit around the campfire'"
@@ -3976,9 +3688,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "laugh",
-          "giggle",
-          "smile"
+          "laugh"
         ],
         "skill": "content",
         "note": "verb: what her silly jokes caused"
@@ -4002,11 +3712,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "nervous",
-          "scared",
-          "afraid",
-          "uneasy",
-          "anxious"
+          "nervous"
         ],
         "skill": "content",
         "note": "adjective describing Ethan's feeling at night"
@@ -4014,9 +3720,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "but",
-          "yet",
-          "though"
+          "but"
         ],
         "skill": "grammar",
         "note": "connector showing contrast"
@@ -4024,8 +3728,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "fast",
-          "sound"
+          "fast"
         ],
         "skill": "collocation",
         "note": "fixed phrase 'fast/sound asleep'"
@@ -4041,9 +3744,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "memories",
-          "experiences",
-          "moments"
+          "memories"
         ],
         "skill": "content",
         "note": "noun for treasured things from his life"
@@ -4060,9 +3761,7 @@ export const clozePassages = [
       {
         "n": 1,
         "accept": [
-          "by",
-          "near",
-          "beside"
+          "by"
         ],
         "skill": "grammar",
         "note": "preposition of place (corner by the window)"
@@ -4070,8 +3769,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "Once",
-          "After"
+          "Once"
         ],
         "skill": "grammar",
         "note": "time conjunction linking two clauses"
@@ -4087,8 +3785,7 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "from",
-          "out of"
+          "from"
         ],
         "skill": "grammar",
         "note": "preposition showing what the shelf was made from"
@@ -4096,8 +3793,7 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "cover",
-          "case"
+          "cover"
         ],
         "skill": "content",
         "note": "noun for the sewn covering on the cushion"
@@ -4129,9 +3825,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "quietly",
-          "gently",
-          "silently"
+          "quietly"
         ],
         "skill": "content",
         "note": "adverb describing how the brother joined her"
@@ -4155,10 +3849,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "favourite",
-          "cosiest",
-          "best",
-          "coziest"
+          "favourite"
         ],
         "skill": "content",
         "note": "adjective describing the corner's special status in the house"
@@ -4174,10 +3865,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "daily",
-          "often",
-          "regularly",
-          "always"
+          "daily"
         ],
         "skill": "content",
         "note": "adverb showing how frequently she would visit the corner"
@@ -4185,9 +3873,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "when",
-          "though",
-          "if"
+          "when"
         ],
         "skill": "grammar",
         "note": "conjunction after 'even' introducing a concessive clause"
@@ -4204,8 +3890,7 @@ export const clozePassages = [
       {
         "n": 1,
         "accept": [
-          "comes",
-          "springs"
+          "comes"
         ],
         "skill": "collocation",
         "note": "collocation: come/spring to life = start being active"
@@ -4213,8 +3898,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "and",
-          "so"
+          "and"
         ],
         "skill": "grammar",
         "note": "conjunction joining two related clauses"
@@ -4270,8 +3954,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "form",
-          "join"
+          "form"
         ],
         "skill": "content",
         "note": "content verb implied by 'long queues' following it"
@@ -4287,8 +3970,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "while",
-          "and"
+          "while"
         ],
         "skill": "grammar",
         "note": "connector linking two simultaneous actions"
@@ -4304,8 +3986,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "closed",
-          "shut"
+          "closed"
         ],
         "skill": "content",
         "note": "content verb implied by stalls no longer operating"
@@ -4370,9 +4051,7 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "form",
-          "develop",
-          "grow"
+          "form"
         ],
         "skill": "content",
         "note": "content verb implied by the pupa's transformation"
@@ -4404,8 +4083,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "while",
-          "and"
+          "while"
         ],
         "skill": "grammar",
         "note": "connector linking male and female actions"
@@ -4413,9 +4091,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "shows",
-          "reveals",
-          "explains"
+          "shows"
         ],
         "skill": "content",
         "note": "content verb meaning 'makes clear'"
@@ -4431,9 +4107,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "confuses",
-          "disrupts",
-          "disturbs"
+          "confuses"
         ],
         "skill": "content",
         "note": "content verb meaning to interfere with"
@@ -4449,10 +4123,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "remarkable",
-          "fascinating",
-          "amazing",
-          "wonderful"
+          "remarkable"
         ],
         "skill": "content",
         "note": "content adjective contrasting with 'brief'"
@@ -4485,8 +4156,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "pushed",
-          "kicked"
+          "pushed"
         ],
         "skill": "content",
         "note": "content verb - riders propelled themselves since there were no pedals"
@@ -4494,10 +4164,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "provided",
-          "offered",
-          "became",
-          "was"
+          "provided"
         ],
         "skill": "content",
         "note": "content verb describing what the invention did"
@@ -4505,8 +4172,7 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "that",
-          "when"
+          "that"
         ],
         "skill": "grammar",
         "note": "cleft/relative structure after 'It was only in the 1860s...'"
@@ -4530,9 +4196,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "while",
-          "though",
-          "although"
+          "while"
         ],
         "skill": "grammar",
         "note": "concessive connector"
@@ -4548,8 +4212,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "by",
-          "with"
+          "by"
         ],
         "skill": "grammar",
         "note": "preposition after 'connected'"
@@ -4557,8 +4220,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "gained",
-          "gathered"
+          "gained"
         ],
         "skill": "collocation",
         "note": "collocation: gain/gather popularity = become well-liked"
@@ -4574,8 +4236,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "turned",
-          "made"
+          "turned"
         ],
         "skill": "content",
         "note": "causative verb: turned X into Y"
@@ -4583,8 +4244,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "whereas",
-          "while"
+          "whereas"
         ],
         "skill": "grammar",
         "note": "contrast connector"
@@ -4592,9 +4252,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "as",
-          "since",
-          "because"
+          "as"
         ],
         "skill": "grammar",
         "note": "reason connector"
@@ -4635,8 +4293,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "in",
-          "of"
+          "in"
         ],
         "skill": "grammar",
         "note": "preposition after 'stage' - a stage in/of the water cycle"
@@ -4644,9 +4301,7 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "moisture",
-          "water",
-          "vapour"
+          "moisture"
         ],
         "skill": "content",
         "note": "what plants release through their leaves, later named transpiration"
@@ -4670,8 +4325,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "When",
-          "Once"
+          "When"
         ],
         "skill": "grammar",
         "note": "time conjunction introducing the condition for rain to fall"
@@ -4719,8 +4373,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "keeping",
-          "bearing"
+          "keeping"
         ],
         "skill": "collocation",
         "note": "'keep/bear in mind' - fixed phrase meaning to remember something"
@@ -4753,8 +4406,7 @@ export const clozePassages = [
       {
         "n": 1,
         "accept": [
-          "that",
-          "which"
+          "that"
         ],
         "skill": "grammar",
         "note": "relative pronoun introducing a clause describing the reef"
@@ -4762,8 +4414,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "but",
-          "yet"
+          "but"
         ],
         "skill": "grammar",
         "note": "connector showing contrast between appearance and reality"
@@ -4771,8 +4422,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "Each",
-          "Every"
+          "Each"
         ],
         "skill": "grammar",
         "note": "determiner meaning every single polyp"
@@ -4788,9 +4438,7 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "in",
-          "inside",
-          "within"
+          "in"
         ],
         "skill": "grammar",
         "note": "preposition showing where the algae live"
@@ -4798,8 +4446,7 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "benefits",
-          "helps"
+          "benefits"
         ],
         "skill": "content",
         "note": "meaning-bearing verb - both the coral and algae gain something from each other"
@@ -4823,9 +4470,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "drift",
-          "float",
-          "die"
+          "drift"
         ],
         "skill": "collocation",
         "note": "algae leave the coral during bleaching ('drift/float away') or die, causing the coral to turn pale"
@@ -4841,9 +4486,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "action",
-          "help",
-          "protection"
+          "action"
         ],
         "skill": "content",
         "note": "meaning-bearing noun - what is needed so reefs can survive"
@@ -4859,8 +4502,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "care",
-          "caution"
+          "care"
         ],
         "skill": "content",
         "note": "meaning-bearing noun implied by 'even a light touch can damage it'"
@@ -4876,8 +4518,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "sight",
-          "beauty"
+          "sight"
         ],
         "skill": "content",
         "note": "meaning-bearing noun - the sight of colourful fish and coral delighting children"
@@ -4918,8 +4559,7 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "gather",
-          "collect"
+          "gather"
         ],
         "skill": "content",
         "note": "meaning-bearing verb - what a bee does with nectar from many flowers"
@@ -4959,9 +4599,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "store",
-          "pack",
-          "deposit"
+          "store"
         ],
         "skill": "content",
         "note": "meaning-bearing verb - bees place honey into the honeycomb cells"
@@ -4977,8 +4615,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "moisture",
-          "water"
+          "moisture"
         ],
         "skill": "content",
         "note": "meaning-bearing noun - what fanning removes to thicken nectar into honey"
@@ -5067,10 +4704,7 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "amazing",
-          "remarkable",
-          "astonishing",
-          "incredible"
+          "amazing"
         ],
         "skill": "content",
         "note": "adjective showing wonder at the birds' ability"
@@ -5086,10 +4720,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "resist",
-          "ignore",
-          "control",
-          "suppress"
+          "resist"
         ],
         "skill": "collocation",
         "note": "fixed phrase 'cannot resist' an urge"
@@ -5097,8 +4728,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "as",
-          "when"
+          "as"
         ],
         "skill": "grammar",
         "note": "connector linking two events happening together"
@@ -5122,11 +4752,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "will",
-          "may",
-          "might",
-          "would",
-          "could"
+          "will"
         ],
         "skill": "grammar",
         "note": "modal verb expressing future possibility"
@@ -5134,9 +4760,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "responsibility",
-          "duty",
-          "job"
+          "responsibility"
         ],
         "skill": "content",
         "note": "noun naming an obligation"
@@ -5144,10 +4768,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "witness",
-          "see",
-          "enjoy",
-          "experience"
+          "witness"
         ],
         "skill": "content",
         "note": "verb meaning to observe something happening"
@@ -5155,10 +4776,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "spectacle",
-          "wonder",
-          "phenomenon",
-          "sight"
+          "spectacle"
         ],
         "skill": "content",
         "note": "noun for an impressive natural event"
@@ -5183,10 +4801,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "rises",
-          "moves",
-          "flows",
-          "travels"
+          "rises"
         ],
         "skill": "content",
         "note": "verb describing magma moving upward"
@@ -5226,11 +4841,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "spewing",
-          "hurling",
-          "throwing",
-          "shooting",
-          "blasting"
+          "spewing"
         ],
         "skill": "content",
         "note": "verb describing the violent ejection of material"
@@ -5254,8 +4865,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "that",
-          "which"
+          "that"
         ],
         "skill": "grammar",
         "note": "relative pronoun introducing a defining clause"
@@ -5271,9 +4881,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "Although",
-          "While",
-          "Though"
+          "Although"
         ],
         "skill": "grammar",
         "note": "concessive conjunction linking a contrast"
@@ -5289,10 +4897,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "live",
-          "settle",
-          "remain",
-          "farm"
+          "live"
         ],
         "skill": "content",
         "note": "verb meaning to reside in a place"
@@ -5300,9 +4905,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "harvests",
-          "crops",
-          "farming"
+          "harvests"
         ],
         "skill": "content",
         "note": "noun for what fertile soil produces"
@@ -5319,10 +4922,7 @@ export const clozePassages = [
       {
         "n": 1,
         "accept": [
-          "beloved",
-          "popular",
-          "famous",
-          "loved"
+          "beloved"
         ],
         "skill": "content",
         "note": "adjective describing how well-liked pandas are"
@@ -5354,9 +4954,7 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "allow",
-          "enable",
-          "help"
+          "allow"
         ],
         "skill": "content",
         "note": "verb meaning to make something possible"
@@ -5372,9 +4970,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "brink",
-          "edge",
-          "verge"
+          "brink"
         ],
         "skill": "collocation",
         "note": "fixed phrase: on the brink of, meaning very close to"
@@ -5382,10 +4978,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "fragmented",
-          "damaged",
-          "destroyed",
-          "reduced"
+          "fragmented"
         ],
         "skill": "content",
         "note": "adjective describing habitat broken into small pieces"
@@ -5441,11 +5034,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "rise",
-          "soar",
-          "increase",
-          "jump",
-          "grow"
+          "rise"
         ],
         "skill": "content",
         "note": "verb describing numbers going up"
@@ -5478,9 +5067,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "find",
-          "secure",
-          "get"
+          "find"
         ],
         "skill": "content",
         "note": "verb meaning to obtain a place to stand"
@@ -5488,10 +5075,7 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "delayed",
-          "held up",
-          "stalled",
-          "halted"
+          "delayed"
         ],
         "skill": "content",
         "note": "verb meaning stopped/slowed, implied by 'signal fault'"
@@ -5515,8 +5099,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "and",
-          "then"
+          "and"
         ],
         "skill": "grammar",
         "note": "conjunction linking two actions in sequence"
@@ -5532,10 +5115,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "tense",
-          "strained",
-          "charged",
-          "heavy"
+          "tense"
         ],
         "skill": "content",
         "note": "adjective describing the mood on the platform"
@@ -5551,9 +5131,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "during",
-          "amid",
-          "in"
+          "during"
         ],
         "skill": "grammar",
         "note": "preposition of time: 'even during the rush'"
@@ -5577,11 +5155,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "real",
-          "big",
-          "huge",
-          "noticeable",
-          "great"
+          "real"
         ],
         "skill": "content",
         "note": "adjective intensifying 'a difference'"
@@ -5622,10 +5196,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "piled",
-          "laden",
-          "stocked",
-          "filled"
+          "piled"
         ],
         "skill": "content",
         "note": "verb/participle describing a stall covered in goods"
@@ -5633,10 +5204,7 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "smell",
-          "odour",
-          "stench",
-          "reek"
+          "smell"
         ],
         "skill": "content",
         "note": "noun for what fills the air, cued by 'sharp'"
@@ -5644,9 +5212,7 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "because",
-          "since",
-          "as"
+          "because"
         ],
         "skill": "grammar",
         "note": "connector giving a reason"
@@ -5662,8 +5228,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "as",
-          "while"
+          "as"
         ],
         "skill": "grammar",
         "note": "connector for two actions happening at the same time"
@@ -5679,10 +5244,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "lift",
-          "carry",
-          "heave",
-          "hoist"
+          "lift"
         ],
         "skill": "content",
         "note": "verb meaning to raise something heavy"
@@ -5698,9 +5260,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "touched",
-          "moved",
-          "grateful"
+          "touched"
         ],
         "skill": "content",
         "note": "adjective for being emotionally affected by kindness"
@@ -5757,9 +5317,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "stocks",
-          "carries",
-          "has"
+          "stocks"
         ],
         "skill": "content",
         "note": "verb meaning to keep in stock"
@@ -5815,8 +5373,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "in",
-          "within"
+          "in"
         ],
         "skill": "grammar",
         "note": "preposition of time duration: 'in two days'"
@@ -5832,10 +5389,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "down",
-          "low",
-          "sad",
-          "upset"
+          "down"
         ],
         "skill": "content",
         "note": "adjective describing a low mood"
@@ -5843,8 +5397,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "in",
-          "among"
+          "in"
         ],
         "skill": "grammar",
         "note": "preposition after 'comfort'"
@@ -5860,10 +5413,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "devastated",
-          "heartbroken",
-          "upset",
-          "sad"
+          "devastated"
         ],
         "skill": "content",
         "note": "adjective for strong sadness at the news"
@@ -5871,10 +5421,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "love",
-          "view",
-          "taste",
-          "appreciation"
+          "love"
         ],
         "skill": "content",
         "note": "noun for one's relationship to books, shaped over time"
@@ -5899,10 +5446,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "plied",
-          "sailed",
-          "moved",
-          "travelled"
+          "plied"
         ],
         "skill": "content",
         "note": "verb for boats regularly travelling a route"
@@ -5910,9 +5454,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "godowns",
-          "warehouses",
-          "storehouses"
+          "godowns"
         ],
         "skill": "content",
         "note": "riverside buildings used to store traded goods"
@@ -5928,9 +5470,7 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "loudly",
-          "noisily",
-          "constantly"
+          "loudly"
         ],
         "skill": "content",
         "note": "adverb describing how the traders shouted"
@@ -5938,8 +5478,7 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "After",
-          "Over"
+          "After"
         ],
         "skill": "grammar",
         "note": "preposition introducing a period of time"
@@ -5995,9 +5534,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "Although",
-          "While",
-          "Once"
+          "Although"
         ],
         "skill": "grammar",
         "note": "conjunction of contrast/time linking two clauses"
@@ -6005,8 +5542,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "as",
-          "when"
+          "as"
         ],
         "skill": "grammar",
         "note": "conjunction linking two simultaneous actions"
@@ -6014,9 +5550,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "still",
-          "today",
-          "now"
+          "still"
         ],
         "skill": "content",
         "note": "adverb showing the lesson still holds true"
@@ -6033,9 +5567,7 @@ export const clozePassages = [
       {
         "n": 1,
         "accept": [
-          "Many",
-          "Most",
-          "Some"
+          "Many"
         ],
         "skill": "grammar",
         "note": "quantifier before 'of her neighbours'"
@@ -6075,10 +5607,7 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "planks",
-          "boards",
-          "crates",
-          "pallets"
+          "planks"
         ],
         "skill": "content",
         "note": "material the raised beds were built from"
@@ -6094,10 +5623,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "worked",
-          "gathered",
-          "came",
-          "toiled"
+          "worked"
         ],
         "skill": "content",
         "note": "verb describing residents working together"
@@ -6145,9 +5671,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "Indeed",
-          "Today",
-          "Eventually"
+          "Indeed"
         ],
         "skill": "grammar",
         "note": "connector introducing the concluding sentence"
@@ -6155,9 +5679,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "community",
-          "neighbourhood",
-          "estate"
+          "community"
         ],
         "skill": "content",
         "note": "noun for the group of residents who share the garden"
@@ -6190,10 +5712,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "filled",
-          "packed",
-          "thronged",
-          "crowded"
+          "filled"
         ],
         "skill": "content",
         "note": "verb describing crowds filling the lanes"
@@ -6201,8 +5720,7 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "in",
-          "of"
+          "in"
         ],
         "skill": "grammar",
         "note": "preposition before 'every flavour imaginable'"
@@ -6210,9 +5728,7 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "colourful",
-          "bright",
-          "glowing"
+          "colourful"
         ],
         "skill": "content",
         "note": "adjective describing the paper lanterns"
@@ -6236,9 +5752,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "beat",
-          "played",
-          "struck"
+          "beat"
         ],
         "skill": "content",
         "note": "verb describing how the drummers played"
@@ -6254,8 +5768,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "but",
-          "yet"
+          "but"
         ],
         "skill": "grammar",
         "note": "conjunction of contrast"
@@ -6263,8 +5776,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "handed",
-          "gave"
+          "handed"
         ],
         "skill": "collocation",
         "note": "fixed phrase 'handed out'"
@@ -6272,8 +5784,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "Although",
-          "While"
+          "Although"
         ],
         "skill": "grammar",
         "note": "conjunction of contrast introducing the clause"
@@ -6289,9 +5800,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "As",
-          "When",
-          "Once"
+          "As"
         ],
         "skill": "grammar",
         "note": "conjunction linking sequential actions"
@@ -6299,9 +5808,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "return",
-          "awaken",
-          "revive"
+          "return"
         ],
         "skill": "content",
         "note": "verb showing Chinatown becoming lively again"
@@ -6334,10 +5841,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "owned",
-          "saw",
-          "read",
-          "held"
+          "owned"
         ],
         "skill": "content",
         "note": "Content: too poor and books too rare for families to own/see a page."
@@ -6369,10 +5873,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "many",
-          "more",
-          "countless",
-          "numerous"
+          "many"
         ],
         "skill": "content",
         "note": "Content: contrast between one scribe's slow output and the press's fast output."
@@ -6396,10 +5897,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "sharply",
-          "dramatically",
-          "rapidly",
-          "steadily"
+          "sharply"
         ],
         "skill": "content",
         "note": "Content adverb describing a big, quick drop."
@@ -6407,8 +5905,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "widely",
-          "readily"
+          "widely"
         ],
         "skill": "collocation",
         "note": "Collocation 'widely available' = accessible to many people."
@@ -6416,8 +5913,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "Indeed",
-          "In fact"
+          "Indeed"
         ],
         "skill": "grammar",
         "note": "Connector adding a further point."
@@ -6433,10 +5929,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "sparked",
-          "triggered",
-          "fuelled",
-          "ignited"
+          "sparked"
         ],
         "skill": "content",
         "note": "Content verb: the exchange of ideas caused debates."
@@ -6469,10 +5962,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "obtain",
-          "find",
-          "get",
-          "produce"
+          "obtain"
         ],
         "skill": "content",
         "note": "Content: old writing materials were hard to get."
@@ -6512,10 +6002,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "travelled",
-          "spread",
-          "moved",
-          "journeyed"
+          "travelled"
         ],
         "skill": "content",
         "note": "Content verb describing how the news moved over time."
@@ -6531,10 +6018,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "brought",
-          "forced",
-          "drove",
-          "pushed"
+          "brought"
         ],
         "skill": "collocation",
         "note": "Collocation '(bring) down the price' = reduce it."
@@ -6542,10 +6026,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "useful",
-          "valuable",
-          "practical",
-          "remarkable"
+          "useful"
         ],
         "skill": "content",
         "note": "Content adjective explaining why the material mattered."
@@ -6561,9 +6042,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "However",
-          "Nevertheless",
-          "Yet"
+          "However"
         ],
         "skill": "grammar",
         "note": "Connector of contrast."
@@ -6579,10 +6058,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "deeply",
-          "profoundly",
-          "greatly",
-          "significantly"
+          "deeply"
         ],
         "skill": "content",
         "note": "Content adverb showing degree of impact."
@@ -6615,8 +6091,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "that",
-          "which"
+          "that"
         ],
         "skill": "grammar",
         "note": "Relative pronoun referring to 'wings'."
@@ -6656,9 +6131,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "finally",
-          "fully",
-          "at last"
+          "finally"
         ],
         "skill": "content",
         "note": "Content adverb: ready at last after years of testing."
@@ -6690,9 +6163,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "powered",
-          "motorised",
-          "motorized"
+          "powered"
         ],
         "skill": "content",
         "note": "Content adjective: an engine-driven flight."
@@ -6700,10 +6171,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "believed",
-          "thought",
-          "accepted",
-          "imagined"
+          "believed"
         ],
         "skill": "content",
         "note": "Content verb: newspapers doubted the machine was real."
@@ -6711,9 +6179,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "however",
-          "yet",
-          "still"
+          "however"
         ],
         "skill": "grammar",
         "note": "Connector of contrast with the earlier scepticism."
@@ -6729,10 +6195,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "dared",
-          "wanted",
-          "longed",
-          "wished"
+          "dared"
         ],
         "skill": "content",
         "note": "Content verb: the courage/desire to look up at the sky."
@@ -6781,9 +6244,7 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "When",
-          "As",
-          "While"
+          "When"
         ],
         "skill": "grammar",
         "note": "subordinating conjunction introducing a time clause"
@@ -6799,9 +6260,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "recording",
-          "noting",
-          "logging"
+          "recording"
         ],
         "skill": "content",
         "note": "verb: what he did in the logbook with each ship"
@@ -6825,8 +6284,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "bring",
-          "deliver"
+          "bring"
         ],
         "skill": "content",
         "note": "verb: what a supply boat does with food and letters"
@@ -6834,9 +6292,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "as",
-          "for",
-          "because"
+          "as"
         ],
         "skill": "grammar",
         "note": "conjunction giving a reason"
@@ -6844,8 +6300,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "who",
-          "that"
+          "who"
         ],
         "skill": "grammar",
         "note": "relative pronoun referring to the keeper (a person)"
@@ -6853,10 +6308,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "care",
-          "kindness",
-          "dedication",
-          "devotion"
+          "care"
         ],
         "skill": "content",
         "note": "noun: the quality Mr Tan showed for decades"
@@ -6864,8 +6316,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "despite",
-          "after"
+          "despite"
         ],
         "skill": "grammar",
         "note": "preposition introducing the years of service"
@@ -6873,9 +6324,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "forever",
-          "always",
-          "constantly"
+          "forever"
         ],
         "skill": "content",
         "note": "adverb emphasising continuity (not 'still', already used in this sentence)"
@@ -6892,8 +6341,7 @@ export const clozePassages = [
       {
         "n": 1,
         "accept": [
-          "by",
-          "with"
+          "by"
         ],
         "skill": "collocation",
         "note": "fixed phrase: fascinated by/with"
@@ -6901,9 +6349,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "along",
-          "through",
-          "over"
+          "along"
         ],
         "skill": "grammar",
         "note": "preposition of movement along a wire"
@@ -6911,9 +6357,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "send",
-          "transmit",
-          "relay"
+          "send"
         ],
         "skill": "content",
         "note": "verb: what the telegraph did with messages"
@@ -6921,8 +6365,7 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "that",
-          "which"
+          "that"
         ],
         "skill": "grammar",
         "note": "relative pronoun introducing a clause about 'a machine'"
@@ -6970,8 +6413,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "but",
-          "yet"
+          "but"
         ],
         "skill": "grammar",
         "note": "connector showing contrast"
@@ -6987,10 +6429,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "along",
-          "through",
-          "over",
-          "down"
+          "along"
         ],
         "skill": "grammar",
         "note": "preposition of movement along wires"
@@ -7006,10 +6445,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "shaping",
-          "transforming",
-          "changing",
-          "creating"
+          "shaping"
         ],
         "skill": "content",
         "note": "verb: effect of the invention on the modern age"
@@ -7042,8 +6478,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "but",
-          "yet"
+          "but"
         ],
         "skill": "grammar",
         "note": "connector showing contrast"
@@ -7067,8 +6502,7 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "pointed",
-          "faced"
+          "pointed"
         ],
         "skill": "content",
         "note": "verb: what the lodestone did when swinging freely"
@@ -7076,9 +6510,7 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "gained",
-          "acquired",
-          "took on"
+          "gained"
         ],
         "skill": "content",
         "note": "verb: the needle obtained the lodestone's property"
@@ -7094,8 +6526,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "in",
-          "on"
+          "in"
         ],
         "skill": "grammar",
         "note": "preposition: floating in/on water"
@@ -7127,9 +6558,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "glance",
-          "look",
-          "peer"
+          "glance"
         ],
         "skill": "content",
         "note": "verb: to look briefly at something"
@@ -7137,9 +6566,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "confidence",
-          "courage",
-          "freedom"
+          "confidence"
         ],
         "skill": "content",
         "note": "noun: what allowed sailors to venture further from shore"
@@ -7212,8 +6639,7 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "but",
-          "yet"
+          "but"
         ],
         "skill": "grammar",
         "note": "Conjunction showing contrast with the first clause."
@@ -7221,8 +6647,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "if",
-          "when"
+          "if"
         ],
         "skill": "grammar",
         "note": "Conditional conjunction: the rule only holds under this condition."
@@ -7246,9 +6671,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "hobby",
-          "pastime",
-          "interest"
+          "hobby"
         ],
         "skill": "content",
         "note": "A leisure activity chosen for him, contrasted with a serious pursuit."
@@ -7256,10 +6679,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "composure",
-          "calm",
-          "calmness",
-          "coolness"
+          "composure"
         ],
         "skill": "content",
         "note": "Staying calm under pressure, praised by the teacher."
@@ -7283,9 +6703,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "concert",
-          "performance",
-          "recital"
+          "concert"
         ],
         "skill": "content",
         "note": "The event he is now looking forward to, matching the passage title."
@@ -7293,10 +6711,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "young",
-          "aspiring",
-          "budding",
-          "younger"
+          "young"
         ],
         "skill": "content",
         "note": "Describes the musicians he hopes to inspire one day, as his teacher inspired him."
@@ -7329,9 +6744,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "reluctant",
-          "unwilling",
-          "hesitant"
+          "reluctant"
         ],
         "skill": "content",
         "note": "Unwilling to change their habits at first."
@@ -7355,8 +6768,7 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "countless",
-          "many"
+          "countless"
         ],
         "skill": "content",
         "note": "A very large, uncountable number of trees."
@@ -7396,10 +6808,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "sharply",
-          "significantly",
-          "dramatically",
-          "considerably"
+          "sharply"
         ],
         "skill": "content",
         "note": "Describes a large decrease in rubbish sent to landfills."
@@ -7431,9 +6840,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "initiative",
-          "effort",
-          "idea"
+          "initiative"
         ],
         "skill": "content",
         "note": "A project or plan started by the school, sparking wider change."
@@ -7458,9 +6865,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "who",
-          "that",
-          "which"
+          "who"
         ],
         "skill": "grammar",
         "note": "Relative pronoun referring back to 'dogs'."
@@ -7468,10 +6873,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "lonely",
-          "alone",
-          "unloved",
-          "forgotten"
+          "lonely"
         ],
         "skill": "content",
         "note": "How Aisha made sure the dogs never felt, despite having no home."
@@ -7511,9 +6913,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "eventually",
-          "gradually",
-          "slowly"
+          "eventually"
         ],
         "skill": "content",
         "note": "Describes how the puppy's trust was won, over time."
@@ -7521,8 +6921,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "weeks",
-          "days"
+          "weeks"
         ],
         "skill": "content",
         "note": "Unit of time following 'a few'."
@@ -7546,8 +6945,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "but",
-          "yet"
+          "but"
         ],
         "skill": "grammar",
         "note": "Conjunction showing contrast between 'tired' and 'covered in fur'."
@@ -7588,9 +6986,7 @@ export const clozePassages = [
       {
         "n": 1,
         "accept": [
-          "because",
-          "as",
-          "since"
+          "because"
         ],
         "skill": "grammar",
         "note": "conjunction introducing the reason fish farms are needed"
@@ -7598,8 +6994,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "support",
-          "sustain"
+          "support"
         ],
         "skill": "content",
         "note": "verb meaning to provide enough for; fits 'too small to ___'"
@@ -7607,8 +7002,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "along",
-          "near"
+          "along"
         ],
         "skill": "grammar",
         "note": "preposition describing position relative to the coastline"
@@ -7640,9 +7034,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "since",
-          "as",
-          "because"
+          "since"
         ],
         "skill": "grammar",
         "note": "conjunction of reason linking the two clauses"
@@ -7650,8 +7042,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "automated",
-          "automatic"
+          "automated"
         ],
         "skill": "content",
         "note": "adjective describing machines that work without a person controlling them"
@@ -7667,9 +7058,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "unwell",
-          "sick",
-          "ill"
+          "unwell"
         ],
         "skill": "content",
         "note": "adjective describing a fish that is not healthy"
@@ -7693,9 +7082,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "harvested",
-          "collected",
-          "gathered"
+          "harvested"
         ],
         "skill": "content",
         "note": "verb meaning to gather a crop, here the seaweed"
@@ -7711,8 +7098,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "while",
-          "whilst"
+          "while"
         ],
         "skill": "grammar",
         "note": "conjunction showing two things happening at the same time"
@@ -7761,8 +7147,7 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "much",
-          "any"
+          "much"
         ],
         "skill": "collocation",
         "note": "fixed phrase 'pay much/any attention'"
@@ -7770,9 +7155,7 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "colourful",
-          "eye-catching",
-          "attractive"
+          "colourful"
         ],
         "skill": "content",
         "note": "adjective describing the posters"
@@ -7780,8 +7163,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "about",
-          "of"
+          "about"
         ],
         "skill": "collocation",
         "note": "fixed phrase 'word spread about/of something'"
@@ -7797,9 +7179,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "alert",
-          "attentive",
-          "focused"
+          "alert"
         ],
         "skill": "content",
         "note": "adjective describing the pupils' state"
@@ -7807,9 +7187,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "noticeably",
-          "significantly",
-          "considerably"
+          "noticeably"
         ],
         "skill": "content",
         "note": "adverb showing degree of change"
@@ -7817,8 +7195,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "if",
-          "whether"
+          "if"
         ],
         "skill": "grammar",
         "note": "conjunction introducing a reported question"
@@ -7834,9 +7211,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "run",
-          "managed",
-          "operated"
+          "run"
         ],
         "skill": "content",
         "note": "verb meaning to operate or manage something"
@@ -7844,8 +7219,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "as",
-          "once"
+          "as"
         ],
         "skill": "grammar",
         "note": "conjunction meaning 'when/while'"
@@ -7853,9 +7227,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "across",
-          "throughout",
-          "through"
+          "across"
         ],
         "skill": "grammar",
         "note": "preposition showing spread over an area"
@@ -7888,9 +7260,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "could",
-          "would",
-          "might"
+          "could"
         ],
         "skill": "grammar",
         "note": "past modal verb after 'wondered where they ___ find'"
@@ -7930,10 +7300,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "massive",
-          "enormous",
-          "huge",
-          "immense"
+          "massive"
         ],
         "skill": "content",
         "note": "content adjective describing the scale of the project"
@@ -7941,8 +7308,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "pour",
-          "lay"
+          "pour"
         ],
         "skill": "content",
         "note": "content verb collocating with 'concrete'"
@@ -7950,8 +7316,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "Despite",
-          "Notwithstanding"
+          "Despite"
         ],
         "skill": "grammar",
         "note": "concessive connector opening the sentence"
@@ -7975,8 +7340,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "supply",
-          "source"
+          "supply"
         ],
         "skill": "content",
         "note": "content noun meaning a steady amount provided"
@@ -7992,9 +7356,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "few",
-          "hardly any",
-          "some"
+          "few"
         ],
         "skill": "content",
         "note": "quantifier contrasting enjoying the water with being unaware of the engineering feat"
@@ -8019,8 +7381,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "on",
-          "upon"
+          "on"
         ],
         "skill": "collocation",
         "note": "verb-preposition collocation 'depend on'"
@@ -8044,10 +7405,7 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "resilience",
-          "toughness",
-          "strength",
-          "hardiness"
+          "resilience"
         ],
         "skill": "content",
         "note": "noun naming the tree's ability to survive harsh conditions"
@@ -8071,9 +7429,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "Once",
-          "When",
-          "As soon as"
+          "Once"
         ],
         "skill": "grammar",
         "note": "time connector joining the two clauses"
@@ -8081,10 +7437,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "hidden",
-          "secret",
-          "stored",
-          "inner"
+          "hidden"
         ],
         "skill": "content",
         "note": "adjective describing the water reserve inside the trunk"
@@ -8092,8 +7445,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "Its",
-          "The"
+          "Its"
         ],
         "skill": "grammar",
         "note": "possessive determiner referring back to the baobab"
@@ -8109,9 +7461,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "canopy",
-          "shade",
-          "branches"
+          "canopy"
         ],
         "skill": "content",
         "note": "noun naming the wide, leafy top of the tree"
@@ -8119,9 +7469,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "vanished",
-          "disappeared",
-          "died"
+          "vanished"
         ],
         "skill": "content",
         "note": "verb describing the sudden loss of the ancient trees"
@@ -8162,8 +7510,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "while",
-          "when"
+          "while"
         ],
         "skill": "grammar",
         "note": "conjunction introducing a time clause"
@@ -8179,8 +7526,7 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "in",
-          "during"
+          "in"
         ],
         "skill": "grammar",
         "note": "preposition of time"
@@ -8188,8 +7534,7 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "who",
-          "that"
+          "who"
         ],
         "skill": "grammar",
         "note": "relative pronoun for a person"
@@ -8229,8 +7574,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "atmosphere",
-          "environment"
+          "atmosphere"
         ],
         "skill": "content",
         "note": "noun describing the classroom mood"
@@ -8287,10 +7631,7 @@ export const clozePassages = [
       {
         "n": 1,
         "accept": [
-          "around",
-          "near",
-          "outside",
-          "beside"
+          "around"
         ],
         "skill": "grammar",
         "note": "preposition of place after 'gathers'"
@@ -8314,8 +7655,7 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "that",
-          "this"
+          "that"
         ],
         "skill": "grammar",
         "note": "demonstrative determiner referring back to the mystery just described"
@@ -8339,10 +7679,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "excitement",
-          "thrill",
-          "joy",
-          "fun"
+          "excitement"
         ],
         "skill": "content",
         "note": "meaning-bearing noun naming the feeling of opening a pack"
@@ -8358,9 +7695,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "since",
-          "as",
-          "because"
+          "since"
         ],
         "skill": "grammar",
         "note": "conjunction linking reason and result"
@@ -8368,10 +7703,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "exciting",
-          "extra",
-          "added",
-          "enjoyable"
+          "exciting"
         ],
         "skill": "content",
         "note": "meaning-bearing adjective describing the layer of fun trading adds"
@@ -8379,9 +7711,7 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "negotiate",
-          "arrange",
-          "discuss"
+          "negotiate"
         ],
         "skill": "content",
         "note": "meaning-bearing verb describing how friends agree on swaps"
@@ -8397,9 +7727,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "tempt",
-          "entice",
-          "persuade"
+          "tempt"
         ],
         "skill": "content",
         "note": "meaning-bearing verb describing the pull of a missing card"
@@ -8407,8 +7735,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "set",
-          "fix"
+          "set"
         ],
         "skill": "collocation",
         "note": "fixed phrase 'set a budget'"
@@ -8457,8 +7784,7 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "research",
-          "study"
+          "research"
         ],
         "skill": "content",
         "note": "content verb — what the groups do to the viewpoint"
@@ -8466,8 +7792,7 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "that",
-          "which"
+          "that"
         ],
         "skill": "grammar",
         "note": "relative pronoun introducing the clause"
@@ -8483,9 +7808,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "because",
-          "since",
-          "as"
+          "because"
         ],
         "skill": "grammar",
         "note": "conjunction giving the reason"
@@ -8501,8 +7824,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "nervous",
-          "anxious"
+          "nervous"
         ],
         "skill": "content",
         "note": "content adjective describing how they feel"
@@ -8542,9 +7864,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "confidently",
-          "well",
-          "skilfully"
+          "confidently"
         ],
         "skill": "content",
         "note": "content adverb describing how the pupil debates"
@@ -8552,8 +7872,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "chance",
-          "opportunity"
+          "chance"
         ],
         "skill": "content",
         "note": "content noun — what a balanced routine gives"
@@ -8578,9 +7897,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "lend",
-          "offer",
-          "give"
+          "lend"
         ],
         "skill": "collocation",
         "note": "fixed phrase 'lend a helping hand'"
@@ -8604,8 +7921,7 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "wander",
-          "roam"
+          "wander"
         ],
         "skill": "content",
         "note": "verb describing an unleashed pet moving freely"
@@ -8613,9 +7929,7 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "towards",
-          "to",
-          "in"
+          "towards"
         ],
         "skill": "collocation",
         "note": "fixed phrase 'go a long way towards'"
@@ -8623,9 +7937,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "their",
-          "her",
-          "his"
+          "their"
         ],
         "skill": "grammar",
         "note": "possessive determiner agreeing with 'an elderly neighbour'"
@@ -8633,8 +7945,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "concern",
-          "care"
+          "concern"
         ],
         "skill": "content",
         "note": "noun expressing genuine care for others"
@@ -8642,9 +7953,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "familiar",
-          "friendly",
-          "close"
+          "familiar"
         ],
         "skill": "content",
         "note": "adjective describing neighbours growing closer"
@@ -8684,8 +7993,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "when",
-          "if"
+          "when"
         ],
         "skill": "grammar",
         "note": "conjunction introducing a conditional/temporal clause"
@@ -8734,8 +8042,7 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "at",
-          "along"
+          "at"
         ],
         "skill": "grammar",
         "note": "preposition after the verb 'gather'"
@@ -8743,8 +8050,7 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "through",
-          "into"
+          "through"
         ],
         "skill": "collocation",
         "note": "fixed phrase 'wade through' mud"
@@ -8752,8 +8058,7 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "but",
-          "yet"
+          "but"
         ],
         "skill": "grammar",
         "note": "contrasting conjunction linking two clauses"
@@ -8769,9 +8074,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "shelter",
-          "homes",
-          "refuge"
+          "shelter"
         ],
         "skill": "content",
         "note": "meaning-bearing noun — what branches give to wildlife"
@@ -8787,8 +8090,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "absorb",
-          "trap"
+          "absorb"
         ],
         "skill": "content",
         "note": "meaning-bearing verb — what mangroves do to carbon dioxide"
@@ -8804,9 +8106,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "understanding",
-          "appreciation",
-          "knowledge"
+          "understanding"
         ],
         "skill": "content",
         "note": "meaning-bearing noun — what pupils develop"
@@ -8822,8 +8122,7 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "later",
-          "on"
+          "later"
         ],
         "skill": "content",
         "note": "time adverb — 'years later/on' marking elapsed time"
@@ -8856,9 +8155,7 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "wandered",
-          "roamed",
-          "strolled"
+          "wandered"
         ],
         "skill": "content",
         "note": "meaning-bearing verb describing how animals moved around"
@@ -8882,9 +8179,7 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "faith",
-          "confidence",
-          "belief"
+          "faith"
         ],
         "skill": "collocation",
         "note": "fixed phrase: lose faith/confidence in oneself"
@@ -8900,9 +8195,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "Although",
-          "While",
-          "Though"
+          "Although"
         ],
         "skill": "grammar",
         "note": "contrast connector linking two clauses"
@@ -8918,8 +8211,7 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "until",
-          "till"
+          "until"
         ],
         "skill": "grammar",
         "note": "conjunction showing an action continues up to a point"
@@ -8951,8 +8243,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "who",
-          "that"
+          "who"
         ],
         "skill": "grammar",
         "note": "relative pronoun referring to a person (the artist)"
@@ -8968,10 +8259,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "trying",
-          "practising",
-          "going",
-          "working"
+          "trying"
         ],
         "skill": "content",
         "note": "meaning-bearing verb showing continued effort"
@@ -8988,8 +8276,7 @@ export const clozePassages = [
       {
         "n": 1,
         "accept": [
-          "during",
-          "at"
+          "during"
         ],
         "skill": "grammar",
         "note": "preposition of time (during + noun phrase)"
@@ -9005,8 +8292,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "number",
-          "proportion"
+          "number"
         ],
         "skill": "content",
         "note": "meaning-bearing noun quantifying children"
@@ -9014,8 +8300,7 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "that",
-          "which"
+          "that"
         ],
         "skill": "grammar",
         "note": "relative pronoun introducing clause modifying 'programmes'"
@@ -9039,9 +8324,7 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "great",
-          "much",
-          "more"
+          "great"
         ],
         "skill": "content",
         "note": "adjective/quantifier describing amount of patience"
@@ -9081,8 +8364,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "while",
-          "whereas"
+          "while"
         ],
         "skill": "grammar",
         "note": "connector showing contrast between two clauses"
@@ -9090,10 +8372,7 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "believe",
-          "maintain",
-          "argue",
-          "agree"
+          "believe"
         ],
         "skill": "content",
         "note": "verb expressing nutritionists' opinion"
@@ -9109,10 +8388,7 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "consistently",
-          "regularly",
-          "daily",
-          "habitually"
+          "consistently"
         ],
         "skill": "content",
         "note": "adverb describing how habits are practised"

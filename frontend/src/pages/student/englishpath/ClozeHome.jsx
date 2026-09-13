@@ -57,7 +57,7 @@ export default function ClozeHome() {
         message={
           started
             ? `Welcome back! ${counts.dueNow ? `${counts.dueNow} passage${counts.dueNow > 1 ? 's' : ''} ready to practise.` : 'Every passage is fresh in your mind — nice work.'}`
-            : 'Fill each blank with a word that fits. Many blanks accept more than one answer — the marker knows.'
+            : 'Fill each blank with a word that fits.'
         }
         size="sm"
         className="mb-5"
