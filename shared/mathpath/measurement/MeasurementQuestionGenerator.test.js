@@ -129,4 +129,19 @@ describe('MeasurementQuestionGenerator', () => {
     expect(checkMeasurementAnswer({ question: mk('5 m'), studentResponse: '5' }).correct).toBe(true);
     expect(checkMeasurementAnswer({ question: mk('96 m²'), studentResponse: '96' }).correct).toBe(true);
   });
+
+  it('rejects wrong-dimension across ALL categories, and accepts ASCII spellings', () => {
+    // Supplements the length + area regression above with mass, capacity,
+    // capacity-vs-mass, and no-unicode ("m2"/"cm2") student input — all common
+    // real inputs a mobile student would type instead of the Unicode superscript.
+    const mk = (display) => ({ answer: { display } });
+    // Mass: g and kg are different units and must not be swapped.
+    expect(checkMeasurementAnswer({ question: mk('8000 g'), studentResponse: '8000 kg' }).correct).toBe(false);
+    // Capacity vs mass: ml vs kg is a real ambiguity kids make (both start "k...").
+    expect(checkMeasurementAnswer({ question: mk('7000 ml'), studentResponse: '7000 kg' }).correct).toBe(false);
+    // ASCII exponent (typed on a phone): "96m2" must match "96 m²".
+    expect(checkMeasurementAnswer({ question: mk('96 m²'), studentResponse: '96m2' }).correct).toBe(true);
+    // ASCII exponent still catches the wrong dimension.
+    expect(checkMeasurementAnswer({ question: mk('96 m²'), studentResponse: '96cm2' }).correct).toBe(false);
+  });
 });
