@@ -262,7 +262,11 @@ function generateAddMoney(familyId) {
       answerType: 'number',
       instructionHint: 'Write your answer in cents.',
       solutionText: `${price1}¢ + ${price2}¢ = ${total}¢.`,
-      diagramSpec: barModelDiagram(total, price1, { part1Label: `${item1}: ${price1}¢`, part2Label: `${item2}: ${price2}¢`, wholeLabel: '?', title: 'Total cost' }),
+      // No independently-given "whole" here (the total IS the answer) —
+      // barModelDiagram(total, price1, ...) used to pass the answer as the
+      // diagram's `whole`, printed as a raw number regardless of `wholeLabel`.
+      // Show the two GIVEN prices as two bars instead.
+      diagramSpec: comparisonModelDiagram(price1, price2, { leftLabel: `${item1}: ${price1}¢`, rightLabel: `${item2}: ${price2}¢`, mode: 'items', title: 'Total cost' }),
       workingTemplate: { format: 'equation', boxes: 3, operatorCircle: true },
       misconceptionTraps: ['money_add_ignores_units'],
     };
@@ -286,7 +290,7 @@ function generateAddMoney(familyId) {
     answerType: 'number',
     instructionHint: 'Write your answer in cents.',
     solutionText: `${price1Str} + ${price2Str} = ${formatCents(totalCents)}. Total = ${totalCents}¢.`,
-    diagramSpec: barModelDiagram(totalCents, total1Cents, { part1Label: `${item1}: ${price1Str}`, part2Label: `${item2}: ${price2Str}`, wholeLabel: '?', title: 'Total cost' }),
+    diagramSpec: comparisonModelDiagram(total1Cents, total2Cents, { leftLabel: `${item1}: ${price1Str}`, rightLabel: `${item2}: ${price2Str}`, mode: 'items', title: 'Total cost' }),
     workingTemplate: { format: 'equation', boxes: 3, operatorCircle: true },
     misconceptionTraps: ['money_add_ignores_units'],
   };

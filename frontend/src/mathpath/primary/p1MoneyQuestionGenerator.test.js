@@ -390,4 +390,19 @@ describe('p1MoneyQuestionGenerator', () => {
       }
     }
   });
+
+  // Regression: P1-MON-05's bar-model diagram used to pass the TOTAL (the
+  // answer) as barModelDiagram's `whole`, printed as a raw number regardless
+  // of wholeLabel: '?'. Now shows the two given prices as two bars instead.
+  it('P1-MON-05: diagram shows the two given prices, never the total answer', () => {
+    for (let i = 0; i < 20; i++) {
+      const q = generateQuestion('P1-MON-05');
+      expect(q.diagramSpec.type).toBe('comparison_model');
+      const d = q.diagramSpec.data;
+      expect(d.leftValue).not.toBe(q.answer);
+      expect(d.rightValue).not.toBe(q.answer);
+      // Both given prices still sum to the answer — the student must add them.
+      expect(d.leftValue + d.rightValue).toBe(q.answer);
+    }
+  });
 });

@@ -458,4 +458,63 @@ describe('p1AddSubQuestionGenerator', () => {
       }
     }
   });
+
+  // Regression: several diagrams used to bake the ANSWER directly into a
+  // renderable value (a raw dot count, a labelled number-line point, or a
+  // comparison-model bar value) even though the accompanying label text tried
+  // to hide it (e.g. wholeLabel: '?'). The renderer prints the raw numbers
+  // regardless of label text, so these must never equal the answer.
+  describe('diagrams must not leak the answer', () => {
+    it('P1-ADD-01: two separate given-count groups, neither equal to the answer', () => {
+      for (let i = 0; i < 20; i++) {
+        const q = generateQuestion('P1-ADD-01');
+        expect(q.diagramSpec.type).toBe('picture_collections');
+        const cats = q.diagramSpec.data.categories;
+        expect(cats).toHaveLength(2);
+        for (const cat of cats) expect(cat.count).not.toBe(q.answer);
+        // The two GIVEN addends still sum to the answer (the student must add
+        // them) — this is expected, not a leak of a single printed value.
+        expect(cats.reduce((s, c) => s + c.count, 0)).toBe(q.answer);
+      }
+    });
+
+    it('P1-ADD-05/06: the number line marks only the starting point, never the answer', () => {
+      for (const skillId of ['P1-ADD-05', 'P1-ADD-06']) {
+        for (let i = 0; i < 20; i++) {
+          const q = generateQuestion(skillId);
+          expect(q.diagramSpec.type).toBe('number_line');
+          const points = q.diagramSpec.data.points;
+          expect(points).toHaveLength(1);
+          expect(points[0].value).not.toBe(q.answer);
+          expect(Number(points[0].label)).not.toBe(q.answer);
+        }
+      }
+    });
+
+    it('P1-ADD-09: the word-problem diagram only ever shows the two GIVEN numbers from the prompt', () => {
+      // Assert against the prompt's own numbers rather than "!== answer": for
+      // the separate family (a - b = answer), a coincidental a = 2b draw makes
+      // the given b legitimately equal the answer — that's not a leak, the
+      // diagram is still only showing given info. Pin down exactly WHICH two
+      // numbers the diagram may show instead.
+      for (let i = 0; i < 20; i++) {
+        const q = generateQuestion('P1-ADD-09');
+        const [a, b] = q.prompt.match(/\d+/g).map(Number);
+        const d = q.diagramSpec.data;
+        expect(d.leftValue).toBe(a);
+        expect(d.rightValue).toBe(b);
+      }
+    });
+
+    it('P1-ADD-10 (subtraction family): no crossed-out group sized to the answer', () => {
+      for (let i = 0; i < 20; i++) {
+        const q = generateQuestion('P1-ADD-10', { questionFamilyId: 'QF_P1-ADD-10_002' });
+        expect(q.diagramSpec.type).toBe('picture_collections');
+        // A single, undifferentiated category — no "(crossed out)" subgroup
+        // whose count would equal the missing-subtrahend answer.
+        expect(q.diagramSpec.data.categories).toHaveLength(1);
+        expect(q.diagramSpec.data.categories[0].count).not.toBe(q.answer);
+      }
+    });
+  });
 });

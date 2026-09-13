@@ -4,6 +4,7 @@ import {
   numberLineDiagram,
   pictureCollectionDiagram,
   objectSetDiagram,
+  twoGroupsDiagram,
   comparisonModelDiagram,
   barModelDiagram,
   columnOperationDiagram,
@@ -47,7 +48,11 @@ function generateAddWithin10(familyId) {
       answerType: 'number',
       instructionHint: 'Count all the objects.',
       solutionText: `${a} + ${b} = ${answer}. There are ${answer} ${obj} altogether.`,
-      diagramSpec: objectSetDiagram(obj, answer, { title: `${a} ${obj} and ${b} ${obj}` }),
+      // Two SEPARATE, visually distinct groups (a, then b more) — the student
+      // must still count/combine them. objectSetDiagram(obj, answer, ...) used
+      // to render exactly `answer` undifferentiated dots: a flat picture of the
+      // final count, nothing left to compute.
+      diagramSpec: twoGroupsDiagram(obj, a, `more ${obj}`, b, { title: `${a} ${obj} and ${b} more ${obj}` }),
       misconceptionTraps: ['counts_from_one'],
     };
   }
@@ -60,7 +65,7 @@ function generateAddWithin10(familyId) {
     answerType: 'number',
     instructionHint: 'Find the sum.',
     solutionText: `${a} + ${b} = ${answer}.`,
-    diagramSpec: objectSetDiagram(obj, answer, { title: `${a} + ${b}` }),
+    diagramSpec: twoGroupsDiagram(obj, a, `more ${obj}`, b, { title: `${a} + ${b}` }),
     misconceptionTraps: ['counts_from_one'],
   };
 }
@@ -144,9 +149,12 @@ function generateAddWithin20(familyId) {
     const teen = randInt(11, 17);
     const ones = randInt(1, 20 - teen);
     const answer = teen + ones;
+    // Mark only the STARTING point — the student counts on `ones` steps and
+    // reads their own landing spot off the axis's own tick labels. Marking the
+    // answer's position too (as this used to) is a second, explicit "you land
+    // here" callout that hands the answer over before any counting happens.
     const points = [
       { value: teen, label: String(teen) },
-      { value: answer, label: `${answer}` },
     ];
     return {
       skillId: 'P1-ADD-05',
@@ -166,7 +174,6 @@ function generateAddWithin20(familyId) {
   const answer = a + b;
   const points = [
     { value: a, label: String(a) },
-    { value: answer, label: `${answer}` },
   ];
   return {
     skillId: 'P1-ADD-05',
@@ -189,9 +196,9 @@ function generateSubWithin20(familyId) {
     const teen = randInt(11, 19);
     const ones = randInt(1, teen - 10);
     const answer = teen - ones;
+    // Same fix as P1-ADD-05: mark only the starting point.
     const points = [
       { value: teen, label: String(teen) },
-      { value: answer, label: `${answer}` },
     ];
     return {
       skillId: 'P1-ADD-06',
@@ -211,7 +218,6 @@ function generateSubWithin20(familyId) {
   const answer = a - b;
   const points = [
     { value: a, label: String(a) },
-    { value: answer, label: `${answer}` },
   ];
   return {
     skillId: 'P1-ADD-06',
@@ -290,7 +296,12 @@ function generateWordProblem(familyId) {
       answerType: 'number',
       instructionHint: 'Read the problem. Decide whether to add or subtract.',
       solutionText: `${name} had ${a} and got ${b} more. ${a} + ${b} = ${answer}. ${name} has ${answer} ${obj} now.`,
-      diagramSpec: barModelDiagram(answer, a, { part1Label: `Had: ${a}`, part2Label: `Got: ${b}`, wholeLabel: `Total: ?`, title: 'Word problem' }),
+      // A "join" word problem has no independently-given whole (the total IS the
+      // answer) — barModelDiagram(answer, a, ...) used to pass the answer itself
+      // as the diagram's `whole`, which the renderer prints as a raw number next
+      // to the bar regardless of the "Total: ?" label text. Show the two GIVEN
+      // addends as two bars instead; nothing computed is ever passed in.
+      diagramSpec: comparisonModelDiagram(a, b, { leftLabel: `Had: ${a}`, rightLabel: `Got: ${b}`, mode: 'items', title: 'Word problem' }),
       workingTemplate: { format: 'equation', boxes: 3, operatorCircle: true },
       misconceptionTraps: ['wrong_operation_word_problem'],
     };
@@ -307,7 +318,13 @@ function generateWordProblem(familyId) {
     answerType: 'number',
     instructionHint: 'Read the problem. Decide whether to add or subtract.',
     solutionText: `${name} had ${a} and gave away ${b}. ${a} - ${b} = ${answer}. ${name} has ${answer} ${obj} left.`,
-    diagramSpec: barModelDiagram(a, answer, { part1Label: `Left: ?`, part2Label: `Gave away: ${b}`, wholeLabel: `Had: ${a}`, title: 'Word problem' }),
+    // A "separate" word problem DOES have a given whole (`a`, "Had: a") and a
+    // given part (`b`, "Gave away: b") — barModelDiagram(a, b, ...) leaves the
+    // implicit part2 (= a - b = the answer) unprinted, same safe pattern as
+    // P1-MON-06's change diagrams. The old call passed `answer` itself as
+    // part1, which the renderer prints as a raw number regardless of the
+    // "Left: ?" label text.
+    diagramSpec: barModelDiagram(a, b, { part1Label: `Gave away: ${b}`, part2Label: `Left: ?`, wholeLabel: `Had: ${a}`, title: 'Word problem' }),
     workingTemplate: { format: 'equation', boxes: 3, operatorCircle: true },
     misconceptionTraps: ['wrong_operation_word_problem'],
   };
@@ -347,7 +364,13 @@ function generateMissingNumber(familyId) {
     answerType: 'number',
     instructionHint: 'What number goes in the box?',
     solutionText: `${total} - ? = ${result}. ? = ${total} - ${result} = ${answer}.`,
-    diagramSpec: objectSetDiagram(obj, total, { crossedOut: answer, title: `${total} - ? = ${result}` }),
+    // `crossedOut` renders as a visually distinct, separately-counted group —
+    // fine when it's a GIVEN quantity (e.g. P1-ADD-02's "take away b", stated in
+    // the prompt), but here the missing subtrahend IS the answer, so crossing
+    // out exactly `answer` dots let the student read it off by counting the
+    // crossed-out group. Just show the given total, ungrouped (matches the
+    // addition sibling above, which never crosses anything out either).
+    diagramSpec: objectSetDiagram(obj, total, { title: `${total} - ? = ${result}` }),
     misconceptionTraps: ['missing_number_adds_all'],
   };
 }
