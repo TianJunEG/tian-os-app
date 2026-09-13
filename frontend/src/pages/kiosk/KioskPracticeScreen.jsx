@@ -1,8 +1,19 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { WifiOff } from 'lucide-react';
 import { MathText } from '../../components/ui/Fraction';
 import QuestionDiagram, { canRenderQuestionDiagram } from '../student/mathpath/components/QuestionDiagram';
 import { kioskAPI, clearAttempt, getAttemptToken } from '../../services/kioskApi';
+
+// Distinguishes "the server rejected the submit" (e.response present — a real
+// error, e.g. the session closed) from "the submit never reached the server or
+// its reply was lost" (e.response absent — the classroom-WiFi-blip case). Never
+// auto-retries: even a network-level failure can't rule out the request having
+// been processed before the connection dropped, so only a deliberate tap resends.
+function submitErrorMessage(e) {
+  if (e?.response) return e.response.data?.error || 'Something went wrong. Try Submit again.';
+  return "Couldn't reach the server — check the connection, then tap Submit again.";
+}
 
 // Practice kiosk: walks a FIXED items[] list (served up front by /practice-begin),
 // POSTing one attempt per question, then /complete. Unlike the diagnostic screen,
@@ -22,6 +33,11 @@ export default function KioskPracticeScreen() {
   const [answer, setAnswer] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  // Set when the last submit failed to reach the server at all (vs a real
+  // server-returned error) — tags the message as a connectivity issue and
+  // clears itself the moment the browser reports it's back online. Never
+  // triggers a resend on its own; the student still taps Next/Finish themselves.
+  const [offline, setOffline] = useState(false);
   // A mid-set refresh loses the in-memory items, but the attempt token survives in
   // sessionStorage — so rehydrate the fixed set + resume at the first unanswered
   // item rather than dumping the student back to the name list.
@@ -34,6 +50,12 @@ export default function KioskPracticeScreen() {
   const lostState = (!items.length && !getAttemptToken()) || resumeFailed;
 
   useEffect(() => { startedAt.current = Date.now(); setAnswer(''); }, [index]);
+
+  useEffect(() => {
+    const goOnline = () => setOffline(false);
+    window.addEventListener('online', goOnline);
+    return () => window.removeEventListener('online', goOnline);
+  }, []);
 
   useEffect(() => {
     if (!resuming) return undefined;
@@ -78,6 +100,7 @@ export default function KioskPracticeScreen() {
     if (busy || !question) return;
     setBusy(true);
     setError('');
+    setOffline(false);
     try {
       await kioskAPI.practiceAttempt(sessionId, {
         questionId: question.questionId,
@@ -96,7 +119,8 @@ export default function KioskPracticeScreen() {
         replace: true,
       });
     } catch (e) {
-      setError(e?.response?.data?.error || 'Something went wrong. Try Submit again.');
+      setError(submitErrorMessage(e));
+      setOffline(e?.response == null);
     } finally {
       setBusy(false);
     }
@@ -170,7 +194,12 @@ export default function KioskPracticeScreen() {
             )}
           </div>
 
-          {error && <p style={{ color: '#b23b54', marginTop: 14 }}>{error}</p>}
+          {error && (
+            <p style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#b23b54', marginTop: 14 }}>
+              {offline && <WifiOff style={{ width: 16, height: 16, flexShrink: 0 }} />}
+              {error}
+            </p>
+          )}
 
           <div style={{ display: 'flex', gap: 12, marginTop: 22 }}>
             <button type="button" onClick={() => submit(true)} disabled={busy} style={skipBtn}>Skip</button>

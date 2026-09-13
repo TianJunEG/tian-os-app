@@ -1,7 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import KioskQuestionScreen from './KioskQuestionScreen';
+import { kioskAPI } from '../../services/kioskApi';
 
 // The kiosk runs on shared iPads/phones in class; every tap control must meet
 // the ≥44px WCAG 2.5.5 target. These render the real screen and assert the
@@ -48,5 +50,31 @@ describe('KioskQuestionScreen touch targets', () => {
       const btn = screen.getByRole('button', { name: choice });
       expect(px(btn.style.minHeight)).toBeGreaterThanOrEqual(44);
     }
+  });
+});
+
+describe('KioskQuestionScreen submit failure messaging', () => {
+  // A classroom-WiFi blip means the request never reached the server (or its
+  // reply was lost) — axios surfaces that as a rejection with NO `.response`.
+  // That must read differently from a real server-side rejection, and it must
+  // never trigger an automatic resend — the student still has to tap Submit.
+  it('shows a connectivity-specific message when the request never reached the server', async () => {
+    const user = userEvent.setup();
+    kioskAPI.answer.mockRejectedValueOnce(new Error('Network Error'));
+    renderScreen();
+    await user.click(screen.getByRole('button', { name: '4' }));
+    await user.click(screen.getByRole('button', { name: /submit/i }));
+    expect(await screen.findByText(/couldn't reach the server/i)).toBeInTheDocument();
+    expect(kioskAPI.answer).toHaveBeenCalledTimes(1); // no auto-retry
+  });
+
+  it('shows the server-provided message when the server actually responded with an error', async () => {
+    const user = userEvent.setup();
+    kioskAPI.answer.mockRejectedValueOnce({ response: { data: { error: 'This class session is closed.' } } });
+    renderScreen();
+    await user.click(screen.getByRole('button', { name: '4' }));
+    await user.click(screen.getByRole('button', { name: /submit/i }));
+    expect(await screen.findByText('This class session is closed.')).toBeInTheDocument();
+    expect(screen.queryByText(/couldn't reach the server/i)).not.toBeInTheDocument();
   });
 });
