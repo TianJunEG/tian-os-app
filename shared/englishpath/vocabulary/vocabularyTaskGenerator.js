@@ -466,11 +466,14 @@ const GENERATORS = {
   },
 
   word_form_pick(entry, bank, rng) {
-    // Ask for a part-of-speech form that only one family member has, so the
-    // answer is unambiguous.
-    const candidate = entry.wordFamily.find((f) => f.pos !== entry.pos && f.pos !== 'other');
+    // Ask for a part-of-speech form that only one DIFFERENTLY-SPELLED family member
+    // has, so the answer is unambiguous and never just the headword again (e.g.
+    // "consent" the verb and "consent" the noun share a spelling — see
+    // morphology_match above for the same guard).
+    const distinctFamily = entry.wordFamily.filter((f) => norm(f.word) !== norm(entry.word));
+    const candidate = distinctFamily.find((f) => f.pos !== entry.pos && f.pos !== 'other');
     if (!candidate) return null;
-    const sharesPos = entry.wordFamily.filter((f) => f.pos === candidate.pos).length;
+    const sharesPos = distinctFamily.filter((f) => f.pos === candidate.pos).length;
     if (sharesPos !== 1) return null;
     const distractors = [
       entry.word,
