@@ -4,7 +4,7 @@
 // each is freshly written on its own theme, then blanked. The open comprehension
 // cloze is a P5/P6 exam component (P3/P4 use the word-bank grammar cloze), so the
 // bank is P5 + P6 only. Each blank carries:
-//   accept — the single correct word for the blank
+//   accept — every word a marker would accept (best answer first)
 //   skill  — grammar | collocation | content  (drives per-skill readiness)
 //   note   — a one-line "why" shown in feedback
 // 65 passages · 975 blanks · by level {"P5":30,"P6":35}. Grader: ./clozeGrader.js
@@ -834,7 +834,7 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "until"
+          "till"
         ],
         "skill": "grammar",
         "note": "connector of time before an event happens"
@@ -1971,7 +1971,7 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "on"
+          "across"
         ],
         "skill": "grammar",
         "note": "preposition of place (gathered on the field)"
@@ -2527,7 +2527,7 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "as"
+          "while"
         ],
         "skill": "grammar",
         "note": "Connector showing two actions at once"
@@ -4865,7 +4865,7 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "that"
+          "which"
         ],
         "skill": "grammar",
         "note": "relative pronoun introducing a defining clause"
@@ -5397,7 +5397,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "in"
+          "among"
         ],
         "skill": "grammar",
         "note": "preposition after 'comfort'"
@@ -6429,7 +6429,7 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "along"
+          "through"
         ],
         "skill": "grammar",
         "note": "preposition of movement along wires"
@@ -8396,5 +8396,3 @@ export const clozePassages = [
     ]
   }
 ];
-
-export const SKILL_LABELS = { grammar: 'Grammar', collocation: 'Collocations & idioms', content: 'Vocabulary' };
