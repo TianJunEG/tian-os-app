@@ -53,8 +53,15 @@ export const errorHandler = (err, req, res, next) => {
   // Multer file upload errors
   if (err.name === 'MulterError') {
     if (err.code === 'LIMIT_FILE_SIZE') {
+      // Multer attaches the configured byte limit on err.field/limit when available;
+      // derive the human-readable cap so the message matches each route's real limit
+      // (8MB / 12MB / 20MB) instead of a stale hardcoded "10MB".
+      const limitBytes = Number(err.limit);
+      const limitLabel = Number.isFinite(limitBytes) && limitBytes > 0
+        ? `${Math.round(limitBytes / (1024 * 1024))}MB`
+        : 'the allowed size';
       return res.status(400).json({
-        error: 'File is too large (max 10MB)'
+        error: `File is too large (max ${limitLabel})`
       });
     }
     if (err.code === 'LIMIT_FILE_COUNT') {

@@ -15,6 +15,14 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,})+$/, 'Please provide a valid email']
   },
+  // Optional username for student accounts that don't have a personal email.
+  // Field is intentionally absent on adult accounts — do NOT set a default here,
+  // as sparse unique indexes still index explicit null values.
+  username: {
+    type: String,
+    lowercase: true,
+    trim: true,
+  },
   password: {
     type: String,
     required: [true, 'Please provide a password'],

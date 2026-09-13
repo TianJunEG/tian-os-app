@@ -73,13 +73,10 @@ import {
 } from '../../../components/learning/WorkingEvidenceDecision';
 import SubmissionReviewModal from './components/SubmissionReviewModal';
 import MascotAvatar, { MascotBubble } from '../../../components/MascotAvatar';
+import { CONFIDENCE_OPTIONS } from '../../../mathpath/confidenceOptions';
 
-const REFLECTION_OPTIONS = [
-  { value: 'i_know_this', label: 'I know this' },
-  { value: 'not_sure', label: "I'm not sure" },
-  { value: 'dont_know', label: "I don't know" },
-  { value: 'i_need_help', label: 'I need help' },
-];
+// Canonical confidence scale shared by every practice surface.
+const REFLECTION_OPTIONS = CONFIDENCE_OPTIONS;
 
 // Self-explanation prompt (metacognition): after a correct answer the mascot
 // asks "why did that work?" and the student taps a strategy. Explaining your
@@ -420,6 +417,7 @@ function resolvePracticeIntent({ routeSessionId, locationState, progress }) {
     if (/^P2-(WN|AS|MD|MON|FR|ST|TM|GEO|WP)-\d{2}$/.test(skillId)) return skillId;
     if (/^P3-(WN|AS|MD|MON|MT|AP|ST|WP)-\d{2}$/.test(skillId)) return skillId;
     if (/^P4-(WN|FM|FO|FR|DEC|WP|ST)-\d{2}$/.test(skillId)) return skillId;
+    if (skillId === 'P4-DIAGNOSTIC') return skillId;
     if (/^P5-(WN|FR|DEC|PCT|RAT|GEO|AV|ST|WP)-\d{2}$/.test(skillId)) return skillId;
     if (/^P6-(ALG|AV)-\d{2}$/.test(skillId)) return skillId;
     return null;
@@ -596,7 +594,8 @@ function speakText(text) {
   window.speechSynthesis.cancel();
   const clean = String(text || '')
     .replace(/\$[^$]*\$/g, '')
-    .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, '$1 over $2')
+    .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, '$1 out of $2')
+    .replace(/(\d+)\/(\d+)/g, '$1 out of $2')
     .replace(/\\times/g, ' times ')
     .replace(/\\div/g, ' divided by ')
     .replace(/[\\{}]/g, '')
@@ -685,16 +684,16 @@ function AnswerFeedbackCard({ feedback, correctAnswer, solutionSteps, onTryAgain
       {correct && (
         <>
           <span className="tian-sparkle-dot pointer-events-none absolute right-8 top-4 h-2 w-2 rounded-full bg-success-400" />
-          <span className="tian-sparkle-dot pointer-events-none absolute right-14 top-8 h-1.5 w-1.5 rounded-full bg-gold-400 [animation-delay:120ms]" />
+          <span className="tian-sparkle-dot pointer-events-none absolute right-14 top-8 h-1.5 w-1.5 rounded-full bg-gold [animation-delay:120ms]" />
           <span className="tian-sparkle-dot pointer-events-none absolute right-5 top-10 h-1 w-1 rounded-full bg-emerald-border [animation-delay:210ms]" />
           {feedback.showConfetti && (
             <span aria-hidden="true" className="pointer-events-none absolute right-10 top-8">
               {[
                 ['-18px', '-18px', 'bg-success-400'],
-                ['14px', '-20px', 'bg-gold-400'],
+                ['14px', '-20px', 'bg-gold'],
                 ['24px', '4px', 'bg-emerald-border'],
                 ['-10px', '18px', 'bg-success-300'],
-                ['8px', '20px', 'bg-gold-300'],
+                ['8px', '20px', 'bg-gold-border'],
               ].map(([x, y, color], index) => (
                 <span
                   key={`${x}-${y}`}
@@ -713,6 +712,16 @@ function AnswerFeedbackCard({ feedback, correctAnswer, solutionSteps, onTryAgain
       <p className="relative mt-1 text-sm text-ink-700">{feedback.message}</p>
       {feedback.streakMessage && (
         <p className="relative mt-2 text-sm font-semibold text-success-700">{feedback.streakMessage}</p>
+      )}
+
+      {/* Talia offers a gentle nudge after a wrong answer. */}
+      {!correct && !feedback.skipped && (
+        <MascotBubble
+          mascotKey="talia"
+          text="Mistakes are how we learn — take a look and give it another go."
+          showName={false}
+          className="relative mt-3"
+        />
       )}
 
       {/* Guided hints — progressive one-at-a-time reveal */}
@@ -870,6 +879,10 @@ export function buildPracticeTelemetryEvents({ studentId = '', sessionType = 'pr
       },
     ];
   });
+}
+
+export function resolveWorkingSessionStudentId({ flowSession = null, fallbackStudentId = '' } = {}) {
+  return String(flowSession?.studentId || fallbackStudentId || '').trim();
 }
 
 function canonicalSkillName(skillId, fallback = '') {
@@ -1153,7 +1166,7 @@ function LegacyPracticeSession() {
         title="Review this submission"
         reflection={reflection}
         reflectionOptions={REFLECTION_OPTIONS}
-        onReflectionChange={(value) => { setReflection(value); setHelpRequested(value === 'i_need_help'); }}
+        onReflectionChange={(value) => setReflection(value)}
         working={currentFullscreenWorking}
         workingRequirementLevel={workingRequirementLevel}
         onDeclareNotNeeded={(checked) => setFullscreenWorkingState((prev) => ({
@@ -1228,6 +1241,9 @@ export default function PracticeSession() {
   const studentId = authenticatedStudentId;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  // Final-submit failures use their own inline state so a transient network blip
+  // never blanks a completed session behind the full-page `error` screen.
+  const [submitError, setSubmitError] = useState('');
   const [flowSession, setFlowSession] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [idx, setIdx] = useState(0);
@@ -1461,10 +1477,10 @@ export default function PracticeSession() {
 
   useEffect(() => {
     if (!isMainFlowRender) return undefined;
-    if (summary || loading || !questions.length) return undefined;
+    if (summary || loading || !questions.length || !!feedback) return undefined;
     const t = setInterval(() => setElapsedSec(Math.floor((Date.now() - questionStartedAt) / 1000)), 250);
     return () => clearInterval(t);
-  }, [isMainFlowRender, summary, loading, questions.length, questionStartedAt]);
+  }, [isMainFlowRender, summary, loading, questions.length, questionStartedAt, feedback]);
 
   useEffect(() => {
     if (!isMainFlowRender) return undefined;
@@ -1489,7 +1505,7 @@ export default function PracticeSession() {
     });
 
     mathpathAPI.createWorkingSession({
-      studentId,
+      studentId: resolveWorkingSessionStudentId({ flowSession, fallbackStudentId: studentId }),
       practiceSessionId,
       domainId: flowSession?.domainId || 'fractions',
       skillIds: [...new Set(questionRefs.map((ref) => ref.skillId).filter(Boolean))],
@@ -1771,6 +1787,7 @@ export default function PracticeSession() {
 
   const nextOrFinish = async () => {
     if (!answered) return;
+    setSubmitError('');
     if (!isLast) {
       setIdx((i) => i + 1);
       setAnswer('');
@@ -1938,7 +1955,9 @@ export default function PracticeSession() {
       });
       setSummary(submitted);
     } catch (e) {
-      setError(e.message || 'Failed to submit session.');
+      // Keep the completed session on screen and let the student retry via the
+      // Finish button, instead of routing to the full-page error (which loses it).
+      setSubmitError(e?.response?.data?.error || e.message || "Couldn't submit — tap Finish to try again.");
     } finally {
       setBusy(false);
     }
@@ -2007,7 +2026,7 @@ export default function PracticeSession() {
             </div>
           )}
           {summary.workingUploadRequired && (
-            <div className="mt-5 rounded-xl border border-gold-300 bg-gold-100 p-4 text-sm text-gold-900">
+            <div className="mt-5 rounded-xl border border-gold-border bg-gold-tint p-4 text-sm text-gold-deep">
               <p className="font-semibold">Please upload your working sheet for this session.</p>
               <Button
                 className="mt-3"
@@ -2095,7 +2114,7 @@ export default function PracticeSession() {
           }
         `}</style>
         {!currentQuestionValidation.ok ? (
-          <div className="rounded-2xl border border-gold-200 bg-gold-50 p-5 text-sm text-ink-700">
+          <div className="rounded-2xl border border-gold-tint bg-gold-tint2 p-5 text-sm text-ink-700">
             <p className="font-semibold text-emerald-deep">{DIAGRAM_LOAD_ERROR_MESSAGE}</p>
             <p className="mt-1 text-ink-500">This visual question needs a diagram before it can be answered.</p>
             <Button className="mt-4" onClick={tryAnotherQuestion}>
@@ -2168,14 +2187,14 @@ export default function PracticeSession() {
             {!answered && answer && (
               <div className="mt-2 rounded-xl border border-line-soft bg-white p-2">
                 <p className="mb-1 text-xs font-semibold text-ink-600">How sure are you?</p>
-                <div className="grid grid-cols-3 gap-1">
+                <div className="grid grid-cols-2 gap-2">
                   {REFLECTION_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
                       type="button"
                       disabled={busy}
                       onClick={() => setReflection(opt.value)}
-                      className={`rounded-lg border px-2 py-1.5 text-xs ${reflection === opt.value ? 'border-emerald bg-emerald-tint font-semibold text-emerald-deep' : 'border-line-soft text-ink-600 hover:bg-surface-raised'}`}
+                      className={`rounded-lg border px-2 py-2 text-sm ${reflection === opt.value ? 'border-emerald bg-emerald-tint font-semibold text-emerald-deep' : 'border-line-soft text-ink-600 hover:bg-surface-raised'}`}
                     >
                       {opt.label}
                     </button>
@@ -2210,10 +2229,13 @@ export default function PracticeSession() {
                 </>
               ) : (
                 <Button className="sm:col-span-2" icon={ArrowRight} disabled={busy} onClick={nextOrFinish}>
-                  {isLast ? sessionMeta.finishLabel : 'Next question'}
+                  {isLast ? (busy ? 'Submitting…' : sessionMeta.finishLabel) : 'Next question'}
                 </Button>
               )}
             </div>
+            {submitError && (
+              <p className="mt-2 text-center text-sm font-semibold text-error-700" role="alert">{submitError}</p>
+            )}
 
             <div className="mt-2">
               <WorkingPreviewCard

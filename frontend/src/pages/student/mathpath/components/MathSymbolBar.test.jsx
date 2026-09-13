@@ -7,14 +7,14 @@ describe('MathSymbolBar', () => {
   it('appends a symbol token to the current value', () => {
     const onChange = vi.fn();
     render(<MathSymbolBar symbols={['pi', 'root']} value="3" onChange={onChange} />);
-    fireEvent.click(screen.getByTitle('Pi'));
+    fireEvent.mouseDown(screen.getByTitle('Pi'));
     expect(onChange).toHaveBeenCalledWith('3π');
   });
 
   it('backspace removes the last character', () => {
     const onChange = vi.fn();
     render(<MathSymbolBar symbols={['pi']} value="12π" onChange={onChange} />);
-    fireEvent.click(screen.getByTitle('Delete last character'));
+    fireEvent.mouseDown(screen.getByTitle('Delete last character'));
     expect(onChange).toHaveBeenCalledWith('12');
   });
 

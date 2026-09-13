@@ -1,4 +1,5 @@
 import React from 'react';
+import { isChunkLoadError, reloadOnceForChunkError } from '../utils/chunkError';
 
 // Catches render errors and failed lazy-chunk loads (common right after a
 // deploy, when an open tab requests a hashed chunk that no longer exists) and
@@ -9,7 +10,13 @@ export default class ErrorBoundary extends React.Component {
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError() {
+  static getDerivedStateFromError(error) {
+    // A failed lazy chunk = a new deploy invalidated the cached JS URLs. Reload
+    // once (guarded against a loop) to fetch the fresh index + chunks silently;
+    // if it already reloaded and is still failing, fall through to the manual UI.
+    if (isChunkLoadError(error) && reloadOnceForChunkError()) {
+      return { hasError: false };
+    }
     return { hasError: true };
   }
 

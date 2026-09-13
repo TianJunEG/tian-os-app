@@ -120,7 +120,7 @@ export default function InformalAssessment() {
           <p className="mt-2 text-2xl sm:text-3xl font-bold text-ink-800">{result?.score ?? session.score}%</p>
           <p className="text-sm text-ink-500">{result?.correctCount ?? session.correctCount} / {result?.totalCount ?? session.totalCount} correct</p>
           <ProgressBar value={result?.score ?? session.score ?? 0} max={100}
-            barClassName={(result?.score ?? 0) >= 80 ? 'bg-emerald-500' : (result?.score ?? 0) >= 50 ? 'bg-gold-400' : 'bg-red-400'} className="mt-3" />
+            barClassName={(result?.score ?? 0) >= 80 ? 'bg-emerald-500' : (result?.score ?? 0) >= 50 ? 'bg-gold' : 'bg-red-400'} className="mt-3" />
         </Card>
 
         <div className="space-y-2">

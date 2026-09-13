@@ -8,6 +8,7 @@ import {
   getStudentPersonalBests,
   getStudentProfileSummary,
 } from '../services/studentProfile/studentProfileService.js';
+import { getStudentStickerState } from '../services/rewards/stickerService.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
@@ -47,6 +48,12 @@ router.get('/timeline', protect, asyncHandler(async (req, res) => {
 
 router.get('/personal-bests', protect, asyncHandler(async (req, res) => {
   await withStudent(req, res, (student) => getStudentPersonalBests(student));
+}));
+
+// Reward chart — collected stickers + goal progress. The student sees their own;
+// a tutor/parent can pass ?studentId= (gated by resolveStudent) to view a tutee's.
+router.get('/stickers', protect, asyncHandler(async (req, res) => {
+  await withStudent(req, res, (student) => getStudentStickerState(student._id));
 }));
 
 router.patch('/visual-mode', protect, asyncHandler(async (req, res) => {

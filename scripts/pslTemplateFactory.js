@@ -41,6 +41,19 @@ export function strategyScaffold({ understand, questionChoices, strategyChoices,
   };
 }
 
+// Lightweight scaffold for data-interpretation templates: read the data, then
+// pick the correct answer from multiple-choice options.
+export function dataInterpScaffold(answerChoices) {
+  return {
+    understand: { type: 'mc', prompt: 'What does the data show?', correctIndex: 0, choices: [] },
+    identify_info: { type: 'highlight', expected: [] },
+    identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [] },
+    plan: { type: 'strategySelect', prompt: 'How will you use the data?', correctIndex: 0, choices: [] },
+    solve: { type: 'mc', prompt: 'Choose the correct answer.', choices: answerChoices },
+    check: { type: 'reasonableness', prompt: 'Is your answer reasonable?' },
+  };
+}
+
 export function makeTemplate(id, skillId, structure, opts) {
   return {
     templateId: id,

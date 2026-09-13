@@ -6,6 +6,7 @@ import {
   selectNextPercentagePracticeTarget,
 } from '../../shared/mathpath/percentages/percentagePracticeEngine.js';
 import { getSkill } from '../../shared/mathpath/percentages/percentageSkillGraph.js';
+import { copyWorkingEvidenceFields } from './workingEvidenceFields.js';
 
 // Pure server-side Percentage practice service. No DB / Express here — the route
 // layer persists what these functions return. Mirrors decimalsPracticeService.js
@@ -39,13 +40,14 @@ export function buildPercentagePracticeSession({
     throw err;
   }
 
-  const raw = generatePercentageQuestionSet({ skillId, count: questionCount, mode });
+  const raw = generatePercentageQuestionSet({ skillId, count: questionCount, mode, sessionSalt: Date.now().toString() });
   const questions = raw.map((q, index) => ({
     questionId: `${q.questionFamilyId}_${index}`,
     skillId: q.skillId,
     questionFamilyId: q.questionFamilyId,
     type: q.type,
     prompt: q.prompt,
+    unit: q.unit || '',
     choices: q.choices || [],
     answer: q.answer,
     acceptedAnswers: q.acceptedAnswers || [],
@@ -53,6 +55,7 @@ export function buildPercentagePracticeSession({
     misconceptionTag: q.misconceptionTag || '',
     difficulty: q.difficulty,
     workingRequired: Boolean(q.workingRequired),
+    answerFormat: q.answerFormat,
   }));
 
   return {
@@ -90,6 +93,7 @@ export function scorePercentageSubmission({ questions = [], responses = [] } = {
         misconceptionTag: verdict.correct ? '' : (question.misconceptionTag || ''),
         confidence: r.confidence || '',
         timeTaken: Number(r.timeTaken || 0),
+        ...copyWorkingEvidenceFields(r),
       };
     });
 

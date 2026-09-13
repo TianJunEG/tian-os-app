@@ -24,7 +24,7 @@ function BarPreview({ model = {} }) {
         {model.knownRemaining ? <span>Known left: {model.knownRemaining}</span> : null}
       </div>
       {model.subdivideRemainingBy ? (
-        <div className="mt-3 rounded-lg border border-gold-200 bg-gold-50 p-2 text-xs text-gold-900">
+        <div className="mt-3 rounded-lg border border-gold-tint bg-gold-tint2 p-2 text-xs text-gold-deep">
           Remainder becomes the new amount. Split the remaining region into {model.subdivideRemainingBy} equal groups.
         </div>
       ) : null}

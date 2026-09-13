@@ -13,7 +13,12 @@ import {
 export async function processPaperAnalysis(job) {
   const { analysisId, mimeType = '', filename = '', resumeFrom = '' } = job.data || {};
   if (!analysisId) throw new Error('paper-analysis job is missing analysisId.');
-  const analysis = resumeFrom === 'questions_confirmed'
+  // Resume the post-OCR-confirmation half of the pipeline when either the job is
+  // explicitly named 'resume' (how the route enqueues it) or the payload flags it.
+  // Checking the name too is defensive: a resume job that ever loses its resumeFrom
+  // field would otherwise be re-run from the top.
+  const isResume = job.name === 'resume' || resumeFrom === 'questions_confirmed';
+  const analysis = isResume
     ? await resumeFromOcrConfirmation(analysisId)
     : await runPaperAnalysisPipeline({ analysisId, mimeType, filename });
   return { analysisId: String(analysis._id), status: analysis.status };

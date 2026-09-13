@@ -27,13 +27,14 @@ export function buildTimePracticeSession({
     err.status = 400;
     throw err;
   }
-  const raw = generateTimeQuestionSet({ skillId, count: questionCount, mode });
+  const raw = generateTimeQuestionSet({ skillId, count: questionCount, mode, sessionSalt: Date.now().toString() });
   const questions = raw.map((q, index) => ({
     questionId: `${q.questionFamilyId}_${index}`,
     skillId: q.skillId,
     questionFamilyId: q.questionFamilyId,
     type: q.type,
     prompt: q.prompt,
+    unit: q.unit || '',
     choices: q.choices || [],
     answer: q.answer,
     acceptedAnswers: q.acceptedAnswers || [],

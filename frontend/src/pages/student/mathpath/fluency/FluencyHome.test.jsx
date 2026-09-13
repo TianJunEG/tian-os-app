@@ -8,6 +8,11 @@ vi.mock('../../../../context/AuthContext', () => ({
   useAuth: () => ({ user: { name: 'Demo', profile: { studentVisualMode: 'upper_primary' } } }),
 }));
 
+vi.mock('../../../../config/featureFlags', () => ({
+  default: { fluency: false },
+  FEATURE_FLAGS: { fluency: false },
+}));
+
 vi.mock('../../../../services/api', () => ({
   skillsAPI: {
     list: vi.fn(),

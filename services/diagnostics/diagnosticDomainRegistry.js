@@ -15,6 +15,7 @@ import measurementDiagnosticDomain from './domains/measurementDiagnosticDomain.j
 import geometryDiagnosticDomain from './domains/geometryDiagnosticDomain.js';
 import statisticsDiagnosticDomain from './domains/statisticsDiagnosticDomain.js';
 import algebraDiagnosticDomain from './domains/algebraDiagnosticDomain.js';
+import earlyNumeracyDiagnosticDomain from './domains/earlyNumeracyDiagnosticDomain.js';
 
 const domains = new Map();
 
@@ -79,6 +80,7 @@ registerDiagnosticDomain(measurementDiagnosticDomain);
 registerDiagnosticDomain(geometryDiagnosticDomain);
 registerDiagnosticDomain(statisticsDiagnosticDomain);
 registerDiagnosticDomain(algebraDiagnosticDomain);
+registerDiagnosticDomain(earlyNumeracyDiagnosticDomain);
 
 export default {
   getDiagnosticDomain,

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vocabulary Builder · Primary English</title>
+    <meta
+      name="description"
+      content="Adaptive vocabulary practice for the Primary English paper — learn the words the exam tests, step by step."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <!-- Apply the saved (or OS) theme before first paint to avoid a flash.
+         External (not inline) so it runs under a strict script-src CSP. -->
+    <script src="./theme.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo" aria-hidden="true">VB</span>
+        <span>Vocabulary&nbsp;Builder <em>· Primary English</em></span>
+      </div>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch between light and dark theme" title="Switch theme">🌙</button>
+    </header>
+    <main id="app" class="wrap"><p class="loading">Loading…</p></main>
+    <div id="tips-signup" class="wrap"></div>
+    <footer class="foot">
+      Standalone web app · runs entirely in your browser · no account needed.
+      <br /><a class="foot-link" id="to-cloze" href="./cloze.html">Try Comprehension Cloze →</a>
+    </footer>
+    <!--
+      The whole app is this one module + the shared vocabulary engine. There is
+      no backend, no framework and no build step: open it on any static host.
+    -->
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

@@ -110,7 +110,10 @@ function evaluateExpr(exprRaw, bindings) {
 }
 
 // ── Answer rule parsing ───────────────────────────────────────────────────────
-const CONSTRAINT_RE = /^([^(]+)\s*\(([^)]*)\)\s*$/;
+// Rule may itself contain parens (e.g. "a/(a+b)"), so capture the LAST
+// parenthesised group as the candidate constraint annotation; isAnnotation()
+// below decides whether it's really a constraint (vs part of the expression).
+const CONSTRAINT_RE = /^(.+)\s*\(([^()]*)\)\s*$/;
 
 export function parseAnswerRule(raw = '') {
   const s = raw.trim();
@@ -202,7 +205,27 @@ const DESCRIPTIVE_PATTERNS = [
 
 // Stems with these patterns need paired/constrained values the generator can't
 // guarantee without domain-specific logic (e.g. \frac needs numer < denom).
-const DESCRIPTIVE_STEM_PATTERNS = [/\\frac/];
+// Stems that require READING a visual the text generator cannot produce (a
+// graph, table, chart, figure, grid, solid, clock face, measuring cylinder…).
+// The generic generator emits text only, so these would reach the student as an
+// unanswerable "look at the picture" question with no picture. Most such
+// templates already fail isGeneratable for lacking variables; these patterns
+// catch the ones that DO have variables (e.g. statistics "From the line graph,
+// what was the value in {month}?") and self-document the constraint so future
+// figure-dependent templates can't silently leak in.
+const DESCRIPTIVE_STEM_PATTERNS = [
+  /\\frac/,
+  /from the\s+(bar\s+|line\s+|picture\s+)?(graph|table|chart)/i,
+  /each picture stands for/i,
+  /\bpie chart\b/i,
+  /\bthe (figure|diagram|solid|net|grid)\b/i,
+  /\bmarked angle\b/i,
+  /\bunit cubes\b/i,
+  /\btop view\b/i,
+  /\bon the grid\b/i,
+  /\bmeasuring cylinder\b/i,
+  /lines of symmetry/i,
+];
 
 export function isGeneratable(template = {}) {
   if (template.figureDependent) return false;

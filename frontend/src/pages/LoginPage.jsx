@@ -1,14 +1,14 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ArrowLeft, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { ArrowLeft, User, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 import { Wordmark } from '../components/tianos';
 import { Card, Button, Field, Input, Alert } from '../components/ui';
 import { ROLE_HOME } from '../config/nav';
 import { MASCOT_ORDER } from '../config/mascots';
 
 export default function LoginPage() {
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({ identifier: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -47,25 +47,28 @@ export default function LoginPage() {
           Back to homepage
         </Link>
         <div className="mb-6 flex justify-center"><Wordmark onDark={false} size={34} /></div>
-        <div className="mb-4 flex justify-center -space-x-3">
+        <div className="mb-4 -mx-8 flex items-end justify-center gap-1 overflow-x-auto px-4">
           {MASCOT_ORDER.map((key) => (
             <img
               key={key}
               src={`/mascots/${key}.png`}
               alt={key}
-              className="h-12 w-12 rounded-full border-2 border-white object-cover shadow-sm"
+              className="h-24 w-12 shrink-0 object-contain drop-shadow-sm"
             />
           ))}
         </div>
         <h1 className="text-center font-display text-3xl font-semibold tracking-[-0.02em] text-emerald-deep">Welcome back</h1>
         <p className="mb-8 mt-1 text-center text-sm text-ink-500">Sign in to your Tian OS account</p>
 
+        {new URLSearchParams(location.search).get('reset') === '1' && (
+          <Alert tone="success" icon={CheckCircle} className="mb-4">Password updated — sign in with your new password.</Alert>
+        )}
         {error && <Alert tone="error" icon={AlertCircle} className="mb-4">{error}</Alert>}
 
         <form onSubmit={handleSubmit}>
-          <Field label="Email">
-            <Input type="email" name="email" value={formData.email} onChange={handleChange}
-              placeholder="you@example.com" icon={Mail} autoComplete="email" required />
+          <Field label="Email or username">
+            <Input type="text" name="identifier" value={formData.identifier} onChange={handleChange}
+              placeholder="you@example.com or username" icon={User} autoComplete="username" required />
           </Field>
           <Field label="Password">
             <div className="relative">
@@ -85,6 +88,10 @@ export default function LoginPage() {
             {loading ? 'Signing in…' : 'Sign in'}
           </Button>
         </form>
+
+        <div className="mt-4 text-center">
+          <Link to="/forgot-password" className="text-sm text-ink-400 hover:text-ink-600">Forgot password?</Link>
+        </div>
 
         <div className="mt-6 border-t border-line-soft pt-6">
           <p className="text-center text-sm text-ink-500">

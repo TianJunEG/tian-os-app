@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vocabulary Builder · Metrics</title>
+    <style>
+      :root { --ink:#232c39; --muted:#6b7585; --line:#e7e9ee; --paper:#fff; --bg:#f3f5f7; --emerald:#1f8a5b; --deep:#175f40; --gold:#b06f1f; }
+      * { box-sizing: border-box; }
+      body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--ink); background: var(--bg); }
+      .wrap { max-width: 860px; margin: 0 auto; padding: 28px 18px 60px; }
+      h1 { font-size: 22px; margin: 0 0 2px; }
+      .sub { color: var(--muted); margin: 0 0 20px; font-size: 14px; }
+      .bar-in { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 22px; }
+      input, select, button { font: inherit; padding: 9px 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--paper); }
+      button { background: var(--emerald); color: #fff; border: 0; font-weight: 600; cursor: pointer; }
+      button:hover { background: var(--deep); }
+      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px; }
+      .stat { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+      .stat .n { font-size: 26px; font-weight: 700; color: var(--deep); }
+      .stat .l { font-size: 12px; color: var(--muted); margin-top: 3px; }
+      .stat .s { font-size: 12px; color: var(--gold); margin-top: 4px; }
+      .card { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-bottom: 18px; }
+      .card h3 { margin: 0 0 4px; font-size: 15px; }
+      .card p.note { margin: 0 0 14px; color: var(--muted); font-size: 13px; }
+      .chart { display: flex; align-items: flex-end; gap: 6px; height: 150px; }
+      .col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; min-width: 0; }
+      .col .bar { width: 70%; max-width: 42px; background: var(--emerald); border-radius: 5px 5px 0 0; min-height: 2px; }
+      .col.probe .bar { background: var(--gold); }
+      .col .v { font-size: 11px; color: var(--ink); font-variant-numeric: tabular-nums; }
+      .col .x { font-size: 10px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+      .empty { color: var(--muted); font-size: 13px; }
+      .err { color: #c8472f; font-size: 13px; margin-left: 6px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Vocabulary Builder — metrics</h1>
+      <p class="sub">Engagement and cold-word transfer. Watch two things: do learners come back (return rate), and does cold-probe accuracy climb over the weeks.</p>
+
+      <div class="bar-in">
+        <input id="key" type="password" placeholder="Admin key" autocomplete="off" style="min-width:200px" />
+        <select id="days">
+          <option value="7">Last 7 days</option>
+          <option value="30" selected>Last 30 days</option>
+          <option value="90">Last 90 days</option>
+        </select>
+        <button id="load">Load</button>
+        <span id="err" class="err"></span>
+      </div>
+
+      <div id="out"></div>
+    </div>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const KEY = 'vb.metricsKey';
+      $('key').value = sessionStorage.getItem(KEY) || '';
+
+      const stat = (n, l, s) => `<div class="stat"><div class="n">${n}</div><div class="l">${l}</div>${s ? `<div class="s">${s}</div>` : ''}</div>`;
+      const fmtPct = (v) => (v == null ? '—' : v + '%');
+
+      function chart(rows, { label, key, cls = '' }) {
+        if (!rows.length) return `<p class="empty">No data yet.</p>`;
+        const max = Math.max(...rows.map((r) => (cls ? (r.accuracy ?? 0) : r.n)), 1);
+        return `<div class="chart">${rows
+          .map((r) => {
+            const val = cls ? r.accuracy : r.n;
+            const h = Math.round(((val ?? 0) / max) * 130);
+            return `<div class="col ${cls}"><div class="v">${cls ? fmtPct(r.accuracy) : r.n}</div><div class="bar" style="height:${h}px"></div><div class="x">${r[key]}</div></div>`;
+          })
+          .join('')}</div>`;
+      }
+
+      async function load() {
+        const key = $('key').value.trim();
+        const days = $('days').value;
+        $('err').textContent = '';
+        sessionStorage.setItem(KEY, key);
+        try {
+          const res = await fetch(`/api/vocab/admin/metrics?days=${days}`, { headers: { 'x-vocab-admin-key': key } });
+          if (!res.ok) throw new Error(res.status === 401 ? 'Wrong admin key' : res.status === 404 ? 'Metrics disabled (set VOCAB_ADMIN_KEY on the server)' : 'Error ' + res.status);
+          render(await res.json());
+        } catch (e) {
+          $('err').textContent = e.message;
+        }
+      }
+
+      function render(m) {
+        $('out').innerHTML = `
+          <div class="grid">
+            ${stat(m.learners.total, 'Learners', m.learners.signedIn + ' signed in')}
+            ${stat(m.learners.returning, 'Returning (2+ days)', 'return rate ' + fmtPct(m.learners.returnRate))}
+            ${stat(m.sessions.started, 'Sessions', m.sessions.completed + ' completed')}
+            ${stat(fmtPct(m.answers.accuracy), 'Answer accuracy', m.answers.total + ' answers')}
+            ${stat(fmtPct(m.coldProbe.accuracy), 'Cold-probe accuracy', m.coldProbe.total + ' probes')}
+          </div>
+          <div class="card">
+            <h3>Cold-word accuracy by week</h3>
+            <p class="note">The transfer signal — accuracy on words never practised. Rising over weeks = real vocabulary growth, not memorisation.</p>
+            ${chart(m.coldProbe.byWeek, { label: 'accuracy', key: 'week', cls: 'probe' })}
+          </div>
+          <div class="card">
+            <h3>Sessions per day</h3>
+            <p class="note">Volume and rhythm of practice.</p>
+            ${chart(m.sessionsByDay, { label: 'sessions', key: 'day' })}
+          </div>`;
+      }
+
+      $('load').onclick = load;
+      $('key').addEventListener('keydown', (e) => e.key === 'Enter' && load());
+      if ($('key').value) load();
+    </script>
+  </body>
+</html>

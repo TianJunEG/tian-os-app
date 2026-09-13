@@ -43,7 +43,7 @@ export default function Training() {
           return (
             <Card key={i} className="flex items-center justify-between gap-3 p-4">
               <div className="flex items-center gap-3">
-                <I className={`h-5 w-5 ${m.status === 'completed' ? 'text-success-500' : m.status === 'in_progress' ? 'text-gold-700' : 'text-ink-300'}`} />
+                <I className={`h-5 w-5 ${m.status === 'completed' ? 'text-success-500' : m.status === 'in_progress' ? 'text-gold-deep' : 'text-ink-300'}`} />
                 <span className="text-ink-700">{m.title}</span>
               </div>
               <StatusBadge status={m.status} />

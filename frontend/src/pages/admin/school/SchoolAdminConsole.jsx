@@ -5,7 +5,7 @@ import { Badge, Button, Card, ErrorState, PageHeader, Spinner } from '../../../c
 
 function SeatUsageBar({ used, limit }) {
   const pct = limit ? Math.min(100, Math.round((used / limit) * 100)) : 0;
-  const tone = pct >= 90 ? 'bg-error-500' : pct >= 70 ? 'bg-gold-400' : 'bg-emerald';
+  const tone = pct >= 90 ? 'bg-error-500' : pct >= 70 ? 'bg-gold' : 'bg-emerald';
   return (
     <div>
       <div className="flex items-center justify-between text-sm text-ink-600">

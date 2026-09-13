@@ -15,6 +15,8 @@ import TutorCertification from '../models/TutorCertification.js';
 import { buildLessonPrep } from '../utils/tutorLessonPrep.js';
 import { getTutorLessonPrep } from '../services/mathpath/tutorLessonPrepEngine.js';
 import { createAssignmentFromLessonPrep } from '../services/mathpath/mathPathAssignmentService.js';
+import { sanitizeHomeworkResults } from '../utils/homeworkResults.js';
+import { awardSticker, awardHomeworkSticker } from '../services/rewards/stickerService.js';
 import {
   listPartnerStudentIdsForUser,
   userCanAccessPartnerStudent,
@@ -26,6 +28,10 @@ import PSLAttempt from '../models/psl/PSLAttempt.js';
 import multer from 'multer';
 import r2 from '../services/storage/r2.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
+import Announcement from '../models/Announcement.js';
+import AnnouncementComment from '../models/AnnouncementComment.js';
+import { notifyNewAnnouncement, publicAnnouncement } from '../services/announcements/announcementService.js';
+import { linkGuardianByEmail } from '../services/guardians/guardianLinkService.js';
 
 const router = express.Router();
 const audioUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
@@ -41,21 +47,34 @@ function ensureTutorWorkspace(req, res) {
   return true;
 }
 
-async function masterySummary(studentId) {
-  const records = await MasteryRecord.find({ studentId }).populate({ path: 'skillId', model: Skill, populate: { path: 'topicId' } });
+// MathPath tiles must count only MathPath mastery — PSL/Spelling records share
+// the same MasteryRecord collection (separated by `module`), so an unscoped
+// query lets other modules bleed into MathPath-labelled headline tiles.
+async function masterySummary(studentId, workspaceId) {
+  const query = { studentId, module: 'MathPath' };
+  if (workspaceId) query.workspaceId = workspaceId;
+  const records = await MasteryRecord.find(query).populate({ path: 'skillId', model: Skill, populate: { path: 'topicId' } });
   const overall = records.length ? Math.round(records.reduce((s, r) => s + r.score, 0) / records.length) : 0;
   const weak = records.filter((r) => r.attempts > 0 && r.score < 40).sort((a, b) => a.score - b.score)[0];
   return { overallMastery: overall, masteredCount: records.filter((r) => r.status === 'mastered').length,
     weakestSkill: weak?.skillId?.name || null, weakestTopic: weak?.skillId?.topicId?.name || null, records };
 }
 
+// Single source of truth for tutor→student access lookups. Hard-codes
+// status:'active' so revoked/ended/paused links can never grant access — every
+// gate must route through this so the predicate can't drift. Exported for reuse
+// in routes/recordings.js.
+export async function findActiveTutorLink({ workspaceId, tutorUserId, studentId }) {
+  return TutorStudentLink.findOne({ workspaceId, tutorUserId, studentId, status: 'active' });
+}
+
 // Confirm a student is linked to this tutor in this workspace (access guard).
 async function requireLinkedStudent(req, res) {
-  const link = await TutorStudentLink.findOne({ workspaceId: req.workspaceId, tutorUserId: req.user.id, studentId: req.params.id });
+  const link = await findActiveTutorLink({ workspaceId: req.workspaceId, tutorUserId: req.user.id, studentId: req.params.id });
   const partnerAllowed = !link
     ? await userCanAccessPartnerStudent({ userId: req.user.id, studentId: req.params.id })
     : false;
-  if (!link && !partnerAllowed && !(process.env.NODE_ENV !== 'production' && process.env.QA_DISABLE_RATE_LIMIT === '1')) { res.status(403).json({ error: 'Student not assigned to you.' }); return null; }
+  if (!link && !partnerAllowed && !(process.env.NODE_ENV === 'test' && process.env.QA_DISABLE_RATE_LIMIT === '1')) { res.status(403).json({ error: 'Student not assigned to you.' }); return null; }
   const student = await Student.findById(req.params.id);
   if (!student) { res.status(404).json({ error: 'Student not found.' }); return null; }
   return student;
@@ -79,7 +98,7 @@ router.get('/students', asyncHandler(async (req, res) => {
   const students = await Student.find({ _id: { $in: studentIds } });
   const out = await Promise.all(students.map(async (s) => {
     const [sum, assignments] = await Promise.all([
-      masterySummary(s._id),
+      masterySummary(s._id, req.workspaceId),
       Assignment.find({ studentId: s._id }),
     ]);
     const done = assignments.filter((a) => a.status === 'completed').length;
@@ -99,11 +118,17 @@ router.get('/home', asyncHandler(async (req, res) => {
     LessonNote.find({ tutorUserId: req.user.id, workspaceId: req.workspaceId }).sort({ createdAt: -1 }).limit(5),
     TutorCertification.findOne({ tutorUserId: req.user.id }),
   ]);
-  const overdue = await Assignment.countDocuments({ studentId: { $in: studentIds }, status: 'overdue' });
+  // No code path ever writes status:'overdue', so derive it at read time:
+  // an assignment is overdue when its dueDate is in the past and it isn't done.
+  const overdue = await Assignment.countDocuments({
+    studentId: { $in: studentIds },
+    dueDate: { $ne: null, $lt: new Date() },
+    status: { $ne: 'completed' },
+  });
 
   // Fetch all students + their mastery in parallel (avoids N+1 serial loop).
   const studentDocs = await Student.find({ _id: { $in: studentIds } }).lean();
-  const summaries = await Promise.all(studentDocs.map((s) => masterySummary(s._id)));
+  const summaries = await Promise.all(studentDocs.map((s) => masterySummary(s._id, req.workspaceId)));
 
   const students = studentDocs.map((s, i) => {
     const sum = summaries[i];
@@ -134,8 +159,8 @@ router.get('/home', asyncHandler(async (req, res) => {
 router.get('/students/:id', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const student = await requireLinkedStudent(req, res); if (!student) return;
-  const sum = await masterySummary(student._id);
-  const mistakes = await Mistake.find({ studentId: student._id, status: { $ne: 'resolved' } })
+  const sum = await masterySummary(student._id, req.workspaceId);
+  const mistakes = await Mistake.find({ studentId: student._id, module: 'MathPath', status: { $ne: 'resolved' } })
     .populate({ path: 'skillId', model: Skill }).sort({ occurredAt: -1 }).limit(10);
   const assignments = await Assignment.find({ studentId: student._id }).populate({ path: 'skillIds', model: Skill }).sort({ createdAt: -1 });
   const notes = await LessonNote.find({ studentId: student._id, workspaceId: req.workspaceId }).sort({ createdAt: -1 }).limit(5);
@@ -216,10 +241,43 @@ router.post('/students/:id/lesson-notes', asyncHandler(async (req, res) => {
     notes: b.notes || b.covered || '', nextAction: b.nextAction || b.nextRecommendation || '',
     covered: b.covered || '', didWell: b.didWell || '', struggledWith: b.struggledWith || '',
     misconceptions: b.misconceptions || '', homeworkAssigned: b.homeworkAssigned || '',
+    homeworkResults: sanitizeHomeworkResults(b.homeworkResults),
     nextRecommendation: b.nextRecommendation || '', parentSummary: b.parentSummary || '',
     parentUpdateStatus: 'draft',
   });
-  res.status(201).json({ lessonNote: note });
+  // A strong homework week auto-earns a sticker for the reward chart (idempotent
+  // per note). Non-fatal — never block saving the note on a reward write.
+  let earnedSticker = null;
+  try {
+    const hw = note.homeworkResults || [];
+    earnedSticker = await awardHomeworkSticker({
+      studentId: student._id,
+      noteId: note._id,
+      correct: hw.reduce((s, r) => s + (r.correct || 0), 0),
+      total: hw.reduce((s, r) => s + (r.total || 0), 0),
+    });
+  } catch (err) {
+    console.error('[tutor] homework sticker award failed (non-fatal):', err.message);
+  }
+  res.status(201).json({ lessonNote: note, earnedSticker });
+}));
+
+// @route POST /api/tutor/students/:id/stickers — manually award a reward sticker
+router.post('/students/:id/stickers', asyncHandler(async (req, res) => {
+  if (!ensureTutorWorkspace(req, res)) return;
+  const student = await requireLinkedStudent(req, res); if (!student) return;
+  try {
+    const { sticker } = await awardSticker({
+      studentId: student._id,
+      stickerCode: req.body?.stickerCode,
+      source: 'tutor',
+      awardedByUserId: req.user.id,
+      note: req.body?.note || '',
+    });
+    res.status(201).json({ sticker });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Could not award sticker.' });
+  }
 }));
 
 // @route POST /api/tutor/students/:id/lesson-notes/:noteId/send
@@ -365,9 +423,9 @@ router.get('/lesson-notes', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const studentId = req.query.studentId;
   if (!studentId) return res.status(400).json({ error: 'studentId query param is required.' });
-  const link = await TutorStudentLink.findOne({ workspaceId: req.workspaceId, tutorUserId: req.user.id, studentId });
+  const link = await findActiveTutorLink({ workspaceId: req.workspaceId, tutorUserId: req.user.id, studentId });
   const partnerAllowed = !link ? await userCanAccessPartnerStudent({ userId: req.user.id, studentId }) : false;
-  if (!link && !partnerAllowed && !(process.env.NODE_ENV !== 'production' && process.env.QA_DISABLE_RATE_LIMIT === '1')) {
+  if (!link && !partnerAllowed && !(process.env.NODE_ENV === 'test' && process.env.QA_DISABLE_RATE_LIMIT === '1')) {
     return res.status(403).json({ error: 'Student not assigned to you.' });
   }
   const student = await Student.findById(studentId);
@@ -385,9 +443,9 @@ router.post('/lesson-notes', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const studentId = req.body?.studentId;
   if (!studentId) return res.status(400).json({ error: 'studentId is required.' });
-  const link = await TutorStudentLink.findOne({ workspaceId: req.workspaceId, tutorUserId: req.user.id, studentId });
+  const link = await findActiveTutorLink({ workspaceId: req.workspaceId, tutorUserId: req.user.id, studentId });
   const partnerAllowed = !link ? await userCanAccessPartnerStudent({ userId: req.user.id, studentId }) : false;
-  if (!link && !partnerAllowed && !(process.env.NODE_ENV !== 'production' && process.env.QA_DISABLE_RATE_LIMIT === '1')) {
+  if (!link && !partnerAllowed && !(process.env.NODE_ENV === 'test' && process.env.QA_DISABLE_RATE_LIMIT === '1')) {
     return res.status(403).json({ error: 'Student not assigned to you.' });
   }
   const student = await Student.findById(studentId);
@@ -408,6 +466,7 @@ router.post('/lesson-notes', asyncHandler(async (req, res) => {
     struggledWith: b.struggledWith || '',
     misconceptions: b.misconceptions || '',
     homeworkAssigned: b.homeworkAssigned || '',
+    homeworkResults: sanitizeHomeworkResults(b.homeworkResults),
     nextRecommendation: b.nextRecommendation || b.nextAction || '',
     parentSummary: b.parentSummary || '',
     parentUpdateStatus: 'draft',
@@ -416,9 +475,19 @@ router.post('/lesson-notes', asyncHandler(async (req, res) => {
 }));
 
 // @route GET /api/tutor/homework — all assignments this tutor created
+// Tutor-created assignments are stored under the STUDENT's workspaceId (see
+// POST /api/assignments), not the tutor workspace — so filtering by
+// req.workspaceId hides them. Scope by what the tutor actually created plus the
+// students currently linked to them instead.
 router.get('/homework', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
-  const list = await Assignment.find({ workspaceId: req.workspaceId, assignedByUserId: req.user.id })
+  const studentIds = await tutorStudentIds(req);
+  const list = await Assignment.find({
+    $or: [
+      { assignedByUserId: req.user.id },
+      { studentId: { $in: studentIds } },
+    ],
+  })
     .populate({ path: 'skillIds', model: Skill }).sort({ createdAt: -1 });
   const students = await Student.find({ _id: { $in: list.map((a) => a.studentId) } });
   const nameById = Object.fromEntries(students.map((s) => [String(s._id), s.name]));
@@ -474,7 +543,7 @@ router.get('/students/:id/psl/dashboard', asyncHandler(async (req, res) => {
     const skSessions = sessions.filter((s) => s.skillId === sk.skillId);
     const skAttempts = attempts.filter((a) => a.skillId === sk.skillId);
     if (!skSessions.length && !skAttempts.length) continue;
-    const mastered = masteryRecs.find((r) => r.skillId?.toString() === sk.skillId && r.status === 'mastered');
+    const mastered = masteryRecs.find((r) => r.skillId?.toString() === sk._id?.toString() && r.status === 'mastered');
     const avgScore = skAttempts.length
       ? Math.round((skAttempts.reduce((a, at) => a + at.overallScore, 0) / skAttempts.length) * 100)
       : 0;
@@ -572,6 +641,60 @@ router.get('/students/:id/psl/dashboard', asyncHandler(async (req, res) => {
     topMisconceptions,
     recentSessions,
   });
+}));
+
+// Quick-link a parent to one of the tutor's students.
+router.post('/students/:id/link-parent', asyncHandler(async (req, res) => {
+  if (!ensureTutorWorkspace(req, res)) return;
+  const student = await requireLinkedStudent(req, res); if (!student) return;
+  try {
+    const result = await linkGuardianByEmail({
+      studentId: req.params.id, workspaceId: req.workspaceId,
+      email: req.body?.email, name: req.body?.name,
+    });
+    return res.status(201).json(result);
+  } catch (err) {
+    return res.status(Number(err?.status) || 500).json({ error: err?.message || 'Could not link the parent.' });
+  }
+}));
+
+// ── Announcements to parents (tutor-scoped) ──────────────────────────────
+// Post an announcement to the parents of all the tutor's active students.
+router.post('/announcements', asyncHandler(async (req, res) => {
+  if (!ensureTutorWorkspace(req, res)) return;
+  const title = String(req.body?.title || '').trim();
+  if (!title) return res.status(400).json({ error: 'A title is required.' });
+  const author = await User.findById(req.user.id).select('name');
+  const announcement = await Announcement.create({
+    workspaceId: req.workspaceId,
+    authorId: req.user.id,
+    authorName: author?.name || 'Tutor',
+    sourceType: 'tutor',
+    sourceId: String(req.user.id), // recipient fan-out keys off the tutorUserId
+    title,
+    body: String(req.body?.body || '').trim().slice(0, 5000),
+    allowComments: req.body?.allowComments !== false,
+  });
+  notifyNewAnnouncement(announcement).catch(() => {});
+  return res.status(201).json({ announcement: publicAnnouncement(announcement) });
+}));
+
+// List the tutor's announcements.
+router.get('/announcements', asyncHandler(async (req, res) => {
+  if (!ensureTutorWorkspace(req, res)) return;
+  const list = await Announcement.find({ sourceType: 'tutor', sourceId: String(req.user.id) })
+    .sort({ createdAt: -1 }).limit(50).lean();
+  return res.json({ announcements: list.map(publicAnnouncement) });
+}));
+
+// Delete an announcement (author only) + its comments.
+router.delete('/announcements/:aid', asyncHandler(async (req, res) => {
+  if (!ensureTutorWorkspace(req, res)) return;
+  const a = await Announcement.findOne({ _id: req.params.aid, sourceType: 'tutor', authorId: req.user.id });
+  if (!a) return res.status(404).json({ error: 'Announcement not found.' });
+  await AnnouncementComment.deleteMany({ announcementId: a._id });
+  await a.deleteOne();
+  return res.json({ ok: true });
 }));
 
 export default router;

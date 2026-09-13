@@ -7,7 +7,11 @@ const fileFilter = (req, file, cb) => {
   if (allowedMimes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Only image files (JPEG, PNG, WEBP, GIF) are allowed'), false);
+    // Tag with status 400 so the global errorHandler's `if (err.status)` branch
+    // returns a clean 400 instead of falling through to a generic 500.
+    const e = new Error('Only image files (JPEG, PNG, WEBP, GIF) are allowed');
+    e.status = 400;
+    cb(e, false);
   }
 };
 

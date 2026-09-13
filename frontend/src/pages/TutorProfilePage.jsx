@@ -64,7 +64,7 @@ export default function TutorProfilePage() {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-gold-600">Tutor</div>
+            <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-gold-deep">Tutor</div>
             <h1 className="text-3xl font-serif font-medium text-emerald-deep leading-tight">My Profile</h1>
           </div>
         </div>

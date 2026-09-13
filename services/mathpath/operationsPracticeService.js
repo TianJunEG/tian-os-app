@@ -5,6 +5,7 @@ import {
 import { selectNextOperationsPracticeTarget } from '../../shared/mathpath/operations/OperationsPracticeEngine.js';
 import { getSkill } from '../../shared/mathpath/operations/OperationsSkillGraph.js';
 import { assertDomainServable } from './stubDomainGate.js';
+import { copyWorkingEvidenceFields } from './workingEvidenceFields.js';
 
 export const DOMAIN_ID = 'four_operations';
 
@@ -22,18 +23,21 @@ export function buildOperationsPracticeSession({
   if (!skillId || !getSkill(skillId)) {
     skillId = selectNextOperationsPracticeTarget({ masteredSkillIds, weakSkillIds }).skillId;
   }
+  // Resolve slug (op.add.facts) to canonical ID (OP001) — families and generator use ID-format keys.
+  skillId = getSkill(skillId)?.id ?? skillId;
   if (!getSkill(skillId)) {
     const err = new Error(`Unknown operations skill: ${targetSkillId}`);
     err.status = 400;
     throw err;
   }
-  const raw = generateOperationsQuestionSet({ skillId, count: questionCount, mode });
+  const raw = generateOperationsQuestionSet({ skillId, count: questionCount, mode, sessionSalt: Date.now().toString() });
   const questions = raw.map((q, index) => ({
     questionId: `${q.questionFamilyId}_${index}`,
     skillId: q.skillId,
     questionFamilyId: q.questionFamilyId,
     type: q.type,
     prompt: q.prompt,
+    unit: q.unit || '',
     choices: q.choices || [],
     answer: q.answer,
     acceptedAnswers: q.acceptedAnswers || [],
@@ -42,6 +46,7 @@ export function buildOperationsPracticeSession({
     difficulty: q.difficulty,
     workingRequired: Boolean(q.workingRequired),
     ...(q.diagram ? { diagram: q.diagram } : {}),
+    ...(q.answerFormat ? { answerFormat: q.answerFormat } : {}),
   }));
   return {
     domainId: DOMAIN_ID,
@@ -69,6 +74,7 @@ export function scoreOperationsSubmission({ questions = [], responses = [] } = {
       correct: verdict.correct,
       misconceptionTag: verdict.correct ? '' : (question.misconceptionTag || ''),
       confidence: r.confidence || '', timeTaken: Number(r.timeTaken || 0),
+      ...copyWorkingEvidenceFields(r),
     };
   });
   const graded = results.filter((r) => !r.error);

@@ -86,7 +86,7 @@ export default function MockTest({ words, onAttempt, lang = 'en' }) {
   };
 
   const check = () => {
-    if (result) return;
+    if (result || !input.trim()) return;
     record(isCorrect(input, current.word));
   };
 
@@ -256,7 +256,7 @@ export default function MockTest({ words, onAttempt, lang = 'en' }) {
 
           <div className="mt-6 flex gap-3">
             {!result ? (
-              <button type="submit" className="flex-1 py-3 bg-emerald text-white rounded-lg hover:bg-emerald-deep font-medium">Check</button>
+              <button type="submit" disabled={!input.trim()} className="flex-1 py-3 bg-emerald text-white rounded-lg hover:bg-emerald-deep font-medium disabled:opacity-40">Check</button>
             ) : (
               <button type="submit" className="flex-1 py-3 bg-emerald text-white rounded-lg hover:bg-emerald-deep font-medium inline-flex items-center justify-center gap-2">
                 {lastWord ? 'See results' : 'Next word'} <ChevronRight className="w-5 h-5" />

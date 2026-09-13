@@ -176,6 +176,35 @@ describe('evaluateStep — plan (reverse_steps)', () => {
   });
 });
 
+describe('evaluateStep — plan (ratioBar)', () => {
+  // Red:Blue = 3:2, value per unit = 6 -> Red 18, Blue 12, total 30.
+  const expected = { type: 'ratioBar', ratioA: 3, ratioB: 2, valuePerPart: 6, valueA: 18, valueB: 12, total: 30, labelA: 'Red', labelB: 'Blue' };
+
+  it('correct value per unit', () => {
+    const r = evaluateStep('plan', { ratioBar: { valuePerPart: 6 } }, expected);
+    expect(r.correct).toBe(true);
+    expect(r.score).toBe(1);
+  });
+
+  it('tolerates a fractional value per unit', () => {
+    const exp = { type: 'ratioBar', ratioA: 1, ratioB: 2, valuePerPart: 3.5, valueA: 3.5, valueB: 7, total: 10.5 };
+    const r = evaluateStep('plan', { ratioBar: { valuePerPart: 3.5 } }, exp);
+    expect(r.correct).toBe(true);
+  });
+
+  it('wrong value per unit -> forgot-total-parts', () => {
+    const r = evaluateStep('plan', { ratioBar: { valuePerPart: 10 } }, expected);
+    expect(r.correct).toBe(false);
+    expect(r.score).toBe(0);
+    expect(r.misconceptionTag).toBe('psl/forgot-total-parts');
+  });
+
+  it('missing value -> not correct', () => {
+    const r = evaluateStep('plan', { ratioBar: {} }, expected);
+    expect(r.correct).toBe(false);
+  });
+});
+
 describe('evaluateStep — plan (table_setup)', () => {
   const expected = { type: 'table_setup', columns: ['Position', 'Value', 'Difference'], requiredCount: 2 };
 
@@ -329,6 +358,15 @@ describe('evaluateStep — solve', () => {
       expect(r.correct).toBe(false);
       expect(r.score).toBe(0);
       expect(r.misconceptionTag).toBe('psl/used-wrong-numbers');
+    });
+
+    it('handed in a valid intermediate as the final answer → forgot to finish (not "wrong numbers")', () => {
+      // Student computed 100 - 35 = 65 (a real step) but stopped there; the answer
+      // needs + 100 = 165. Their numbers were right — they just did not finish.
+      const r = evaluateStep('solve', { answer: 65, intermediates: [65] }, twoStepExpected);
+      expect(r.correct).toBe(false);
+      expect(r.partial).toBe(true);
+      expect(r.misconceptionTag).toBe('psl/forgot-subtract');
     });
   });
 });

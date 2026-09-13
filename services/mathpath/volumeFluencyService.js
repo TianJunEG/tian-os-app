@@ -96,7 +96,7 @@ export function buildVolumeFluencyDrill({ skillId, count = 8 } = {}) {
   }
   const benchmarks = getFluencyBenchmarks(families[0]);
   const familyTarget = new Map(families.map((f) => [f.id, f.fluencyTargetSeconds]));
-  const raw = generateVolumeQuestionSet({ skillId, count, mode: 'fluency' });
+  const raw = generateVolumeQuestionSet({ skillId, count, mode: 'fluency', sessionSalt: Date.now().toString() });
   const questions = raw.map((q, index) => ({
     questionId: `${q.questionFamilyId}_f${index}`,
     skillId: q.skillId,

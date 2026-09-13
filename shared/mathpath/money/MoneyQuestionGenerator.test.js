@@ -80,4 +80,17 @@ describe('MoneyQuestionGenerator', () => {
     }
     expect(checkMoneyAnswer({ question: q, studentResponse: 'not money' }).correct).toBe(false);
   });
+
+  it('accepts cent forms for a sub-dollar coin-value answer (e.g. "$0.40")', () => {
+    // "What is the total value of 8 5-cent coins?" → $0.40. A child may write the
+    // answer in cents (40, 40c, 40¢, "40 cents") or dollars ($0.40, 0.40, 0.4).
+    const q = { answer: { display: '$0.40' }, acceptedAnswers: ['$0.40'] };
+    for (const ans of ['$0.40', '0.40', '0.4', '40c', '40¢', '40 cents', '40']) {
+      expect(checkMoneyAnswer({ question: q, studentResponse: ans }).correct).toBe(true);
+    }
+    // Genuinely wrong amounts stay wrong.
+    for (const ans of ['4', '400', '$4', '0.04', '50']) {
+      expect(checkMoneyAnswer({ question: q, studentResponse: ans }).correct).toBe(false);
+    }
+  });
 });

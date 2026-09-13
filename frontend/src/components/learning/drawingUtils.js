@@ -80,6 +80,54 @@ export function finalizeStroke(stroke) {
 
 // ─── Stroke rendering ───────────────────────────────────────────────────
 
+export const SHADE_ALPHA = 0.24;
+
+/**
+ * Render a shade stroke EVENLY.
+ *
+ * A translucent freehand brush composited tail-by-tail darkens wherever the
+ * path overlaps itself, leaving a blotchy fill. Instead we draw the whole
+ * stroke opaque into an offscreen canvas (so self-overlaps merge into one solid
+ * shape) and composite that shape ONCE at the target alpha — giving a flat,
+ * even tone no matter how many times the brush crossed itself.
+ *
+ * Used by both the live canvas (redraw-per-move) and replay/export, so the
+ * shading looks identical everywhere.
+ */
+function drawShadeStroke(ctx, stroke, lineWidth) {
+  const points = stroke.points || [];
+  if (points.length < 2) return;
+  const target = ctx.canvas;
+  const offscreen = typeof document !== 'undefined' ? document.createElement('canvas') : null;
+  if (!offscreen) return;
+  offscreen.width = target.width;
+  offscreen.height = target.height;
+  const octx = offscreen.getContext('2d');
+  octx.lineCap = 'round';
+  octx.lineJoin = 'round';
+  octx.strokeStyle = stroke.colour || '#172554';
+  octx.lineWidth = lineWidth;
+  octx.beginPath();
+  octx.moveTo(points[0].x, points[0].y);
+  if (points.length === 2) {
+    octx.lineTo(points[1].x, points[1].y);
+  } else {
+    for (let i = 1; i < points.length - 1; i++) {
+      const mid = { x: (points[i].x + points[i + 1].x) / 2, y: (points[i].y + points[i + 1].y) / 2 };
+      octx.quadraticCurveTo(points[i].x, points[i].y, mid.x, mid.y);
+    }
+    const last = points[points.length - 1];
+    octx.lineTo(last.x, last.y);
+  }
+  octx.stroke();
+
+  ctx.save();
+  ctx.globalAlpha = SHADE_ALPHA;
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.drawImage(offscreen, 0, 0);
+  ctx.restore();
+}
+
 /**
  * Draw a single stroke onto a canvas 2D context.
  *
@@ -104,19 +152,22 @@ export function drawStroke(ctx, stroke, options = {}) {
   const points = stroke?.points || [];
   if (points.length < 2) return;
 
+  if (stroke.tool === 'shade') {
+    const baseSize = Number(stroke.size || 4);
+    drawShadeStroke(ctx, stroke, Math.max(34, baseSize * 8));
+    return;
+  }
+
   ctx.save();
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   ctx.globalCompositeOperation = stroke.tool === 'eraser' ? 'destination-out' : 'source-over';
-  ctx.globalAlpha = stroke.tool === 'highlighter' ? 0.18
-    : stroke.tool === 'shade' ? 0.24
-    : 1;
+  ctx.globalAlpha = stroke.tool === 'highlighter' ? 0.18 : 1;
   ctx.strokeStyle = stroke.tool === 'eraser' ? '#ffffff' : (stroke.colour || '#172554');
   ctx.fillStyle = stroke.colour || '#172554';
 
   const baseSize = Number(stroke.size || 4);
   const lineWidth = stroke.tool === 'eraser' ? 24
-    : stroke.tool === 'shade' ? Math.max(34, baseSize * 8)
     : stroke.tool === 'highlighter' ? Math.max(48, baseSize * 10)
     : stroke.tool === 'pencil' ? Math.max(1, baseSize - 1)
     : baseSize;
@@ -154,18 +205,23 @@ export function drawStroke(ctx, stroke, options = {}) {
     && points.some((p) => p.p != null);
 
   if (hasPressure) {
-    // Pressure-sensitive: draw segment-by-segment with varying width and smooth curves
-    for (let i = 1; i < points.length; i++) {
+    // Pressure-sensitive: vary line width per segment. Each segment runs between
+    // consecutive midpoints (with the shared point as the quadratic control), so
+    // adjacent segments join exactly. The previous version stroked only the first
+    // half of every segment, leaving gaps that made the whole stroke look dotted.
+    const last = points.length - 1;
+    for (let i = 1; i <= last; i++) {
       const pressure = points[i].p ?? 0.5;
       ctx.lineWidth = lineWidth * (0.3 + pressure * 0.7);
+      const start = i === 1
+        ? points[0]
+        : { x: (points[i - 1].x + points[i].x) / 2, y: (points[i - 1].y + points[i].y) / 2 };
+      const end = i === last
+        ? points[last]
+        : { x: (points[i].x + points[i + 1].x) / 2, y: (points[i].y + points[i + 1].y) / 2 };
       ctx.beginPath();
-      ctx.moveTo(points[i - 1].x, points[i - 1].y);
-      if (i >= 2) {
-        const mid = { x: (points[i - 1].x + points[i].x) / 2, y: (points[i - 1].y + points[i].y) / 2 };
-        ctx.quadraticCurveTo(points[i - 1].x, points[i - 1].y, mid.x, mid.y);
-      } else {
-        ctx.lineTo(points[i].x, points[i].y);
-      }
+      ctx.moveTo(start.x, start.y);
+      ctx.quadraticCurveTo(points[i].x, points[i].y, end.x, end.y);
       ctx.stroke();
     }
   } else {
@@ -268,9 +324,58 @@ export function drawMathStamp(ctx, stroke, options = {}) {
     ctx.fillText('π', x, y + r(10));
   } else if (stroke.template === 'theta') {
     ctx.fillText('θ', x, y + r(10));
+  } else if (stroke.template === 'plus') {
+    ctx.fillText('+', x, y + r(10));
+  } else if (stroke.template === 'minus') {
+    ctx.fillText('−', x, y + r(10));
+  } else if (stroke.template === 'times') {
+    ctx.fillText('×', x, y + r(10));
+  } else if (stroke.template === 'divide') {
+    ctx.fillText('÷', x, y + r(10));
+  } else if (stroke.template === 'equals') {
+    ctx.fillText('=', x, y + r(10));
+  } else if (stroke.template === 'text') {
+    // Free-text label. Readable sans-serif, supports simple multi-line entry.
+    ctx.font = `${r(22)}px -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif`;
+    String(stroke.text || '').split('\n').forEach((line, i) => {
+      ctx.fillText(line, x, y + r(8) + i * r(26));
+    });
   }
 
   ctx.restore();
+}
+
+// ─── Stamp hit-testing (for dragging placed math stamps) ─────────────────
+
+// A math stamp anchors at points[0] and renders to the right of / around that
+// anchor (see drawMathStamp). This box is the draggable hit area — generous so
+// small symbols stay easy to grab on a tablet. Kept here next to the renderer so
+// the two stay in sync if stamp sizing changes.
+export const STAMP_HIT_BOX = { left: -18, right: 116, top: -42, bottom: 48 };
+
+export function stampContainsPoint(stamp, pt) {
+  if (!stamp || stamp.tool !== 'stamp' || !pt) return false;
+  const a = stamp.points?.[0];
+  if (!a) return false;
+  return (
+    pt.x >= a.x + STAMP_HIT_BOX.left && pt.x <= a.x + STAMP_HIT_BOX.right &&
+    pt.y >= a.y + STAMP_HIT_BOX.top && pt.y <= a.y + STAMP_HIT_BOX.bottom
+  );
+}
+
+// Index of the topmost (last-drawn) stamp under the point, or -1.
+export function topStampIndexAtPoint(strokes = [], pt) {
+  for (let i = strokes.length - 1; i >= 0; i--) {
+    if (stampContainsPoint(strokes[i], pt)) return i;
+  }
+  return -1;
+}
+
+// Return a new strokes array with the stamp at `index` re-anchored to (x, y).
+export function moveStampInStrokes(strokes = [], index, x, y) {
+  return strokes.map((s, i) => (
+    i === index ? { ...s, points: [{ ...(s.points?.[0] || {}), x, y }] } : s
+  ));
 }
 
 // ─── Background painting ────────────────────────────────────────────────

@@ -71,7 +71,7 @@ export default {
       misconceptions: [{ tag: 'mea/convert-direction', label: 'Multiplies when it should divide between units (and vice-versa)' }],
       practiceModes: ['fluency_drill', 'mcq', 'short_answer'],
       remediation: { onRepeatedFail: 'worked-example', reinforce: ['op.mult.by-10-100'], strategy: 'bigger unit → smaller unit means multiply' },
-      questionStructures: [{ mode: 'fluency_drill', type: 'short_answer', difficulty: 'medium', stem: 'Convert {x} kg to g.', answerRule: 'x*1000', misconceptionTag: 'mea/convert-direction' }] },
+      questionStructures: [{ mode: 'fluency_drill', type: 'short_answer', difficulty: 'medium', stem: 'Convert {x} kg to g.', answerRule: 'x*1000 (x≤20)', misconceptionTag: 'mea/convert-direction' }] },
     { slug: 'mea.compare-measures', name: 'Comparing and converting measurements', level: 'Primary 5',
       prerequisites: ['mea.unit-convert', 'dec.compare'], masteryType: 'procedural', fluencyType: 'accuracy',
       render: 'katex', visualModels: ['scale'],
@@ -117,7 +117,7 @@ export default {
       misconceptions: [{ tag: 'mea/rate-volume-confuse', label: 'Confuses the height of water with the volume of water' }],
       practiceModes: ['short_answer', 'worked_example', 'diagnostic'],
       remediation: { onRepeatedFail: 'worked-example', reinforce: ['mea.volume-cuboid', 'rr.rate'], strategy: 'volume = base area × height; time = volume ÷ rate' },
-      questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'hard', stem: 'Water flows at {r} cm³/s into a tank with base {s} cm². How long until it is {d} cm deep?', answerRule: 's*d/r', misconceptionTag: 'mea/rate-volume-confuse' }] },
+      questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'hard', stem: 'Water flows at {r} cm³/s into a tank with base {s} cm². How long until it is {d} cm deep?', answerRule: 's*d/r (s≤20)', misconceptionTag: 'mea/rate-volume-confuse' }] },
 
     // ── Money (measurement context) ──
     { slug: 'mea.money', name: 'Money word problems and reasoning', level: 'Primary 4',
@@ -126,6 +126,6 @@ export default {
       misconceptions: [{ tag: 'mea/money-decimal-place', label: 'Misplaces dollars and cents (treats $2.5 as 2 dollars 5 cents)' }],
       practiceModes: ['short_answer', 'worked_example', 'diagnostic'],
       remediation: { onRepeatedFail: 'worked-example', reinforce: ['dec.add-sub'], strategy: 'keep dollars and cents aligned; reason in cents if unsure' },
-      questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'medium', stem: 'A {item} costs ${a} and a {item2} costs ${b}. How much change from ${c}?', answerRule: 'c - (a+b)', misconceptionTag: 'mea/money-decimal-place' }] },
+      questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'medium', stem: 'One item costs ${a} and another costs ${b}. How much change from ${c}?', answerRule: 'c - (a+b) (a,b≤9, c∈{20,50,100})', misconceptionTag: 'mea/money-decimal-place' }] },
   ],
 };

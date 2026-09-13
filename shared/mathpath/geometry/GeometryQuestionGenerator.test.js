@@ -79,6 +79,53 @@ describe('GeometryQuestionGenerator', () => {
     }
   });
 
+  it('word-problem families (_003) cycle in at every 3rd position', () => {
+    // GE001W: shaped like a polygon — same "How many sides" phrase. Carries the
+    // polygon figure to count (like its non-word sibling) but with labelMode:'none'
+    // so the renderer does NOT print the "N sides" caption, which reveals the answer.
+    const ge1 = generateGeometryQuestionSet({ skillId: 'GE001', count: 9 });
+    for (const i of [2, 5, 8]) {
+      expect(ge1[i].diagram).toMatchObject({ kind: 'polygon', labelMode: 'none' });
+      expect(ge1[i].prompt).toMatch(/shaped like/);
+      expect(Number(dig(ge1[i].answer.display))).toBeGreaterThan(0);
+    }
+    // GE006W: angles on line/point still carry required phrases
+    const ge6 = generateGeometryQuestionSet({ skillId: 'GE006', count: 9 });
+    for (const i of [2, 5, 8]) {
+      expect(ge6[i].prompt).toMatch(/add up to (180|360)°/);
+      expect(Number(dig(ge6[i].answer.display))).toBeGreaterThan(0);
+    }
+    // GE008W: third angle of a triangle
+    const ge8 = generateGeometryQuestionSet({ skillId: 'GE008', count: 9 });
+    for (const i of [2, 5, 8]) {
+      expect(ge8[i].prompt).toMatch(/angles of a triangle are/);
+      const c = Number(dig(ge8[i].answer.display));
+      expect(c).toBeGreaterThan(0);
+      expect(c).toBeLessThan(180);
+    }
+    // GE017W: perimeter with real object
+    const ge17 = generateGeometryQuestionSet({ skillId: 'GE017', count: 9 });
+    for (const i of [2, 5, 8]) {
+      expect(ge17[i].prompt).toMatch(/sides of \d+ cm/);
+      expect(Number(dig(ge17[i].answer.display))).toBeGreaterThan(0);
+    }
+    // GE020W: circumference of a circle with radius
+    const ge20 = generateGeometryQuestionSet({ skillId: 'GE020', count: 9 });
+    for (const i of [2, 5, 8]) {
+      expect(ge20[i].prompt).toMatch(/circumference of a circle with radius/);
+      expect(Number(dig(ge20[i].answer.display))).toBeGreaterThan(0);
+    }
+    // All 22 _003 positions produce non-empty, non-stub answers
+    for (const skillId of SKILL_IDS) {
+      const qs = generateGeometryQuestionSet({ skillId, count: 9 });
+      for (const i of [2, 5, 8]) {
+        expect(qs[i].prompt).not.toMatch(/Compute:/);
+        expect(qs[i].solutionSteps.length).toBeGreaterThanOrEqual(1);
+        expect(String(qs[i].answer.display).length).toBeGreaterThan(0);
+      }
+    }
+  });
+
   it('checker handles words and units, and rejects wrong answers', () => {
     const mk = (display) => ({ answer: { display } });
     expect(checkGeometryAnswer({ question: mk('acute'), studentResponse: 'acute angle' }).correct).toBe(true);
@@ -86,5 +133,23 @@ describe('GeometryQuestionGenerator', () => {
     expect(checkGeometryAnswer({ question: mk('36 cm'), studentResponse: '36' }).correct).toBe(true);
     expect(checkGeometryAnswer({ question: mk('37.68 cm'), studentResponse: '37.68' }).correct).toBe(true);
     expect(checkGeometryAnswer({ question: mk('acute'), studentResponse: 'obtuse' }).correct).toBe(false);
+  });
+
+  it('GE009 quadrilateral clues single out ONE shape (rectangle clue excludes the square; parallelogram clue excludes rectangle/rhombus/square)', () => {
+    // Regression: GE009W's word clues used to be under-specified — "4 right angles
+    // and opposite sides equal" (a square fits too) and "two pairs of parallel
+    // sides" (every option fits) — so a student picking a genuinely-valid shape
+    // was marked wrong. Both word + non-word variants must carry the qualifier.
+    let sawRect = false, sawPara = false;
+    for (let c = 0; c < 60; c++) {
+      for (const q of generateGeometryQuestionSet({ skillId: 'GE009', count: 9 })) {
+        const ans = String(q.answer.display).toLowerCase();
+        if (!/quadrilateral|shape is it/i.test(q.prompt)) continue;
+        if (ans === 'rectangle') { sawRect = true; expect(q.prompt.toLowerCase(), q.prompt).toMatch(/not all (four )?sides equal/); }
+        if (ans === 'parallelogram') { sawPara = true; expect(q.prompt.toLowerCase(), q.prompt).toMatch(/no right angles/); }
+      }
+    }
+    expect(sawRect).toBe(true);
+    expect(sawPara).toBe(true);
   });
 });

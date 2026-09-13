@@ -29,6 +29,7 @@ import {
 } from '../services/mathpath/mathPathAssignmentService.js';
 import { getQueue, isQueueEnabled, QUEUE_NAMES } from '../config/queue.js';
 import { putUpload } from '../services/storage/objectStore.js';
+import { recordMistakesFromPaperAnalysis } from '../services/mathpath/paperAnalysisMistakeRecorder.js';
 
 const router = express.Router();
 
@@ -54,7 +55,11 @@ const upload = multer({
   fileFilter: (_req, file, cb) => {
     const allowed = new Set(['application/pdf', 'image/jpeg', 'image/jpg', 'image/png']);
     if (!allowed.has(file.mimetype)) {
-      cb(new Error('Only PDF, JPG and PNG paper uploads are supported.'));
+      // Tag with status 400 so the global errorHandler returns a clean 400
+      // instead of a generic 500 for unsupported file types.
+      const e = new Error('Only PDF, JPG and PNG paper uploads are supported.');
+      e.status = 400;
+      cb(e);
       return;
     }
     cb(null, true);
@@ -250,7 +255,34 @@ router.post('/student-upload', protect, upload.single('paper'), asyncHandler(asy
         mimeType: req.file.mimetype,
         filename: req.file.originalname,
       });
-      return res.status(201).json({ analysis: analysed });
+      // Auto-assign practice for student uploads. The /:id/assign-practice
+      // endpoint requires assertAdultUploader and so won't fire — but the AI
+      // already inferred which questions the teacher marked wrong
+      // (teacherMarkedCorrect === false), so the same skill signals
+      // weakSkillsFromPaper() reads are already present. Without this, the
+      // "Paper uploaded! We'll create practice…" copy was a lie: nothing ever
+      // followed. We try here; if it fails (no wrong questions detected, low
+      // confidence, etc.) we fall back to the analysis-only response.
+      let assignment = null;
+      try {
+        const wrongDetected = (analysed?.detectedQuestions || []).some((q) =>
+          q?.teacherMarkedCorrect === false || q?.adultConfirmedWrong === true);
+        if (wrongDetected) {
+          assignment = await createAssignmentFromPaperAnalysis({
+            paperAnalysisId: analysis._id,
+            assignedByUserId: String(req.user?.id || req.user?._id || ''),
+            assignedByRole: 'student',
+          });
+        }
+      } catch (assignErr) {
+        // Assignment creation failed — the analysis is still saved and an
+        // adult can still trigger it later. Surface as a warning, not a 500.
+        return res.status(201).json({
+          analysis: await PaperAnalysis.findById(analysis._id).lean(),
+          warning: 'Paper analysed but practice could not be auto-generated. An adult can review and assign it for you.',
+        });
+      }
+      return res.status(201).json({ analysis: analysed, assignment });
     } catch (pipelineErr) {
       return res.status(201).json({
         analysis: await PaperAnalysis.findById(analysis._id).lean(),
@@ -355,6 +387,9 @@ router.patch('/:id/review', protect, asyncHandler(async (req, res) => {
     analysis.reviewedAt = new Date();
     analysis.analysisNotes = req.body?.analysisNotes || analysis.analysisNotes || '';
     await analysis.save();
+    // Surface the adult-confirmed wrong questions in the student's Mistakes review
+    // (idempotent + best-effort — never blocks the review response).
+    recordMistakesFromPaperAnalysis(analysis).catch(() => {});
     return res.json({ analysis });
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not review paper analysis.' });

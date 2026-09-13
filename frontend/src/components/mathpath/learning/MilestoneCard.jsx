@@ -6,7 +6,7 @@ export default function MilestoneCard({ title = 'Milestone', message, hint }) {
   return (
     <Card className="p-4 sm:p-5">
       <div className="flex items-start gap-3">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gold-100 text-gold-700">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gold-tint text-gold-deep">
           <Award className="h-5 w-5" />
         </span>
         <div className="min-w-0">

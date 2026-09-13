@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 // Escape user-supplied values before interpolating into email HTML.
 const escapeHtml = (value) =>
@@ -9,69 +9,35 @@ const escapeHtml = (value) =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 
-// Initialize email transporter
-// For production: use a real email service (SendGrid, AWS SES, etc.)
-// For development: use ethereal (fake email service for testing)
-let transporter;
-
-const initializeEmailService = async () => {
-  if (process.env.NODE_ENV === 'production') {
-    // Production: Use your email service credentials
-    transporter = nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE || 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD
-      }
-    });
-  } else {
-    // Development: Use Ethereal (test email service)
-    const testAccount = await nodemailer.createTestAccount();
-    transporter = nodemailer.createTransport({
-      host: 'smtp.ethereal.email',
-      port: 587,
-      secure: false,
-      auth: {
-        user: testAccount.user,
-        pass: testAccount.pass
-      }
-    });
-  }
-};
-
-// Initialize on module load
-initializeEmailService().catch(console.error);
-
-/**
- * Send email
- * @param {Object} options - Email options
- * @param {string} options.to - Recipient email
- * @param {string} options.subject - Email subject
- * @param {string} options.html - HTML email body
- * @param {string} options.text - Plain text email body (optional)
- */
-export const sendEmail = async ({ to, subject, html, text }) => {
-  try {
-    const info = await transporter.sendMail({
-      from: process.env.EMAIL_FROM || '"TutorMatch" <noreply@tutormatch.com>',
-      to,
-      subject,
-      text,
-      html
-    });
-
-    console.log('Email sent:', info.messageId);
-
-    // In development, log the preview URL
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('Preview URL:', nodemailer.getTestMessageUrl(info));
+// Resend client — lazily initialised so the server boots in test/dev without
+// a real API key. In test mode all sends are no-ops.
+let _resend = null;
+function getResend() {
+  if (!_resend) {
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error('RESEND_API_KEY is not set. Add it to your environment variables.');
     }
-
-    return info;
-  } catch (error) {
-    console.error('Email send error:', error);
-    throw error;
+    _resend = new Resend(process.env.RESEND_API_KEY);
   }
+  return _resend;
+}
+
+const FROM = process.env.EMAIL_FROM || '"Tian OS" <noreply@tianos.app>';
+
+export const sendEmail = async ({ to, subject, html, text }) => {
+  // Skip actual sending in test environment.
+  if (process.env.NODE_ENV === 'test') {
+    console.log(`[test] email suppressed — to:${to} subject:${subject}`);
+    return { id: 'test-suppressed' };
+  }
+  const resend = getResend();
+  const { data, error } = await resend.emails.send({ from: FROM, to, subject, html, text });
+  if (error) {
+    console.error('Resend error:', error);
+    throw new Error(error.message || 'Failed to send email via Resend.');
+  }
+  console.log('Email sent via Resend:', data?.id);
+  return data;
 };
 
 /**
@@ -79,7 +45,7 @@ export const sendEmail = async ({ to, subject, html, text }) => {
  */
 export const sendTutorApprovalEmail = async (tutor) => {
   const html = `
-    <h2>Welcome to TutorMatch! 🎉</h2>
+    <h2>Welcome to Tian OS! 🎉</h2>
     <p>Hi ${tutor.name},</p>
     <p>Great news! Your tutor profile has been verified and approved. You can now start accepting bookings from students.</p>
     <h3>Next Steps:</h3>
@@ -89,7 +55,7 @@ export const sendTutorApprovalEmail = async (tutor) => {
       <li>Start accepting bookings</li>
     </ul>
     <p><a href="http://localhost:3000/tutor/dashboard" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Go to Dashboard</a></p>
-    <p>Best regards,<br>The TutorMatch Team</p>
+    <p>Best regards,<br>The Tian OS Team</p>
   `;
 
   return sendEmail({
@@ -113,7 +79,7 @@ export const sendParentInvite = async ({ to, studentName, schoolName, inviteUrl,
     <p><a href="${inviteUrl}" style="background-color:#1F6B53;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;display:inline-block;">View ${safeStudent}'s progress</a></p>
     ${expiryNote}
     <p style="color:#666;font-size:13px;">If the button doesn't work, copy this link into your browser:<br>${escapeHtml(inviteUrl)}</p>
-    <p>Best regards,<br>The MathPath Team</p>
+    <p>Best regards,<br>The Tian OS Team</p>
   `;
   return sendEmail({ to, subject: `Follow ${studentName || 'your child'}'s progress on MathPath`, html });
 };
@@ -130,7 +96,7 @@ export const sendTutorRejectionEmail = async (tutor, notes) => {
     <p>${notes}</p>
     <p>You can reapply after addressing the feedback above.</p>
     <p><a href="http://localhost:3000/tutor/apply" style="background-color: #2196F3; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Reapply Now</a></p>
-    <p>Questions? Contact our support team.<br>Best regards,<br>The TutorMatch Team</p>
+    <p>Questions? Contact our support team.<br>Best regards,<br>The Tian OS Team</p>
   `;
 
   return sendEmail({
@@ -161,7 +127,7 @@ export const sendBookingConfirmationEmail = async (parent, tutor, booking) => {
     </ul>
     <p>Join Link: <a href="${booking.meetingLink}">${booking.meetingLink}</a></p>
     <p><a href="http://localhost:3000/bookings/${booking._id}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">View Booking</a></p>
-    <p>Best regards,<br>The TutorMatch Team</p>
+    <p>Best regards,<br>The Tian OS Team</p>
   `;
 
   return sendEmail({
@@ -189,7 +155,7 @@ export const sendSessionReminderEmail = async (user, booking, tutor) => {
       <li><strong>Subject:</strong> ${booking.subject}</li>
     </ul>
     <p><a href="${booking.meetingLink}" style="background-color: #2196F3; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Join Session</a></p>
-    <p>See you soon!<br>The TutorMatch Team</p>
+    <p>See you soon!<br>The Tian OS Team</p>
   `;
 
   return sendEmail({
@@ -216,7 +182,7 @@ export const sendPaymentConfirmationEmail = async (parent, booking, amount) => {
       <li><strong>Booking:</strong> ${booking.subject}</li>
     </ul>
     <p><a href="http://localhost:3000/payments" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">View Payment History</a></p>
-    <p>Best regards,<br>The TutorMatch Team</p>
+    <p>Best regards,<br>The Tian OS Team</p>
   `;
 
   return sendEmail({
@@ -279,6 +245,23 @@ export const sendPartnerInquiryAcknowledgementEmail = async (inquiry) => {
   });
 };
 
+export const appBaseUrl = () => process.env.APP_BASE_URL || 'http://localhost:3000';
+
+const ROLE_LOGIN_PATH = { tutor: '/tutor', parent: '/parent', teacher: '/teacher', admin: '/admin' };
+
+export const sendWelcomeEmail = async ({ user, role, loginUrl }) => {
+  const safeName = escapeHtml(user?.name || 'there');
+  const safeLogin = loginUrl || `${appBaseUrl()}${ROLE_LOGIN_PATH[role] || ''}`;
+  const html = `
+    <h2>Welcome to Tian OS!</h2>
+    <p>Hi ${safeName},</p>
+    <p>Your ${escapeHtml(role)} account is ready. Click below to log in:</p>
+    <p><a href="${escapeHtml(safeLogin)}" style="background-color:#1F6B53;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;display:inline-block;">Log In</a></p>
+    <p>Best regards,<br>The Tian OS Team</p>
+  `;
+  return sendEmail({ to: user.email, subject: 'Welcome to Tian OS', html });
+};
+
 export const sendPasswordResetEmail = async ({ to, name, resetUrl, expiresInMinutes = 60 }) => {
   const safeName = escapeHtml(name || 'there');
   const html = `
@@ -288,7 +271,7 @@ export const sendPasswordResetEmail = async ({ to, name, resetUrl, expiresInMinu
     <p><a href="${resetUrl}" style="background-color:#1F6B53;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;display:inline-block;">Reset Password</a></p>
     <p style="color:#666;font-size:13px;">This link expires in ${expiresInMinutes} minutes. If you didn't request this, you can safely ignore this email.</p>
     <p style="color:#666;font-size:13px;">If the button doesn't work, copy this link into your browser:<br>${escapeHtml(resetUrl)}</p>
-    <p>Best regards,<br>The MathPath Team</p>
+    <p>Best regards,<br>The Tian OS Team</p>
   `;
   return sendEmail({ to, subject: 'Password Reset Request', html });
 };
@@ -303,4 +286,6 @@ export default {
   sendPartnerInquiryNotificationEmail,
   sendPartnerInquiryAcknowledgementEmail,
   sendPasswordResetEmail,
+  sendWelcomeEmail,
+  appBaseUrl,
 };

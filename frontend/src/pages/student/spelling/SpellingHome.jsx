@@ -31,7 +31,7 @@ export default function SpellingHome() {
 
       {home.recommended ? (
         <Card className="mb-6 p-5">
-          <div className="mb-1 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-gold-700"><SpellCheck className="h-3.5 w-3.5" /> Recommended list</div>
+          <div className="mb-1 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-gold-deep"><SpellCheck className="h-3.5 w-3.5" /> Recommended list</div>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="font-display text-xl font-semibold text-emerald-deep">{home.recommended.title}</h2>
@@ -59,7 +59,7 @@ export default function SpellingHome() {
         </Link>
         <Link to="/student/spelling/mistakes" className="block focus-visible:outline-none">
           <Card interactive className="p-5">
-            <Wrench className="mb-2 h-6 w-6 text-gold-700" />
+            <Wrench className="mb-2 h-6 w-6 text-gold-deep" />
             <h3 className="font-semibold text-ink-700">Misspelled words</h3>
             <p className="text-sm text-ink-500">{home.misspeltCount || 0} to review.</p>
           </Card>

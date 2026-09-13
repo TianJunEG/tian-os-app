@@ -7,7 +7,7 @@ export function buildMoneyRetentionReview({ skillId, studentId = null, previousQ
   const skill = getSkill(skillId);
   if (!skill) throw new Error(`Unknown money skill: ${skillId}`);
   const review = generateRetentionReview({ skillId, previousQuestionFamilyIds, difficulty });
-  const questions = generateMoneyQuestionSet({ skillId, count: review.recommendedQuestionCount, mode: 'retention', familyIds: review.questionFamilyIds });
+  const questions = generateMoneyQuestionSet({ skillId, count: review.recommendedQuestionCount, mode: 'retention', familyIds: review.questionFamilyIds, sessionSalt: Date.now().toString() });
   return { ...review, domainId: DOMAIN_ID, skillId, skillName: skill.name, studentId, mode: 'retention', questions, totalQuestions: questions.length, generatedAt: new Date().toISOString() };
 }
 
@@ -19,7 +19,7 @@ export function scoreMoneyRetentionReview({ review, answers = [], timingsSeconds
   if (!review) throw new Error('review required');
   const results = review.questions.map((q, i) => {
     const given = answers[i] ?? null;
-    const correct = given != null ? checkMoneyAnswer({ question: q, studentResponse: given }) : false;
+    const correct = given != null ? checkMoneyAnswer({ question: q, studentResponse: given }).correct : false;
     return { questionIndex: i, familyId: q.familyId, correct, givenAnswer: given, correctAnswer: q.answer, timeSeconds: timingsSeconds[i] ?? null };
   });
   const correctCount = results.filter((r) => r.correct).length;

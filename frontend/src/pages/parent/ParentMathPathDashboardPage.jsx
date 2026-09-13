@@ -60,20 +60,39 @@ function inferConfidence(summary = {}, placement = null) {
   return 'High';
 }
 
+// True only when the dashboard payload reflects real student activity. The
+// server emits dataSource: 'none' (and an empty masteryProgress) when the child
+// has never practised this domain — we must NOT synthesise a "Needs Attention"
+// skill/accuracy from that empty payload.
+function hasRealMathPathData(summary = {}) {
+  if (summary.dataSource && summary.dataSource !== 'none') return true;
+  if (summary.dataSource === 'none') return false;
+  // Defensive fallback when dataSource is absent: treat any concrete signal
+  // (a known skill total, a mastered skill, or a flagged weakness) as real.
+  const mastery = summary.masteryProgress || {};
+  const total = Number(mastery.totalSkills || 0);
+  const masteredCount = toCount(mastery.masteredSkills);
+  const weakCount = toCount(summary.currentWeaknesses) || toCount(mastery.weakSkills) || toCount(summary.weakSkills);
+  return total > 0 || masteredCount > 0 || weakCount > 0;
+}
+
 function deriveParentSnapshot(summary = {}, placement = null, child = null) {
   const mastery = summary.masteryProgress || {};
+  const hasData = hasRealMathPathData(summary);
   const attentionSkillId = firstText(
     mastery.weakSkillIds,
     summary.parentHome?.currentFocusSkillIds,
     placement?.recommendedStartingSkill?.skillId,
-  ) || 'F010';
+  );
+  // Only ever a real, data-backed weak skill — no synthesised default so the
+  // "Needs Attention" card cannot fabricate a skill the child never attempted.
   const weakSkill = firstText(
     summary.currentWeaknesses,
     mastery.weakSkills,
     summary.parentHome?.currentFocusSkills,
     placement?.recommendedStartingSkill?.name,
     placement?.recommendedStartingPoint,
-  ) || 'Equivalent Fractions';
+  );
   const currentFocus = firstText(
     summary.weeklyActionPlan?.weekFocus,
     mastery.inProgressSkills,
@@ -83,11 +102,13 @@ function deriveParentSnapshot(summary = {}, placement = null, child = null) {
   const mastered = toCount(mastery.masteredSkills);
   const total = Number(mastery.totalSkills || 26);
   const masteryPercent = asPercent(mastery.percentageMastered, total ? Math.round((mastered / total) * 100) : 0);
+  // Accuracy is real-or-derived only. The previous "42 when Equivalent
+  // Fractions" branch fabricated a failing accuracy for the synthesised skill.
   const accuracy = asPercent(
     summary.assessmentSummary?.latestScore
     || summary.parentHome?.accuracy
     || summary.adultIntelligence?.masterySignals?.currentAccuracy,
-    weakSkill === 'Equivalent Fractions' ? 42 : masteryPercent
+    masteryPercent
   );
   const streak = Number(child?.currentStreak || child?.streak || summary.parentHome?.currentStreak || summary.recentActivity?.currentStreak || 0);
   const recentActivity = firstText(
@@ -107,6 +128,7 @@ function deriveParentSnapshot(summary = {}, placement = null, child = null) {
   });
 
   return {
+    hasData,
     childName: child?.name || '',
     mastered,
     total,
@@ -138,8 +160,57 @@ function ChelyaUpdateCard({ snapshot, domainName }) {
   );
 }
 
+// Shown when the child has no MathPath activity yet. Replaces the synthesised
+// "Needs Attention" snapshot so parents are never shown a fabricated weak skill
+// or accuracy for a domain the child has never practised.
+function ParentDashboardEmptyState({ snapshot, studentId, navigate, domainName = 'MathPath' }) {
+  const assignPracticeUrl = `/parent/children/${studentId}/assign-practice?module=MathPath`;
+  const name = snapshot.childName ? snapshot.childName : 'Your child';
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-deep">Child Snapshot</p>
+        <h2 className="mt-1 font-display text-2xl font-semibold text-emerald-deep">Get started with {domainName}</h2>
+      </div>
+      <Card className="border-l-4 border-l-emerald p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="max-w-xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-emerald-deep">No MathPath activity yet</p>
+            <h3 className="mt-2 font-display text-xl font-semibold text-emerald-deep">
+              No {domainName} activity yet — assign first practice
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-ink-600">
+              {name} hasn’t completed any {domainName} practice in this domain. Once practice begins, this dashboard
+              will show real mastery, fluency, and the specific skills that need attention. We won’t guess before
+              there’s data.
+            </p>
+          </div>
+          <Badge tone="neutral">Awaiting first practice</Badge>
+        </div>
+        <div className="mt-5 grid gap-2 sm:max-w-xs">
+          <Button className="justify-center" icon={Target} onClick={() => navigate(assignPracticeUrl)}>Assign First Practice</Button>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
 function ParentDashboardMvp({ snapshot, studentId, navigate, domainName = 'MathPath' }) {
-  const assignPracticeUrl = `/parent/children/${studentId}/assign-practice?module=MathPath&skill=${encodeURIComponent(snapshot.attentionSkillId || 'F010')}`;
+  if (!snapshot.hasData) {
+    return (
+      <ParentDashboardEmptyState
+        snapshot={snapshot}
+        studentId={studentId}
+        navigate={navigate}
+        domainName={domainName}
+      />
+    );
+  }
+
+  const assignPracticeUrl = snapshot.attentionSkillId
+    ? `/parent/children/${studentId}/assign-practice?module=MathPath&skill=${encodeURIComponent(snapshot.attentionSkillId)}`
+    : `/parent/children/${studentId}/assign-practice?module=MathPath`;
   const worksheetUrl = `/parent/children/${studentId}/worksheets/new?mode=weak_skills&worksheetType=parent_support_worksheet`;
   const mistakesUrl = `/parent/children/${studentId}/mistakes`;
 
@@ -147,7 +218,7 @@ function ParentDashboardMvp({ snapshot, studentId, navigate, domainName = 'MathP
     <div className="space-y-4">
       {FEATURE_FLAGS.parentNarration && <ChelyaUpdateCard snapshot={snapshot} domainName={domainName} />}
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Child Snapshot</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-deep">Child Snapshot</p>
         <h2 className="mt-1 font-display text-2xl font-semibold text-emerald-deep">What to know right now</h2>
       </div>
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Child Snapshot">
@@ -163,7 +234,7 @@ function ParentDashboardMvp({ snapshot, studentId, navigate, domainName = 'MathP
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-2">
-            <Flame className="h-4 w-4 text-gold-600" />
+            <Flame className="h-4 w-4 text-gold-deep" />
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Current Streak</p>
           </div>
           <p className="mt-2 font-display text-2xl sm:text-3xl font-semibold text-emerald-deep">{snapshot.streak}</p>
@@ -176,11 +247,13 @@ function ParentDashboardMvp({ snapshot, studentId, navigate, domainName = 'MathP
       </section>
 
       <section className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-[1.2fr_0.8fr]" aria-label="Parent action summary">
-        <Card className="border-l-4 border-l-gold-500 p-5">
+        <Card className="border-l-4 border-l-gold p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Needs Attention</p>
-              <h2 className="mt-2 font-display text-2xl font-semibold text-emerald-deep">{snapshot.attentionSkill}</h2>
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-deep">Needs Attention</p>
+              <h2 className="mt-2 font-display text-2xl font-semibold text-emerald-deep">
+                {snapshot.attentionSkill || 'No weak skills flagged'}
+              </h2>
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Accuracy</p>
@@ -196,8 +269,8 @@ function ParentDashboardMvp({ snapshot, studentId, navigate, domainName = 'MathP
               {snapshot.accuracy < 50 ? 'Watch closely' : snapshot.accuracy < 70 ? 'Needs practice' : 'On track'}
             </Badge>
           </div>
-          <div className="mt-5 rounded-xl border border-gold-200 bg-gold-50 px-4 py-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-800">Recommendation</p>
+          <div className="mt-5 rounded-xl border border-gold-tint bg-gold-tint2 px-4 py-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-deep">Recommendation</p>
             <p className="mt-1 font-semibold text-ink-800">{snapshot.recommendation}</p>
             {snapshot.supportInsight && (
               <div className="mt-3 grid gap-2 text-sm text-ink-700">
@@ -602,7 +675,7 @@ export default function ParentMathPathDashboardPage() {
         {!!summary.warnings?.length && (
           <Card className="p-4">
             <div className="flex items-start gap-2">
-              <AlertTriangle className="mt-0.5 h-4 w-4 text-gold-700" />
+              <AlertTriangle className="mt-0.5 h-4 w-4 text-gold-deep" />
               <p className="text-sm text-ink-600">Some sections are partial while more student data is being collected.</p>
             </div>
           </Card>

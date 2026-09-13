@@ -10,7 +10,25 @@ import ComicReader from './ComicReader';
 // ErrorBoundary on EVERY episode's final "Finish" click in production.
 
 const completeMock = vi.fn().mockResolvedValue({});
-vi.mock('../../../services/api', () => ({ comicsAPI: { complete: (...a) => completeMock(...a) } }));
+const recommendedMock = vi.fn().mockResolvedValue({ data: { recommended: null } });
+const recordEventMock = vi.fn().mockResolvedValue({});
+vi.mock('../../../services/api', () => ({
+  comicsAPI: { complete: (...a) => completeMock(...a), recommended: (...a) => recommendedMock(...a) },
+  learningTelemetryAPI: { recordEvent: (...a) => recordEventMock(...a) },
+}));
+vi.mock('../../../context/AuthContext', () => ({ useAuth: () => ({ user: { studentLevel: 'P4' } }) }));
+// Deterministic problems so this reader-flow test is stable; the engine's own
+// level-scaling of numbers is covered by comicDifficulty.test.js.
+vi.mock('../../../data/comics/comicDifficulty', () => ({
+  resolveTier: () => 1,
+  generateEpisodeProblems: (episode) => {
+    const fixed = { 'p1-q1': 20, 'p2-q1': 9, 'p3-q1': 11 };
+    // Real engine now returns { problems, ctx }; mirror that shape so the reader
+    // can destructure it (ctx carries intermediate values for speech-bubble text).
+    const problems = episode.panels.map((p) => (p.problem ? { ...p.problem, question: 'Q', hint: 'H', answer: fixed[p.problem.id] ?? 1 } : null));
+    return { problems, ctx: {} };
+  },
+}));
 
 function renderReader(slug = 'hawker-heroes') {
   return render(
@@ -32,7 +50,21 @@ function solveCurrentPanel(container, answer) {
 }
 
 describe('ComicReader', () => {
-  beforeEach(() => completeMock.mockClear());
+  beforeEach(() => {
+    completeMock.mockClear();
+    recordEventMock.mockClear();
+    recommendedMock.mockReset();
+    recommendedMock.mockResolvedValue({ data: { recommended: null } });
+  });
+
+  function finishEpisode(container) {
+    solveCurrentPanel(container, ANSWERS[0]);
+    fireEvent.click(screen.getByRole('button', { name: /Next panel/ }));
+    solveCurrentPanel(container, ANSWERS[1]);
+    fireEvent.click(screen.getByRole('button', { name: /Next panel/ }));
+    solveCurrentPanel(container, ANSWERS[2]);
+    fireEvent.click(screen.getByRole('button', { name: /Finish/ }));
+  }
 
   it('walks to the end card without crashing after the final answer', async () => {
     const { container } = renderReader();
@@ -60,5 +92,66 @@ describe('ComicReader', () => {
   it('shows a friendly message for an unknown episode slug', () => {
     renderReader('does-not-exist');
     expect(screen.getByText('Episode not found.')).toBeInTheDocument();
+  });
+
+  it('offers an optional working scratchpad, collapsed by default', () => {
+    renderReader();
+    // The toggle is available on the problem panel...
+    expect(screen.getByRole('button', { name: /Show working/ })).toBeInTheDocument();
+    // ...but the canvas stays collapsed until tapped, so the quick-read flow is
+    // unchanged (and the heavy canvas isn't mounted up front).
+    expect(screen.queryByText('Sketch your working')).not.toBeInTheDocument();
+  });
+
+  it('emits telemetry: comic_episode_opened on mount and comic_episode_completed on finish', async () => {
+    const { container } = renderReader();
+
+    await waitFor(() => expect(recordEventMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventType: 'comic_episode_opened',
+        domain: 'comics',
+        metadata: expect.objectContaining({ episodeId: 'ep-001' }),
+      }),
+    ));
+
+    finishEpisode(container);
+    await screen.findByText('Episode complete!');
+
+    await waitFor(() => expect(recordEventMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventType: 'comic_episode_completed',
+        domain: 'comics',
+        metadata: expect.objectContaining({ episodeId: 'ep-001', problemsTotal: 3, problemsCorrect: 3 }),
+      }),
+    ));
+  });
+
+  it('offers an adaptive "Play next" on the end card and navigates to it', async () => {
+    // recommend a different episode (ep-005) targeting a weak skill
+    recommendedMock.mockResolvedValue({
+      data: { recommended: { episodeId: 'ep-005', skillName: 'Length', skillSlug: 'mea.length' } },
+    });
+    const { container } = renderReader();
+    finishEpisode(container);
+
+    await screen.findByText('Episode complete!');
+    // It asked for a recommendation and surfaced the reason + the chained CTA.
+    await waitFor(() => expect(recommendedMock).toHaveBeenCalled());
+    expect(await screen.findByText((t) => /Next, let.?s practise Length/.test(t))).toBeInTheDocument();
+    const playNext = screen.getByRole('button', { name: /Play next · Ep 5/ });
+
+    fireEvent.click(playNext);
+    // The reader chains into Ep 5 and resets to its first panel.
+    expect(await screen.findByText('Ep 5: Measure Up')).toBeInTheDocument();
+  });
+
+  it('does not show Play next when there is no recommendation', async () => {
+    recommendedMock.mockResolvedValue({ data: { recommended: null } });
+    const { container } = renderReader();
+    finishEpisode(container);
+
+    await screen.findByText('Episode complete!');
+    await waitFor(() => expect(recommendedMock).toHaveBeenCalled());
+    expect(screen.queryByRole('button', { name: /Play next/ })).not.toBeInTheDocument();
   });
 });

@@ -21,12 +21,19 @@ function sanitizeProblemForClient(problem) {
     heuristic: problem.heuristic,
     structure: problem.structure,
     unknownPosition: problem.unknownPosition || null,
-    scaffoldSteps: (problem.scaffoldSteps || []).map((step) => ({
-      stepId: step.stepId,
-      type: step.type,
-      prompt: step.prompt,
-      choices: step.choices || [],
-    })),
+    scaffoldSteps: (problem.scaffoldSteps || []).map((step) => {
+      const out = {
+        stepId: step.stepId,
+        type: step.type,
+        prompt: step.prompt,
+        choices: step.choices || [],
+      };
+      // Tell the client how many clues to find WITHOUT leaking which ones.
+      if (step.stepId === 'identify_info') {
+        out.expectedCount = (step.expectedResponse?.numbers || []).length;
+      }
+      return out;
+    }),
   };
   if (problem.status === 'completed' && problem.solutionText) {
     sanitized.solutionText = problem.solutionText;

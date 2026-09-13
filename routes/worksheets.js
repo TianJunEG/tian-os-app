@@ -6,6 +6,7 @@ import Mistake from '../models/Mistake.js';
 import { protect, authorize } from '../middleware/auth.js';
 import uploadWorksheet from '../middleware/uploadWorksheet.js';
 import { analyzeAndGenerateWorksheet, markAnswers, generateReinforcement } from '../utils/aiService.js';
+import { AI_NOT_CONFIGURED_USER_MESSAGE } from '../utils/aiProvider.js';
 import { SESSION_OFFSETS, recomputeSchedule } from '../utils/practiceSchedule.js';
 import { buildReinforcementWorksheet } from '../utils/reinforcement.js';
 import { canViewWorksheet, redactWorksheetForViewer } from '../utils/worksheetAccess.js';
@@ -31,6 +32,13 @@ function sendAiError(res, err) {
   console.error('Worksheet generation error:', err.status || '', err.message);
   let status = err.status || 500;
   let message = err.message || 'Failed to generate worksheet';
+
+  // AI key missing/misconfigured: the raw reason names the server env keys
+  // (ANTHROPIC_API_KEY/OPENAI_API_KEY) — logged above, but never returned to users.
+  // Surface the friendly, key-name-free message instead.
+  if (err.code === 'AI_NOT_CONFIGURED') {
+    return res.status(503).json({ error: err.userMessage || AI_NOT_CONFIGURED_USER_MESSAGE });
+  }
 
   if (status === 401 || status === 403) {
     status = 503;
@@ -75,7 +83,7 @@ router.post(
       }
 
       const imageBase64 = req.file.buffer.toString('base64');
-      const { fileUrl: sourceImageUrl } = await persistUploadFile(req.file, 'worksheets');
+      const { fileUrl: sourceImageUrl, storageKey, storageProvider } = await persistUploadFile(req.file, 'worksheets');
       const studentUserId = assignedStudent ? assignedStudent._id : null;
       const resolvedStudentName = studentName ? String(studentName).slice(0, 100) : assignedStudent?.name;
       const base = {
@@ -95,9 +103,13 @@ router.post(
         let pending = null;
         try {
           pending = await Worksheet.create({ ...base, generationStatus: 'pending', practiceSessions: [] });
+          // Pass the photo by reference (storageKey), not as an inline base64 blob:
+          // the upload is already persisted via the storage facade above, so the
+          // worker re-reads it. Keeps the Redis payload small (a key, not ~8MB).
           await queue.add('run', {
             worksheetId: String(pending._id),
-            imageBase64,
+            storageKey,
+            storageProvider,
             mimeType: req.file.mimetype,
             gradeLevel,
             topicHint,

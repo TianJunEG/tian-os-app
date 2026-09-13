@@ -1,6 +1,12 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+
+// DomainPracticeSession reads the signed-in student via useAuth(); provide a
+// stub so the render smoke-tests below don't trip the AuthProvider guard.
+vi.mock('../../../../context/AuthContext', () => ({
+  useAuth: () => ({ user: { studentLevel: 'p5' } }),
+}));
 import {
   DOMAIN_PRACTICE_CONFIG,
   getSkillNameMap,
@@ -12,9 +18,9 @@ import {
 import DomainPracticeSession from './DomainPracticeSession';
 
 describe('domain practice consolidation', () => {
-  it('registry covers all 14 non-fractions domains with start/submit/buildView/label', () => {
+  it('registry covers all 15 non-fractions domains with start/submit/buildView/label', () => {
     const slugs = Object.keys(DOMAIN_PRACTICE_CONFIG);
-    expect(slugs.length).toBe(14);
+    expect(slugs.length).toBe(15);
     for (const [slug, c] of Object.entries(DOMAIN_PRACTICE_CONFIG)) {
       expect(typeof c.start, slug).toBe('function');
       expect(typeof c.submit, slug).toBe('function');

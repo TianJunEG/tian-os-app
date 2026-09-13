@@ -1,21 +1,26 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Lightbulb, CheckCircle, XCircle, BookOpen } from 'lucide-react';
-import { getEpisode, MASCOT_COLORS } from '../../../data/comics/episodes';
-import { comicsAPI } from '../../../services/api';
+import { ArrowLeft, ArrowRight, Lightbulb, CheckCircle, XCircle, BookOpen, Volume2, VolumeX, Pencil } from 'lucide-react';
+import { getEpisode, getEpisodeById, MASCOT_COLORS } from '../../../data/comics/episodes';
+import { resolveTier, generateEpisodeProblems } from '../../../data/comics/comicDifficulty';
+import { comicsAPI, learningTelemetryAPI } from '../../../services/api';
+import { useAuth } from '../../../context/AuthContext';
+import useComicNarration from './useComicNarration';
+import WorkingCanvas from '../../../components/learning/WorkingCanvas';
 
 // ─── Speech bubble ───────────────────────────────────────────────────────────
 
-function SpeechBubble({ text, side, color }) {
+function SpeechBubble({ text, side, color, onPlay, isSpeaking }) {
   const isLeft = side === 'left';
   return (
     <div
       style={{
         position: 'relative',
-        background: '#fff',
+        background: isSpeaking ? '#fffbeb' : '#fff',
         border: `2.5px solid ${color}`,
         borderRadius: 14,
         padding: '8px 13px',
+        paddingRight: onPlay ? 30 : 13,
         fontSize: 13,
         fontWeight: 600,
         lineHeight: 1.4,
@@ -24,9 +29,31 @@ function SpeechBubble({ text, side, color }) {
         marginLeft: isLeft ? 8 : 'auto',
         marginRight: isLeft ? 'auto' : 8,
         marginTop: 6,
+        boxShadow: isSpeaking ? `0 0 0 3px ${color}44` : 'none',
+        transition: 'box-shadow 0.15s, background 0.15s',
       }}
     >
       {text}
+      {onPlay && (
+        <button
+          type="button"
+          aria-label="Read aloud"
+          onClick={(e) => { e.stopPropagation(); onPlay(); }}
+          style={{
+            position: 'absolute',
+            top: 5,
+            right: 5,
+            border: 'none',
+            background: 'transparent',
+            cursor: 'pointer',
+            padding: 2,
+            lineHeight: 0,
+            color,
+          }}
+        >
+          <Volume2 size={14} />
+        </button>
+      )}
       {/* tail */}
       <span
         style={{
@@ -126,7 +153,7 @@ const SCENE_COLORS = {
   'hawker-centre': 'linear-gradient(135deg, #fef3c7 0%, #fde68a 60%, #fbbf24 100%)',
 };
 
-function ScenePanel({ scene, characters, speech }) {
+function ScenePanel({ scene, characters, speech, onPlayLine, speakingIndex = -1 }) {
   const bg = SCENE_COLORS[scene] ?? 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)';
 
   // Group speeches by side
@@ -177,12 +204,26 @@ function ScenePanel({ scene, characters, speech }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 12px 0', position: 'relative', zIndex: 2 }}>
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: 6 }}>
           {leftSpeech.map((s, i) => (
-            <SpeechBubble key={i} text={s.text} side="left" color={leftColor} />
+            <SpeechBubble
+              key={i}
+              text={s.text}
+              side="left"
+              color={leftColor}
+              onPlay={onPlayLine ? () => onPlayLine(s) : undefined}
+              isSpeaking={speakingIndex === speech.indexOf(s)}
+            />
           ))}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: 6, alignItems: 'flex-end' }}>
           {rightSpeech.map((s, i) => (
-            <SpeechBubble key={i} text={s.text} side="right" color={rightColor} />
+            <SpeechBubble
+              key={i}
+              text={s.text}
+              side="right"
+              color={rightColor}
+              onPlay={onPlayLine ? () => onPlayLine(s) : undefined}
+              isSpeaking={speakingIndex === speech.indexOf(s)}
+            />
           ))}
         </div>
       </div>
@@ -362,9 +403,58 @@ function ProblemBox({ problem, onSolve, solved, episode, panelIndex }) {
   );
 }
 
+// ─── Optional working scratchpad ──────────────────────────────────────────────
+// A lightweight, collapsed-by-default sketch area so a child CAN show working
+// without slowing the quick-read format. Reuses the MathPath WorkingCanvas in
+// compact mode; never required. Captures vector strokes only (no AI analysis) —
+// surfaced upward via onChange so the reader can save them with the episode.
+
+function WorkingScratch({ problemId, value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const hasWork = (value?.workingStrokes?.length || 0) > 0;
+  return (
+    <div style={{ marginTop: 10 }}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          background: 'transparent',
+          border: '1.5px dashed #d4d4d4',
+          borderRadius: 10,
+          padding: '7px 12px',
+          fontSize: 13,
+          fontWeight: 600,
+          color: hasWork ? '#b45309' : '#78716c',
+          cursor: 'pointer',
+        }}
+      >
+        <Pencil size={13} />
+        {open ? 'Hide working' : hasWork ? 'Working added · edit' : 'Show working (optional)'}
+      </button>
+      {open && (
+        <div style={{ marginTop: 8 }}>
+          <WorkingCanvas
+            questionId={problemId}
+            required={false}
+            allowNoWorking
+            compact
+            label="Sketch your working"
+            submittedStrokes={value?.workingStrokes || []}
+            onChange={(payload) => onChange(problemId, payload)}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── End card ─────────────────────────────────────────────────────────────────
 
-function EndCard({ nextEpisode }) {
+function EndCard({ nextEpisode, nextRec, onPlayNext }) {
   return (
     <div
       style={{
@@ -378,6 +468,40 @@ function EndCard({ nextEpisode }) {
     >
       <div style={{ fontSize: 28, marginBottom: 8 }}>🎉</div>
       <p style={{ fontSize: 15, fontWeight: 700, marginBottom: 6 }}>Episode complete!</p>
+
+      {/* Adaptive "play next" — chains the reader into the episode that
+          practises the student's weakest skill, keeping the session going. */}
+      {nextRec?.episode && (
+        <div style={{ marginTop: 12, marginBottom: nextEpisode ? 18 : 0 }}>
+          {nextRec.skillName && (
+            <p style={{ fontSize: 12, opacity: 0.85, marginBottom: 8 }}>
+              ✨ Next, let&apos;s practise {nextRec.skillName}
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={onPlayNext}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              background: '#fbbf24',
+              color: '#1c1917',
+              border: '2.5px solid #1c1917',
+              borderRadius: 12,
+              padding: '10px 18px',
+              fontSize: 14,
+              fontWeight: 800,
+              cursor: 'pointer',
+              boxShadow: '3px 3px 0 rgba(0,0,0,0.35)',
+            }}
+          >
+            Play next · Ep {nextRec.episode.episode}: {nextRec.episode.title}
+            <ArrowRight size={16} />
+          </button>
+        </div>
+      )}
+
       {nextEpisode && (
         <>
           <p style={{ fontSize: 12, opacity: 0.8, marginBottom: 12, lineHeight: 1.5 }}>
@@ -410,11 +534,97 @@ export default function ComicReader() {
 
   const [currentPanel, setCurrentPanel] = useState(0);
   const [solvedProblems, setSolvedProblems] = useState({});
+  const [workingByProblem, setWorkingByProblem] = useState({}); // optional scratchpad strokes, keyed by problemId
   const [submitted, setSubmitted] = useState(false);
+  const [nextRec, setNextRec] = useState(null); // adaptive "play next" pick
+
+  const { user } = useAuth();
+  // One seed per reading: numbers stay stable while you read, fresh on replay.
+  const [seed] = useState(() => Math.floor(Math.random() * 1e9));
+  // Difficulty tier from the student's level (never easier than the episode's
+  // own grade); higher levels get harder numbers on the same story.
+  const tier = useMemo(() => resolveTier(user || {}, episode?.grade || ''), [user, episode]);
+  // Concrete, level-scaled problems for every panel, generated once per reading
+  // with a shared ctx so story-linked numbers stay consistent across panels.
+  // generateEpisodeProblems returns { problems, ctx } — ctx carries intermediate
+  // values (totals, counts) that speech bubble functions reference.
+  const { problems, ctx: episodeCtx } = useMemo(
+    () => (episode ? generateEpisodeProblems(episode, tier, seed) : { problems: [], ctx: {} }),
+    [episode, tier, seed],
+  );
 
   const handleSolve = useCallback((problemId, correct) => {
     setSolvedProblems((prev) => ({ ...prev, [problemId]: correct }));
   }, []);
+
+  // Keep only the vector strokes from the scratchpad (drop any rasterised image)
+  // so the saved payload stays small.
+  const handleWorking = useCallback((problemId, payload) => {
+    setWorkingByProblem((prev) => ({ ...prev, [problemId]: { workingStrokes: payload?.workingStrokes || [] } }));
+  }, []);
+
+  const narration = useComicNarration();
+
+  // Auto-narrate a panel's dialogue when the toggle is on; always cut off any
+  // in-flight speech when the panel changes (incl. advancing to the end card).
+  useEffect(() => {
+    narration.stop();
+    const current = episode?.panels?.[currentPanel];
+    if (!narration.autoNarrate || !current) return undefined;
+    // Resolve any function-based speech text before handing to narration.
+    const resolved = {
+      ...current,
+      speech: (current.speech || []).map((s) => ({
+        ...s,
+        text: typeof s.text === 'function' ? s.text(episodeCtx, problems[currentPanel]) : s.text,
+      })),
+    };
+    // Defer one tick so React StrictMode's mount setup→cleanup→setup settles
+    // before audio starts; the cleanup cancels a superseded schedule, so a panel
+    // is narrated exactly once (no double "first line").
+    const timer = setTimeout(() => narration.playPanel(resolved), 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPanel, narration.autoNarrate, episode]);
+
+  // The route stays mounted when the slug changes (e.g. tapping "Play next"), so
+  // reset to the first panel for the new episode.
+  useEffect(() => {
+    setCurrentPanel(0);
+    setSolvedProblems({});
+    setWorkingByProblem({});
+    setSubmitted(false);
+    setNextRec(null);
+  }, [slug]);
+
+  // Phase 3 instrumentation — one "opened" event per episode view (the top of
+  // the engagement funnel). Fire-and-forget; never block the reader.
+  useEffect(() => {
+    if (!episode) return;
+    learningTelemetryAPI.recordEvent({
+      eventType: 'comic_episode_opened',
+      domain: 'comics',
+      sessionId: episode.id,
+      metadata: { episodeId: episode.id, episodeTitle: episode.title },
+    }).catch(() => {});
+  }, [episode?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // On the end card, fetch the adaptive next pick. The finished episode was just
+  // written to progress, so /recommended already excludes it; we also guard
+  // against recommending the same episode.
+  useEffect(() => {
+    const atEnd = episode && currentPanel >= episode.panels.length;
+    if (!atEnd) return undefined;
+    let on = true;
+    comicsAPI.recommended()
+      .then((res) => {
+        const rec = res.data?.recommended;
+        const ep = rec && getEpisodeById(rec.episodeId);
+        if (on && ep && ep.id !== episode.id) setNextRec({ episode: ep, skillName: rec.skillName });
+      })
+      .catch(() => { /* non-critical — the static teaser still shows */ });
+    return () => { on = false; };
+  }, [currentPanel, episode]);
 
   if (!episode) {
     return (
@@ -428,19 +638,37 @@ export default function ComicReader() {
   // show the end card — so `panel` is undefined here. Guard every dereference
   // below (optional chaining) or the end-card render throws.
   const panel = episode.panels[currentPanel];
+  const problem = problems[currentPanel]; // level-scaled (or static) problem for this panel
   const isLast = currentPanel === episode.panels.length - 1;
-  const currentProblemSolved = panel?.problem ? solvedProblems[panel.problem.id] === true : true;
-  const allSolved = episode.panels.every((p) => !p.problem || solvedProblems[p.problem.id] === true);
+  const currentProblemSolved = problem ? solvedProblems[problem.id] === true : true;
+  const allSolved = problems.every((p) => !p || solvedProblems[p.id] === true);
 
   const goNext = async () => {
     if (isLast) {
       if (!submitted && allSolved) {
         setSubmitted(true);
+        const answers = Object.values(solvedProblems);
         try {
-          await comicsAPI.complete(episode.id, Object.entries(solvedProblems).map(([id, correct]) => ({ problemId: id, correct })));
+          await comicsAPI.complete(episode.id, Object.entries(solvedProblems).map(([id, correct]) => {
+            const strokes = workingByProblem[id]?.workingStrokes;
+            return strokes?.length ? { problemId: id, correct, workingStrokes: strokes } : { problemId: id, correct };
+          }));
         } catch (_) {
           // non-blocking
         }
+        // Phase 3 instrumentation — the engagement signal for retention /
+        // trial→paid. Fire-and-forget; never block the reader.
+        learningTelemetryAPI.recordEvent({
+          eventType: 'comic_episode_completed',
+          domain: 'comics',
+          sessionId: episode.id,
+          metadata: {
+            episodeId: episode.id,
+            tier,
+            problemsCorrect: answers.filter(Boolean).length,
+            problemsTotal: answers.length,
+          },
+        }).catch(() => {});
       }
       setCurrentPanel(episode.panels.length); // show end card
     } else {
@@ -455,7 +683,7 @@ export default function ComicReader() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
         <button
-          onClick={() => navigate('/student/comics')}
+          onClick={() => { narration.stop(); navigate('/student/comics'); }}
           style={{
             background: 'none',
             border: 'none',
@@ -471,7 +699,32 @@ export default function ComicReader() {
         >
           <ArrowLeft size={16} /> All episodes
         </button>
-        <div style={{ marginLeft: 'auto', fontSize: 12, color: '#a8a29e', fontWeight: 500 }}>
+        {narration.supported && (
+          <button
+            type="button"
+            onClick={() => narration.setAutoNarrate(!narration.autoNarrate)}
+            aria-pressed={narration.autoNarrate}
+            title={narration.autoNarrate ? 'Auto-narration on' : 'Auto-narration off'}
+            style={{
+              marginLeft: 'auto',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              cursor: 'pointer',
+              borderRadius: 999,
+              padding: '4px 10px',
+              fontSize: 12,
+              fontWeight: 700,
+              border: `1.5px solid ${narration.autoNarrate ? '#f59e0b' : '#d4d4d4'}`,
+              background: narration.autoNarrate ? '#fffbeb' : 'transparent',
+              color: narration.autoNarrate ? '#b45309' : '#78716c',
+            }}
+          >
+            {narration.autoNarrate ? <Volume2 size={14} /> : <VolumeX size={14} />}
+            Narrate
+          </button>
+        )}
+        <div style={{ marginLeft: narration.supported ? 12 : 'auto', fontSize: 12, color: '#a8a29e', fontWeight: 500 }}>
           {showEndCard ? '✓ Done' : `Panel ${currentPanel + 1} of ${episode.panels.length}`}
         </div>
       </div>
@@ -501,18 +754,33 @@ export default function ComicReader() {
       </div>
 
       {showEndCard ? (
-        <EndCard nextEpisode={episode.nextEpisode} />
+        <EndCard
+          nextEpisode={episode.nextEpisode}
+          nextRec={nextRec}
+          onPlayNext={() => {
+            if (!nextRec?.episode) return;
+            narration.stop();
+            navigate(`/student/comics/${nextRec.episode.slug}`);
+          }}
+        />
       ) : (
         <>
-          {/* Scene */}
+          {/* Scene — speech entries may be plain strings or functions (ctx, problem) => string
+              so story numbers always match the generated math challenge numbers. */}
           <ScenePanel
             scene={panel.scene}
             characters={panel.characters}
-            speech={panel.speech}
+            speech={(panel.speech || []).map((s) => ({
+              ...s,
+              text: typeof s.text === 'function' ? s.text(episodeCtx, problems[currentPanel]) : s.text,
+            }))}
+            onPlayLine={narration.supported ? (line) => narration.playLine(line, panel.characters) : undefined}
+            speakingIndex={narration.speakingIndex}
           />
 
-          {/* Menu note if present */}
-          {panel.menuNote && (
+          {/* Menu note if present — a generated problem may override it when it
+              regenerates the prices, so the menu and the question stay in sync. */}
+          {(problem?.menuNote ?? panel.menuNote) && (
             <div
               style={{
                 marginTop: 10,
@@ -525,20 +793,28 @@ export default function ComicReader() {
                 fontStyle: 'italic',
               }}
             >
-              📋 {panel.menuNote}
+              📋 {problem?.menuNote ?? panel.menuNote}
             </div>
           )}
 
-          {/* Problem */}
-          {panel.problem && (
-            <ProblemBox
-              key={panel.id}
-              problem={panel.problem}
-              onSolve={handleSolve}
-              solved={solvedProblems[panel.problem.id] === true}
-              episode={episode.id}
-              panelIndex={currentPanel}
-            />
+          {/* Problem + optional working scratchpad */}
+          {problem && (
+            <>
+              <ProblemBox
+                key={panel.id}
+                problem={problem}
+                onSolve={handleSolve}
+                solved={solvedProblems[problem.id] === true}
+                episode={episode.id}
+                panelIndex={currentPanel}
+              />
+              <WorkingScratch
+                key={`work-${panel.id}`}
+                problemId={problem.id}
+                value={workingByProblem[problem.id]}
+                onChange={handleWorking}
+              />
+            </>
           )}
 
           {/* Nav */}

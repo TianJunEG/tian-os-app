@@ -14,6 +14,19 @@ const MODULES = [
 
 const HW_TYPES = ['Digital practice', 'Mistake review', 'Fluency drill'];
 
+// Map the tutor-facing homework type to the Assignment model's interventionType enum.
+const HW_TYPE_TO_INTERVENTION = {
+  'Digital practice': 'practice_pack',
+  'Mistake review': 'retention_review',
+  'Fluency drill': 'fluency_drill',
+};
+
+const clampQuestionCount = (raw) => {
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return 5;
+  return Math.min(20, Math.max(5, Math.round(n)));
+};
+
 export default function AssignHomework() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -51,7 +64,9 @@ export default function AssignHomework() {
         studentId: id, module,
         subject: module === 'Science Adaptive Revision' ? 'Science' : 'Math',
         assignedByRole: 'tutor',
-        topicId, skillIds: [skillId], difficulty, questionCount: Number(questionCount), dueDate: dueDate || null,
+        topicId, skillIds: [skillId], difficulty,
+        interventionType: HW_TYPE_TO_INTERVENTION[hwType] || '',
+        questionCount: clampQuestionCount(questionCount), dueDate: dueDate || null,
       });
       setDone(true);
     } catch (e) { setError(e.response?.data?.error || 'Could not assign.'); setSaving(false); }
@@ -76,6 +91,13 @@ export default function AssignHomework() {
   return (
     <>
       <TutorStudentNav studentId={id} name={meta?.name || 'Student'} level={meta?.level} />
+      {!meta?.loading && meta?.error && (
+        <p className="mb-3 text-sm text-error-700">
+          {meta.error === 'not_found'
+            ? "Couldn’t find this student in your workspace."
+            : "Couldn’t load student details. The header may be incomplete."}
+        </p>
+      )}
       {loadError ? (
         <ErrorState message="Couldn't load topic catalogue." onRetry={loadTopics} />
       ) : !topics ? <Spinner /> : (
@@ -126,7 +148,7 @@ export default function AssignHomework() {
             )}
             <div>
               <label className="mb-1.5 block text-sm font-semibold text-ink-700">Questions</label>
-              <input type="number" min="5" max="20" value={questionCount} onChange={(e) => setQuestionCount(e.target.value)} className="w-full rounded-xl border border-line-soft px-3 py-2.5 font-mono" />
+              <input type="number" min="5" max="20" value={questionCount} onChange={(e) => setQuestionCount(e.target.value)} onBlur={(e) => setQuestionCount(clampQuestionCount(e.target.value))} className="w-full rounded-xl border border-line-soft px-3 py-2.5 font-mono" />
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-semibold text-ink-700">Due date</label>

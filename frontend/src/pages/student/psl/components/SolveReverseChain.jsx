@@ -43,14 +43,14 @@ export default function SolveReverseChain({ scaffoldStep, response, onChange }) 
         ))}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 sm:gap-3 rounded-xl border-2 border-gold-200 bg-gold-50 p-3">
-        <span className="text-sm font-semibold text-gold-700">Original number =</span>
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3 rounded-xl border-2 border-gold-tint bg-gold-tint2 p-3">
+        <span className="text-sm font-semibold text-gold-deep">Original number =</span>
         <input
           type="number"
           inputMode="decimal"
           value={answer}
           onChange={(e) => handleAnswerChange(e.target.value)}
-          className="w-full sm:w-28 min-h-[44px] rounded-lg border border-gold-300 px-3 py-2 text-sm font-bold text-gold-800"
+          className="w-full sm:w-28 min-h-[44px] rounded-lg border border-gold-border px-3 py-2 text-sm font-bold text-gold-deep"
           placeholder="?"
         />
       </div>

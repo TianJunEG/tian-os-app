@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Spinner } from '../../../../components/ui';
+import { Zap } from 'lucide-react';
+import { Button, Spinner } from '../../../../components/ui';
 import { useAuth } from '../../../../context/AuthContext';
+import FEATURE_FLAGS from '../../../../config/featureFlags';
 import DomainSkillMap from '../components/DomainSkillMap';
 import { getDomainConfig } from './core';
 
@@ -12,7 +14,7 @@ import { getDomainConfig } from './core';
 // DomainSkillMap. Domains with extra features (Decimals/Percentages/Ratio keep
 // their own page passing a footerSlot).
 export default function DomainLearningPathPage({ domain }) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const config = getDomainConfig(domain);
   const [loading, setLoading] = useState(true);
@@ -21,6 +23,10 @@ export default function DomainLearningPathPage({ domain }) {
   const startPractice = (skillId) => navigate(`/student/mathpath/${domain}/practice?skill=${skillId}`);
 
   useEffect(() => {
+    // Wait for auth to finish before fetching — otherwise the first call fires
+    // with no token (user still null), gets a 401, and the page briefly shows
+    // an empty skill map before the second call (with the real token) succeeds.
+    if (authLoading) return;
     let active = true;
     (async () => {
       try {
@@ -35,7 +41,7 @@ export default function DomainLearningPathPage({ domain }) {
       }
     })();
     return () => { active = false; };
-  }, [domain, user]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [domain, user, authLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const view = useMemo(() => config?.buildView?.({ masteryRecords: records }) || { strands: [], progress: { mastered: 0, total: 0, inProgress: 0, percentageMastered: 0 }, recommendedNext: { skillId: '', skillName: '' } }, [config, records]);
 
@@ -44,14 +50,27 @@ export default function DomainLearningPathPage({ domain }) {
   // Diagnostic check-in entry point (generic /:domainId/diagnostic route). Keeps
   // the per-domain "quick check-in" that the fluency PRs added to every simple
   // learning-path page, now surfaced through the shared footer slot.
-  const footerSlot = (
-    <button
-      type="button"
-      onClick={() => navigate(`/student/mathpath/${domain}/diagnostic`)}
-      className="text-sm font-semibold text-emerald-deep hover:underline"
-    >
-      Not sure where to start? Take a quick check-in →
-    </button>
+  // Gentle domains (K2 Early Numeracy) now have a diagnostic adapter too, but
+  // with softer "Quick Check-In" framing rather than the high-stakes wording.
+  const footerSlot = config?.gentle ? (
+    <div className="flex flex-wrap items-center gap-3">
+      <Button variant="secondary" onClick={() => navigate(`/student/mathpath/${domain}/diagnostic`)}>
+        Quick Check-In
+      </Button>
+    </div>
+  ) : (
+    <div className="flex flex-wrap items-center gap-3">
+      <Button
+        onClick={() => navigate(`/student/mathpath/${domain}/diagnostic`)}
+      >
+        Start Check-in
+      </Button>
+      {config?.startFluency && FEATURE_FLAGS.fluency && view.recommendedNext?.skillId && (
+        <Button size="s" variant="secondary" icon={Zap} onClick={() => navigate(`/student/mathpath/${domain}/fluency?skill=${view.recommendedNext.skillId}`)}>
+          Speed Drill
+        </Button>
+      )}
+    </div>
   );
 
   return <DomainSkillMap domain={domain} view={view} onPractise={startPractice} subtitle={config?.subtitle || ''} footerSlot={footerSlot} />;

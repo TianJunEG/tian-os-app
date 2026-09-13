@@ -442,9 +442,9 @@ export default function WorksheetGeneratorPage() {
               <ChevronLeft className="w-5 h-5" />
             </button>
             <div>
-              <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-gold-600">AI remediation</div>
+              <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-gold-deep">AI remediation</div>
               <h1 className="text-3xl font-serif font-medium text-emerald-deep leading-tight flex items-center gap-2">
-                <Sparkles className="w-6 h-6 text-gold-500" />
+                <Sparkles className="w-6 h-6 text-gold" />
                 {isStudent ? 'My Practice' : 'Math Worksheet Generator'}
               </h1>
               <p className="text-gray-500 text-sm">

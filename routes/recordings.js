@@ -23,17 +23,19 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200
 const RETENTION_MS = 30 * 24 * 60 * 60 * 1000; // 1 month
 
 function ensureTutorWorkspace(req, res) {
-  if (process.env.NODE_ENV !== 'production' && process.env.QA_DISABLE_RATE_LIMIT === '1') return true;
+  if (process.env.NODE_ENV === 'test' && process.env.QA_DISABLE_RATE_LIMIT === '1') return true;
   if (req.workspaceRole !== 'tutor') { res.status(403).json({ error: 'Not a tutor workspace.' }); return false; }
   return true;
 }
 
 // The student must be linked to this tutor in this workspace (or partner-accessible).
+// status:'active' is required so a revoked/ended/paused link cannot grant access
+// — mirrors findActiveTutorLink in routes/tutor.js.
 async function assertLinkedStudent(req, studentId) {
-  const link = await TutorStudentLink.findOne({ workspaceId: req.workspaceId, tutorUserId: req.user.id, studentId });
+  const link = await TutorStudentLink.findOne({ workspaceId: req.workspaceId, tutorUserId: req.user.id, studentId, status: 'active' });
   if (link) return true;
   if (await userCanAccessPartnerStudent({ userId: req.user.id, studentId })) return true;
-  return process.env.NODE_ENV !== 'production' && process.env.QA_DISABLE_RATE_LIMIT === '1';
+  return process.env.NODE_ENV === 'test' && process.env.QA_DISABLE_RATE_LIMIT === '1';
 }
 
 // Load a recording owned by this tutor in this workspace, or null.
@@ -94,6 +96,10 @@ router.post('/:rid/audio', upload.single('audio'), asyncHandler(async (req, res)
   const rec = await ownedRecording(req);
   if (!rec) return res.status(404).json({ error: 'Recording not found.' });
   if (!req.file) return res.status(400).json({ error: 'No audio file.' });
+  if (!r2.isConfigured()) {
+    console.warn('[recordings] R2 not configured — audio upload skipped. Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET, R2_ENDPOINT.');
+    return res.json({ stored: false, skipped: true });
+  }
   const key = `recordings/${rec._id}/audio.webm`;
   await r2.putAudioObject(key, req.file.buffer, req.file.mimetype || 'audio/webm');
   rec.audioStorageKey = key;

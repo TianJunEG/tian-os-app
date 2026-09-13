@@ -29,6 +29,12 @@ function rint(rng, min, max) { return min + Math.floor(rng() * (max - min + 1));
 function pick(rng, arr) { return arr[rint(rng, 0, arr.length - 1)]; }
 function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a || 1; }
 function lcm(a, b) { return Math.abs(a * b) / gcd(a, b); }
+function questionKey(prompt, answerDisplay) {
+  return hashSeed(`${prompt}|${answerDisplay}`).toString(36);
+}
+function generatedQuestionId(family, mode, prompt, answerDisplay) {
+  return `${family.id}#${mode}#${questionKey(prompt, answerDisplay)}`;
+}
 
 // Column-wise add with NO carrying — the realistic add/forgot-carry error.
 function noCarryAdd(a, b) {
@@ -50,9 +56,9 @@ function smallerFromLarger(a, b) {
 }
 
 // ── Question envelope builders ───────────────────────────────────────────────
-function shortAnswer({ family, prompt, answerDisplay, solutionSteps, misconceptionTag, difficulty, mode, diagram }) {
+function shortAnswer({ family, prompt, answerDisplay, solutionSteps, misconceptionTag, difficulty, mode, diagram, answerFormat }) {
   return {
-    id: `${family.id}#${mode}`,
+    id: generatedQuestionId(family, mode, prompt, answerDisplay),
     skillId: family.skillId,
     questionFamilyId: family.id,
     type: 'short_answer',
@@ -67,6 +73,7 @@ function shortAnswer({ family, prompt, answerDisplay, solutionSteps, misconcepti
     workingRequired: family.workingRequired,
     generatorKind: family.generatorKind,
     ...(diagram ? { diagram } : {}),
+    ...(answerFormat ? { answerFormat } : {}),
   };
 }
 function mcq({ family, prompt, answerDisplay, distractors, solutionSteps, misconceptionTag, difficulty, mode, rng, diagram }) {
@@ -94,7 +101,7 @@ function mcq({ family, prompt, answerDisplay, distractors, solutionSteps, miscon
     [choices[i], choices[j]] = [choices[j], choices[i]];
   }
   return {
-    id: `${family.id}#${mode}`,
+    id: generatedQuestionId(family, mode, prompt, answerDisplay),
     skillId: family.skillId,
     questionFamilyId: family.id,
     type: 'mcq',
@@ -222,8 +229,32 @@ const BUILDERS = {
       steps: [`${b} × ? = ${a}.`, `${a} ÷ ${b} = ${q}.`],
       distractors: [q + 1, q - 1, b] };
   },
-  // OP014 — Short division by a 1-digit number (exact)
+  // OP014 — Short division by a 1-digit number.
+  // ~Half exact quotient (original), ~half a non-exact division answered to 2
+  // decimal places — e.g. 7 ÷ 8 = 0.88 (add a decimal point and zeros and keep
+  // dividing, then round to 2 d.p.). The decimal/exact choice is driven by the
+  // per-question RNG (NOT the loop variant): variant increments in lockstep with
+  // family cycling, so keying off it starved the short-answer (typed) family of
+  // decimals — they only ever landed on the MCQ family.
   OP014(rng) {
+    if (rng() < 0.5) {
+      const b = rint(rng, 3, 9);
+      let a = rint(rng, 3, 90);
+      if (a % b === 0) a += 1;                        // force a non-exact quotient
+      const exact = a / b;
+      const ansStr = (Math.round(exact * 100) / 100).toFixed(2); // 2 d.p., e.g. "0.88"
+      const ans = Number(ansStr);
+      const near = (delta) => Math.max(0.01, Math.round((ans + delta) * 100) / 100).toFixed(2);
+      return {
+        prompt: `${a} ÷ ${b} = ? Give your answer to 2 decimal places.`,
+        answer: ansStr, answerFormat: 'decimal', tag: 'div/decimal-continue',
+        steps: [
+          `${a} ÷ ${b} does not divide exactly. Add a decimal point and zeros — ${a}.00 — and keep dividing.`,
+          `${a} ÷ ${b} = ${ansStr} (to 2 decimal places).`,
+        ],
+        distractors: [near(0.1), near(-0.1), near(0.03)],
+      };
+    }
     const b = rint(rng, 3, 9), q = rint(rng, 23, 444), a = b * q;
     return { prompt: `${a} ÷ ${b} = ?`, answer: q, tag: 'div/drop-zero',
       steps: ['Divide each digit from the left, carrying remainders to the next.', `${a} ÷ ${b} = ${q}.`],
@@ -343,7 +374,7 @@ function makePractice(skillId) {
     return shortAnswer({
       family, prompt: q.prompt, answerDisplay: String(q.answer),
       solutionSteps: q.steps, misconceptionTag: q.tag || (family.misconceptionTags || [])[0] || '',
-      difficulty: family.difficulty, mode: 'practice', diagram: q.diagram,
+      difficulty: family.difficulty, mode: 'practice', diagram: q.diagram, answerFormat: q.answerFormat,
     });
   };
 }
@@ -376,16 +407,26 @@ for (const [kind, skillId] of Object.entries(KIND_TO_SKILL)) {
   GENERATORS[`${kind}MCQ`] = makeMCQ(skillId);
 }
 
-export function generateOperationsQuestionSet({ skillId, count = 6, mode = 'practice' }) {
+export function generateOperationsQuestionSet({ skillId, count = 6, mode = 'practice', sessionSalt = '' }) {
   const families = getQuestionFamiliesBySkill(skillId);
   if (!families.length) return [];
   const questions = [];
+  const seenPrompts = new Set();
   let variant = 0;
-  for (let i = 0; i < count; i++) {
-    const family = families[i % families.length];
-    const rng = makeRng(`${skillId}-${family.id}-${variant}`);
+  let fi = 0;
+  const maxAttempts = count * 5;
+  while (questions.length < count && variant < maxAttempts) {
+    const family = families[fi % families.length];
+    const rng = makeRng(`${skillId}-${family.id}-${variant}-${sessionSalt}`);
     const gen = GENERATORS[family.generatorKind];
-    if (gen) questions.push(gen(family, rng, variant));
+    if (gen) {
+      const q = gen(family, rng, variant);
+      if (!seenPrompts.has(q.prompt)) {
+        seenPrompts.add(q.prompt);
+        questions.push(q);
+        fi++;
+      }
+    }
     variant++;
   }
   return questions;
@@ -395,7 +436,15 @@ export function checkOperationsAnswer({ question, studentResponse }) {
   if (!question || studentResponse == null) return { correct: false };
   const norm = (s) => String(s).trim().toLowerCase().replace(/\s+/g, '').replace(/,/g, '').replace(/^\$/, '');
   const expected = norm(question.answer?.display ?? question.answer ?? '');
-  return { correct: norm(studentResponse) === expected };
+  const given = norm(studentResponse);
+  if (given === expected) return { correct: true };
+  // Numeric equality so a decimal answer accepts equivalent forms — ".88", "0.880"
+  // all match "0.88" (integers compare equal too). Does NOT loosen precision: the
+  // prompt asks for 2 d.p., so "0.875" still differs from "0.88".
+  const gn = Number(given);
+  const en = Number(expected);
+  if (Number.isFinite(gn) && Number.isFinite(en) && Math.abs(gn - en) < 1e-9) return { correct: true };
+  return { correct: false };
 }
 
 export default { generateOperationsQuestionSet, checkOperationsAnswer };

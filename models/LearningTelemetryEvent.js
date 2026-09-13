@@ -31,6 +31,10 @@ export const LEARNING_EVENT_TYPES = [
   'mistake_detail_viewed',
   'correction_attempted',
   'recheck_completed',
+  // Comics engagement (Phase 3 instrumentation): the retention / trial→paid
+  // signal. Joined against Subscription on the user to compute the funnel.
+  'comic_episode_opened',
+  'comic_episode_completed',
 ];
 
 const learningTelemetryEventSchema = new mongoose.Schema(

@@ -1,4 +1,5 @@
 import React from 'react';
+import { MathText } from '../../../../components/ui/Fraction';
 
 export default function PlanStrategySelect({ scaffoldStep, response, onChange }) {
   const choices = scaffoldStep?.choices || [];
@@ -7,7 +8,7 @@ export default function PlanStrategySelect({ scaffoldStep, response, onChange })
 
   return (
     <div className="space-y-3">
-      <p className="text-sm font-medium text-ink-700">{prompt}</p>
+      <p className="text-sm font-medium text-ink-700"><MathText text={prompt} /></p>
       <div className="space-y-2">
         {choices.map((choice, i) => (
           <button

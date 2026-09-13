@@ -73,6 +73,14 @@ describe('NumberSenseQuestionGenerator', () => {
     }
   });
 
+  it('generates unique ids within repeated-family practice sets', () => {
+    for (const skillId of ['NS001', 'NS011', 'NS030']) {
+      const qs = generateNumberSenseQuestionSet({ skillId, count: 12, sessionSalt: 'id-regression' });
+      const ids = qs.map((q) => q.id);
+      expect(new Set(ids).size, `${skillId}: ${ids.join('|')}`).toBe(ids.length);
+    }
+  });
+
   it('ordering answers are correctly sorted', () => {
     for (let c = 0; c < 40; c++) {
       for (const q of [...generateNumberSenseQuestionSet({ skillId: 'NS011', count: 6 }),

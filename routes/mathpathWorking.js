@@ -470,6 +470,12 @@ export function hasWorkingSessionAnchor(body = {}) {
   return Boolean(practiceSessionId || assessmentSessionId);
 }
 
+export function statusForWorkingSessionCreateError(err = {}) {
+  if (Number(err.status) >= 400 && Number(err.status) < 500) return Number(err.status);
+  if (err.name === 'ValidationError' || err.name === 'CastError' || err.code === 11000) return 400;
+  return 500;
+}
+
 router.use(protect);
 
 router.post('/sessions', asyncHandler(async (req, res) => {
@@ -543,7 +549,11 @@ router.post('/sessions', asyncHandler(async (req, res) => {
 
     return res.status(201).json({ workingSession: publicSession(session.toObject()), reused: false });
   } catch (err) {
-    return res.status(500).json({ error: 'Unable to create working session.', details: err.message });
+    const status = statusForWorkingSessionCreateError(err);
+    return res.status(status).json({
+      error: status === 500 ? 'Unable to create working session.' : (err.message || 'Unable to create working session.'),
+      ...(process.env.NODE_ENV !== 'production' ? { details: err.message } : {}),
+    });
   }
 }));
 

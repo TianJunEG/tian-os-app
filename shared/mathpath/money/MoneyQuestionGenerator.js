@@ -40,8 +40,10 @@ function money(cents) {
 }
 
 // Real SGD denominations (in cents) and human labels for coin/note recognition.
+// The $100 note (10000) is intentionally excluded — it isn't used to teach
+// money at this level, so the generator never produces it.
 const COIN_CENTS = [5, 10, 20, 50, 100];
-const NOTE_CENTS = [200, 500, 1000, 5000, 10000];
+const NOTE_CENTS = [200, 500, 1000, 5000];
 function denomLabel(cents) {
   if (cents < 100) return `${cents}-cent coin`;
   if (cents === 100) return '$1 coin';
@@ -376,34 +378,83 @@ const GENERATORS = {
   monWordProb, monWordProbMulti,
 };
 
-export function generateMoneyQuestionSet({ skillId, count = 6, mode = 'practice' }) {
+export function generateMoneyQuestionSet({ skillId, count = 6, mode = 'practice', sessionSalt = '' }) {
   const families = getQuestionFamiliesBySkill(skillId);
   if (!families.length) return [];
   const questions = [];
+  const seenPrompts = new Set();
   let variant = 0;
-  for (let i = 0; i < count; i++) {
-    const family = families[i % families.length];
-    const rng = makeRng(`${skillId}-${family.id}-${variant}`);
+  let fi = 0;
+  const maxAttempts = count * 5;
+  while (questions.length < count && variant < maxAttempts) {
+    const family = families[fi % families.length];
+    const rng = makeRng(`${skillId}-${family.id}-${variant}-${sessionSalt}`);
     const gen = GENERATORS[family.generatorKind];
-    if (gen) questions.push(gen(family, rng, variant));
+    if (gen) {
+      const q = gen(family, rng, variant);
+      const dedupKey = q.prompt + '|||' + (q.answer?.display ?? q.answer);
+      if (!seenPrompts.has(dedupKey) || variant >= count * 3) {
+        seenPrompts.add(dedupKey);
+        questions.push(q);
+        fi++;
+      }
+    }
     variant++;
   }
   return questions;
 }
 
-// Normalise a money / numeric response to an integer-cent key so that
-// "$3.00", "3.00", "$3" and "3" all compare equal. Non-numeric answers fall
-// back to a whitespace/comma-insensitive string compare.
-function moneyKey(s) {
-  const t = String(s).trim().toLowerCase().replace(/\s+/g, '').replace(/,/g, '').replace(/\$/g, '');
-  if (/^-?\d+(\.\d+)?$/.test(t)) return `c${Math.round(parseFloat(t) * 100)}`;
-  return t;
+// Parse a money answer into the set of integer-cent values it could reasonably
+// mean, so grading accepts any natural form a child types:
+//   "$0.40", "0.40", "0.4"     → {40}
+//   "40c", "40¢", "40 cents"   → {40}        (explicit cents)
+//   "$40"                      → {4000}      (explicit dollars)
+//   bare "40"                  → {4000, 40}  (a coin count is usually meant as
+//                                             cents, but "$40" is valid too)
+// Returns null for non-numeric input so the caller can fall back to a string
+// compare. This fixes coin-value questions like "total value of 8 5-cent coins"
+// where the answer is $0.40 but a child writes 40, 40¢, or 40c.
+function moneyCentCandidates(s, { allowWholeCents = true } = {}) {
+  let t = String(s).trim().toLowerCase().replace(/\s+/g, '').replace(/,/g, '');
+  const explicitCents = /(?:¢|cents?|c)$/.test(t);
+  const explicitDollars = t.includes('$');
+  t = t.replace(/\$/g, '').replace(/(?:¢|cents?|c)$/, '');
+  if (!/^-?\d+(\.\d+)?$/.test(t)) return null;
+  const num = parseFloat(t);
+  if (explicitCents) return new Set([Math.round(num)]);
+  if (explicitDollars) return new Set([Math.round(num * 100)]);
+  // Bare number: dollars by default. Also accept whole-number cents ONLY for
+  // sub-$1 coin-value answers (so "40" grades $0.40 correct); for a dollar answer
+  // this would wrongly accept a 100x place-value error ("500" for "$5.00").
+  const cands = new Set([Math.round(num * 100)]);
+  if (allowWholeCents && Number.isInteger(num)) cands.add(Math.round(num));
+  return cands;
+}
+
+// Whitespace/case/punctuation-insensitive key for the non-numeric fallback.
+function moneyStringKey(s) {
+  return String(s).trim().toLowerCase().replace(/\s+/g, '').replace(/,/g, '').replace(/\$/g, '');
 }
 
 export function checkMoneyAnswer({ question, studentResponse }) {
   if (!question || studentResponse == null) return { correct: false };
-  const expected = String(question.answer?.display ?? question.answer ?? '');
-  return { correct: moneyKey(studentResponse) === moneyKey(expected) };
+  const expectedList = [
+    question.answer?.display ?? question.answer ?? '',
+    ...(Array.isArray(question.acceptedAnswers) ? question.acceptedAnswers : []),
+  ].map((e) => String(e)).filter(Boolean);
+  for (const expected of expectedList) {
+    const expectedCents = moneyCentCandidates(expected);
+    // The bare-integer-as-cents leniency only applies when the expected answer is
+    // itself sub-$1 (a coin-value item). Otherwise "500" must not match "$5.00".
+    const expectedIsSubDollar = Boolean(expectedCents) && [...expectedCents].every((c) => c < 100);
+    const studentCents = moneyCentCandidates(studentResponse, { allowWholeCents: expectedIsSubDollar });
+    if (studentCents && expectedCents) {
+      for (const cents of studentCents) if (expectedCents.has(cents)) return { correct: true };
+    } else if (moneyStringKey(studentResponse) === moneyStringKey(expected)) {
+      return { correct: true };
+    }
+  }
+  return { correct: false };
 }
 
 export default { generateMoneyQuestionSet, checkMoneyAnswer };

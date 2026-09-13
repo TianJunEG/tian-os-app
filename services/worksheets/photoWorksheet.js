@@ -6,6 +6,7 @@ import logger from '../../config/logger.js';
 import { analyzeAndGenerateWorksheet } from '../../utils/aiService.js';
 import { buildSessions, recomputeSchedule } from '../../utils/practiceSchedule.js';
 import { logDiagnosedMisconceptions } from '../../utils/misconceptionLog.js';
+import { getUploadBuffer } from '../../services/storage/objectStore.js';
 
 // Map an AI analysis result to the worksheet's photo-flow fields.
 export function photoWorksheetFields(result) {
@@ -30,15 +31,31 @@ export async function logPhotoMisconceptions({ result, ownerUserId, studentUserI
 // Worker entry: analyze the photo for an already-created (pending) worksheet, fill
 // it in, and mark it ready. On failure, persist 'failed' + the message, then
 // re-throw so BullMQ records/retries the job.
+//
+// The photo is passed by reference (storageKey/storageProvider) rather than as an
+// inline base64 blob: the route already persists the upload via the storage facade,
+// so the worker re-reads it here. This keeps the Redis job payload tiny (a key, not
+// an 8MB string). `imageBase64` remains as a fallback for callers that still pass
+// the bytes inline (e.g. the synchronous, queue-disabled path).
 export async function runPhotoWorksheetGeneration({
-  worksheetId, imageBase64, mimeType, gradeLevel, topicHint, totalQuestions,
+  worksheetId, imageBase64, storageKey, storageProvider, mimeType, gradeLevel, topicHint, totalQuestions,
   ownerUserId, studentUserId, studentName,
 }) {
   const worksheet = await Worksheet.findById(worksheetId);
   if (!worksheet) throw new Error('Worksheet not found for generation job.');
   try {
+    // Resolve the image: prefer inline base64 when present, else fetch the
+    // persisted upload by reference (payload-by-reference pattern). Inside the try
+    // so a storage miss marks the worksheet 'failed' (and lets BullMQ retry)
+    // rather than leaving the client polling a 'pending' doc forever.
+    let resolvedBase64 = imageBase64;
+    if (!resolvedBase64 && storageKey) {
+      const buf = await getUploadBuffer({ storageKey, storageProvider });
+      if (!buf) throw new Error('Worksheet photo could not be read from storage.');
+      resolvedBase64 = buf.toString('base64');
+    }
     const result = await analyzeAndGenerateWorksheet({
-      imageBase64, mimeType, gradeLevel, topicHint, numQuestions: totalQuestions,
+      imageBase64: resolvedBase64, mimeType, gradeLevel, topicHint, numQuestions: totalQuestions,
     });
     Object.assign(worksheet, photoWorksheetFields(result));
     worksheet.generationStatus = 'ready';

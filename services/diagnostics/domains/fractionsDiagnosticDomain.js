@@ -248,6 +248,9 @@ async function getQuestionById(questionId) {
 async function getQuestionBank({ targetSkillIds = [] }) {
   const { byFrameworkId } = await loadSkills();
   const targetSkills = targetSkillIds.map((id) => byFrameworkId.get(String(id).toUpperCase())).filter(Boolean);
+  // Already scoped to the session's target skills; cap the result as a defensive
+  // bound (a diagnostic never needs more than a few questions per skill, so this
+  // is generous and never truncates real banks).
   const docs = await Question.find({
     skillId: { $in: targetSkills.map((skill) => skill._id) },
     $or: [
@@ -256,7 +259,7 @@ async function getQuestionBank({ targetSkillIds = [] }) {
       { questionCategory: '' },
       { questionCategory: 'diagnostic' },
     ],
-  });
+  }).limit(Math.max(200, targetSkills.length * 40));
   const skillByDbId = new Map(targetSkills.map((skill) => [String(skill._id), skill]));
   return {
     docs,

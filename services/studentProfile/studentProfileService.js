@@ -4,11 +4,16 @@ import MathPathAttempt from '../../models/mathpath/MathPathAttempt.js';
 import MathPathAssessmentSession from '../../models/mathpath/MathPathAssessmentSession.js';
 import MathPathDiagnosticSession from '../../models/mathpath/MathPathDiagnosticSession.js';
 import MathPathPracticeSession from '../../models/mathpath/MathPathPracticeSession.js';
+import PracticeSession from '../../models/PracticeSession.js';
+import PracticeAttempt from '../../models/PracticeAttempt.js';
 import MathPathStudentSkillState from '../../models/mathpath/MathPathStudentSkillState.js';
+import MathPathSkill from '../../models/mathpath/MathPathSkill.js';
 import MathPathWorkingSession from '../../models/mathpath/MathPathWorkingSession.js';
 import StudentXP from '../../models/studentProfile/StudentXP.js';
 import StudentAchievement from '../../models/studentProfile/StudentAchievement.js';
 import StudentLearningEvent from '../../models/studentProfile/StudentLearningEvent.js';
+import { domainIdFromSlug } from '../../utils/skillSlugDomain.js';
+import { getDomainSkillGraph } from '../mathpath/domainSkillGraphServer.js';
 
 export const XP_VALUES = Object.freeze({
   diagnosticCompleted: 25,
@@ -18,6 +23,11 @@ export const XP_VALUES = Object.freeze({
   skillMastered: 50,
   masteryTestPassed: 75,
   dailyStreakMaintained: 5,
+  // Effort & growth rewards (per occurrence; XP is cumulative across sessions).
+  perfectSession: 20, // got every question right
+  accuracyImproved: 15, // beat a personal best on a skill
+  rePractice: 8, // chose to redo a skill (small reward for effort)
+  rePracticeImproved: 20, // redid a skill AND beat last time (bigger — tiered)
 });
 
 export const ACHIEVEMENT_DEFINITIONS = Object.freeze([
@@ -125,6 +135,73 @@ export const ACHIEVEMENT_DEFINITIONS = Object.freeze([
     category: 'Growth',
     unlockedWhen: (m) => m.masteryTestsPassed >= 1,
   },
+  // Accuracy — getting everything right.
+  {
+    code: 'all_correct_first',
+    title: 'Perfect Round',
+    description: 'Got every question right in a session.',
+    icon: 'trophy',
+    category: 'Accuracy',
+    unlockedWhen: (m) => m.perfectSessions >= 1,
+  },
+  {
+    code: 'all_correct_ten',
+    title: 'Ten Perfect Rounds',
+    description: 'Aced ten sessions with full marks.',
+    icon: 'trophy',
+    category: 'Accuracy',
+    unlockedWhen: (m) => m.perfectSessions >= 10,
+  },
+  {
+    code: 'all_correct_twentyfive',
+    title: 'Flawless ×25',
+    description: 'Twenty-five all-correct sessions.',
+    icon: 'trophy',
+    category: 'Accuracy',
+    unlockedWhen: (m) => m.perfectSessions >= 25,
+  },
+  // Growth — improving on yourself.
+  {
+    code: 'accuracy_improved_first',
+    title: 'New Personal Best',
+    description: 'Beat your best accuracy on a skill.',
+    icon: 'target',
+    category: 'Growth',
+    unlockedWhen: (m) => m.accuracyImprovedSessions >= 1,
+  },
+  {
+    code: 'accuracy_improved_ten',
+    title: 'Always Improving',
+    description: 'Set ten new accuracy bests.',
+    icon: 'target',
+    category: 'Growth',
+    unlockedWhen: (m) => m.accuracyImprovedSessions >= 10,
+  },
+  {
+    code: 'repractice_improved_first',
+    title: 'Bounce Back',
+    description: 'Re-practised a skill and beat your last score.',
+    icon: 'streak',
+    category: 'Growth',
+    unlockedWhen: (m) => m.rePracticeImprovedSessions >= 1,
+  },
+  // Effort — choosing to redo and get stronger.
+  {
+    code: 'repractice_first',
+    title: 'Second Look',
+    description: 'Re-practised a skill to get stronger.',
+    icon: 'practice',
+    category: 'Effort',
+    unlockedWhen: (m) => m.rePracticeSessions >= 1,
+  },
+  {
+    code: 'repractice_ten',
+    title: 'Practice Makes Progress',
+    description: 'Re-practised ten times.',
+    icon: 'practice',
+    category: 'Effort',
+    unlockedWhen: (m) => m.rePracticeSessions >= 10,
+  },
 ]);
 
 function resolveStudentVisualMode(student = {}) {
@@ -180,6 +257,27 @@ function calculateActivityStreak(dates = [], offsetHours = 8) {
   return streak;
 }
 
+// Builds a MathPathAttempt filter clause that excludes per-answer diagnostic
+// attempts whose parent check-in did NOT complete. Abandoned/in-progress
+// check-ins must not pollute profile aggregates (a student can interrupt a
+// check-in, which now resets it). Non-diagnostic attempts are left untouched.
+async function buildDiagnosticAttemptExclusion(studentId) {
+  const completed = await MathPathDiagnosticSession
+    .find({ studentId, status: 'completed' })
+    .select('diagnosticSessionId')
+    .lean();
+  const completedSessionIds = completed
+    .map((s) => s.diagnosticSessionId)
+    .filter(Boolean);
+  // Keep an attempt unless it is a diagnostic attempt tied to a session that did
+  // not complete. $nor leaves every non-diagnostic attempt unaffected.
+  return {
+    $nor: [
+      { sessionType: 'diagnostic', sessionId: { $nin: completedSessionIds } },
+    ],
+  };
+}
+
 async function getSkillName(skillId) {
   if (!skillId) return '';
   const skill = await Skill.findOne({
@@ -192,9 +290,46 @@ async function getSkillName(skillId) {
   return skill?.name || skillId;
 }
 
-async function deriveMetrics(student) {
+// Pure: derive effort/growth award counts from completed practice sessions,
+// ordered oldest-first. Each session: { summary: { accuracySummary: { total,
+// correct, accuracyPercentage } }, targetSkillId }. A session is a "re-practice"
+// when its skill was practised before; accuracyImproved = a new personal best on
+// that skill; rePracticeImproved = a redo that beat the immediately previous
+// attempt. Exported for testing.
+export function computeAwardMetrics(sessions = []) {
+  let perfectSessions = 0;
+  let accuracyImprovedSessions = 0;
+  let rePracticeSessions = 0;
+  let rePracticeImprovedSessions = 0;
+  const bestBySkill = {};
+  const lastBySkill = {};
+  for (const s of sessions) {
+    const acc = s.summary?.accuracySummary;
+    if (!acc || !(acc.total > 0)) continue;
+    const pct = acc.accuracyPercentage ?? Math.round((acc.correct / acc.total) * 100);
+    if (acc.total >= 5 && acc.correct === acc.total) perfectSessions += 1;
+    const skill = s.targetSkillId || '';
+    if (acc.total >= 3 && skill) {
+      const seenBefore = Object.prototype.hasOwnProperty.call(bestBySkill, skill);
+      if (seenBefore) {
+        rePracticeSessions += 1;
+        if (pct > bestBySkill[skill]) accuracyImprovedSessions += 1;
+        if (pct > lastBySkill[skill]) rePracticeImprovedSessions += 1;
+      }
+      bestBySkill[skill] = Math.max(bestBySkill[skill] ?? 0, pct);
+      lastBySkill[skill] = pct;
+    }
+  }
+  return { perfectSessions, accuracyImprovedSessions, rePracticeSessions, rePracticeImprovedSessions };
+}
+
+export async function deriveMetrics(student) {
   const studentObjectId = student._id;
   const studentId = String(student._id);
+
+  // Excludes per-answer diagnostic attempts from non-completed check-ins so an
+  // abandoned/in-progress check-in does not skew profile stats.
+  const excludeIncompleteDiagnostics = await buildDiagnosticAttemptExclusion(studentId);
 
   const [
     questionsSolved,
@@ -212,13 +347,15 @@ async function deriveMetrics(student) {
     recentMasteredStates,
     masteryStreakRows,
     totalFractionsSkills,
+    mathPracticeSessions,
   ] = await Promise.all([
-    MathPathAttempt.countDocuments({ studentId }),
+    MathPathAttempt.countDocuments({ studentId, ...excludeIncompleteDiagnostics }),
     MathPathDiagnosticSession.countDocuments({ studentId, status: 'completed' }),
     MathPathPracticeSession.countDocuments({ studentId, status: 'completed' }),
     MathPathAttempt.distinct('sessionId', { studentId, sessionType: 'fluency' }),
     MathPathAttempt.countDocuments({
       studentId,
+      ...excludeIncompleteDiagnostics,
       $or: [
         { workingSubmitted: true },
         { workingUploaded: true },
@@ -233,29 +370,57 @@ async function deriveMetrics(student) {
     MasteryRecord.find({
       studentId: studentObjectId,
       $or: [{ status: 'mastered' }, { masteryState: { $in: ['secure', 'mastered', 'retained'] } }],
-    }).lean(),
+    }).populate({ path: 'skillId', select: 'slug' }).lean(),
     MathPathAssessmentSession.countDocuments({
       studentId,
       assessmentType: 'mastery',
       status: { $in: SUBMITTED_ASSESSMENT_STATES },
     }),
-    MathPathAttempt.find({ studentId }).sort({ createdAt: -1 }).limit(30).lean(),
+    MathPathAttempt.find({ studentId, ...excludeIncompleteDiagnostics }).sort({ createdAt: -1 }).limit(30).lean(),
     MathPathPracticeSession.find({ studentId, status: 'completed' }).sort({ completedAt: -1, updatedAt: -1 }).limit(10).lean(),
     MathPathDiagnosticSession.find({ studentId, status: 'completed' }).sort({ completedAt: -1, updatedAt: -1 }).limit(10).lean(),
     MathPathStudentSkillState.find({ studentId, status: { $in: MASTERED_STATES } }).sort({ masteredAt: -1, updatedAt: -1 }).limit(10).lean(),
     MasteryRecord.find({ studentId: studentObjectId }).select('streak bestStreak lastPracticedAt').lean(),
     Skill.countDocuments({ slug: /^fr\./i }),
+    // Fluency, generic MathPath practice and kiosk practice write to the
+    // PracticeSession/PracticeAttempt collections (NOT MathPath*), so every
+    // profile metric below that only read MathPath* silently undercounted them
+    // (fluency earned no XP, questions-solved missed practice, streaks broke on
+    // fluency-only days). Scope to module:'MathPath' so Spelling/other-module
+    // practice never leaks into the Math profile. Mirrors getStudentPersonalBests.
+    PracticeSession.find({ studentId, module: 'MathPath' })
+      .select('_id mode status endedAt completedAt updatedAt createdAt')
+      .lean(),
   ]);
 
+  // skillId is now populated to {_id, slug}; String(_id) keeps masteredCodes
+  // identical to the pre-populate value (ObjectId hex), so the cross-domain
+  // skillsMastered/XP/achievements counts are unchanged.
+  const recordSkillCode = (row) => String(row.skillId?._id || row.skillId);
   const masteredCodes = [
     ...masteredSkillStates.map((row) => row.skillId),
-    ...masteredRecords.map((row) => String(row.skillId)),
+    ...masteredRecords.map(recordSkillCode),
   ];
+  // Fold the PracticeSession/PracticeAttempt activity (fluency + generic + kiosk
+  // MathPath practice) into the profile. Buckets stay DISJOINT so XP is not
+  // double-awarded: a fluency session counts ONLY as a fluency session, every
+  // other non-diagnostic practice session counts ONLY as a practice session.
+  const mathPracticeSessionIds = mathPracticeSessions.map((s) => s._id);
+  const practiceAttemptCount = mathPracticeSessionIds.length
+    ? await PracticeAttempt.countDocuments({ studentId, sessionId: { $in: mathPracticeSessionIds } })
+    : 0;
+  const completedMathPractice = mathPracticeSessions.filter((s) => s.status === 'completed');
+  const fluencySessionsFromPractice = completedMathPractice.filter((s) => s.mode === 'fluency').length;
+  const genericPracticeSessions = completedMathPractice
+    .filter((s) => s.mode !== 'fluency' && s.mode !== 'diagnostic').length;
+  const practiceActivityDates = completedMathPractice
+    .map((s) => s.endedAt || s.completedAt || s.updatedAt || s.createdAt);
   const workingSubmissions = Math.max(workingAttempts, uploadedWorkings);
   const activityDates = [
     ...recentAttempts.map((row) => row.createdAt || row.timestamp),
     ...recentPracticeSessions.map((row) => row.completedAt || row.updatedAt || row.createdAt),
     ...recentDiagnostics.map((row) => row.completedAt || row.updatedAt || row.createdAt),
+    ...practiceActivityDates,
   ];
   const recentAttempt = recentAttempts[0] || {};
   const recentState = await MathPathStudentSkillState.findOne({ studentId })
@@ -269,16 +434,54 @@ async function deriveMetrics(student) {
   // for the profile "days active" counter.
   const activityStreak = calculateActivityStreak(activityDates);
   const streak = activityStreak;
-  const totalSkills = currentDomain === 'fractions' ? Math.max(totalFractionsSkills || 0, 26) : Math.max(uniqueCount(masteredCodes), 1);
+  // Denominator: the real per-domain active-skill count for the student's current
+  // domain, so non-fractions students never fall through to max(mastered, 1)
+  // (which produced a degenerate N/N = 100%). Fractions keeps its pre-fetched
+  // slug-based count. Some domains (e.g. early_numeracy) live only as an in-memory
+  // skill graph and are not seeded into MathPathSkill, so fall back to the graph
+  // size before the legacy degenerate value.
+  let domainTotalSkills = 0;
+  if (currentDomain === 'fractions') {
+    domainTotalSkills = Math.max(totalFractionsSkills || 0, 26);
+  } else if (currentDomain) {
+    try { domainTotalSkills = await MathPathSkill.countDocuments({ domainId: currentDomain, isActive: true }); }
+    catch { domainTotalSkills = 0; }
+    if (domainTotalSkills === 0) domainTotalSkills = getDomainSkillGraph(currentDomain).totalSkills || 0;
+  }
+  const totalSkills = domainTotalSkills > 0 ? domainTotalSkills : Math.max(uniqueCount(masteredCodes), 1);
+
+  // Mastered skills scoped to the current domain — drives the domain-labelled
+  // "X / Y Skills Mastered" progress bar. (Top-level skillsMastered stays
+  // cross-domain because XP and the "mastered N skills" achievements count a
+  // student's lifetime mastery across every domain.) Skill states carry a
+  // domainId; mastery records derive theirs from the populated skill slug.
+  const masteredInCurrentDomain = uniqueCount([
+    ...masteredSkillStates.filter((row) => row.domainId === currentDomain).map((row) => row.skillId),
+    ...masteredRecords.filter((row) => domainIdFromSlug(row.skillId?.slug) === currentDomain).map(recordSkillCode),
+  ]);
+
+  // Effort & growth award metrics — derived from every completed practice session,
+  // ordered in time, so they work across all domains/flows. perfectSessions: 100%
+  // on 5+ Qs. A session is a "re-practice" when the skill was practised before;
+  // accuracyImproved = a new personal best on that skill; rePracticeImproved = a
+  // redo that beat the previous attempt.
+  const completedForAwards = await MathPathPracticeSession
+    .find({ studentId, status: 'completed' })
+    .select('summary completedAt targetSkillId')
+    .sort({ completedAt: 1 })
+    .lean();
+  const awardMetrics = computeAwardMetrics(completedForAwards);
 
   return {
     studentId,
-    questionsSolved,
+    questionsSolved: questionsSolved + practiceAttemptCount,
+    ...awardMetrics,
     diagnosticsCompleted,
-    practiceSessions,
-    fluencySessions: uniqueCount(fluencySessionIds),
+    practiceSessions: practiceSessions + genericPracticeSessions,
+    fluencySessions: uniqueCount(fluencySessionIds) + fluencySessionsFromPractice,
     workingSubmissions,
     skillsMastered: uniqueCount(masteredCodes),
+    masteredInCurrentDomain,
     masteryTestsPassed,
     streak,
     currentDomain,
@@ -303,6 +506,10 @@ function calculateXP(metrics) {
     skillMastered: metrics.skillsMastered * XP_VALUES.skillMastered,
     masteryTestPassed: metrics.masteryTestsPassed * XP_VALUES.masteryTestPassed,
     dailyStreakMaintained: metrics.streak * XP_VALUES.dailyStreakMaintained,
+    perfectSession: (metrics.perfectSessions || 0) * XP_VALUES.perfectSession,
+    accuracyImproved: (metrics.accuracyImprovedSessions || 0) * XP_VALUES.accuracyImproved,
+    rePractice: (metrics.rePracticeSessions || 0) * XP_VALUES.rePractice,
+    rePracticeImproved: (metrics.rePracticeImprovedSessions || 0) * XP_VALUES.rePracticeImproved,
   };
   return {
     totalXP: Object.values(sourceTotals).reduce((sum, value) => sum + value, 0),
@@ -368,6 +575,13 @@ export async function getStudentProfileSummary(student) {
   const metrics = await deriveMetrics(student);
   const xp = await syncXP(student._id, metrics);
   const mastered = Math.min(metrics.skillsMastered, metrics.totalSkills);
+  // The progress bar is labelled by currentDomain, so its numerator must be
+  // domain-scoped — otherwise a multi-domain student's other-domain masteries
+  // inflate (and can max out) the current domain's bar.
+  const domainMastered = Math.min(
+    metrics.masteredInCurrentDomain ?? metrics.skillsMastered,
+    metrics.totalSkills,
+  );
 
   return {
     student: {
@@ -387,10 +601,10 @@ export async function getStudentProfileSummary(student) {
     currentSkill: metrics.currentSkill,
     currentSkillId: metrics.currentSkillId,
     progress: {
-      mastered,
+      mastered: domainMastered,
       total: metrics.totalSkills,
-      label: `${mastered} / ${metrics.totalSkills} Skills Mastered`,
-      percentage: metrics.totalSkills ? Math.round((mastered / metrics.totalSkills) * 100) : 0,
+      label: `${domainMastered} / ${metrics.totalSkills} Skills Mastered`,
+      percentage: metrics.totalSkills ? Math.round((domainMastered / metrics.totalSkills) * 100) : 0,
     },
     recommendedAction: {
       label: metrics.currentSkill ? `Continue ${metrics.currentSkill}` : 'Continue Learning',
@@ -484,9 +698,12 @@ function weekKey(date, offsetHours = 8) {
 
 export async function getStudentPersonalBests(student, offsetHours = 8) {
   const studentId = String(student._id);
+  // Drop per-answer attempts from non-completed check-ins so personal bests are
+  // not skewed by an abandoned/in-progress diagnostic.
+  const excludeIncompleteDiagnostics = await buildDiagnosticAttemptExclusion(studentId);
 
-  const [allAttempts, completedSessions] = await Promise.all([
-    MathPathAttempt.find({ studentId })
+  const [mathPathAttempts, completedSessions, mathPracticeSessions] = await Promise.all([
+    MathPathAttempt.find({ studentId, ...excludeIncompleteDiagnostics })
       .sort({ createdAt: -1 })
       .select('correct timeTaken createdAt sessionId skillId')
       .lean(),
@@ -494,7 +711,32 @@ export async function getStudentPersonalBests(student, offsetHours = 8) {
       .sort({ completedAt: -1 })
       .select('summary completedAt startedAt practiceSessionId targetSkillId')
       .lean(),
+    // Fluency + generic MathPath practice write to PracticeAttempt (a SEPARATE
+    // collection from MathPathAttempt), so the profile missed them entirely —
+    // most visibly, a student's fluency work never showed up in these stats.
+    // Scope to this student's MathPath PracticeSessions so other modules
+    // (spelling, mechanisms) don't leak into the math personal-bests.
+    PracticeSession.find({ studentId, module: 'MathPath' }).select('_id').lean(),
   ]);
+
+  const practiceSessionIds = mathPracticeSessions.map((s) => s._id);
+  const practiceAttempts = practiceSessionIds.length
+    ? await PracticeAttempt.find({ studentId, sessionId: { $in: practiceSessionIds } })
+      .select('correct timeMs timeTakenSeconds createdAt sessionId skillId')
+      .lean()
+    : [];
+  // Normalise PracticeAttempt to the MathPathAttempt shape (timeTaken in ms) and
+  // merge, so every personal-best stat below reflects diagnostics + practice +
+  // fluency uniformly.
+  const normalizedPractice = practiceAttempts.map((a) => ({
+    correct: a.correct,
+    timeTaken: a.timeMs ?? (a.timeTakenSeconds != null ? Math.round(Number(a.timeTakenSeconds) * 1000) : null),
+    createdAt: a.createdAt,
+    sessionId: a.sessionId,
+    skillId: a.skillId,
+  }));
+  const allAttempts = [...mathPathAttempts, ...normalizedPractice]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   // 1. Best session accuracy (min 3 questions)
   let bestSessionAccuracy = 0;

@@ -12,6 +12,9 @@ export default defineConfig({
       'services/**/*.test.js',
       'shared/diagramEngine/tests/**/*.test.js',
       'shared/mathpath/**/*.test.js',
+      'scripts/**/*.test.js',
+      'shared/englishpath/**/*.test.js',
+      'shared/rewards/**/*.test.js',
     ],
   },
 });

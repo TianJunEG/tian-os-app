@@ -13,11 +13,13 @@ const FORMATS = {
     { label: '2 digits addition', digits: 2, rows: 2 },
     { label: '3 digits addition', digits: 3, rows: 2 },
     { label: '4 digits addition', digits: 4, rows: 2 },
+    { label: 'Decimals / money (2 dp)', digits: 4, rows: 2, decimals: 2 },
   ],
   subtraction: [
     { label: '2 digits subtraction', digits: 2, rows: 2 },
     { label: '3 digits subtraction', digits: 3, rows: 2 },
     { label: '4 digits subtraction', digits: 4, rows: 2 },
+    { label: 'Decimals / money (2 dp)', digits: 4, rows: 2, decimals: 2 },
   ],
   multiplication: [
     { label: '2 × 1 digit', digits: 2, rows: 2, multiplierDigits: 1 },
@@ -33,25 +35,73 @@ const FORMATS = {
 
 function makeEmptyGrid(operation, format) {
   const f = FORMATS[operation]?.[format] || FORMATS.addition[0];
-  const cols = f.digits + 1;
+
   if (operation === 'division') {
+    // Long division (Singapore P3–P6): under the bracket the student writes a
+    // "subtract" line then a "bring-down" line per dividend digit, plus a final
+    // remainder line — i.e. 2 * dividendDigits + 1 working rows, each as wide as
+    // the dividend. The quotient has at most dividendDigits - divisorDigits + 1
+    // digits (e.g. 4 ÷ 1 → up to 4 quotient digits; 4 ÷ 2 → up to 3).
+    const dividendDigits = f.digits;
+    const divisorDigits = f.divisorDigits || 1;
+    const quotientDigits = Math.max(1, dividendDigits - divisorDigits + 1);
+    const remainderRows = 2 * dividendDigits + 1;
     return {
       operation,
       format,
-      cols: f.digits,
-      divisorDigits: f.divisorDigits || 1,
-      quotient: Array(f.digits).fill(''),
-      dividend: Array(f.digits).fill(''),
-      divisor: Array(f.divisorDigits || 1).fill(''),
-      remainderSteps: [Array(f.digits).fill('')],
+      cols: dividendDigits,
+      divisorDigits,
+      quotient: Array(quotientDigits).fill(''),
+      dividend: Array(dividendDigits).fill(''),
+      divisor: Array(divisorDigits).fill(''),
+      remainderSteps: Array.from({ length: remainderRows }, () => Array(dividendDigits).fill('')),
     };
   }
-  const dataRows = f.rows || 2;
+
+  // Width must fit the widest line. For multiplication the product can be up to
+  // (digits + multiplierDigits) digits wide; addition/subtraction need one extra
+  // column for a carry/borrow past the most-significant digit.
+  const multiplierDigits = operation === 'multiplication' ? (f.multiplierDigits || 1) : 1;
+  const cols = operation === 'multiplication' ? f.digits + multiplierDigits : f.digits + 1;
+
+  // Operand rows: addition/subtraction default to 2; multiplication has the
+  // multiplicand + multiplier. The number of operands can be carried by FORMATS
+  // (operands) and falls back to the working 2-operand default.
+  const operandRows = f.operands || f.rows || 2;
+
   const rows = [];
-  for (let r = 0; r < dataRows; r++) rows.push(Array(cols).fill(''));
-  rows.push(Array(cols).fill(''));
+  for (let r = 0; r < operandRows; r++) rows.push(Array(cols).fill(''));
+
+  // Multi-digit multipliers produce (multiplierDigits - 1) extra partial-product
+  // rows that are added together in the final sum row below. A single-digit
+  // multiplier (and addition/subtraction) just has the one final answer row.
+  const partialProductRows = operation === 'multiplication' ? multiplierDigits - 1 : 0;
+  for (let r = 0; r < partialProductRows; r++) rows.push(Array(cols).fill(''));
+
+  rows.push(Array(cols).fill('')); // final answer / sum row
   const carries = Array(cols).fill('');
-  return { operation, format, cols, rows, carries };
+  // decimals: how many of the rightmost columns are fractional. A fixed decimal
+  // point is rendered before the first fractional column so it stays aligned down
+  // every row — the cells themselves remain single-digit (the student can't
+  // misplace the point). 0 = whole-number working (unchanged).
+  return { operation, format, cols, rows, carries, decimals: f.decimals || 0 };
+}
+
+// Returns a stable ref-setter for a given cell key, cached on the refs object so
+// the same function identity is handed to React across re-renders. An inline
+// `(el) => { ... }` callback ref has a new identity every render, which makes
+// React call it with null (detach) then the element (re-attach) on each render;
+// that transient null could land while a focus jump was queued. Caching keeps
+// cellRefs.current[key] populated and never transiently null on re-render.
+function makeRefSetter(cellRefs, key) {
+  if (!cellRefs.setters) cellRefs.setters = {};
+  if (!cellRefs.setters[key]) {
+    cellRefs.setters[key] = (el) => {
+      if (el) cellRefs.current[key] = el;
+      else delete cellRefs.current[key];
+    };
+  }
+  return cellRefs.setters[key];
 }
 
 function CellInput({ value, onChange, onKeyDown, inputRef, small = false, highlight = false }) {
@@ -74,8 +124,32 @@ function CellInput({ value, onChange, onKeyDown, inputRef, small = false, highli
   );
 }
 
+// Fixed decimal point shown between the integer and fractional columns. `blank`
+// keeps the same width (so columns stay aligned) without drawing the dot — used
+// in the carry row, where a point would be meaningless.
+function DecimalDot({ small = false, blank = false }) {
+  return (
+    <div className={`grid ${small ? 'h-8' : 'h-10'} w-3 place-items-center self-end pb-1 text-2xl font-bold leading-none text-ink-900`}>
+      {blank ? '' : '.'}
+    </div>
+  );
+}
+
+// Insert the decimal point before the first fractional cell so it lines up down
+// every row. Returns the cells unchanged when there are no decimals.
+function injectDecimalPoint(cells, { decimals, cols, small = false, blank = false }) {
+  if (!decimals) return cells;
+  const pointIndex = cols - decimals;
+  const out = [];
+  cells.forEach((cell, ci) => {
+    if (ci === pointIndex) out.push(<DecimalDot key={`dot-${ci}`} small={small} blank={blank} />);
+    out.push(cell);
+  });
+  return out;
+}
+
 function StandardGrid({ grid, onChange, cellRefs, readOnly }) {
-  const { operation, cols, rows, carries } = grid;
+  const { operation, cols, rows, carries, decimals = 0 } = grid;
   const opSymbol = OPERATIONS.find((o) => o.id === operation)?.icon || '+';
 
   const setCellValue = (section, row, col, value) => {
@@ -91,7 +165,11 @@ function StandardGrid({ grid, onChange, cellRefs, readOnly }) {
 
   const handleKeyDown = (e, section, row, col) => {
     const key = e.key;
-    if (key === 'ArrowRight' || (key !== 'Backspace' && key !== 'ArrowLeft' && /^[0-9]$/.test(key))) {
+    // Only move focus on an explicit ArrowRight. Do NOT steal focus on digit
+    // entry: auto-advancing parked the student on the ones box (so the tens box
+    // looked un-typable) and on iPad a programmatic .focus() outside a user
+    // gesture is ignored and collapses the keypad. Each box stays tap-editable.
+    if (key === 'ArrowRight') {
       const nextCol = col + 1;
       if (nextCol < cols) {
         requestAnimationFrame(() => cellRefs.current[`${section}-${row}-${nextCol}`]?.focus());
@@ -125,17 +203,17 @@ function StandardGrid({ grid, onChange, cellRefs, readOnly }) {
     <div className="inline-flex flex-col items-end gap-1">
       <div className="flex gap-1">
         <div className="w-10" />
-        {carries.map((v, ci) => (
+        {injectDecimalPoint(carries.map((v, ci) => (
           <CellInput
             key={`c-${ci}`}
             value={v}
             onChange={(val) => setCellValue('carry', 0, ci, val)}
             onKeyDown={(e) => handleKeyDown(e, 'carry', 0, ci)}
-            inputRef={(el) => { cellRefs.current[`carry-0-${ci}`] = el; }}
+            inputRef={makeRefSetter(cellRefs, `carry-0-${ci}`)}
             small
             highlight
           />
-        ))}
+        )), { decimals, cols, small: true, blank: true })}
       </div>
 
       {rows.map((row, ri) => (
@@ -143,22 +221,22 @@ function StandardGrid({ grid, onChange, cellRefs, readOnly }) {
           {ri === answerRow && (
             <div className="my-1 flex items-center gap-1">
               <div className="w-10" />
-              <div className="h-0.5 flex-1 bg-ink-900" style={{ width: `${cols * 44 + (cols - 1) * 4}px` }} />
+              <div className="h-0.5 flex-1 bg-ink-900" style={{ width: `${cols * 44 + (cols - 1) * 4 + (decimals ? 16 : 0)}px` }} />
             </div>
           )}
           <div className="flex gap-1">
             <div className="grid h-10 w-10 place-items-center text-lg font-bold text-ink-700">
               {ri === 1 && ri < answerRow ? opSymbol : ''}
             </div>
-            {row.map((v, ci) => (
+            {injectDecimalPoint(row.map((v, ci) => (
               <CellInput
                 key={`${ri}-${ci}`}
                 value={v}
                 onChange={(val) => setCellValue('row', ri, ci, val)}
                 onKeyDown={(e) => handleKeyDown(e, 'row', ri, ci)}
-                inputRef={(el) => { cellRefs.current[`row-${ri}-${ci}`] = el; }}
+                inputRef={makeRefSetter(cellRefs, `row-${ri}-${ci}`)}
               />
-            ))}
+            )), { decimals, cols })}
           </div>
         </React.Fragment>
       ))}
@@ -194,9 +272,15 @@ function DivisionGrid({ grid, onChange, cellRefs }) {
             key={`q-${ci}`}
             value={v}
             onChange={(val) => setCellValue('quotient', 0, ci, val)}
-            inputRef={(el) => { cellRefs.current[`quotient-0-${ci}`] = el; }}
+            inputRef={makeRefSetter(cellRefs, `quotient-0-${ci}`)}
           />
         ))}
+      </div>
+
+      {/* Vinculum — the division line sits ABOVE the dividend (under the
+          quotient), forming the top of the ")" bracket. */}
+      <div className="flex gap-1" style={{ marginLeft: `${(divisorDigits + 1) * 44}px` }}>
+        <div className="h-0.5 flex-1 bg-ink-900" style={{ width: `${cols * 44}px` }} />
       </div>
 
       <div className="flex items-center gap-1">
@@ -205,7 +289,7 @@ function DivisionGrid({ grid, onChange, cellRefs }) {
             key={`d-${ci}`}
             value={v}
             onChange={(val) => setCellValue('divisor', 0, ci, val)}
-            inputRef={(el) => { cellRefs.current[`divisor-0-${ci}`] = el; }}
+            inputRef={makeRefSetter(cellRefs, `divisor-0-${ci}`)}
           />
         ))}
         <div className="mx-1 grid h-10 w-6 place-items-center text-xl font-bold text-ink-500">)</div>
@@ -214,13 +298,9 @@ function DivisionGrid({ grid, onChange, cellRefs }) {
             key={`dd-${ci}`}
             value={v}
             onChange={(val) => setCellValue('dividend', 0, ci, val)}
-            inputRef={(el) => { cellRefs.current[`dividend-0-${ci}`] = el; }}
+            inputRef={makeRefSetter(cellRefs, `dividend-0-${ci}`)}
           />
         ))}
-      </div>
-
-      <div className="flex gap-1" style={{ marginLeft: `${(divisorDigits + 1) * 44}px` }}>
-        <div className="h-0.5 flex-1 bg-ink-900" style={{ width: `${cols * 44}px` }} />
       </div>
 
       {remainderSteps.map((row, ri) => (
@@ -230,7 +310,7 @@ function DivisionGrid({ grid, onChange, cellRefs }) {
               key={`rem-${ri}-${ci}`}
               value={v}
               onChange={(val) => setCellValue('remainder', ri, ci, val)}
-              inputRef={(el) => { cellRefs.current[`remainder-${ri}-${ci}`] = el; }}
+              inputRef={makeRefSetter(cellRefs, `remainder-${ri}-${ci}`)}
             />
           ))}
         </div>

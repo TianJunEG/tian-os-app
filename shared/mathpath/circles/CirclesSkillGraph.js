@@ -17,7 +17,7 @@ const circlesSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['cir/radius-diameter'],
-    questionFamilies: ['QF_CI001_001', 'QF_CI001_002'],
+    questionFamilies: ['QF_CI001_001', 'QF_CI001_002', 'QF_CI001_003'],
   },
   {
     id: 'CI002',
@@ -34,7 +34,7 @@ const circlesSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['CI001'],
     misconceptions: ['cir/radius-diameter', 'cir/no-pi'],
-    questionFamilies: ['QF_CI002_001', 'QF_CI002_002'],
+    questionFamilies: ['QF_CI002_001', 'QF_CI002_002', 'QF_CI002_003'],
   },
   {
     id: 'CI003',
@@ -51,7 +51,7 @@ const circlesSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['CI002'],
     misconceptions: ['cir/area-uses-diameter', 'cir/no-pi'],
-    questionFamilies: ['QF_CI003_001', 'QF_CI003_002'],
+    questionFamilies: ['QF_CI003_001', 'QF_CI003_002', 'QF_CI003_003'],
   },
   {
     id: 'CI004',
@@ -68,7 +68,7 @@ const circlesSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['CI003'],
     misconceptions: ['cir/half-wrong', 'cir/perimeter-arc-only'],
-    questionFamilies: ['QF_CI004_001', 'QF_CI004_002'],
+    questionFamilies: ['QF_CI004_001', 'QF_CI004_002', 'QF_CI004_003'],
   },
 ];
 

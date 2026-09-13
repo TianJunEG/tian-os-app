@@ -3,6 +3,20 @@ import { useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { FileText, FileUp, Save, Wand2 } from 'lucide-react';
 import { Button, Card, ErrorState, PageHeader } from '../../components/ui';
 import { familyAPI, mathpathAPI, worksheetGenAPI } from '../../services/api';
+import { getUniversalSkillByFrameworkId } from '../../mathpath/curriculum/fractionUniversalSkills';
+
+// Map an internal skill code (e.g. "F015") to its friendly name. Falls back to
+// the raw code if no mapping is found so nothing ever renders blank.
+function skillFriendlyName(skillId = '') {
+  const raw = String(skillId || '').trim();
+  if (!raw) return '';
+  return getUniversalSkillByFrameworkId(raw.toUpperCase())?.title || raw;
+}
+
+function skillFriendlyList(skillIds = []) {
+  const names = (skillIds || []).map(skillFriendlyName).filter(Boolean);
+  return names.length ? names.join(', ') : '';
+}
 
 const UPLOAD_TYPES = [
   ['completed_unmarked', 'Completed, unmarked'],
@@ -418,7 +432,7 @@ export default function PaperAnalysisPage() {
                           <p className="mt-1 text-xs text-ink-500">Misconceptions: {question.misconceptionTags.join(', ')}</p>
                         )}
                       </div>
-                      {question.needsAdultReview && <span className="rounded-full bg-gold-100 px-2 py-1 text-xs font-semibold text-gold-800">Review needed</span>}
+                      {question.needsAdultReview && <span className="rounded-full bg-gold-tint px-2 py-1 text-xs font-semibold text-gold-deep">Review needed</span>}
                     </div>
                     <div className="mt-3 grid gap-2 sm:grid-cols-2">
                       <label className="text-xs text-ink-600 sm:col-span-2">

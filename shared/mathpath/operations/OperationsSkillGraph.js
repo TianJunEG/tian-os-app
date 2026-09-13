@@ -416,6 +416,7 @@ const operationsSkills = [
 
 const skills = operationsSkills.map((skill) => ({ ...skill }));
 const skillById = new Map(skills.map((skill) => [skill.id, skill]));
+const skillBySlug = new Map(skills.filter((s) => s.slug).map((s) => [s.slug, s]));
 
 const dependentMap = new Map();
 skills.forEach((skill) => dependentMap.set(skill.id, []));
@@ -430,7 +431,7 @@ function unique(values) {
 }
 
 export function getSkill(skillId) {
-  return skillById.get(skillId) || null;
+  return skillById.get(skillId) || skillBySlug.get(skillId) || null;
 }
 
 export function getPrerequisites(skillId) {

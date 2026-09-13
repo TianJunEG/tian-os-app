@@ -18,6 +18,13 @@ import moneySkillGraph from '../../shared/mathpath/money/MoneySkillGraph.js';
 import timeSkillGraph from '../../shared/mathpath/time/TimeSkillGraph.js';
 import numberSenseSkillGraph from '../../shared/mathpath/numberSense/NumberSenseSkillGraph.js';
 import operationsSkillGraph from '../../shared/mathpath/operations/OperationsSkillGraph.js';
+import earlyNumeracySkillGraph from '../../shared/mathpath/earlyNumeracy/EarlyNumeracySkillGraph.js';
+
+// Fractions skill graph derived from the canonical skill map (F001–F026).
+// Uses parentName so labels are parent-friendly ("Recognising fractions as equal parts").
+const fractionsSkillGraph = {
+  skills: FRACTION_CANONICAL_SKILL_ROWS.map((row) => ({ id: row.frameworkSkillId, name: row.parentName })),
+};
 
 // Fractions skill graph derived from the canonical skill map (F001–F026).
 // Uses parentName so labels are parent-friendly ("Recognising fractions as equal parts").
@@ -43,6 +50,7 @@ const GRAPHS = {
   time: timeSkillGraph,
   number_sense: numberSenseSkillGraph,
   four_operations: operationsSkillGraph,
+  early_numeracy: earlyNumeracySkillGraph,
 };
 
 export function hasDomainSkillGraph(domainId) {

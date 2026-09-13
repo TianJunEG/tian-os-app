@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Lock, RotateCcw, Target } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
+import { visibleSkillLevel } from '../../../utils/skillLevel';
 import { mathpathAPI } from '../../../services/api';
 import { Badge, Button, Card, EmptyState, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
 import { fractionSkillGraph } from '../../../mathpath/fractions/fractionSkillGraph';
@@ -129,10 +130,14 @@ function SkillNodeCard({
   onAction,
 }) {
   const actionLabel = isLocked ? 'Locked' : needsReview ? 'Review' : isCurrent ? 'Continue' : statusLabel === 'Not Started' ? 'Start' : 'Practise';
-  const levelTag = skill.levelBand?.length ? skill.levelBand.join('/') : (skill.moeLevel || '');
+  const { user } = useAuth();
+  const studentLevel = user?.studentLevel || user?.moeLevel || user?.profile?.studentLevel || '';
+  // Hide the level badge on below-level (remedial) skills so a higher-level
+  // student isn't shown a demoralising lower "Primary N" tag.
+  const levelTag = visibleSkillLevel(skill.levelBand?.length ? skill.levelBand.join('/') : (skill.moeLevel || ''), studentLevel);
   const prerequisiteName = missingPrerequisiteNames[0] || '';
   return (
-    <Card className={`p-4 ${isCurrent ? 'ring-2 ring-gold-400/60' : ''} ${isLocked ? 'bg-surface-white/80 opacity-75' : ''}`}>
+    <Card className={`p-4 ${isCurrent ? 'ring-2 ring-gold/60' : ''} ${isLocked ? 'bg-surface-white/80 opacity-75' : ''}`}>
       <div className="flex min-h-[3.25rem] items-start justify-between gap-3">
         <p className="text-base font-semibold leading-snug text-ink-800">{skill.displayName || skill.name}</p>
         <span className="shrink-0">
@@ -189,11 +194,11 @@ function NextActionPanel({ nextAction, onPrimary, assessmentReady }) {
     <Card className="p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gold-100 text-gold-700">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gold-tint text-gold-deep">
             <Target className="h-5 w-5" />
           </span>
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Next Action</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-deep">Next Action</p>
             <p className="truncate text-sm font-semibold text-ink-700">{cta.disabled ? ASSESSMENT_LOCK_MESSAGE : nextAction?.explanation || 'Continue your recommended Fractions step.'}</p>
           </div>
         </div>
@@ -221,17 +226,27 @@ export default function FractionsLearningPathPage() {
         const masteryRes = await mathpathAPI.mastery();
         const mastery = masteryRes?.data || {};
         const records = Array.isArray(mastery.records) ? mastery.records : [];
+        // The fractions skill graph keys by framework code (F001…F026), so match
+        // mastery records by record.frameworkSkillId first; record.skillId is a
+        // Mongo ObjectId and would never match, leaving progress stuck at 0%.
+        const codeFor = (record) => record.frameworkSkillId || record.skillId;
         const masteredSkillIds = records
           .filter((record) => ['mastered', 'accurate', 'fluent', 'retained'].includes(String(record.status || '').toLowerCase()))
-          .map((record) => record.skillId)
+          .map(codeFor)
           .filter(Boolean);
         const weakSkillIds = records
           .filter((record) => ['needs_review', 'needsreview', 'weak'].includes(String(record.status || '').toLowerCase()))
-          .map((record) => record.skillId)
+          .map(codeFor)
           .filter(Boolean);
         const fluentSkillIds = records
           .filter((record) => ['fluent', 'retained'].includes(String(record.status || '').toLowerCase()))
-          .map((record) => record.skillId)
+          .map(codeFor)
+          .filter(Boolean);
+        // Retained needs the retentionState too (computeSkillStatuses requires
+        // mastered + fluent + retentionState.retainedSkillIds), else it stays 0%.
+        const retainedSkillIds = records
+          .filter((record) => String(record.status || '').toLowerCase() === 'retained')
+          .map(codeFor)
           .filter(Boolean);
 
         const pipelineResult = runMathPathDomainPipeline({
@@ -244,7 +259,7 @@ export default function FractionsLearningPathPage() {
             weakSkillIds,
             fluentSkillIds,
           },
-          retentionState: {},
+          retentionState: { retainedSkillIds },
           assessmentResults: [],
           mistakePlans: [],
           workingAnalysisSummary: {},
@@ -297,6 +312,24 @@ export default function FractionsLearningPathPage() {
     return new Set(ids.length ? ids : fractionSkillGraph.skillIds);
   }, [visibleSkillRows]);
 
+  // Scope the header progress to the student's visible (level-appropriate) skills
+  // rather than the full 26-skill P6 catalogue, so a P3 student isn't measured
+  // against secondary-tier fractions skills. MUST stay above the early-return
+  // gates below — a hook after a conditional return violates the Rules of Hooks
+  // and crashes the page ("rendered fewer hooks than expected").
+  const visibleProgress = useMemo(() => {
+    const visibleArr = [...visibleSkillIds];
+    const totalVisible = visibleArr.length;
+    const within = (ids = []) => ids.filter((id) => visibleSkillIds.has(id));
+    return {
+      ...masteryProgress,
+      totalSkills: totalVisible || masteryProgress.totalSkills,
+      masteredSkills: within(masteryProgress.masteredSkills || []),
+      fluentSkills: within(masteryProgress.fluentSkills || []),
+      retainedSkills: within(masteryProgress.retainedSkills || []),
+    };
+  }, [visibleSkillIds, masteryProgress]);
+
   const strands = useMemo(() => {
     return STRAND_GROUPS.map((group) => {
       const items = group.ids
@@ -344,7 +377,7 @@ export default function FractionsLearningPathPage() {
     || (studentProgress?.diagnosticResult?.weakSkillIds || []).length
   );
 
-  if (!hasDiagnosticSignal && !(masteryProgress.totalSkills > 0)) {
+  if (!hasDiagnosticSignal && (masteryProgress.masteredSkills?.length || 0) === 0 && Object.keys(skillStatuses).length === 0) {
     return (
       <div className="mx-auto max-w-4xl">
         <PageHeader title="Fractions Learning Path" subtitle="Structured progression across all 26 Fractions skills." />
@@ -385,7 +418,7 @@ export default function FractionsLearningPathPage() {
     <div className="mx-auto max-w-5xl space-y-5">
       <PageHeader title="Fractions Learning Path" />
       <LearningPathHeader
-        progress={masteryProgress}
+        progress={visibleProgress}
         currentSkillName={currentSkillName}
         nextCta={nextCta}
         onPrimary={launchPrimary}
@@ -397,7 +430,7 @@ export default function FractionsLearningPathPage() {
       {studentProgress.retentionProgress?.skillsDueForReview?.length ? (
         <Card className="p-3">
           <div className="flex items-center gap-2">
-            <RotateCcw className="h-4 w-4 text-gold-700" />
+            <RotateCcw className="h-4 w-4 text-gold-deep" />
             <p className="text-sm text-ink-700">
               {studentProgress.retentionProgress.skillsDueForReview.length} review
               {studentProgress.retentionProgress.skillsDueForReview.length === 1 ? '' : 's'} due.

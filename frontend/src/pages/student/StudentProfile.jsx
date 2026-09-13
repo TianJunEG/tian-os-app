@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  ArrowLeft,
   ArrowRight,
   ArrowUp,
   ArrowDown,
@@ -29,7 +28,8 @@ import {
   Zap,
 } from 'lucide-react';
 import { studentProfileAPI } from '../../services/api';
-import { Badge, Button, Card, ErrorState, ProgressBar, Spinner } from '../../components/ui';
+import { getCelebrationStyle, setCelebrationStyle, celebrationPreview } from '../../utils/confetti';
+import { Badge, BackLink, Button, Card, ErrorState, ProgressBar, Spinner } from '../../components/ui';
 import { getVisualModeStyles, isLowerPrimary, isSecondary, resolveStudentVisualMode, STUDENT_VISUAL_MODES } from '../../design-os/studentVisualMode';
 import { FEATURE_FLAGS } from '../../config/featureFlags';
 import { useAuth } from '../../context/AuthContext';
@@ -80,8 +80,8 @@ function NextToUnlockBanner({ achievements = [] }) {
   if (!nextLocked) return null;
   const display = getAchievementDisplay(nextLocked);
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-gold-200 bg-gradient-to-r from-gold-50 to-ivory p-4">
-      <Star className="h-6 w-6 text-gold-500" />
+    <div className="flex items-center gap-3 rounded-2xl border border-gold-tint bg-gradient-to-r from-gold-tint2 to-ivory p-4">
+      <Star className="h-6 w-6 text-gold" />
       <div>
         <p className="text-sm font-bold text-emerald-deep">Next to unlock: {display.title}</p>
         <p className="text-xs text-ink-500">{display.description}</p>
@@ -181,9 +181,9 @@ function SnapshotCard({ icon: Icon, label, value, visual }) {
 function AchievementBadge({ achievement, visual }) {
   const display = getAchievementDisplay(achievement);
   return (
-    <Card className={`p-4 ${achievement.unlocked ? 'border-gold-300 bg-gradient-to-br from-gold-100 to-gold-50' : 'border-line-soft bg-bone opacity-75'}`}>
+    <Card className={`p-4 ${achievement.unlocked ? 'border-gold-border bg-gradient-to-br from-gold-tint to-gold-tint2' : 'border-line-soft bg-bone opacity-75'}`}>
       <div className="flex items-start gap-3">
-        <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-xl ${achievement.unlocked ? 'bg-gold-200' : 'bg-line-soft text-ink-400'}`}>
+        <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-xl ${achievement.unlocked ? 'bg-gold-tint' : 'bg-line-soft text-ink-400'}`}>
           {achievement.unlocked ? display.emoji : <Lock className="h-5 w-5" />}
         </span>
         <div className="min-w-0">
@@ -208,7 +208,7 @@ function TimelineItem({ event }) {
           <span className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-400">{formatEventDate(event.occurredAt)}</span>
         </div>
         {event.description && <p className="mt-1 text-sm text-ink-500">{event.description}</p>}
-        {event.xpAwarded > 0 && <p className="mt-2 text-sm font-semibold text-gold-700">Earned {event.xpAwarded} XP</p>}
+        {event.xpAwarded > 0 && <p className="mt-2 text-sm font-semibold text-gold-deep">Earned {event.xpAwarded} XP</p>}
       </div>
     </li>
   );
@@ -216,7 +216,7 @@ function TimelineItem({ event }) {
 
 function PersonalBestTile({ icon: Icon, label, value, subtitle, tone = 'default', visual }) {
   const tones = {
-    gold: 'border-gold-200 bg-gradient-to-br from-gold-50 to-yellow-50',
+    gold: 'border-gold-tint bg-gradient-to-br from-gold-tint2 to-yellow-50',
     fire: 'border-orange-200 bg-gradient-to-br from-orange-50 to-red-50',
     sky: 'border-sky-200 bg-gradient-to-br from-sky-50 to-blue-50',
     mint: 'border-mint-200 bg-gradient-to-br from-mint-50 to-emerald-50',
@@ -224,7 +224,7 @@ function PersonalBestTile({ icon: Icon, label, value, subtitle, tone = 'default'
     default: visual.styles.card,
   };
   const iconTones = {
-    gold: 'bg-gold-100 text-gold-700',
+    gold: 'bg-gold-tint text-gold-deep',
     fire: 'bg-orange-100 text-orange-600',
     sky: 'bg-sky-100 text-sky-700',
     mint: 'bg-mint-100 text-emerald-700',
@@ -284,18 +284,36 @@ function WeeklyComparison({ thisWeek, lastWeek, visual }) {
 function PersonalBestsSection({ visual }) {
   const [bests, setBests] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [bestsError, setBestsError] = useState(false);
 
-  useEffect(() => {
+  const fetchBests = useCallback(() => {
     let active = true;
+    setLoading(true);
+    setBestsError(false);
     studentProfileAPI.personalBests()
       .then((res) => { if (active) setBests(res.data); })
-      .catch((e) => console.warn("StudentProfile: fetch failed", e))
+      .catch((e) => { console.warn("StudentProfile: fetch failed", e); if (active) setBestsError(true); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);
 
+  useEffect(() => fetchBests(), [fetchBests]);
+
   if (loading) return <div className="mt-6 flex justify-center"><Spinner label="Loading personal bests…" /></div>;
-  if (!bests) return null;
+  if (!bests) {
+    if (!bestsError) return null;
+    return (
+      <div className="mt-6 flex justify-center">
+        <button
+          type="button"
+          onClick={fetchBests}
+          className="rounded-lg px-3 py-1.5 text-sm font-medium text-ink-500 transition-colors hover:bg-white/60 hover:text-ink-800"
+        >
+          Couldn't load your records — tap to try again
+        </button>
+      </div>
+    );
+  }
 
   const lp = isLowerPrimary(visual.mode);
 
@@ -390,8 +408,10 @@ export default function StudentProfile() {
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState('');
   const [nameSaving, setNameSaving] = useState(false);
+  const [nameError, setNameError] = useState('');
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [skinSaving, setSkinSaving] = useState(false);
+  const [skinError, setSkinError] = useState('');
   const nameInputRef = useRef(null);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -399,6 +419,7 @@ export default function StudentProfile() {
   const saveVisualMode = async (mode) => {
     if (skinSaving) return;
     setSkinSaving(true);
+    setSkinError('');
     try {
       await studentProfileAPI.updateVisualMode(mode);
       setState((prev) => ({
@@ -410,6 +431,7 @@ export default function StudentProfile() {
       }));
     } catch (err) {
       console.error('Failed to update visual mode:', err);
+      setSkinError('Could not save your theme. Please try again.');
     } finally {
       setSkinSaving(false);
     }
@@ -417,14 +439,16 @@ export default function StudentProfile() {
 
   const startEditName = () => {
     setNameValue(state.data?.summary?.student?.name || '');
+    setNameError('');
     setEditingName(true);
     setTimeout(() => nameInputRef.current?.focus(), 50);
   };
-  const cancelEditName = () => { setEditingName(false); setNameValue(''); };
+  const cancelEditName = () => { setEditingName(false); setNameValue(''); setNameError(''); };
   const saveName = async () => {
     const trimmed = nameValue.trim();
     if (!trimmed || trimmed === state.data?.summary?.student?.name) { cancelEditName(); return; }
     setNameSaving(true);
+    setNameError('');
     try {
       await studentProfileAPI.updateName(trimmed);
       setState((prev) => ({
@@ -437,6 +461,7 @@ export default function StudentProfile() {
       setEditingName(false);
     } catch (err) {
       console.error('Failed to update name:', err);
+      setNameError('Could not save your name. Please try again.');
     } finally {
       setNameSaving(false);
     }
@@ -487,6 +512,11 @@ export default function StudentProfile() {
     }, {});
   }, [state.data]);
 
+  // Must stay above the early returns below — calling a hook only on the
+  // loaded render path violates the Rules of Hooks ("rendered more hooks than
+  // during the previous render") and crashes the profile when data arrives.
+  const [celebration, setCelebration] = useState(() => getCelebrationStyle());
+
   if (state.loading) return <Spinner label="Loading your profile…" />;
   if (state.error) {
     return (
@@ -520,13 +550,7 @@ export default function StudentProfile() {
 
   return (
     <main className={`mx-auto max-w-6xl pb-6 ${visual.styles.page}`}>
-      <button
-        onClick={() => navigate('/student')}
-        className="mb-4 inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-semibold text-ink-500 transition-colors hover:bg-white/60 hover:text-ink-800"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back to Dashboard
-      </button>
+      <BackLink to="/student" className="mb-4">Back to Dashboard</BackLink>
 
       <section className="grid gap-4 lg:grid-cols-[1fr_22rem]">
         <Card className={`relative overflow-hidden p-5 sm:p-6 ${visual.styles.card}`}>
@@ -548,6 +572,7 @@ export default function StudentProfile() {
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-ink-500">{copy.profileTitle}</p>
                 {editingName ? (
+                  <>
                   <div className="mt-1 flex items-center gap-2">
                     <input
                       ref={nameInputRef}
@@ -559,9 +584,11 @@ export default function StudentProfile() {
                       maxLength={100}
                       disabled={nameSaving}
                     />
-                    <button onClick={saveName} disabled={nameSaving} className="rounded-lg bg-emerald p-1.5 text-white hover:bg-emerald disabled:opacity-50"><Check className="h-4 w-4" /></button>
-                    <button onClick={cancelEditName} className="rounded-lg bg-bone p-1.5 text-ink-500 hover:bg-line-soft"><X className="h-4 w-4" /></button>
+                    <button onClick={saveName} disabled={nameSaving} title="Save name" aria-label="Save name" className="rounded-lg bg-emerald p-1.5 text-white hover:bg-emerald disabled:opacity-50"><Check className="h-4 w-4" /></button>
+                    <button onClick={cancelEditName} title="Cancel" aria-label="Cancel" className="rounded-lg bg-bone p-1.5 text-ink-500 hover:bg-line-soft"><X className="h-4 w-4" /></button>
                   </div>
+                  {nameError && <p className="mt-1 text-sm font-medium text-red-500" role="alert">{nameError}</p>}
+                  </>
                 ) : (
                   <div className="mt-1 flex items-center gap-2">
                     <h1 className={`truncate font-display ${isSecondary(visual.mode) ? 'text-2xl' : 'text-3xl'} font-semibold text-ink-900`}>{student.name || 'Student'}</h1>
@@ -588,7 +615,7 @@ export default function StudentProfile() {
           <DecorativeMotif enabled={visual.styles.decorative} />
           <p className="text-sm font-semibold text-ink-500">{visual.styles.streakLabel}</p>
           <div className="mt-3 flex items-end gap-3">
-            <Flame className="h-8 w-8 text-gold-500" />
+            <Flame className="h-8 w-8 text-gold" />
             <p className="font-mono text-3xl sm:text-4xl font-semibold leading-none text-ink-900 tabular-nums">{summary.streak || 0}</p>
             <p className="pb-1 text-sm font-semibold text-ink-500">{summary.streak === 1 ? 'day' : 'days'}</p>
           </div>
@@ -632,6 +659,35 @@ export default function StudentProfile() {
           <p className="text-sm font-semibold text-ink-500">Recommended Action</p>
           <p className="mt-2 text-lg font-semibold text-ink-900">{summary.recommendedAction?.label || 'Continue Learning'}</p>
           {!isLowerPrimary(visual.mode) && <p className="mt-2 text-sm leading-5 text-ink-500">Pick up from the next useful skill and keep your progress moving.</p>}
+        </Card>
+      </section>
+
+      <section className="mt-5">
+        <Card className={`p-5 sm:p-6 ${visual.styles.card}`}>
+          <p className="text-sm font-semibold text-ink-500">Celebration</p>
+          <p className="mt-1 text-lg font-semibold text-ink-900">How should we celebrate a correct answer?</p>
+          <div className="mt-4 grid grid-cols-3 gap-3">
+            {[
+              { id: 'confetti', label: 'Confetti', emoji: '🎉' },
+              { id: 'fireworks', label: 'Fireworks', emoji: '🎆' },
+              { id: 'off', label: 'Off', emoji: '🤫' },
+            ].map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => {
+                  setCelebration(opt.id);
+                  setCelebrationStyle(opt.id);
+                  if (opt.id !== 'off') celebrationPreview(opt.id, { count: 120, duration: 1800 });
+                }}
+                className={`flex flex-col items-center gap-1 rounded-2xl border-2 px-3 py-4 text-center transition ${celebration === opt.id ? 'border-emerald bg-emerald-tint' : 'border-line-soft bg-white hover:border-emerald/40'}`}
+              >
+                <span className="text-3xl leading-none">{opt.emoji}</span>
+                <span className="text-sm font-semibold text-ink-800">{opt.label}</span>
+              </button>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-ink-400">Tap a style to preview it. This applies across MathPath, Problems, Test Papers and Spelling.</p>
         </Card>
       </section>
 
@@ -708,6 +764,7 @@ export default function StudentProfile() {
             );
           })}
         </div>
+        {skinError && <p className="mt-2 text-sm font-medium text-red-500" role="alert">{skinError}</p>}
       </section>
 
       {showAvatarPicker && (

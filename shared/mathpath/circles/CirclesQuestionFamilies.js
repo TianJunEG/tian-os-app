@@ -131,6 +131,12 @@ const families = [
     mentalMathEligible: false,
     workingRequired: true,
   },
+
+  // ── Word-problem families (_003): one per skill, real-world contexts ──────────
+  { id: 'QF_CI001_003', skillId: 'CI001', name: 'Circles — Radius and Diameter in Context', description: 'Find the radius or diameter of a real circular object.', difficulty: 2, generatorKind: 'cirPartsWord', recommendedQuestionCount: 20, fluencyTargetSeconds: 6, masteryTargetAccuracy: 90, masteryQuestionCount: 10, misconceptionTags: ['cir/radius-diameter'], assessmentRelevant: true, mentalMathEligible: false, workingRequired: true },
+  { id: 'QF_CI002_003', skillId: 'CI002', name: 'Circumference — Real-World Context', description: 'Find the circumference of a real circular object given its radius.', difficulty: 3, generatorKind: 'cirCircumferenceContext', recommendedQuestionCount: 20, fluencyTargetSeconds: 15, masteryTargetAccuracy: 85, masteryQuestionCount: 12, misconceptionTags: ['cir/radius-diameter'], assessmentRelevant: true, mentalMathEligible: false, workingRequired: true },
+  { id: 'QF_CI003_003', skillId: 'CI003', name: 'Area — Real-World Context', description: 'Find the area of a real circular region given its radius.', difficulty: 3, generatorKind: 'cirAreaContext', recommendedQuestionCount: 20, fluencyTargetSeconds: 15, masteryTargetAccuracy: 85, masteryQuestionCount: 12, misconceptionTags: ['cir/area-uses-diameter'], assessmentRelevant: true, mentalMathEligible: false, workingRequired: true },
+  { id: 'QF_CI004_003', skillId: 'CI004', name: 'Semicircle / Quarter-Circle — Real-World Context', description: 'Find the area or perimeter of a semicircular or quarter-circular real object.', difficulty: 4, generatorKind: 'cirSemiQuarterContext', recommendedQuestionCount: 20, fluencyTargetSeconds: 20, masteryTargetAccuracy: 82, masteryQuestionCount: 12, misconceptionTags: ['cir/half-wrong', 'cir/perimeter-arc-only'], assessmentRelevant: true, mentalMathEligible: false, workingRequired: true },
 ];
 
 const familyById = new Map(families.map((family) => [family.id, family]));

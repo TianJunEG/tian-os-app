@@ -6,14 +6,17 @@ import Question from '../models/Question.js';
 import Skill from '../models/Skill.js';
 import Mistake from '../models/Mistake.js';
 import Assignment from '../models/Assignment.js';
+import MasteryRecord from '../models/MasteryRecord.js';
 import Worksheet from '../models/Worksheet.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import { recordAttempt } from '../utils/masteryEngine.js';
 import { isCorrectWithContext, checkKeyPoints } from '../utils/answerCheck.js';
 import { markOpenEnded } from '../utils/aiMarking.js';
 import { selectSimilarQuestions } from '../utils/worksheetGen.js';
+import { generateQuestionsForSkill } from '../shared/mathpath/genericQuestionGenerator.js';
 import { normalizeConfidence, recordLearningEvents } from '../services/telemetry/learningTelemetryService.js';
 import { updateFluencyCompletionForSession } from '../services/fluency/fluencyCompletionService.js';
+import { awardPerfectRoundSticker, awardMasterySticker } from '../services/rewards/stickerService.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
@@ -26,26 +29,82 @@ function answerInputTypeFor(answer = '') {
   return '';
 }
 
+const OBJECT_ID_PATTERN = /^[a-f0-9]{24}$/i;
+
 async function resolveSkillRefToIds(refs = []) {
   const out = [];
   for (const refRaw of refs || []) {
     if (!refRaw) continue;
     const ref = String(refRaw).trim();
     if (!ref) continue;
-    if (FRAMEWORK_SKILL_ID_PATTERN.test(ref)) {
-      const code = ref.toUpperCase();
-      const matched = await Skill.findOne({
-        $or: [
-          { 'metadata.mathPathSkillId': code },
-          { 'metadata.frameworkCode': code },
-        ],
-      }).select('_id');
-      if (matched?._id) out.push(String(matched._id));
-      continue;
-    }
-    out.push(ref);
+    // Already a Mongo ObjectId — use directly.
+    if (OBJECT_ID_PATTERN.test(ref)) { out.push(ref); continue; }
+    // Otherwise it's a framework/skill code (F012, MN001, TM001, ME004, a
+    // slug…). Resolve it to the real Skill _id. CRITICAL: never push a
+    // non-ObjectId string onto `out` — it flows into Question.find({skillId})
+    // and throws "Cast to ObjectId failed for value …" (a 500 that broke
+    // "Try again" from a money/time/measurement mistake). Unresolvable codes
+    // are dropped; the generation fallback then handles the resolved skill.
+    const code = ref.toUpperCase();
+    const matched = await Skill.findOne({
+      $or: [
+        { 'metadata.mathPathSkillId': code },
+        { 'metadata.frameworkCode': code },
+        { slug: ref },
+      ],
+    }).select('_id');
+    if (matched?._id) out.push(String(matched._id));
   }
   return [...new Set(out)];
+}
+
+// The generator emits a numeric difficulty (1/2/3); map back to the Question enum.
+const DIFFICULTY_BY_NUM = { 1: 'easy', 2: 'medium', 3: 'hard' };
+
+// Fallback question generation. Non-fractions domains GENERATE questions on the
+// fly rather than seeding the Question collection, so the generic DB lookup
+// finds nothing for them and practice dead-ends with a 400. When a skill has no
+// seeded questions, generate a small bank from the skill's own
+// metadata.questionStructures (the same engine the diagnostic uses for every
+// domain) and PERSIST it — so grading (Question.findById) works and the skill
+// self-seeds for next time. Returns the freshly-created, populated questions.
+export async function ensureQuestionsForSkills(skillIds, perSkill = 6) {
+  const skills = await Skill.find({ _id: { $in: skillIds } }).populate({ path: 'topicId', select: 'subjectId' });
+  const docs = [];
+  for (const skill of skills) {
+    const structures = skill.metadata?.questionStructures;
+    const subjectId = skill.topicId?.subjectId;
+    const topicId = skill.topicId?._id;
+    if (!Array.isArray(structures) || !structures.length || !subjectId || !topicId) continue;
+    const generated = generateQuestionsForSkill({
+      slug: skill.slug || String(skill._id),
+      level: skill.moeLevel || '',
+      questionStructures: structures,
+      domainId: skill.domain || '',
+    }, perSkill);
+    for (const g of generated) {
+      const stem = String(g.stem || g.prompt || '').trim();
+      const answer = g.answer === undefined || g.answer === null ? '' : String(g.answer);
+      if (!stem || answer === '') continue;
+      docs.push({
+        subjectId, topicId, skillId: skill._id,
+        frameworkSkillId: skill.metadata?.mathPathSkillId || skill.metadata?.frameworkCode || '',
+        universalSkillSlug: skill.slug || '',
+        moeLevel: skill.moeLevel || '',
+        questionCategory: 'practice',
+        difficulty: DIFFICULTY_BY_NUM[g.difficulty] || 'medium',
+        type: g.questionType === 'mcq' ? 'mcq' : 'short_answer',
+        stem,
+        choices: Array.isArray(g.choices) ? g.choices.map(String) : [],
+        answer,
+        misconceptionTag: g.misconceptionTag || '',
+        source: 'generated',
+      });
+    }
+  }
+  if (!docs.length) return [];
+  const inserted = await Question.insertMany(docs);
+  return Question.find({ _id: { $in: inserted.map((d) => d._id) } }).populate({ path: 'skillId', populate: { path: 'topicId' } });
 }
 
 // Shape a question for the client (never leak the answer mid-session).
@@ -53,7 +112,7 @@ async function resolveSkillRefToIds(refs = []) {
 // "What fraction of the shape is shaded?") is impossible without its diagram, and
 // the client renderer keys off diagramSpec / requiresVisual / requiredVisualTypes.
 // These fields carry no answer, so forwarding them does not leak the solution.
-const clientQuestion = (q) => ({
+export const clientQuestion = (q) => ({
   questionId: q._id, stem: q.stem, type: q.type, choices: q.choices,
   difficulty: q.difficulty, skillId: q.skillId?._id || q.skillId,
   skillName: q.skillId?.name, topicId: q.skillId?.topicId,
@@ -133,6 +192,13 @@ router.post('/sessions', protect, asyncHandler(async (req, res) => {
         studentId: student._id, skillIds: targetSkillIds, difficulty: 'medium',
         count: questionCount, excludeQuestionIds: excludeQuestionId ? [excludeQuestionId] : [],
       });
+    }
+    // No seeded DB questions (common for non-fractions domains, which generate
+    // rather than store). Generate + persist a bank on the fly so the student can
+    // actually practise instead of dead-ending on a 400.
+    if (!questions.length && targetSkillIds.length) {
+      const generated = await ensureQuestionsForSkills(targetSkillIds, Math.max(questionCount, 6));
+      questions = generated.slice(0, questionCount);
     }
     if (!questions.length) return res.status(400).json({ error: 'No questions available for this skill yet.' });
 
@@ -292,6 +358,8 @@ router.post('/sessions/:id/attempts', protect, asyncHandler(async (req, res) => 
         sessionId: String(session._id),
         metadata: { masteryScore: mastery.after?.score, module: sessModule },
       });
+      // Reward mastering a skill (best-effort; a sticker failure never blocks the attempt).
+      awardMasterySticker({ studentId: student._id, skillId: q.skillId }).catch(() => {});
     }
     await recordLearningEvents(telemetryEvents);
 
@@ -359,6 +427,9 @@ router.post('/sessions/:id/complete', protect, asyncHandler(async (req, res) => 
     const times = attempts.map((a) => a.timeMs).filter((t) => typeof t === 'number');
     const scorePct = total ? Math.round((correct / total) * 100) : 0;
 
+    // Reward a flawless round (best-effort + idempotent on sessionId; never blocks completion).
+    awardPerfectRoundSticker({ studentId: student._id, sessionId: session._id, correct, total }).catch(() => {});
+
     const endedAt = wasCompleted && session.endedAt ? session.endedAt : new Date();
     let fluencyCompletion = null;
     if (session.mode === 'fluency') {
@@ -425,6 +496,40 @@ router.post('/sessions/:id/complete', protect, asyncHandler(async (req, res) => 
       ]);
     }
 
+    // ── Remediation gate ────────────────────────────────────────────────────
+    // If the student scores < 40% twice in a row on the same skill (excluding
+    // guided/remediation sessions), gate them into a guided session before they
+    // can retry independently. Clear the gate when they finish any guided session.
+    const skillIds = session.skillIds?.map(String) || [];
+    const isGuidedMode = ['guided', 'remediation'].includes(session.mode);
+
+    if (skillIds.length) {
+      if (isGuidedMode) {
+        // Guided session completed — lift the gate for all skills in this session.
+        await MasteryRecord.updateMany(
+          { studentId: session.studentId, skillId: { $in: skillIds } },
+          { $set: { remediationGated: false } }
+        );
+      } else if (scorePct < 40) {
+        // Check if the previous non-guided session on the same skill also scored < 40%.
+        const prev = await PracticeSession.findOne({
+          studentId: session.studentId,
+          skillIds: { $in: skillIds },
+          status: 'completed',
+          mode: { $nin: ['guided', 'remediation', 'fluency', 'diagnostic'] },
+          _id: { $ne: session._id },
+        }).sort({ endedAt: -1 });
+
+        if (prev?.summary?.scorePct < 40) {
+          await MasteryRecord.updateMany(
+            { studentId: session.studentId, skillId: { $in: skillIds } },
+            { $set: { remediationGated: true } }
+          );
+        }
+      }
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
     res.json({
       session_id: session._id,
       summary: {
@@ -453,6 +558,21 @@ router.get('/sessions/:id', protect, asyncHandler(async (req, res) => {
     const total = attempts.length, correct = attempts.filter((a) => a.correct).length;
     const times = attempts.map((a) => a.timeMs).filter((t) => typeof t === 'number');
 
+    // Check if any skill is remediation-gated (only meaningful for non-guided sessions).
+    let remediationGated = false;
+    let gatedSkillId = null;
+    if (skillIds.length && !['guided', 'remediation'].includes(session.mode)) {
+      const gatedRecord = await MasteryRecord.findOne({
+        studentId: session.studentId,
+        skillId: { $in: skillIds },
+        remediationGated: true,
+      }).select('skillId');
+      if (gatedRecord) {
+        remediationGated = true;
+        gatedSkillId = String(gatedRecord.skillId);
+      }
+    }
+
     res.json({
       session: {
         id: session._id, module: session.module, mode: session.mode, feature: session.feature, status: session.status,
@@ -472,6 +592,8 @@ router.get('/sessions/:id', protect, asyncHandler(async (req, res) => {
         fluencyStatus: session.summary?.fluencyStatus || '',
       },
       mistakes: mistakes.map((m) => ({ id: m._id, stem: m.questionStem, yourAnswer: m.studentAnswer, correctAnswer: m.correctAnswer })),
+      remediationGated,
+      gatedSkillId,
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to load session.' });

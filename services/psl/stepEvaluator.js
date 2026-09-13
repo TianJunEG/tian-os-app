@@ -20,19 +20,29 @@ function evaluateUnderstand(response, expected) {
   return { correct: text.length > 5, partial: false, score: text.length > 5 ? 1 : 0, misconceptionTag: '' };
 }
 
+// Canonicalise a clue token to its comparison key (collapse internal whitespace, no number
+// coercion) so "2/5", "3 : 5", "30%", "$4" all survive and match the client token keys.
+function normalizeClueKey(token) {
+  return String(token == null ? '' : token).trim().replace(/\s+/g, '');
+}
+
 function evaluateIdentifyInfo(response, expected) {
-  const highlighted = (response?.numbers || []).map(Number).sort((a, b) => a - b);
-  const expectedNums = (expected?.numbers || []).map(Number).sort((a, b) => a - b);
-  if (!expectedNums.length) return { correct: true, partial: false, score: 1, misconceptionTag: '' };
+  const highlighted = (response?.numbers || []).map(normalizeClueKey).filter((t) => t.length > 0);
+  const expectedSet = new Set((expected?.numbers || []).map(normalizeClueKey).filter((t) => t.length > 0));
+  if (!expectedSet.size) return { correct: true, partial: false, score: 1, misconceptionTag: '' };
 
-  const correct = highlighted.length === expectedNums.length && highlighted.every((n, i) => n === expectedNums[i]);
-  if (correct) return { correct: true, partial: false, score: 1, misconceptionTag: '' };
+  const highlightedSet = new Set(highlighted);
+  const foundCount = [...expectedSet].filter((t) => highlightedSet.has(t)).length;
+  const hasExtra = [...highlightedSet].some((t) => !expectedSet.has(t));
 
-  const intersection = highlighted.filter((n) => expectedNums.includes(n));
-  if (intersection.length > 0 && intersection.length < expectedNums.length) {
+  // Fully correct only when EVERY expected clue is found and no irrelevant clue is included.
+  if (foundCount === expectedSet.size && !hasExtra) {
+    return { correct: true, partial: false, score: 1, misconceptionTag: '' };
+  }
+
+  if (foundCount > 0 && foundCount < expectedSet.size) {
     return { correct: false, partial: true, score: 0.5, misconceptionTag: 'psl/missed-number' };
   }
-  const hasExtra = highlighted.some((n) => !expectedNums.includes(n));
   return {
     correct: false, partial: false, score: 0,
     misconceptionTag: hasExtra ? 'psl/included-irrelevant' : 'psl/missed-number',
@@ -118,6 +128,22 @@ function evaluatePlanStrategy(response, expected) {
   return { correct, partial: false, score: correct ? 1 : 0, misconceptionTag: correct ? '' : 'psl/wrong-strategy' };
 }
 
+// Interactive ratio bar (classic ratio-share problems): the student sets the
+// value of one unit on a bar split into ratioA:ratioB units. Correct when their
+// value-per-unit matches the expected decomposition. Tolerance handles the
+// fractional value-per-unit that arises when total isn't evenly divisible.
+function evaluatePlanRatioBar(response, expected) {
+  const submitted = Number(response?.ratioBar?.valuePerPart);
+  const target = Number(expected?.valuePerPart);
+  if (!Number.isFinite(submitted)) {
+    return { correct: false, partial: false, score: 0, misconceptionTag: 'psl/forgot-total-parts' };
+  }
+  if (Number.isFinite(target) && Math.abs(submitted - target) < 1e-6) {
+    return { correct: true, partial: false, score: 1, misconceptionTag: '' };
+  }
+  return { correct: false, partial: false, score: 0, misconceptionTag: 'psl/forgot-total-parts' };
+}
+
 const PLAN_EVALUATORS = {
   model: evaluatePlanModel,
   reverse_steps: evaluatePlanReverseSteps,
@@ -126,6 +152,7 @@ const PLAN_EVALUATORS = {
   list_candidates: evaluatePlanList,
   guess_setup: evaluatePlanGuess,
   strategySelect: evaluatePlanStrategy,
+  ratioBar: evaluatePlanRatioBar,
 };
 
 function evaluatePlan(response, expected) {
@@ -140,11 +167,21 @@ function evaluateSolveExpression(response, expected) {
 
   if (expected?.steps) {
     if (submittedAnswer === correctAnswer) return { correct: true, partial: false, score: 1, misconceptionTag: '' };
-    const intermediateCorrect = (response?.intermediates || []).some((v, i) => {
-      const expStep = expected.steps[i];
-      return expStep && Number(v) === safeEval(expStep.expression);
-    });
-    if (intermediateCorrect) {
+    // Value of each expected step (position-independent — the student may reach a
+    // step by a different but valid route, e.g. 147÷3 then ×2 vs 147×2÷3).
+    const stepValues = expected.steps
+      .map((s) => safeEval(s.expression))
+      .filter((v) => Number.isFinite(v));
+    // The student handed in a valid INTERMEDIATE as their final answer — they
+    // stopped one step short (e.g. gave "how many burst" = 98 instead of "how
+    // many left" = 49). Their numbers were right; they just didn't finish.
+    if (Number.isFinite(submittedAnswer) && submittedAnswer !== correctAnswer && stepValues.includes(submittedAnswer)) {
+      return { correct: false, partial: true, score: 0.5, misconceptionTag: 'psl/forgot-subtract' };
+    }
+    // Some of their working matched an expected step but the final answer is off
+    // → a slip in a later step, not the wrong numbers.
+    const studentValues = [submittedAnswer, ...(response?.intermediates || []).map((v) => Number(v))].filter((v) => Number.isFinite(v));
+    if (studentValues.some((v) => stepValues.includes(v))) {
       return { correct: false, partial: true, score: 0.5, misconceptionTag: 'psl/arithmetic-error' };
     }
     return { correct: false, partial: false, score: 0, misconceptionTag: 'psl/used-wrong-numbers' };

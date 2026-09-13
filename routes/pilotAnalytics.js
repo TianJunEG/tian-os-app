@@ -1,6 +1,6 @@
 import express from 'express';
 import { protect, authorize } from '../middleware/auth.js';
-import { getPilotAnalytics } from '../services/telemetry/learningTelemetryService.js';
+import { getPilotAnalytics, getComicAnalytics } from '../services/telemetry/learningTelemetryService.js';
 import {
   getPilotInterventionMetrics,
   getPilotInterventionSummary,
@@ -25,6 +25,16 @@ router.get('/pilot-analytics', adminOnly, asyncHandler(async (req, res) => {
     res.json(analytics);
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to load pilot analytics.' });
+  }
+}));
+
+// Comics engagement + trial→paid funnel (Phase 3 read surface).
+router.get('/comic-analytics', adminOnly, asyncHandler(async (req, res) => {
+  try {
+    const analytics = await getComicAnalytics({ days: req.query.days || 30 });
+    res.json(analytics);
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Failed to load comic analytics.' });
   }
 }));
 

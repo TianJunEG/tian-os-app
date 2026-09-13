@@ -3,7 +3,7 @@ import React from 'react';
 const FACT_TONES = {
   fraction_part: 'border-sky-200 bg-sky-50 text-sky-900',
   quantity_known: 'border-emerald-200 bg-emerald-50 text-emerald-900',
-  remainder: 'border-gold-200 bg-gold-100 text-gold-900',
+  remainder: 'border-gold-tint bg-gold-tint text-gold-deep',
   whole: 'border-indigo-200 bg-indigo-50 text-indigo-900',
   target_unknown: 'border-danger-border bg-danger-tint text-rose-900',
   operation_hint: 'border-purple-200 bg-purple-50 text-purple-900',

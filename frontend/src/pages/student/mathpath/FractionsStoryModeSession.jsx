@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { MathText } from '../../../components/ui/Fraction';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Lightbulb, Pencil, Sparkles } from 'lucide-react';
 import { Button, Card, ProgressBar } from '../../../components/ui';
@@ -56,7 +57,7 @@ function StoryFractionBar({ model = {}, showRemainderSubgroups = false }) {
             {Array.from({ length: subdivideBy }).map((_, index) => (
               <div
                 key={index}
-                className={`min-h-[42px] border-r border-emerald-tint last:border-r-0 ${index < removedSubparts ? 'bg-gold-200' : 'bg-emerald-tint'}`}
+                className={`min-h-[42px] border-r border-emerald-tint last:border-r-0 ${index < removedSubparts ? 'bg-gold-tint2' : 'bg-emerald-tint'}`}
               />
             ))}
           </div>
@@ -100,7 +101,7 @@ function StoryNumberLine({ model = {} }) {
           const left = `${(index / denominator) * 100}%`;
           return (
             <div key={index} className="absolute top-2 -translate-x-1/2 text-center" style={{ left }}>
-              <div className={`mx-auto h-4 w-1 rounded-full ${index === removed ? 'bg-gold-500' : 'bg-emerald-bright'}`} />
+              <div className={`mx-auto h-4 w-1 rounded-full ${index === removed ? 'bg-gold' : 'bg-emerald-bright'}`} />
               <span className="mt-1 block text-[11px] sm:text-xs text-ink-600">{index}/{denominator}</span>
             </div>
           );
@@ -370,7 +371,7 @@ export default function FractionsStoryModeSession() {
                 <FractionExpressionQuestion prompt={scene?.questionText || ''} value={answer} onChange={setAnswer} />
               ) : (
                 <>
-                  <p className="break-words text-lg font-semibold leading-relaxed text-ink-900">{story.prompt}</p>
+                  <p className="break-words text-lg font-semibold leading-relaxed text-ink-900"><MathText text={story.prompt} /></p>
                   <p className="mt-4 break-words text-base leading-relaxed text-ink-800">{scene?.questionText}</p>
                 </>
               )}
@@ -440,6 +441,9 @@ export default function FractionsStoryModeSession() {
                     label="Your working"
                     submittedImage={working.workingImage || ''}
                     submittedStrokes={working.workingStrokes || []}
+                    initialMathObjects={working.workingMathObjects || []}
+                    initialColumnGrid={working.workingColumnGrid || null}
+                    initialMathSteps={working.workingSteps || null}
                     initialSubmitted={Boolean(working.workingSubmitted)}
                     initialWorkingNotNeeded={Boolean(working.workingNotNeeded)}
                     onChange={setWorking}
@@ -458,7 +462,7 @@ export default function FractionsStoryModeSession() {
             )}
 
             {sceneFeedback ? (
-              <div className={`rounded-xl border p-4 text-sm ${sceneFeedback.tone === 'success' ? 'border-success-200 bg-success-50 text-success-800' : 'border-gold-300 bg-gold-100 text-gold-900'}`}>
+              <div className={`rounded-xl border p-4 text-sm ${sceneFeedback.tone === 'success' ? 'border-success-200 bg-success-50 text-success-800' : 'border-gold-border bg-gold-tint text-gold-deep'}`}>
                 <div className="flex gap-2">
                   {sceneFeedback.tone === 'success' ? <Sparkles className="h-5 w-5 shrink-0" /> : <Lightbulb className="h-5 w-5 shrink-0" />}
                   <div>

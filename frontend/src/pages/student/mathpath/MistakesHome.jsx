@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Wrench, Dumbbell, ChevronRight, AlertTriangle, PartyPopper } from 'lucide-react';
+import { Wrench, Dumbbell, ChevronRight, PartyPopper, Trash2 } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
-import { Card, Button, Badge, PageHeader, Spinner, EmptyState } from '../../../components/ui';
+import { Card, Button, Badge, PageHeader, Spinner, EmptyState, ErrorState } from '../../../components/ui';
 import { MathText } from '../../../components/ui/Fraction';
 import { useAuth } from '../../../context/AuthContext';
 import { getVisualModeStyles, resolveStudentVisualMode } from '../../../design-os/studentVisualMode';
@@ -36,22 +36,39 @@ export default function MistakesHome() {
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState(null);
   const [fallbackMessage, setFallbackMessage] = useState('');
+  const [removingId, setRemovingId] = useState(null);
+
+  // Remove a mistake that was logged by error (e.g. a correct answer marked
+  // wrong). Hard delete on the server; drop it from the list optimistically.
+  const removeMistake = async (e, id) => {
+    e.stopPropagation();
+    if (typeof window !== 'undefined' && !window.confirm('Remove this from the review? Use this only if it was logged by mistake (e.g. your answer was actually correct). This can’t be undone.')) return;
+    setRemovingId(id);
+    try {
+      await mathpathAPI.deleteMistake(id);
+      setData((d) => ({ ...d, mistakes: (d?.mistakes || []).filter((m) => m.id !== id) }));
+    } catch (err) {
+      setError(err.response?.data?.error || 'Could not remove the mistake. Please try again.');
+    } finally { setRemovingId(null); }
+  };
+
+  const load = useCallback(async () => {
+    try {
+      // 'mathpath' surfaces curriculum mistakes across all domains (fractions +
+      // decimals, circles, algebra, …) while excluding fluency/times-table slips.
+      const [mk, ms] = await Promise.all([mathpathAPI.mistakes({ domain: 'mathpath' }), mathpathAPI.mastery()]);
+      console.info('[mistakes] loaded', {
+        count: mk.data?.mistakes?.length || 0,
+        weakSkillCount: mk.data?.weakSkills?.length || 0,
+      });
+      setData(mk.data); setMastery(ms.data);
+    } catch (e) { setError(e.response?.data?.error || 'Could not load mistakes.'); }
+    finally { setLoading(false); }
+  }, []);
 
   useEffect(() => {
-    (async () => {
-      try {
-        // 'mathpath' surfaces curriculum mistakes across all domains (fractions +
-        // decimals, circles, algebra, …) while excluding fluency/times-table slips.
-        const [mk, ms] = await Promise.all([mathpathAPI.mistakes({ domain: 'mathpath' }), mathpathAPI.mastery()]);
-        console.info('[mistakes] loaded', {
-          count: mk.data?.mistakes?.length || 0,
-          weakSkillCount: mk.data?.weakSkills?.length || 0,
-        });
-        setData(mk.data); setMastery(ms.data);
-      } catch (e) { setError(e.response?.data?.error || 'Could not load mistakes.'); }
-      finally { setLoading(false); }
-    })();
-  }, []);
+    load();
+  }, [load]);
 
   const practise = async (skillRef) => {
     const skillId = typeof skillRef === 'string'
@@ -93,11 +110,25 @@ export default function MistakesHome() {
           mistakesBase: '/student/mathpath/mistakes',
         },
       });
-    } catch (e) { setError(e.response?.data?.error || 'Could not start practice.'); setStarting(false); }
+    } catch (e) {
+      const msg = e.response?.data?.error || 'Could not start practice.';
+      setStarting(false);
+      // Don't dead-end on a recommended skill that has no questions in the practice
+      // bank yet (e.g. generator-only skills like "Place value to 100 000"): send the
+      // student to MathPath to pick a skill that works, instead of a stuck error screen.
+      if (/no questions/i.test(msg)) {
+        const name = (typeof skillRef === 'object' && skillRef?.skillName) || 'that skill';
+        navigate('/student/mathpath', {
+          state: { message: `We don't have practice questions for ${name} yet — pick another skill to practise.` },
+        });
+        return;
+      }
+      setError(msg);
+    }
   };
 
   if (loading) return <Spinner label="Loading mistakes…" />;
-  if (error) return <EmptyState icon={AlertTriangle} message={error} />;
+  if (error) return <ErrorState message={error} onRetry={() => { setError(null); setLoading(true); load(); }} />;
 
   const recent = data?.mistakes || [];
   const weak = data?.weakSkills || [];
@@ -128,7 +159,7 @@ export default function MistakesHome() {
         <div className={`mb-1 flex items-center gap-2 ${visualStyles.accent}`}><Wrench className="h-4 w-4" /><span className="text-[11px] font-semibold uppercase tracking-[0.1em]">Turn slips into mastery</span></div>
         <div className="font-display text-2xl font-semibold text-ink-900">{data ? data.mistakes.length : 0} to review</div>
         {recommended && <p className="mb-4 mt-1 text-sm text-ink-600">Recommended: practise <b className={`font-semibold ${visualStyles.accent}`}>{recommended.skillName}</b></p>}
-        {fallbackMessage && <p className="mb-3 rounded-xl bg-gold-100 px-3 py-2 text-sm font-semibold text-gold-700">{fallbackMessage}</p>}
+        {fallbackMessage && <p className="mb-3 rounded-xl bg-gold-tint px-3 py-2 text-sm font-semibold text-gold-deep">{fallbackMessage}</p>}
         <div className="flex flex-wrap gap-2">
           {hasMistakes ? (
             <Button className={visualStyles.primaryCta} to="/student/mathpath/mistakes/review">Review mistakes</Button>
@@ -148,29 +179,33 @@ export default function MistakesHome() {
         />
       )}
 
-      <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Weak skills from mistakes</h3>
-      <div className="space-y-2">
-        {weak.length === 0 && hasMistakes && <Card className={`p-4 text-sm text-ink-500 ${visualStyles.accentCard}`}>No weak-skill clusters yet.</Card>}
-        {weak.map((w) => (
-          <Card key={w.skillId} interactive className={`flex items-center justify-between p-4 ${visualStyles.accentCard}`} role="button" onClick={() => practise(w.skillId)}>
-            <div>
-              <div className="font-semibold text-ink-700">{w.skillName}</div>
-              <div className="mt-1 flex flex-wrap gap-2 text-xs text-ink-500">
-                <span>Latest {formatMistakeDate(w.latestMistakeDate)}</span>
-                {w.confidenceRiskCount > 0 && <span>{w.confidenceRiskCount} confident slip{w.confidenceRiskCount > 1 ? 's' : ''}</span>}
-              </div>
-            </div>
-            <div className="flex items-center gap-2"><Badge tone="error">{w.count} mistake{w.count > 1 ? 's' : ''}</Badge><ChevronRight className="h-4 w-4 text-ink-300" /></div>
-          </Card>
-        ))}
-      </div>
+      {hasMistakes && (
+        <>
+          <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Weak skills from mistakes</h3>
+          <div className="space-y-2">
+            {weak.length === 0 && <Card className={`p-4 text-sm text-ink-500 ${visualStyles.accentCard}`}>No weak-skill clusters yet.</Card>}
+            {weak.map((w) => (
+              <Card key={w.skillId} interactive tabIndex={0} className={`flex items-center justify-between p-4 ${visualStyles.accentCard}`} role="button" onClick={() => navigate('/student/mathpath/mistakes/review')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/student/mathpath/mistakes/review'); } }}>
+                <div>
+                  <div className="font-semibold text-ink-700">{w.skillName}</div>
+                  <div className="mt-1 flex flex-wrap gap-2 text-xs text-ink-500">
+                    <span>Latest {formatMistakeDate(w.latestMistakeDate)}</span>
+                    {w.confidenceRiskCount > 0 && <span>{w.confidenceRiskCount} confident slip{w.confidenceRiskCount > 1 ? 's' : ''}</span>}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2"><Badge tone="error">{w.count} mistake{w.count > 1 ? 's' : ''}</Badge><ChevronRight className="h-4 w-4 text-ink-300" /></div>
+              </Card>
+            ))}
+          </div>
+        </>
+      )}
 
       {recent.length > 0 && (
         <>
           <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Recent mistakes</h3>
           <div className="space-y-2">
             {recent.map((m) => (
-              <Card key={m.id} interactive className={`p-4 ${visualStyles.accentCard}`} role="button" onClick={() => navigate(`/student/mathpath/mistakes/${m.id}`)}>
+              <Card key={m.id} interactive tabIndex={0} className={`p-4 ${visualStyles.accentCard}`} role="button" onClick={() => navigate(`/student/mathpath/mistakes/${m.id}`)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/student/mathpath/mistakes/${m.id}`); } }}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-ink-500">
@@ -190,7 +225,20 @@ export default function MistakesHome() {
                       </p>
                     </div>
                   </div>
-                  <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-ink-300" />
+                  <div className="flex shrink-0 flex-col items-center gap-2">
+                    <ChevronRight className="mt-1 h-4 w-4 text-ink-300" />
+                    <button
+                      type="button"
+                      title="Remove — logged by mistake"
+                      aria-label="Remove this mistake"
+                      disabled={removingId === m.id}
+                      onClick={(e) => removeMistake(e, m.id)}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      className="grid h-7 w-7 place-items-center rounded-lg text-ink-300 transition hover:bg-error-100 hover:text-error-700 disabled:opacity-40"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               </Card>
             ))}

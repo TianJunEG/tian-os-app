@@ -1,6 +1,8 @@
 // Thin wrapper around the browser Web Speech API (speechSynthesis) used by the
 // mock spelling test and dictation. No external service or API key required.
 
+import { stripEmoji } from './sound';
+
 const synth = typeof window !== 'undefined' ? window.speechSynthesis : null;
 
 export const ttsSupported = () => !!synth && typeof window.SpeechSynthesisUtterance !== 'undefined';
@@ -91,7 +93,7 @@ export function createSpeaker() {
         return;
       }
 
-      const u = new SpeechSynthesisUtterance(step.text);
+      const u = new SpeechSynthesisUtterance(stripEmoji(step.text));
       u.rate = step.rate ?? 0.9;
       u.pitch = step.pitch ?? 1.35;
       u.lang = step.lang ?? 'en-GB';
@@ -116,7 +118,7 @@ export function createSpeaker() {
 export function speakOnce(text, opts = {}) {
   if (!ttsSupported()) return;
   synth.cancel();
-  const u = new SpeechSynthesisUtterance(text);
+  const u = new SpeechSynthesisUtterance(stripEmoji(text));
   u.rate = opts.rate ?? 0.9;
   u.pitch = opts.pitch ?? 1.35;
   u.lang = opts.lang ?? 'en-GB';

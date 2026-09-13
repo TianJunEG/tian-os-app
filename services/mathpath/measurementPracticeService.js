@@ -27,13 +27,14 @@ export function buildMeasurementPracticeSession({
     err.status = 400;
     throw err;
   }
-  const raw = generateMeasurementQuestionSet({ skillId, count: questionCount, mode });
+  const raw = generateMeasurementQuestionSet({ skillId, count: questionCount, mode, sessionSalt: Date.now().toString() });
   const questions = raw.map((q, index) => ({
     questionId: `${q.questionFamilyId}_${index}`,
     skillId: q.skillId,
     questionFamilyId: q.questionFamilyId,
     type: q.type,
     prompt: q.prompt,
+    unit: q.unit || '',
     choices: q.choices || [],
     answer: q.answer,
     acceptedAnswers: q.acceptedAnswers || [],
@@ -41,6 +42,7 @@ export function buildMeasurementPracticeSession({
     misconceptionTag: q.misconceptionTag || '',
     difficulty: q.difficulty,
     workingRequired: Boolean(q.workingRequired),
+    answerFormat: q.answerFormat,
     ...(q.diagram ? { diagram: q.diagram } : {}),
   }));
   return {

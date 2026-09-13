@@ -17,6 +17,7 @@ import {
   skillCodeFor,
   updateFluencyCompletionForSession,
 } from '../services/fluency/fluencyCompletionService.js';
+import { awardFluencySticker } from '../services/rewards/stickerService.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 import {
   classifyFluencyBuckets,
@@ -245,6 +246,9 @@ router.post('/session/complete', protect, asyncHandler(async (req, res) => {
     const metrics = fluencyCompletion?.metrics || {};
     const record = fluencyCompletion?.record || null;
     const retentionScheduled = Boolean(fluencyCompletion?.retentionScheduled);
+
+    // Reward hitting the fluency goal (best-effort + idempotent on session; never blocks completion).
+    awardFluencySticker({ studentId: student._id, sessionId: session._id, accuracy: metrics.accuracy }).catch(() => {});
 
     const retentionReviewId = req.body?.retentionReviewId || req.body?.retention_review_id || null;
     if (retentionReviewId) {

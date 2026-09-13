@@ -76,6 +76,40 @@ describe('TimeQuestionGenerator', () => {
     }
   });
 
+  it('word-problem families (_003) cycle in at every 3rd position', () => {
+    // TM001W: spoken phrase → h:mm (no diagram)
+    const tm1 = generateTimeQuestionSet({ skillId: 'TM001', count: 9 });
+    for (const i of [2, 5, 8]) {
+      expect(tm1[i].diagram).toBeUndefined();
+      expect(tm1[i].answer.display).toMatch(/^\d{1,2}:\d{2}$/);
+      expect(tm1[i].prompt).toMatch(/o'clock|half past/);
+    }
+    // TM002W: "X minutes past/to Y" → h:mm (no diagram)
+    const tm2 = generateTimeQuestionSet({ skillId: 'TM002', count: 9 });
+    for (const i of [2, 5, 8]) {
+      expect(tm2[i].diagram).toBeUndefined();
+      expect(tm2[i].answer.display).toMatch(/^\d{1,2}:\d{2}$/);
+    }
+    // TM003W: contextual conversion → bare number
+    const tm3 = generateTimeQuestionSet({ skillId: 'TM003', count: 9 });
+    for (const i of [2, 5, 8]) {
+      expect(Number(tm3[i].answer.display)).toBeGreaterThan(0);
+      expect(tm3[i].prompt).toMatch(/lasts|takes/i);
+    }
+    // TM004W: timetable context → 24hr or 12hr time
+    const tm4 = generateTimeQuestionSet({ skillId: 'TM004', count: 9 });
+    for (const i of [2, 5, 8]) {
+      expect(tm4[i].prompt).toMatch(/timetable|schedule|board/i);
+      expect(wellFormed(tm4[i].answer.display)).toBe(true);
+    }
+    // TM005W: multi-step journey → duration
+    const tm5 = generateTimeQuestionSet({ skillId: 'TM005', count: 9 });
+    for (const i of [2, 5, 8]) {
+      expect(tm5[i].prompt).toMatch(/stops? for/i);
+      expect(checkTimeAnswer({ question: tm5[i], studentResponse: tm5[i].answer.display }).correct).toBe(true);
+    }
+  });
+
   it('checks answers by meaning, not string', () => {
     const eq = (a, b) => checkTimeAnswer({ question: { answer: { display: b } }, studentResponse: a }).correct;
     expect(eq('9:30', '9:30')).toBe(true);
@@ -85,5 +119,23 @@ describe('TimeQuestionGenerator', () => {
     expect(eq('2h35min', '2 h 35 min')).toBe(true);
     expect(eq('45 min', '45')).toBe(true);
     expect(eq('9:31', '9:30')).toBe(false);
+  });
+
+  it('treats a plain clock face as a.m./p.m.-ambiguous (both accepted), but a wrong time or a meridiem-keyed answer still fails', () => {
+    const eq = (a, b) => checkTimeAnswer({ question: { answer: { display: b } }, studentResponse: a }).correct;
+    // A "read the clock" answer has no meridiem — an added a.m./p.m. must not
+    // flip the mark (regression: p.m. used to be rejected at 3:00, a.m. at 12:00).
+    expect(eq('3:00 a.m.', '3:00')).toBe(true);
+    expect(eq('3:00 p.m.', '3:00')).toBe(true);
+    expect(eq('12:00 a.m.', '12:00')).toBe(true);
+    expect(eq('12:00 p.m.', '12:00')).toBe(true);
+    // A genuinely wrong clock position still fails.
+    expect(eq('4:00 p.m.', '3:00')).toBe(false);
+    // When the KEY fixes the time of day, the meridiem stays required…
+    expect(eq('3:00 a.m.', '3:00 p.m.')).toBe(false);
+    expect(eq('3:00 p.m.', '3:00 p.m.')).toBe(true);
+    // …and a 24-hour key (no colon) still needs the student's meridiem to convert.
+    expect(eq('2:30', '1430')).toBe(false);
+    expect(eq('2:30 pm', '1430')).toBe(true);
   });
 });

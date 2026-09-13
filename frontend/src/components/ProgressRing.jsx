@@ -14,7 +14,7 @@ export default function ProgressRing({ value = 0, size = 96, stroke = 8, trackCl
         <circle
           cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke}
           strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset}
-          className="stroke-gold-400 transition-[stroke-dashoffset] duration-700 ease-out"
+          className="stroke-gold transition-[stroke-dashoffset] duration-700 ease-out"
         />
       </svg>
       <span className="absolute font-extrabold" style={{ fontSize: size * 0.26 }}>{pct}%</span>

@@ -43,9 +43,17 @@ const masteryRecordSchema = new mongoose.Schema({
   recentOutcomes: { type: [Boolean], default: [] },
   consistency: { type: Number, default: 1 },
   confidence: { type: Number, default: 0 },
-  lastPracticedAt: { type: Date, default: null }
+  lastPracticedAt: { type: Date, default: null },
+  // Set when the student scores < 40% on 2 consecutive non-guided sessions.
+  // Cleared automatically once they complete a guided session for this skill.
+  remediationGated: { type: Boolean, default: false },
 });
 
 masteryRecordSchema.index({ studentId: 1, skillId: 1 }, { unique: true });
+// Serves the teacher class-dashboard load (buildClassDashboard), which queries
+// a whole roster by subject: MasteryRecord.find({ studentId: { $in }, subject }).
+// Not a prefix of the index above (subject isn't skillId), so that query would
+// otherwise scan every skill record per student before filtering by subject.
+masteryRecordSchema.index({ studentId: 1, subject: 1 });
 
 export default mongoose.model('MasteryRecord', masteryRecordSchema);

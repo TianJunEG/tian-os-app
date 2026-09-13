@@ -26,7 +26,7 @@ export function buildVolumeRetentionReview({ skillId, previousQuestionFamilyIds 
   }
   const review = generateRetentionReview({ skillId, previousQuestionFamilyIds });
   const questionCount = count == null ? review.recommendedQuestionCount : count;
-  const raw = generateVolumeQuestionSet({ skillId, count: questionCount, mode: 'fluency' });
+  const raw = generateVolumeQuestionSet({ skillId, count: questionCount, mode: 'fluency', sessionSalt: Date.now().toString() });
   if (!raw.length) {
     const err = new Error(`No retention questions available for skill: ${skillId}`);
     err.status = 400;

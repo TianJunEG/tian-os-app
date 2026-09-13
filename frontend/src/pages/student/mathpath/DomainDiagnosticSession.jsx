@@ -1,9 +1,16 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { MathText } from '../../../components/ui/Fraction';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Pencil, Sparkles, Volume2, X } from 'lucide-react';
+import ScratchpadOverlay from '../../../components/learning/ScratchpadOverlay';
 import { diagnosticsAPI } from '../../../services/api';
 import { Alert, Badge, Button, Card, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
 import { MascotBubble } from '../../../components/MascotAvatar';
+import { useAuth } from '../../../context/AuthContext';
+import ManipulativeDotArray, { parseDotStem, numericLine, toSpeakable, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram } from '../../../components/learning/ManipulativeDotArray';
+import QuestionDiagram, { canRenderQuestionDiagram } from './components/QuestionDiagram';
+import { speak, setVoiceEnabled } from '../../../utils/sound';
+import { getMascotVoice } from '../../../config/mascots';
 
 // Generic adaptive diagnostic ("check-in") that serves every MathPath domain.
 // Mirrors DecimalsDiagnosticSession but reads the domain from the :domainId
@@ -32,6 +39,7 @@ const DOMAIN_CONFIG = {
   money: { domainId: 'money', label: 'Money' },
   time: { domainId: 'time', label: 'Time' },
   statistics: { domainId: 'statistics', label: 'Statistics' },
+  'early-numeracy': { domainId: 'early_numeracy', label: 'Numeracy' },
 };
 
 function resolveDomain(segment) {
@@ -41,6 +49,24 @@ function resolveDomain(segment) {
   const domainId = key.replace(/-/g, '_');
   const label = key.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
   return { segment: key, domainId, label };
+}
+
+// Question prompt + read-aloud button. Shared by every manipulative renderer
+// (count / compare / pattern) so the markup stays consistent.
+function PromptRow({ prompt, isLowerPrimary }) {
+  return (
+    <div className="flex items-center gap-2">
+      <p className={isLowerPrimary ? 'text-xl font-bold text-ink-900' : 'text-lg font-semibold text-ink-900 whitespace-pre-wrap'}><MathText text={prompt} /></p>
+      <button
+        type="button"
+        aria-label="Read question"
+        onClick={() => speak(toSpeakable(prompt), { rate: 0.8, gender: 'female' })}
+        className="rounded-full p-1 text-ink-400 hover:text-emerald active:scale-90"
+      >
+        <Volume2 className="h-5 w-5" />
+      </button>
+    </div>
+  );
 }
 
 export function summariseDiagnosticResult(result = {}) {
@@ -74,6 +100,10 @@ export default function DomainDiagnosticSession() {
   const navigate = useNavigate();
   const { domainId: domainParam } = useParams();
   const domain = resolveDomain(domainParam);
+  const { user } = useAuth();
+
+  const sl = String(user?.studentLevel || '').toLowerCase().trim();
+  const isLowerPrimary = /k2|kindy|preschool/.test(sl) || /^p[123]$|^primary [123]$/.test(sl);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -81,16 +111,34 @@ export default function DomainDiagnosticSession() {
   const [question, setQuestion] = useState(null);
   const [progress, setProgress] = useState({ answeredCount: 0, estimatedQuestionCount: 8 });
   const [draft, setDraft] = useState('');
+  // Scratchpad overlay: a transparent ink layer over the diagnostic UI so the
+  // student can write anywhere on screen while the question stays visible
+  // underneath. Per-question store keeps strokes when they close/reopen, but
+  // working is OPTIONAL and never submitted to the server — pure thinking
+  // space for multi-step problems (volume, money, …).
+  const [scratchpadOpen, setScratchpadOpen] = useState(false);
+  const [strokesByQuestion, setStrokesByQuestion] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [encouragement, setEncouragement] = useState('');
   const [result, setResult] = useState(null);
   const startedAt = useRef(Date.now());
+
+  // Read the current question aloud. Enables voice first so the Read button and
+  // auto-narration are never silent (speak() is gated by the 'pslVoice' flag),
+  // and is ungated so upper-primary students also get read-aloud support.
+  const speakQuestion = useCallback((q) => {
+    if (!q) return;
+    setVoiceEnabled(true);
+    const readable = toSpeakable(q.prompt || q.stem || '');
+    if (readable) speak(readable, getMascotVoice('kylo'));
+  }, []);
 
   useEffect(() => {
     let active = true;
     (async () => {
       try {
-        const res = await diagnosticsAPI.startDiagnostic({ subjectId: 'math', domainId: domain.domainId, mode: 'core', purpose: 'baseline' });
+        const res = await diagnosticsAPI.startDiagnostic({ subjectId: 'math', domainId: domain.domainId, mode: 'core', purpose: 'baseline', studentLevel: user?.studentLevel || '' });
         const data = res?.data || {};
         if (!data.currentQuestion) throw new Error('No diagnostic question returned.');
         if (active) {
@@ -100,28 +148,9 @@ export default function DomainDiagnosticSession() {
           startedAt.current = Date.now();
         }
       } catch (e) {
-        const code = e?.response?.data?.code;
-        const inProgressSessionId = e?.response?.data?.inProgressSessionId;
-        // Resume an in-progress session (tab closed mid-diagnostic) instead of
-        // surfacing the replay-blocked error to the student.
-        if (code === 'DIAGNOSTIC_REPLAY_BLOCKED' && inProgressSessionId && active) {
-          try {
-            const resumeRes = await diagnosticsAPI.resumeDiagnostic(inProgressSessionId);
-            const rd = resumeRes?.data || {};
-            if (rd.currentQuestion) {
-              setSessionId(rd.sessionId);
-              setQuestion(rd.currentQuestion);
-              setProgress({
-                answeredCount: rd.answeredCount || 0,
-                estimatedQuestionCount: rd.estimatedQuestionCount || 8,
-              });
-              startedAt.current = Date.now();
-              return;
-            }
-          } catch (_) {
-            // Fall through to the error state if resume also fails.
-          }
-        }
+        // Product decision: interrupted/exited check-ins RESET — they are never
+        // resumed. The backend abandons any in-progress session on start, so a
+        // fresh session is created here; we no longer resume on REPLAY_BLOCKED.
         if (active) setError(e?.response?.data?.error || e.message || 'Could not start the check-in.');
       } finally {
         if (active) setLoading(false);
@@ -131,11 +160,21 @@ export default function DomainDiagnosticSession() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [domain.domainId]);
 
-  async function submitAnswer() {
-    if (!question || submitting) return;
+  // Auto-read question aloud for lower primary students. The Read button (below)
+  // is available to every student and explicitly enables voice on tap.
+  useEffect(() => {
+    if (question && isLowerPrimary) speakQuestion(question);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [question?.questionId]);
+
+  async function submitAnswer(choiceOverride) {
+    const answer = choiceOverride ?? draft;
+    if (!question || submitting || !String(answer).trim()) return;
+    if (choiceOverride) setDraft(choiceOverride);
+    setSubmitError('');
     setSubmitting(true);
     try {
-      const body = buildAnswerBody({ question, draft, startedAtMs: startedAt.current, nowMs: Date.now() });
+      const body = buildAnswerBody({ question, draft: String(answer), startedAtMs: startedAt.current, nowMs: Date.now() });
       const res = await diagnosticsAPI.answerDiagnostic(sessionId, body);
       const data = res?.data || {};
       if (data.sessionComplete) {
@@ -145,10 +184,13 @@ export default function DomainDiagnosticSession() {
         setProgress(data.progress || progress);
         setEncouragement(data.supportiveCopy || '');
         setDraft('');
+        setScratchpadOpen(false);
         startedAt.current = Date.now();
       }
     } catch (e) {
-      setError(e?.response?.data?.error || e.message || 'Could not submit your answer.');
+      // Keep the question and all in-progress answers on screen — surface a
+      // dismissible inline error and let the Submit button serve as retry.
+      setSubmitError(e?.response?.data?.error || e.message || 'Could not submit your answer.');
     } finally {
       setSubmitting(false);
     }
@@ -157,9 +199,27 @@ export default function DomainDiagnosticSession() {
   const estimated = progress.estimatedQuestionCount || 8;
   const backToMap = () => navigate(`/student/mathpath/${domain.segment}`);
 
+  // Persistent in-page exit. Phones hide the activity-shell nav, so without this
+  // a student can be trapped mid check-in. On exit we ABANDON the session
+  // (progress is discarded), so the next entry starts a fresh session.
+  const exitCheckIn = async () => {
+    if (typeof window !== 'undefined' && !window.confirm("Exit the check-in? Your progress won't be saved.")) return;
+    if (sessionId) {
+      try {
+        await diagnosticsAPI.abandonDiagnostic(sessionId);
+      } catch (_) {
+        // Best-effort — still navigate away even if the abandon call fails.
+      }
+    }
+    navigate('/student/mathpath');
+  };
+
   if (loading) return <div className="grid place-items-center py-20"><Spinner label="Setting up your check-in…" /></div>;
 
-  if (error && !result) {
+  // Full-screen failure is reserved for the START/LOAD phase — before there is a
+  // live session/question to preserve. Mid-session submit failures are surfaced
+  // inline (see submitError below) so the question and answers stay on screen.
+  if (error && !result && (!sessionId || !question)) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-8">
         <Alert tone="error">{error}</Alert>
@@ -195,8 +255,8 @@ export default function DomainDiagnosticSession() {
             </div>
           )}
           {result.recommendedStartingSkillId && (
-            <div className="mt-5 flex items-center gap-3 rounded-xl bg-gold-50 p-3">
-              <Sparkles className="h-5 w-5 text-gold-700" />
+            <div className="mt-5 flex items-center gap-3 rounded-xl bg-gold-tint2 p-3">
+              <Sparkles className="h-5 w-5 text-gold-deep" />
               <p className="text-sm font-semibold text-ink-700">Recommended start: {result.recommendedStartingSkillName || result.recommendedStartingSkillId}</p>
             </div>
           )}
@@ -217,34 +277,215 @@ export default function DomainDiagnosticSession() {
       {progress.answeredCount === 0 && (
         <MascotBubble name="kylo" message="Just do your best — this helps me find the right starting point for you!" size="sm" className="mb-2" />
       )}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <span className="text-sm font-semibold text-ink-500">Question {Math.min(progress.answeredCount + 1, estimated)} of ~{estimated}</span>
-        <ProgressBar className="ml-4 flex-1" value={progress.answeredCount} max={estimated} />
+        <ProgressBar className="ml-2 flex-1" value={progress.answeredCount} max={estimated} />
+        <button
+          type="button"
+          aria-label="Read question aloud"
+          onClick={() => question && speakQuestion(question)}
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-sky-100 text-sky-700 transition hover:bg-sky-200 active:scale-95"
+        >
+          <Volume2 className="h-5 w-5" aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          aria-label="Exit the check-in"
+          onClick={exitCheckIn}
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-surface-raised text-ink-500 transition hover:bg-error-100 hover:text-error-700 active:scale-95"
+        >
+          <X className="h-5 w-5" aria-hidden="true" />
+        </button>
       </div>
 
       {encouragement && (
         <p className="text-sm font-medium text-emerald-deep">{encouragement}</p>
       )}
 
-      <Card className="p-6">
-        <p className="text-lg font-semibold text-ink-900">{question?.prompt}</p>
-        {question?.type === 'mcq' ? (
-          <div className="mt-5 grid gap-2">
-            {(question.choices || []).map((choice) => (
-              <button
-                key={choice}
-                type="button"
-                onClick={() => setDraft(choice)}
-                className={`rounded-xl border px-4 py-3 text-left text-base transition ${draft === choice ? 'border-navy-400 bg-emerald-tint font-semibold text-emerald-deep' : 'border-ink-200 hover:border-navy-300'}`}
-              >
-                {choice}
-              </button>
-            ))}
-          </div>
+      <Card className="p-6 space-y-4">
+        {(() => {
+          const prompt = question?.prompt || '';
+          const dotData = parseDotStem(prompt);
+          const moneyData = domain.segment === 'money' ? parseMoneyPrompt(prompt) : null;
+          // Prefer the GENERATED coin/note diagram over fragile prompt parsing.
+          const coinTokens = domain.segment === 'money' ? parseCoinsDiagram(question) : null;
+          // Early-numeracy "Count them. How many?" emits diagram:{kind:'count',
+          // emoji, count}. The diagnostic had no renderer for it, so the
+          // student saw the question with nothing to count. Render the emoji
+          // N times in a friendly grid.
+          const countDiagram = question?.diagram?.kind === 'count' ? question.diagram : null;
+          if (countDiagram) {
+            const items = Array.from({ length: Number(countDiagram.count) || 0 });
+            return (
+              <>
+                <div className="mb-4 flex flex-wrap justify-center gap-3 rounded-2xl bg-emerald-tint/40 p-5" aria-label={`${items.length} ${countDiagram.emoji || 'objects'} to count`}>
+                  {items.map((_, i) => (
+                    <span key={i} className="text-5xl leading-none" role="img" aria-hidden="true">{countDiagram.emoji || '⬤'}</span>
+                  ))}
+                </div>
+                <PromptRow prompt={prompt} isLowerPrimary={isLowerPrimary} />
+              </>
+            );
+          }
+          // Early-numeracy "More, fewer or the same?" emits diagram:{kind:'compare',
+          // left:{emoji,count}, right:{emoji,count}} — two groups to compare.
+          const compareDiagram = question?.diagram?.kind === 'compare' ? question.diagram : null;
+          if (compareDiagram) {
+            const group = (g, label) => (
+              <div className="flex flex-col items-center gap-2 rounded-2xl bg-white/70 p-4">
+                <div className="flex flex-wrap justify-center gap-2" aria-label={`${g?.count || 0} ${g?.emoji || 'objects'}`}>
+                  {Array.from({ length: Number(g?.count) || 0 }).map((_, i) => (
+                    <span key={i} className="text-4xl leading-none" role="img" aria-hidden="true">{g?.emoji || '⬤'}</span>
+                  ))}
+                </div>
+                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-400">{label}</span>
+              </div>
+            );
+            return (
+              <>
+                <div className="mb-4 grid grid-cols-2 items-center gap-4 rounded-2xl bg-emerald-tint/40 p-5">
+                  {group(compareDiagram.left, 'Group A')}
+                  {group(compareDiagram.right, 'Group B')}
+                </div>
+                <PromptRow prompt={prompt} isLowerPrimary={isLowerPrimary} />
+              </>
+            );
+          }
+          // Early-numeracy "What comes next? / What's missing?" emits
+          // diagram:{kind:'pattern', items:[...], missingIndex}. Render the
+          // sequence with a highlighted "?" box at the missing position.
+          const patternDiagram = question?.diagram?.kind === 'pattern' ? question.diagram : null;
+          if (patternDiagram) {
+            const items = Array.isArray(patternDiagram.items) ? patternDiagram.items : [];
+            return (
+              <>
+                <div className="mb-4 flex flex-wrap items-center justify-center gap-3 rounded-2xl bg-emerald-tint/40 p-5" aria-label="Pattern sequence">
+                  {items.map((item, i) => (
+                    item == null || i === patternDiagram.missingIndex ? (
+                      <span key={i} className="grid h-14 w-14 place-items-center rounded-xl border-2 border-dashed border-emerald text-3xl font-bold text-emerald-deep">?</span>
+                    ) : (
+                      <span key={i} className="text-4xl leading-none" role="img" aria-hidden="true">{item}</span>
+                    )
+                  ))}
+                </div>
+                <PromptRow prompt={prompt} isLowerPrimary={isLowerPrimary} />
+              </>
+            );
+          }
+          if (coinTokens) {
+            return (
+              <>
+                <ManipulativeMoneyDiagram key={question?.questionId} tokens={coinTokens} />
+                <div className="flex items-center gap-2">
+                  <p className={isLowerPrimary ? 'text-xl font-bold text-ink-900' : 'text-lg font-semibold text-ink-900 whitespace-pre-wrap'}><MathText text={prompt} /></p>
+                  <button
+                    type="button"
+                    aria-label="Read question"
+                    onClick={() => speak(toSpeakable(prompt), { rate: 0.8, gender: 'female' })}
+                    className="rounded-full p-1 text-ink-400 hover:text-emerald active:scale-90"
+                  >
+                    <Volume2 className="h-5 w-5" />
+                  </button>
+                </div>
+              </>
+            );
+          }
+          if (isLowerPrimary && moneyData && moneyData.a <= 20 && moneyData.b <= 20) {
+            return (
+              <>
+                <ManipulativeCoinArray
+                  key={question?.questionId}
+                  a={moneyData.a}
+                  b={moneyData.b}
+                  operator={moneyData.operator}
+                />
+                <div className="flex items-center gap-2">
+                  <p className="text-xl font-bold text-ink-900"><MathText text={prompt} /></p>
+                  <button
+                    type="button"
+                    aria-label="Read question"
+                    onClick={() => speak(toSpeakable(prompt), { rate: 0.8, gender: 'female' })}
+                    className="rounded-full p-1 text-ink-400 hover:text-emerald active:scale-90"
+                  >
+                    <Volume2 className="h-5 w-5" />
+                  </button>
+                </div>
+              </>
+            );
+          }
+          if (isLowerPrimary && dotData) {
+            return (
+              <>
+                <ManipulativeDotArray
+                  key={question?.questionId}
+                  a={dotData.a}
+                  b={dotData.b}
+                  operator={dotData.operator}
+                />
+                <div className="flex items-center gap-2">
+                  <p className="text-xl font-bold text-ink-900">{numericLine(prompt)}</p>
+                  <button
+                    type="button"
+                    aria-label="Read question aloud"
+                    onClick={() => question && speakQuestion(question)}
+                    className="rounded-full p-1 text-ink-400 hover:text-emerald active:scale-90"
+                  >
+                    <Volume2 className="h-5 w-5" aria-hidden="true" />
+                  </button>
+                </div>
+              </>
+            );
+          }
+          // Default: render the question's diagram (geometry, area, circle,
+          // bar/line graph, table…) when one can actually be drawn — for
+          // custom adapters that route through diagram-producing generators —
+          // then the prompt. Generic text-only diagnostics simply render the
+          // prompt (no diagram to draw).
+          return (
+            <>
+              {canRenderQuestionDiagram(question) && <QuestionDiagram question={question} />}
+              <PromptRow prompt={prompt} isLowerPrimary={isLowerPrimary} />
+            </>
+          );
+        })()}
+
+        {question?.type === 'mcq' && (question.choices || []).length > 0 ? (
+          isLowerPrimary ? (
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              {(question.choices || []).map((choice) => (
+                <button
+                  key={choice}
+                  type="button"
+                  disabled={submitting}
+                  onClick={() => {
+                    speak(choice, { rate: 0.85, gender: 'female' });
+                    submitAnswer(choice);
+                  }}
+                  className="rounded-2xl border-2 border-line-soft bg-white py-5 text-center text-3xl font-bold text-ink-900 shadow-sm transition hover:border-emerald hover:bg-emerald-tint active:scale-95"
+                >
+                  {choice}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-5 grid gap-2">
+              {(question.choices || []).map((choice) => (
+                <button
+                  key={choice}
+                  type="button"
+                  onClick={() => setDraft(choice)}
+                  className={`rounded-xl border px-4 py-3 text-left text-base transition ${draft === choice ? 'border-navy-400 bg-emerald-tint font-semibold text-emerald-deep' : 'border-ink-200 hover:border-navy-300'}`}
+                >
+                  {choice}
+                </button>
+              ))}
+            </div>
+          )
         ) : (
           <input
             type="text"
             inputMode="text"
+            aria-label="Your answer"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter' && draft.trim()) submitAnswer(); }}
@@ -255,11 +496,57 @@ export default function DomainDiagnosticSession() {
         )}
       </Card>
 
-      <div className="flex justify-end">
-        <Button icon={CheckCircle2} disabled={!draft.trim() || submitting} onClick={submitAnswer}>
-          {submitting ? 'Checking…' : 'Submit'}
-        </Button>
-      </div>
+      {/* Optional scratchpad — a transparent ink layer over the page so the
+          student can write anywhere on screen while the question stays
+          visible underneath. */}
+      <button
+        type="button"
+        onClick={() => setScratchpadOpen(true)}
+        className="mt-3 flex w-full items-center gap-2 rounded-lg border border-dashed border-ink-200 px-3 py-2 text-xs font-medium text-ink-500 transition-colors hover:border-ink-300 hover:bg-ink-50 hover:text-ink-600"
+      >
+        <Pencil className="h-3.5 w-3.5" />
+        <span className="flex-1 text-left">Open scratchpad</span>
+        <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-ink-400">Optional</span>
+      </button>
+      <ScratchpadOverlay
+        open={scratchpadOpen}
+        initialStrokes={strokesByQuestion[question?.questionId] || []}
+        onChange={(next) => {
+          const qid = question?.questionId;
+          if (qid) setStrokesByQuestion((prev) => ({ ...prev, [qid]: next }));
+        }}
+        onClose={() => setScratchpadOpen(false)}
+        // Answer capture: type the answer right where you did the working.
+        // Two-way bound to the page's main draft state so closing the overlay
+        // leaves the typed value in the underlying "Type your answer" input.
+        answerValue={draft}
+        onAnswerChange={setDraft}
+        onSubmitAnswer={() => { setScratchpadOpen(false); submitAnswer(); }}
+      />
+
+      {submitError && (
+        <div className="flex items-start gap-2">
+          <div className="flex-1">
+            <Alert tone="error">{submitError} Your answer is still here — tap Submit to try again.</Alert>
+          </div>
+          <button
+            type="button"
+            aria-label="Dismiss error"
+            onClick={() => setSubmitError('')}
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-500 transition hover:bg-error-100 hover:text-error-700 active:scale-95"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
+      )}
+
+      {(!isLowerPrimary || question?.type !== 'mcq' || (question.choices || []).length === 0) && (
+        <div className="flex justify-end">
+          <Button icon={CheckCircle2} disabled={!draft.trim() || submitting} onClick={() => submitAnswer()}>
+            {submitting ? 'Checking…' : 'Submit'}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

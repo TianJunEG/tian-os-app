@@ -12,10 +12,12 @@ const DiagramDemo = lazy(() => import('./pages/DiagramDemo'));
 const OurStoryPage = lazy(() => import('./pages/OurStoryPage'));
 const FounderStoryPage = lazy(() => import('./pages/FounderStoryPage'));
 const MethodologyPage = lazy(() => import('./pages/MethodologyPage'));
-const TutoringLandingPage = lazy(() => import('./pages/TutoringLandingPage'));
-const EduAppsLandingPage = lazy(() => import('./pages/EduAppsLandingPage'));
+// Tutoring + Edu Apps landing pages are consolidated into the single canonical
+// "/" landing; their routes redirect there (page sources kept for content reuse).
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
 const StudentDashboardPage = lazy(() => import('./pages/StudentDashboardPage'));
 const ParentDashboardPage = lazy(() => import('./pages/ParentDashboardPage'));
 const ChildProfilePage = lazy(() => import('./pages/ChildProfilePage'));
@@ -46,6 +48,7 @@ import { ROLE_HOME } from './config/nav';
 import FeatureGuard from './components/FeatureGuard';
 const StudentDashboard = lazy(() => import('./pages/student/StudentDashboard'));
 const StudentProfile = lazy(() => import('./pages/student/StudentProfile'));
+const RewardChart = lazy(() => import('./pages/student/RewardChart'));
 const MorePage = lazy(() => import('./pages/MorePage'));
 // MathPath (Phase 2)
 const MathPathHome = lazy(() => import('./pages/student/mathpath/MathPathHome'));
@@ -75,6 +78,8 @@ const MeasurementLearningPathPage = lazy(() => import('./pages/student/mathpath/
 const MeasurementPracticeSession = lazy(() => import('./pages/student/mathpath/MeasurementPracticeSession'));
 const MoneyLearningPathPage = lazy(() => import('./pages/student/mathpath/MoneyLearningPathPage'));
 const MoneyPracticeSession = lazy(() => import('./pages/student/mathpath/MoneyPracticeSession'));
+const EarlyNumeracyLearningPathPage = lazy(() => import('./pages/student/mathpath/EarlyNumeracyLearningPathPage'));
+const EarlyNumeracyPracticeSession = lazy(() => import('./pages/student/mathpath/EarlyNumeracyPracticeSession'));
 const NumberSenseLearningPathPage = lazy(() => import('./pages/student/mathpath/NumberSenseLearningPathPage'));
 const NumberSensePracticeSession = lazy(() => import('./pages/student/mathpath/NumberSensePracticeSession'));
 const OperationsLearningPathPage = lazy(() => import('./pages/student/mathpath/OperationsLearningPathPage'));
@@ -88,6 +93,8 @@ const VolumePracticeSession = lazy(() => import('./pages/student/mathpath/Volume
 const DomainDiagnosticSession = lazy(() => import('./pages/student/mathpath/DomainDiagnosticSession'));
 const DecimalsDiagnosticSession = lazy(() => import('./pages/student/mathpath/DecimalsDiagnosticSession'));
 const DecimalsFluencySession = lazy(() => import('./pages/student/mathpath/DecimalsFluencySession'));
+const DomainFluencySession = lazy(() => import('./pages/student/mathpath/domainPractice/DomainFluencySession'));
+const DomainRetentionSession = lazy(() => import('./pages/student/mathpath/domainPractice/DomainRetentionSession'));
 const DecimalsAssessmentSession = lazy(() => import('./pages/student/mathpath/DecimalsAssessmentSession'));
 const P1LearningPathPage = lazy(() => import('./pages/student/mathpath/P1LearningPathPage'));
 const P2LearningPathPage = lazy(() => import('./pages/student/mathpath/P2LearningPathPage'));
@@ -110,6 +117,14 @@ const SpellingLearn = lazy(() => import('./pages/student/spelling/LearnMode'));
 const SpellingSelfTest = lazy(() => import('./pages/student/spelling/SelfTest'));
 const SpellingPracticeResults = lazy(() => import('./pages/student/spelling/SpellingResults'));
 const SpellingPracticeMistakes = lazy(() => import('./pages/student/spelling/SpellingMistakes'));
+// EnglishPath · Vocabulary Builder (secondary module, English · Vocabulary) — client engine
+const VocabHome = lazy(() => import('./pages/student/englishpath/VocabHome'));
+const VocabSession = lazy(() => import('./pages/student/englishpath/VocabSession'));
+const VocabResults = lazy(() => import('./pages/student/englishpath/VocabResults'));
+const ClozeHome = lazy(() => import('./pages/student/englishpath/ClozeHome'));
+const ClozeSession = lazy(() => import('./pages/student/englishpath/ClozeSession'));
+const ClozeResults = lazy(() => import('./pages/student/englishpath/ClozeResults'));
+const ClozeFocusSession = lazy(() => import('./pages/student/englishpath/ClozeFocusSession'));
 const StudentLifeLab = lazy(() => import('./pages/student/StudentLifeLab'));
 const SkillGraph = lazy(() => import('./pages/student/SkillGraph'));
 const StudentWorksheets = lazy(() => import('./pages/student/StudentWorksheets'));
@@ -159,6 +174,9 @@ const PSLSession = lazy(() => import('./pages/student/psl/PSLSession'));
 const PSLResults = lazy(() => import('./pages/student/psl/PSLResults'));
 const PSLMistakeReview = lazy(() => import('./pages/student/psl/PSLMistakeReview'));
 const PSLDecisionGuide = lazy(() => import('./pages/student/psl/DecisionGuide'));
+const TestPapersHome = lazy(() => import('./pages/student/testpapers/TestPapersHome'));
+const TestPaperSession = lazy(() => import('./pages/student/testpapers/TestPaperSession'));
+const TestPaperResults = lazy(() => import('./pages/student/testpapers/TestPaperResults'));
 // Science Adaptive Revision (secondary module) — reuses shared practice/result screens
 const ScienceHome = lazy(() => import('./pages/student/science/ScienceHome'));
 const ScienceTopics = lazy(() => import('./pages/student/science/ScienceTopics'));
@@ -187,6 +205,7 @@ const RecommendedActions = lazy(() => import('./pages/parent/RecommendedActions'
 const AssignPractice = lazy(() => import('./pages/parent/AssignPractice'));
 const MistakeHistory = lazy(() => import('./pages/parent/MistakeHistory'));
 const ChildAssignments = lazy(() => import('./pages/parent/ChildAssignments'));
+const ChildTestPapers = lazy(() => import('./pages/parent/ChildTestPapers'));
 const StudentCareDashboard = lazy(() => import('./pages/studentCare/StudentCareDashboard'));
 const StudentCareHomework = lazy(() => import('./pages/studentCare/StudentCareHomework'));
 const StudentCareRecoveryPacks = lazy(() => import('./pages/studentCare/StudentCareRecoveryPacks'));
@@ -222,8 +241,21 @@ const PremiumHomeUpgradePage = lazy(() => import('./pages/parent/PremiumHomeUpgr
 const PendingUpgradesPage = lazy(() => import('./pages/admin/PendingUpgradesPage'));
 const ClassMasteryMap = lazy(() => import('./pages/teacher/ClassMasteryMap'));
 const ClassStudents = lazy(() => import('./pages/teacher/ClassStudents'));
+const ClassCorrections = lazy(() => import('./pages/teacher/ClassCorrections'));
+const ClassTestPapers = lazy(() => import('./pages/teacher/ClassTestPapers'));
+const ClassTestPaperStudent = lazy(() => import('./pages/teacher/ClassTestPaperStudent'));
 const Grouping = lazy(() => import('./pages/teacher/Grouping'));
 const WeakGroups = lazy(() => import('./pages/teacher/WeakGroups'));
+const ClassDiagnosticKiosk = lazy(() => import('./pages/teacher/ClassDiagnosticKiosk'));
+const ClassQuickMark = lazy(() => import('./pages/teacher/ClassQuickMark'));
+const ClassAnnouncements = lazy(() => import('./pages/teacher/ClassAnnouncements'));
+const ParentAnnouncements = lazy(() => import('./pages/parent/ParentAnnouncements'));
+const ParentAnnouncementDetail = lazy(() => import('./pages/parent/ParentAnnouncementDetail'));
+const TutorAnnouncements = lazy(() => import('./pages/tutor/TutorAnnouncements'));
+const KioskLandingPage = lazy(() => import('./pages/kiosk/KioskLandingPage'));
+const KioskQuestionScreen = lazy(() => import('./pages/kiosk/KioskQuestionScreen'));
+const KioskPracticeScreen = lazy(() => import('./pages/kiosk/KioskPracticeScreen'));
+const KioskResultPage = lazy(() => import('./pages/kiosk/KioskResultPage'));
 const TeacherAssignPractice = lazy(() => import('./pages/teacher/AssignPractice'));
 const TeacherAssessments = lazy(() => import('./pages/teacher/Assessments'));
 const TeacherCreateAssessment = lazy(() => import('./pages/teacher/CreateAssessment'));
@@ -340,7 +372,7 @@ const LandingPage = () => (
           <Link to="/founder" style={navLink} className="hidden sm:inline">Our story</Link>
           <Link to="/methodology" style={navLink} className="hidden sm:inline">Our Methodology</Link>
           <Link to="/login" style={navLink}>Login</Link>
-          <Link to="/register" style={{ padding: '10px 20px', borderRadius: 999, background: '#065F46', color: '#fff', fontFamily: SANS, fontWeight: 700, fontSize: 14, textDecoration: 'none', boxShadow: '0 10px 24px -8px rgba(6,95,70,0.35)' }}>Request Demo</Link>
+          <Link to="/register" style={{ padding: '10px 20px', borderRadius: 999, background: '#065F46', color: '#fff', fontFamily: SANS, fontWeight: 700, fontSize: 14, textDecoration: 'none', boxShadow: '0 10px 24px -8px rgba(6,95,70,0.35)' }}>Request access</Link>
         </nav>
       </div>
     </header>
@@ -362,7 +394,7 @@ const LandingPage = () => (
             </p>
           </Reveal>
           <Reveal delay={0.3} style={{ marginTop: 40, display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
-            <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '15px 30px', borderRadius: 999, background: CORAL, color: '#fff', fontWeight: 700, fontSize: 16, textDecoration: 'none', boxShadow: `0 20px 40px -12px ${CORAL_GLOW}` }}>Request a Demo <ArrowRight size={18} /></Link>
+            <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '15px 30px', borderRadius: 999, background: CORAL, color: '#fff', fontWeight: 700, fontSize: 16, textDecoration: 'none', boxShadow: `0 20px 40px -12px ${CORAL_GLOW}` }}>Join the waitlist <ArrowRight size={18} /></Link>
             <Link to="/methodology" style={{ padding: '15px 30px', borderRadius: 999, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,248,234,0.3)', color: IVORY, fontWeight: 600, fontSize: 16, textDecoration: 'none' }}>See the Platform</Link>
           </Reveal>
           <Reveal delay={0.4}>
@@ -461,12 +493,18 @@ function App() {
           <Route path="/founder" element={<FounderStoryPage />} />
           <Route path="/methodology" element={<MethodologyPage />} />
           <Route path="/our-story" element={<OurStoryPage />} />
-          <Route path="/tutoring" element={<TutoringLandingPage />} />
-          <Route path="/edu-apps" element={<EduAppsLandingPage />} />
+          <Route path="/tutoring" element={<Navigate to="/" replace />} />
+          <Route path="/edu-apps" element={<Navigate to="/" replace />} />
           <Route path="/resources" element={<ResourcesHubPage />} />
           <Route path="/resources/:slug" element={<ResourceDetailPage />} />
           <Route path="/student/mathpath/cheatsheet/:sheetId" element={<CheatSheet />} />
           <Route path="/science" element={<ProtectedRoute><SciencePracticePage /></ProtectedRoute>} />
+
+          {/* In-class diagnostic kiosk — PUBLIC (teacher-supervised iPads, no login) */}
+          <Route path="/kiosk/:code" element={<KioskLandingPage />} />
+          <Route path="/kiosk/:code/q/:sessionId" element={<KioskQuestionScreen />} />
+          <Route path="/kiosk/:code/practice/:sessionId" element={<KioskPracticeScreen />} />
+          <Route path="/kiosk/:code/result/:sessionId" element={<KioskResultPage />} />
 
           {/* Auth Routes */}
           <Route
@@ -485,6 +523,8 @@ function App() {
               </PublicRoute>
             }
           />
+          <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
+          <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
           <Route path="/connect/tutor/:token" element={<TutorInviteConnectPage />} />
           <Route path="/connect/parent/:token" element={<ParentInviteConnectPage />} />
           <Route path="/join" element={<ProtectedRoute><JoinClassPage /></ProtectedRoute>} />
@@ -605,6 +645,7 @@ function App() {
             {/* Student — dashboard shell is live */}
             <Route path="/student" element={<StudentDashboard />} />
             <Route path="/student/profile" element={<StudentProfile />} />
+            <Route path="/student/rewards" element={<RewardChart />} />
             <Route path="/student/mathpath" element={<MathPathHome />} />
             <Route path="/student/mathpath/topics/:topicId" element={<TopicDetail />} />
             <Route path="/student/mathpath/practice/:sessionId" element={<PracticeSession />} />
@@ -619,24 +660,34 @@ function App() {
             <Route path="/student/mathpath/decimals" element={<DecimalsLearningPathPage />} />
             <Route path="/student/mathpath/decimals/practice" element={<DecimalsPracticeSession />} />
             <Route path="/student/mathpath/decimals/diagnostic" element={<DecimalsDiagnosticSession />} />
-            <Route path="/student/mathpath/decimals/fluency" element={<DecimalsFluencySession />} />
+            <Route path="/student/mathpath/decimals/fluency" element={<FeatureGuard feature="fluency"><DecimalsFluencySession /></FeatureGuard>} />
             <Route path="/student/mathpath/decimals/assessment" element={<DecimalsAssessmentSession />} />
             <Route path="/student/mathpath/percentages" element={<PercentagesLearningPathPage />} />
             <Route path="/student/mathpath/percentages/practice" element={<PercentagesPracticeSession />} />
+            <Route path="/student/mathpath/percentages/fluency" element={<FeatureGuard feature="fluency"><DomainFluencySession domain="percentages" /></FeatureGuard>} />
+            <Route path="/student/mathpath/percentages/retention" element={<FeatureGuard feature="fluency"><DomainRetentionSession domain="percentages" /></FeatureGuard>} />
             <Route path="/student/mathpath/ratio-rate" element={<RatioRateLearningPathPage />} />
             <Route path="/student/mathpath/ratio-rate/practice" element={<RatioRatePracticeSession />} />
+            <Route path="/student/mathpath/ratio-rate/fluency" element={<FeatureGuard feature="fluency"><DomainFluencySession domain="ratio-rate" /></FeatureGuard>} />
+            <Route path="/student/mathpath/ratio-rate/retention" element={<FeatureGuard feature="fluency"><DomainRetentionSession domain="ratio-rate" /></FeatureGuard>} />
             <Route path="/student/mathpath/algebra" element={<AlgebraLearningPathPage />} />
             <Route path="/student/mathpath/algebra/practice" element={<AlgebraPracticeSession />} />
+            <Route path="/student/mathpath/algebra/fluency" element={<FeatureGuard feature="fluency"><DomainFluencySession domain="algebra" /></FeatureGuard>} />
+            <Route path="/student/mathpath/algebra/retention" element={<FeatureGuard feature="fluency"><DomainRetentionSession domain="algebra" /></FeatureGuard>} />
             <Route path="/student/mathpath/area-perimeter" element={<AreaPerimeterLearningPathPage />} />
             <Route path="/student/mathpath/area-perimeter/practice" element={<AreaPerimeterPracticeSession />} />
             <Route path="/student/mathpath/circles" element={<CirclesLearningPathPage />} />
             <Route path="/student/mathpath/circles/practice" element={<CirclesPracticeSession />} />
             <Route path="/student/mathpath/geometry" element={<GeometryLearningPathPage />} />
             <Route path="/student/mathpath/geometry/practice" element={<GeometryPracticeSession />} />
+            <Route path="/student/mathpath/geometry/fluency" element={<FeatureGuard feature="fluency"><DomainFluencySession domain="geometry" /></FeatureGuard>} />
+            <Route path="/student/mathpath/geometry/retention" element={<FeatureGuard feature="fluency"><DomainRetentionSession domain="geometry" /></FeatureGuard>} />
             <Route path="/student/mathpath/measurement" element={<MeasurementLearningPathPage />} />
             <Route path="/student/mathpath/measurement/practice" element={<MeasurementPracticeSession />} />
             <Route path="/student/mathpath/money" element={<MoneyLearningPathPage />} />
             <Route path="/student/mathpath/money/practice" element={<MoneyPracticeSession />} />
+            <Route path="/student/mathpath/early-numeracy" element={<EarlyNumeracyLearningPathPage />} />
+            <Route path="/student/mathpath/early-numeracy/practice" element={<EarlyNumeracyPracticeSession />} />
             <Route path="/student/mathpath/number-sense" element={<NumberSenseLearningPathPage />} />
             <Route path="/student/mathpath/number-sense/practice" element={<NumberSensePracticeSession />} />
             <Route path="/student/mathpath/operations" element={<OperationsLearningPathPage />} />
@@ -647,6 +698,8 @@ function App() {
             <Route path="/student/mathpath/time/practice" element={<TimePracticeSession />} />
             <Route path="/student/mathpath/volume" element={<VolumeLearningPathPage />} />
             <Route path="/student/mathpath/volume/practice" element={<VolumePracticeSession />} />
+            <Route path="/student/mathpath/volume/fluency" element={<FeatureGuard feature="fluency"><DomainFluencySession domain="volume" /></FeatureGuard>} />
+            <Route path="/student/mathpath/volume/retention" element={<FeatureGuard feature="fluency"><DomainRetentionSession domain="volume" /></FeatureGuard>} />
             <Route path="/student/mathpath/:domainId/diagnostic" element={<DomainDiagnosticSession />} />
             <Route path="/student/mathpath/p1" element={<P1LearningPathPage />} />
             <Route path="/student/mathpath/p2" element={<P2LearningPathPage />} />
@@ -705,6 +758,16 @@ function App() {
             <Route path="/student/spelling/results/:sessionId" element={<FeatureGuard feature="spelling"><SpellingPracticeResults /></FeatureGuard>} />
             <Route path="/student/spelling/mistakes" element={<FeatureGuard feature="spelling"><SpellingPracticeMistakes /></FeatureGuard>} />
 
+            {/* EnglishPath · Vocabulary Builder (English · Vocabulary) — client-side adaptive engine */}
+            <Route path="/student/english/vocab" element={<FeatureGuard feature="englishpath"><VocabHome /></FeatureGuard>} />
+            <Route path="/student/english/vocab/practice" element={<FeatureGuard feature="englishpath"><VocabSession /></FeatureGuard>} />
+            <Route path="/student/english/vocab/results" element={<FeatureGuard feature="englishpath"><VocabResults /></FeatureGuard>} />
+            {/* EnglishPath · Comprehension Cloze (English · Comprehension) — client-side adaptive engine */}
+            <Route path="/student/english/cloze" element={<FeatureGuard feature="englishpath"><ClozeHome /></FeatureGuard>} />
+            <Route path="/student/english/cloze/practice" element={<FeatureGuard feature="englishpath"><ClozeSession /></FeatureGuard>} />
+            <Route path="/student/english/cloze/results" element={<FeatureGuard feature="englishpath"><ClozeResults /></FeatureGuard>} />
+            <Route path="/student/english/cloze/focus" element={<FeatureGuard feature="englishpath"><ClozeFocusSession /></FeatureGuard>} />
+
             {/* Tian 7 Chronicles — comic word problems */}
             <Route path="/student/comics" element={<FeatureGuard feature="comics"><ComicsHome /></FeatureGuard>} />
             <Route path="/student/comics/:slug" element={<FeatureGuard feature="comics"><ComicReader /></FeatureGuard>} />
@@ -715,6 +778,9 @@ function App() {
             <Route path="/student/psl/results/:sessionId" element={<FeatureGuard feature="psl"><PSLResults /></FeatureGuard>} />
             <Route path="/student/psl/mistakes" element={<FeatureGuard feature="psl"><PSLMistakeReview /></FeatureGuard>} />
             <Route path="/student/psl/decision-guide" element={<FeatureGuard feature="psl"><PSLDecisionGuide /></FeatureGuard>} />
+            <Route path="/student/test-papers" element={<FeatureGuard feature="testPapers"><TestPapersHome /></FeatureGuard>} />
+            <Route path="/student/test-papers/:sessionId/run" element={<FeatureGuard feature="testPapers"><TestPaperSession /></FeatureGuard>} />
+            <Route path="/student/test-papers/:sessionId/results" element={<FeatureGuard feature="testPapers"><TestPaperResults /></FeatureGuard>} />
             <Route path="/student/assignments" element={<StudentAssignments />} />
             <Route path="/student/assessment/:sessionId" element={<InformalAssessment />} />
             <Route path="/student/progress" element={<SkillGraph />} />
@@ -722,6 +788,8 @@ function App() {
             {/* Parent (Phase 3) */}
             <Route path="/parent" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentHome /></FeatureGuard>} />
             <Route path="/parent/notifications" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentNotifications /></FeatureGuard>} />
+            <Route path="/parent/announcements" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentAnnouncements /></FeatureGuard>} />
+            <Route path="/parent/announcements/:id" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentAnnouncementDetail /></FeatureGuard>} />
             <Route path="/parent/link-requests" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentLinkRequests /></FeatureGuard>} />
             <Route path="/parent/recordings/:rid" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentLessonReplay /></FeatureGuard>} />
             <Route path="/parent/success-centre" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentSuccessCentre /></FeatureGuard>} />
@@ -735,8 +803,6 @@ function App() {
             <Route path="/parent/children/:studentId/mathpath/analyse-paper" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><PaperAnalysisPage /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/mathpath/test-spec" element={<FeatureGuard feature="parent"><TestSpecificationPage /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/mathpath/assessment-upload" element={<FeatureGuard feature="parent"><AssessmentUploadPage /></FeatureGuard>} />
-            {/* Domain-scoped parent MathPath view; static sub-routes above outrank this dynamic segment in React Router. */}
-            <Route path="/parent/children/:studentId/mathpath/:domainId" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentMathPathDashboardPage /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/psl" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildPSLDashboard /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/science" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildScience /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/lifelab" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildLifeLab /></FeatureGuard>} />
@@ -745,10 +811,11 @@ function App() {
             <Route path="/parent/children/:studentId/assign-practice" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><AssignPractice /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/mistakes" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><MistakeHistory /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/assignments" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildAssignments /></FeatureGuard>} />
+            <Route path="/parent/children/:studentId/test-papers" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildTestPapers /></FeatureGuard>} />
             {/* Mastery Worksheet Generator (Phase 4) */}
-            <Route path="/parent/children/:studentId/worksheets" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><WorksheetHome /></FeatureGuard>} />
-            <Route path="/parent/children/:studentId/worksheets/new" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><WorksheetSetup /></FeatureGuard>} />
-            <Route path="/parent/children/:studentId/worksheets/:worksheetId" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><WorksheetPreview /></FeatureGuard>} />
+            <Route path="/parent/children/:studentId/worksheets" element={<FeatureGuard feature="parent"><WorksheetHome /></FeatureGuard>} />
+            <Route path="/parent/children/:studentId/worksheets/new" element={<FeatureGuard feature="parent"><WorksheetSetup /></FeatureGuard>} />
+            <Route path="/parent/children/:studentId/worksheets/:worksheetId" element={<FeatureGuard feature="parent"><WorksheetPreview /></FeatureGuard>} />
 
             {/* Student Care MVP */}
             <Route path="/student-care/dashboard" element={<RoleGuard role="student_care"><StudentCareDashboard /></RoleGuard>} />
@@ -762,6 +829,7 @@ function App() {
             {/* Tutor (Phase 4) */}
             <Route path="/tutor" element={<FeatureGuard feature="tutor"><TutorHome /></FeatureGuard>} />
             <Route path="/tutor/students" element={<FeatureGuard feature="tutor"><AssignedStudents /></FeatureGuard>} />
+            <Route path="/tutor/announcements" element={<FeatureGuard feature="tutor"><TutorAnnouncements /></FeatureGuard>} />
             <Route path="/tutor/students/:id" element={<FeatureGuard feature="tutor"><TutorStudentProfile /></FeatureGuard>} />
             <Route path="/tutor/students/:id/mathpath" element={<FeatureGuard feature="tutor"><TutorMathPathDashboardPage /></FeatureGuard>} />
             <Route path="/tutor/students/:id/psl" element={<FeatureGuard feature="tutor"><TutorPSLDashboardPage /></FeatureGuard>} />
@@ -776,6 +844,7 @@ function App() {
             <Route path="/agency" element={<AgencyDashboard />} />
             <Route path="/admin/partners/:pid/licence" element={<PartnerLicencePage />} />
             <Route path="/tutor/students/:id/mistakes" element={<FeatureGuard feature="tutor"><TutorMistakesPage /></FeatureGuard>} />
+            <Route path="/tutor/students/:id/rewards" element={<FeatureGuard feature="tutor"><RewardChart /></FeatureGuard>} />
             <Route path="/tutor/students/:id/assign-homework" element={<FeatureGuard feature="tutor"><AssignHomework /></FeatureGuard>} />
             <Route path="/tutor/homework" element={<FeatureGuard feature="tutor"><TutorHomework /></FeatureGuard>} />
             <Route path="/tutor/students/:id/mistakes/:mistakeId/explain" element={<FeatureGuard feature="tutor"><TutorExplanationRecorder /></FeatureGuard>} />
@@ -794,7 +863,13 @@ function App() {
             <Route path="/teacher/classes/:id/mathpath/test-spec" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TestSpecificationPage /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/mathpath/assessment-upload" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><AssessmentUploadPage /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/mastery" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassMasteryMap /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/kiosk" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassDiagnosticKiosk /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/quickmark" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassQuickMark /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/announcements" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassAnnouncements /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/students" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassStudents /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/corrections" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassCorrections /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/test-papers" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassTestPapers /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/test-papers/:studentId" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassTestPaperStudent /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/groups" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><Grouping /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/weak-groups" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><WeakGroups /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/assign" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherAssignPractice /></FeatureGuard></RoleGuard>} />

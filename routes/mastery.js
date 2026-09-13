@@ -53,6 +53,20 @@ import {
   submitFractionPracticeAttempt,
 } from '../shared/mathpath/fractions/fractionPracticeFlow.js';
 import { fractionSkillGraph } from '../shared/mathpath/fractions/fractionSkillGraph.js';
+import decimalsSkillGraph from '../shared/mathpath/decimals/decimalsSkillGraph.js';
+import percentageSkillGraph from '../shared/mathpath/percentages/percentageSkillGraph.js';
+import ratioRateSkillGraph from '../shared/mathpath/ratioRate/ratioRateSkillGraph.js';
+import algebraSkillGraph from '../shared/mathpath/algebra/AlgebraSkillGraph.js';
+import numberSenseSkillGraph from '../shared/mathpath/numberSense/NumberSenseSkillGraph.js';
+import operationsSkillGraph from '../shared/mathpath/operations/OperationsSkillGraph.js';
+import geometrySkillGraph from '../shared/mathpath/geometry/GeometrySkillGraph.js';
+import measurementSkillGraph from '../shared/mathpath/measurement/MeasurementSkillGraph.js';
+import areaPerimeterSkillGraph from '../shared/mathpath/areaPerimeter/AreaPerimeterSkillGraph.js';
+import volumeSkillGraph from '../shared/mathpath/volume/VolumeSkillGraph.js';
+import circlesSkillGraph from '../shared/mathpath/circles/CirclesSkillGraph.js';
+import statisticsSkillGraph from '../shared/mathpath/statistics/StatisticsSkillGraph.js';
+import timeSkillGraph from '../shared/mathpath/time/TimeSkillGraph.js';
+import moneySkillGraph from '../shared/mathpath/money/MoneySkillGraph.js';
 import {
   approvePracticeSet,
   extractQuestionPattern,
@@ -271,7 +285,14 @@ export function buildPracticeMistakeSnapshot({
 }
 
 export function shouldCreatePracticeMistake(result = {}) {
-  return Boolean(result && !result.correct && !result.error);
+  // The P1-P6 practice-flow clients tag each submitted answer `answerCorrect`
+  // (never `correct` — see the P1-P6 submit routes below for the same gotcha).
+  // Reading only `.correct` made this ALWAYS true (undefined is falsy), so
+  // every correct answer across every primary level silently logged a phantom
+  // mistake record. Nullish-coalesce so an explicit `answerCorrect` wins, but
+  // a payload that genuinely only carries `correct` still works.
+  const isCorrect = result?.answerCorrect ?? result?.correct;
+  return Boolean(result && !isCorrect && !result.error);
 }
 
 function normalizeSkillGraphStatus(status = '') {
@@ -284,15 +305,47 @@ function normalizeSkillGraphStatus(status = '') {
   return 'not_started';
 }
 
-function buildFractionsGraphTopicsFromAuthoredMap() {
+// Registry of the per-domain authored skill graphs, keyed by their own domainId.
+// Lets the Skill Graph route build a domain-aware view (not always fractions).
+// Each graph exposes { domainId, skills:[{ id, name, strand, prerequisites,
+// singaporeLevel }] } — a uniform shape across domains.
+const DOMAIN_SKILL_GRAPHS = [
+  fractionSkillGraph,
+  decimalsSkillGraph,
+  percentageSkillGraph,
+  ratioRateSkillGraph,
+  algebraSkillGraph,
+  numberSenseSkillGraph,
+  operationsSkillGraph,
+  geometrySkillGraph,
+  measurementSkillGraph,
+  areaPerimeterSkillGraph,
+  volumeSkillGraph,
+  circlesSkillGraph,
+  statisticsSkillGraph,
+  timeSkillGraph,
+  moneySkillGraph,
+].reduce((acc, graph) => {
+  if (graph?.domainId) acc[graph.domainId] = graph;
+  return acc;
+}, {});
+
+// Turn one authored domain graph into the topic/skill structure buildSkillGraphView
+// expects. Each skill's real `strand` becomes the topic name, so the hero header
+// reflects the actual domain the student is working in (e.g. a Percentage skill
+// under a Percentage strand — not the hard-coded "Recognise Fractions / Foundations").
+function buildGraphTopicsFromAuthoredMap(graph) {
+  if (!graph) return [];
+  const domainId = graph.domainId || 'domain';
+  const fallbackTopic = graph.domainName || domainId;
   const topicsByName = new Map();
-  for (const skill of fractionSkillGraph.skills || []) {
-    const topicName = skill.strand || 'Fractions';
+  for (const skill of graph.skills || []) {
+    const topicName = skill.strand || fallbackTopic;
     if (!topicsByName.has(topicName)) {
       topicsByName.set(topicName, {
-        topicId: `fractions-${topicName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+        topicId: `${domainId}-${topicName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
         name: topicName,
-        moeLevel: 'P4 Fractions',
+        moeLevel: graph.domainName || domainId,
         skills: [],
       });
     }
@@ -300,14 +353,17 @@ function buildFractionsGraphTopicsFromAuthoredMap() {
       _id: skill.id,
       skillId: skill.id,
       name: skill.name,
-      moeLevel: Array.isArray(skill.singaporeLevel) ? skill.singaporeLevel.join(', ') : 'P4',
+      moeLevel: Array.isArray(skill.singaporeLevel) ? skill.singaporeLevel.join(', ') : '',
       prerequisiteSkillIds: skill.prerequisites || [],
     });
   }
   return [...topicsByName.values()];
 }
 
-export function buildFractionsPersistedSkillGraphView(skillStates = []) {
+// Build the persisted Skill Graph view across one or more domains. `domainIds`
+// selects which authored graphs supply the curriculum denominator; topics from
+// each domain are concatenated so an all-domains view spans the full set.
+export function buildPersistedSkillGraphView({ skillStates = [], domainIds = [] } = {}) {
   const recordsBySkill = new Map();
   for (const row of skillStates || []) {
     recordsBySkill.set(String(row.skillId), {
@@ -324,11 +380,21 @@ export function buildFractionsPersistedSkillGraphView(skillStates = []) {
       .filter((row) => normalizeSkillGraphStatus(row.status) === 'mastered')
       .map((row) => String(row.skillId))
   );
-  return buildSkillGraphView({
-    topics: buildFractionsGraphTopicsFromAuthoredMap(),
-    recordsBySkill,
-    masteredIds,
-  });
+  const topics = (domainIds || [])
+    .map((id) => DOMAIN_SKILL_GRAPHS[id])
+    .filter(Boolean)
+    .flatMap((graph) => buildGraphTopicsFromAuthoredMap(graph));
+  return buildSkillGraphView({ topics, recordsBySkill, masteredIds });
+}
+
+// Backward-compatible fractions-only helpers (exported for unit tests and any
+// fractions-specific callers). Delegate to the generalized builders above.
+function buildFractionsGraphTopicsFromAuthoredMap() {
+  return buildGraphTopicsFromAuthoredMap(fractionSkillGraph);
+}
+
+export function buildFractionsPersistedSkillGraphView(skillStates = []) {
+  return buildPersistedSkillGraphView({ skillStates, domainIds: ['fractions'] });
 }
 
 // Build the MathPathPracticeSession fields for a client-generated ("offline
@@ -704,6 +770,8 @@ router.post('/fractions/practice/:practiceSessionId/submit', protect, asyncHandl
     }
     logPracticeLifecycle(lifecycleLog);
 
+    // Telemetry is non-critical — a write failure must not block the student from
+    // seeing their results. Errors are logged for monitoring but not re-thrown.
     await recordLearningEvents([
       ...attemptDocs.map((attempt) => ({
         studentId,
@@ -736,10 +804,13 @@ router.post('/fractions/practice/:practiceSessionId/submit', protect, asyncHandl
         sessionId: req.params.practiceSessionId,
         metadata: { source: 'mathpath_practice', total: results.length, correct: results.filter((r) => r.correct).length },
       },
-    ]);
+    ]).catch((err) => {
+      console.error('[mastery] fractions practice submit — recordLearningEvents failed (non-fatal):', err.message);
+    });
 
     res.json({ ...summary, assignmentProgress });
   } catch (err) {
+    console.error('[mastery] fractions practice submit error:', err);
     res.status(err.status || 500).json({ error: err.message || 'Failed to submit practice.' });
   }
 }));
@@ -1007,7 +1078,7 @@ router.post('/p1/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
       if (!skillId) return acc;
       if (!acc[skillId]) acc[skillId] = { total: 0, correct: 0 };
       acc[skillId].total += 1;
-      if (r.correct) acc[skillId].correct += 1;
+      if (r.answerCorrect ?? r.correct) acc[skillId].correct += 1;
       return acc;
     }, {});
 
@@ -1040,7 +1111,8 @@ router.post('/p1/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
     });
 
     const total = results.length;
-    const correctCount = results.filter((r) => r.correct).length;
+    // See shouldCreatePracticeMistake's comment: the client field is `answerCorrect`, not `correct`.
+    const correctCount = results.filter((r) => r.answerCorrect ?? r.correct).length;
     const accuracy = total ? Math.round((correctCount / total) * 100) : 0;
 
     const summary = {
@@ -1201,7 +1273,7 @@ router.post('/p2/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
         { upsert: true, new: true, setDefaultsOnInsert: true }
       );
     }
-    const bySkill = results.filter((r) => !r.error).reduce((acc, r) => { const skillId = r.skillId || ''; if (!skillId) return acc; if (!acc[skillId]) acc[skillId] = { total: 0, correct: 0 }; acc[skillId].total += 1; if (r.correct) acc[skillId].correct += 1; return acc; }, {});
+    const bySkill = results.filter((r) => !r.error).reduce((acc, r) => { const skillId = r.skillId || ''; if (!skillId) return acc; if (!acc[skillId]) acc[skillId] = { total: 0, correct: 0 }; acc[skillId].total += 1; if (r.answerCorrect ?? r.correct) acc[skillId].correct += 1; return acc; }, {});
     await Promise.all(Object.entries(bySkill).map(([skillId, counts]) => {
       const accuracy = counts.total ? Math.round((counts.correct / counts.total) * 100) : 0;
       const set = { status: accuracy >= 90 ? 'accurate' : accuracy >= 60 ? 'learning' : 'needsReview', accuracy, lastPractisedAt: new Date() };
@@ -1210,7 +1282,8 @@ router.post('/p2/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
     }));
     const progressUpdated = Object.keys(bySkill).length > 0;
     const total = results.length;
-    const correctCount = results.filter((r) => r.correct).length;
+    // See shouldCreatePracticeMistake's comment: the client field is `answerCorrect`, not `correct`.
+    const correctCount = results.filter((r) => r.answerCorrect ?? r.correct).length;
     const accuracy = total ? Math.round((correctCount / total) * 100) : 0;
     const lifecycleLog = buildPracticeLifecycleLog({ sessionId: req.params.practiceSessionId, studentId, questionId: results.at(-1)?.questionId || '', attemptSaved, mistakeCreated: wrongResults.length > 0, progressUpdated, answeredQuestions: results.length, targetQuestions: existing.estimatedQuestionCount || existing.questions?.length || results.length, completionReason: 'target_reached' });
     const summary = { practiceSessionId: req.params.practiceSessionId, sessionType, results, accuracySummary: { total, correct: correctCount, accuracyPercentage: accuracy }, persisted: true, lifecycleLog };
@@ -1327,7 +1400,7 @@ router.post('/p3/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
       if (!skillId) return acc;
       if (!acc[skillId]) acc[skillId] = { total: 0, correct: 0 };
       acc[skillId].total += 1;
-      if (r.correct) acc[skillId].correct += 1;
+      if (r.answerCorrect ?? r.correct) acc[skillId].correct += 1;
       return acc;
     }, {});
 
@@ -1360,7 +1433,8 @@ router.post('/p3/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
     });
 
     const total = results.length;
-    const correctCount = results.filter((r) => r.correct).length;
+    // See shouldCreatePracticeMistake's comment: the client field is `answerCorrect`, not `correct`.
+    const correctCount = results.filter((r) => r.answerCorrect ?? r.correct).length;
     const accuracy = total ? Math.round((correctCount / total) * 100) : 0;
 
     const summary = {
@@ -1756,16 +1830,51 @@ function readinessBandFromLevel(level = '') {
   return 'beginner';
 }
 
+// Fraction Skill documents are seed-time reference data (only ever written by
+// scripts/seed*.js, never by a live route) so a per-process cache is safe and
+// avoids re-running this regex scan on every /mastery request. Cache the
+// in-flight PROMISE (not just the resolved value) so concurrent callers during
+// the first population share one query instead of racing duplicate ones.
+let fractionsSkillsCache = null;
 async function loadFractionsSkills() {
-  const skills = await Skill.find({ slug: /^fr\./ }).sort({ order: 1 });
-  const byFrameworkId = new Map();
-  const byObjectId = new Map();
-  for (const s of skills) {
-    const fid = s.metadata?.mathPathSkillId || s.metadata?.frameworkCode || '';
-    if (fid) byFrameworkId.set(String(fid).toUpperCase(), s);
-    byObjectId.set(String(s._id), s);
+  if (!fractionsSkillsCache) {
+    fractionsSkillsCache = (async () => {
+      const skills = await Skill.find({ slug: /^fr\./ }).sort({ order: 1 });
+      const byFrameworkId = new Map();
+      const byObjectId = new Map();
+      for (const s of skills) {
+        const fid = s.metadata?.mathPathSkillId || s.metadata?.frameworkCode || '';
+        if (fid) byFrameworkId.set(String(fid).toUpperCase(), s);
+        byObjectId.set(String(s._id), s);
+      }
+      return { skills, byFrameworkId, byObjectId };
+    })().catch((err) => { fractionsSkillsCache = null; throw err; });
   }
-  return { skills, byFrameworkId, byObjectId };
+  return fractionsSkillsCache;
+}
+
+// Shape fractions MathPathStudentSkillState docs into /mastery records keyed by the
+// F-code (skillId/frameworkSkillId/skillCode), which is what every fractions consumer
+// matches against. A legacy MasteryRecord for the same F-code wins, so we never
+// double-count a skill across the two storage models.
+export function buildFractionSkillStateRecords({ fractionStates = [], existingRecords = [] } = {}) {
+  const seen = new Set(existingRecords.map((r) => r.frameworkSkillId).filter(Boolean));
+  const out = [];
+  for (const s of fractionStates) {
+    if (!s.skillId || seen.has(s.skillId)) continue;
+    seen.add(s.skillId);
+    out.push({
+      skillId: s.skillId, frameworkSkillId: s.skillId, skillCode: s.skillId,
+      skillName: '', topicName: '', domainId: 'fractions', moeLevel: '',
+      score: s.accuracy ?? 0, attempts: s.attemptCount ?? 0,
+      status: s.status, statusLabel: STATUS_LABEL[s.status] || s.status,
+      lastPracticedAt: s.lastPractisedAt || null,
+      masteryState: s.status, masteryLabel: MASTERY_LABEL[s.status] || s.status,
+      fluency: fluencyLabel(s.fluencyLevel), fluencyStatus: s.fluencyLevel || 'unknown',
+      streak: 0, bestStreak: 0, confidence: 0, consistency: 1, stale: false,
+    });
+  }
+  return out;
 }
 
 // @route GET /api/mastery?studentId=&skillIds=a,b
@@ -1784,7 +1893,12 @@ router.get('/', protect, asyncHandler(async (req, res) => {
     const shaped = records.map((r) => {
       const masteryState = deriveMastery(r);
       return {
-        skillId: r.skillId?._id, skillName: r.skillId?.name || '', topicName: r.skillId?.topicId?.name || '',
+        skillId: r.skillId?._id,
+        // Stable curriculum code (e.g. F012) so the learning-path pages can match
+        // mastery records against their skill graphs (which key by framework
+        // code, not ObjectId). Additive; skillId stays the ObjectId.
+        frameworkSkillId: r.skillId?.metadata?.mathPathSkillId || r.skillId?.metadata?.frameworkCode || '',
+        skillName: r.skillId?.name || '', topicName: r.skillId?.topicId?.name || '',
         // Canonical domainId derived from the skill slug prefix, so adult
         // dashboards can filter mastery by domain (additive; may be null for
         // skills whose slug prefix is unrecognised).
@@ -1797,6 +1911,19 @@ router.get('/', protect, asyncHandler(async (req, res) => {
         confidence: r.confidence ?? 0, consistency: r.consistency ?? 1, stale: isStale(r),
       };
     });
+
+    // Fractions practice/recheck now persists to the unified MathPathStudentSkillState
+    // model (domainId 'fractions', skillId = F-code), NOT MasteryRecord — so a
+    // 100%-correct fractions session never showed up here and the dashboard/learning
+    // path stayed stuck at 0% mastered. Surface those skill states as records keyed
+    // by the F-code. Skip when the caller filters by ObjectId skillIds, since these
+    // records key by F-code instead.
+    if (!req.query.skillIds) {
+      const fractionStates = await MathPathStudentSkillState.find({
+        studentId: String(student._id), domainId: 'fractions',
+      }).lean();
+      shaped.push(...buildFractionSkillStateRecords({ fractionStates, existingRecords: shaped }));
+    }
 
     const weak = await weakSkills(student._id, { limit: 5 });
     const weakShaped = weak.map((r) => ({
@@ -1812,7 +1939,9 @@ router.get('/', protect, asyncHandler(async (req, res) => {
     const rec = await recommendNextSkill(student._id);
     const recStatus = rec?.record?.status || 'not_started';
     const recommended = rec ? {
-      skillId: rec.skill._id, skillName: rec.skill.name, topicName: rec.skill.topicId?.name || '',
+      skillId: rec.skill._id,
+      frameworkSkillId: rec.skill.metadata?.mathPathSkillId || rec.skill.metadata?.frameworkCode || '',
+      skillName: rec.skill.name, topicName: rec.skill.topicId?.name || '',
       score: rec.record?.score ?? 0, status: recStatus, statusLabel: STATUS_LABEL[recStatus] || recStatus,
       reason: rec.reason, target: rec.target, mode: rec.mode, masteryState: rec.masteryState,
       masteryLabel: MASTERY_LABEL[rec.masteryState], confidence: rec.confidence,
@@ -2506,7 +2635,21 @@ router.get('/diagnostic/:sessionId', protect, asyncHandler(async (req, res) => {
 router.post('/remediation', protect, asyncHandler(async (req, res) => {
   try {
     const { skillSlug, skillId, recentAttempts = [] } = req.body || {};
-    const skill = skillSlug ? await Skill.findOne({ slug: skillSlug }) : (skillId ? await Skill.findById(skillId) : null);
+    let skill = null;
+    if (skillSlug) {
+      skill = await Skill.findOne({ slug: skillSlug });
+    } else if (skillId) {
+      const isObjectId = /^[a-f\d]{24}$/i.test(String(skillId));
+      skill = isObjectId
+        ? await Skill.findById(skillId)
+        : await Skill.findOne({
+            $or: [
+              { 'metadata.mathPathSkillId': skillId },
+              { 'metadata.frameworkCode': skillId },
+              { slug: skillId },
+            ],
+          });
+    }
     if (!skill) return res.status(404).json({ error: 'Skill not found.' });
     const prereqSkills = await Skill.find({ _id: { $in: skill.prerequisiteSkillIds || [] } });
     const plan = buildRemediationPlan({ skill, recentAttempts, prereqSkills });
@@ -2550,20 +2693,45 @@ router.get('/analytics', protect, asyncHandler(async (req, res) => {
   }
 }));
 
-// @route GET /api/mastery/graph?studentId=
+// @route GET /api/mastery/graph?studentId=&domainId=
 // @desc  The Math curriculum graph + this student's mastery, with prerequisite-
 //        aware lock/ready state and a "ready to learn next" list. Powers the
 //        student Skill Graph page. Math (MathPath) only — that's where the
 //        prerequisite graph is authored. A skill is `ready` when all its
 //        prerequisites are mastered (stale mastery doesn't count, matching
 //        recommendNextSkill), and `locked` when it's not yet started and a
-//        prerequisite is still missing.
+//        prerequisite is still missing. Domain-aware: pass `domainId` (or
+//        `domain`) to scope to a domain; otherwise the student's ACTIVE
+//        (most-recently-practised) domain is inferred so the hero header
+//        reflects where they're actually working — not a hard-coded fractions view.
 // @access Private
 router.get('/graph', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
-    const skillStates = await MathPathStudentSkillState.find({ studentId: String(student._id), domainId: 'fractions' }).lean();
-    const view = buildFractionsPersistedSkillGraphView(skillStates);
+    const requestedDomainId = String(req.query.domainId || req.query.domain || '').trim();
+    const skillStates = await MathPathStudentSkillState.find({
+      studentId: String(student._id),
+      ...(requestedDomainId ? { domainId: requestedDomainId } : {}),
+    }).lean();
+
+    // Resolve which authored domain graph(s) supply the curriculum denominator.
+    // 1) explicit ?domainId wins; 2) else the student's active domain = the
+    // domainId of their most-recently-practised skill state; 3) else fractions
+    // (preserves the prior default for students with no practice yet).
+    let resolvedDomainIds;
+    if (requestedDomainId) {
+      resolvedDomainIds = [requestedDomainId];
+    } else {
+      const activeState = skillStates.reduce((latest, row) => {
+        if (!row.lastPractisedAt) return latest;
+        if (!latest || new Date(row.lastPractisedAt) > new Date(latest.lastPractisedAt)) return row;
+        return latest;
+      }, null);
+      const activeDomainId = activeState?.domainId;
+      resolvedDomainIds = activeDomainId ? [activeDomainId] : ['fractions'];
+    }
+
+    const view = buildPersistedSkillGraphView({ skillStates, domainIds: resolvedDomainIds });
 
     res.json({ studentId: student._id, ...view });
   } catch (err) {
@@ -2635,7 +2803,7 @@ router.post('/p4/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
         { upsert: true, new: true, setDefaultsOnInsert: true }
       );
     }
-    const bySkill = results.filter((r) => !r.error).reduce((acc, r) => { const skillId = r.skillId || ''; if (!skillId) return acc; if (!acc[skillId]) acc[skillId] = { total: 0, correct: 0 }; acc[skillId].total += 1; if (r.correct) acc[skillId].correct += 1; return acc; }, {});
+    const bySkill = results.filter((r) => !r.error).reduce((acc, r) => { const skillId = r.skillId || ''; if (!skillId) return acc; if (!acc[skillId]) acc[skillId] = { total: 0, correct: 0 }; acc[skillId].total += 1; if (r.answerCorrect ?? r.correct) acc[skillId].correct += 1; return acc; }, {});
     await Promise.all(Object.entries(bySkill).map(([skillId, counts]) => {
       const accuracy = counts.total ? Math.round((counts.correct / counts.total) * 100) : 0;
       const set = { status: accuracy >= 90 ? 'accurate' : accuracy >= 60 ? 'learning' : 'needsReview', accuracy, lastPractisedAt: new Date() };
@@ -2644,7 +2812,8 @@ router.post('/p4/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
     }));
     const progressUpdated = Object.keys(bySkill).length > 0;
     const total = results.length;
-    const correctCount = results.filter((r) => r.correct).length;
+    // See shouldCreatePracticeMistake's comment: the client field is `answerCorrect`, not `correct`.
+    const correctCount = results.filter((r) => r.answerCorrect ?? r.correct).length;
     const accuracy = total ? Math.round((correctCount / total) * 100) : 0;
     const lifecycleLog = buildPracticeLifecycleLog({ sessionId: req.params.practiceSessionId, studentId, questionId: results.at(-1)?.questionId || '', attemptSaved, mistakeCreated: wrongResults.length > 0, progressUpdated, answeredQuestions: results.length, targetQuestions: existing.estimatedQuestionCount || existing.questions?.length || results.length, completionReason: 'target_reached' });
     const summary = { practiceSessionId: req.params.practiceSessionId, sessionType, results, accuracySummary: { total, correct: correctCount, accuracyPercentage: accuracy }, persisted: true, lifecycleLog };
@@ -2732,7 +2901,7 @@ router.post('/p5/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
         { upsert: true, new: true, setDefaultsOnInsert: true }
       );
     }
-    const bySkill = results.filter((r) => !r.error).reduce((acc, r) => { const skillId = r.skillId || ''; if (!skillId) return acc; if (!acc[skillId]) acc[skillId] = { total: 0, correct: 0 }; acc[skillId].total += 1; if (r.correct) acc[skillId].correct += 1; return acc; }, {});
+    const bySkill = results.filter((r) => !r.error).reduce((acc, r) => { const skillId = r.skillId || ''; if (!skillId) return acc; if (!acc[skillId]) acc[skillId] = { total: 0, correct: 0 }; acc[skillId].total += 1; if (r.answerCorrect ?? r.correct) acc[skillId].correct += 1; return acc; }, {});
     await Promise.all(Object.entries(bySkill).map(([skillId, counts]) => {
       const accuracy = counts.total ? Math.round((counts.correct / counts.total) * 100) : 0;
       const set = { status: accuracy >= 90 ? 'accurate' : accuracy >= 60 ? 'learning' : 'needsReview', accuracy, lastPractisedAt: new Date() };
@@ -2741,7 +2910,8 @@ router.post('/p5/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
     }));
     const progressUpdated = Object.keys(bySkill).length > 0;
     const total = results.length;
-    const correctCount = results.filter((r) => r.correct).length;
+    // See shouldCreatePracticeMistake's comment: the client field is `answerCorrect`, not `correct`.
+    const correctCount = results.filter((r) => r.answerCorrect ?? r.correct).length;
     const accuracy = total ? Math.round((correctCount / total) * 100) : 0;
     const lifecycleLog = buildPracticeLifecycleLog({ sessionId: req.params.practiceSessionId, studentId, questionId: results.at(-1)?.questionId || '', attemptSaved, mistakeCreated: wrongResults.length > 0, progressUpdated, answeredQuestions: results.length, targetQuestions: existing.estimatedQuestionCount || existing.questions?.length || results.length, completionReason: 'target_reached' });
     const summary = { practiceSessionId: req.params.practiceSessionId, sessionType, results, accuracySummary: { total, correct: correctCount, accuracyPercentage: accuracy }, persisted: true, lifecycleLog };
@@ -2830,7 +3000,7 @@ router.post('/p6/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
         { upsert: true, new: true, setDefaultsOnInsert: true }
       );
     }
-    const bySkill = results.filter((r) => !r.error).reduce((acc, r) => { const skillId = r.skillId || ''; if (!skillId) return acc; if (!acc[skillId]) acc[skillId] = { total: 0, correct: 0 }; acc[skillId].total += 1; if (r.correct) acc[skillId].correct += 1; return acc; }, {});
+    const bySkill = results.filter((r) => !r.error).reduce((acc, r) => { const skillId = r.skillId || ''; if (!skillId) return acc; if (!acc[skillId]) acc[skillId] = { total: 0, correct: 0 }; acc[skillId].total += 1; if (r.answerCorrect ?? r.correct) acc[skillId].correct += 1; return acc; }, {});
     await Promise.all(Object.entries(bySkill).map(([skillId, counts]) => {
       const accuracy = counts.total ? Math.round((counts.correct / counts.total) * 100) : 0;
       const set = { status: accuracy >= 90 ? 'accurate' : accuracy >= 60 ? 'learning' : 'needsReview', accuracy, lastPractisedAt: new Date() };
@@ -2839,7 +3009,8 @@ router.post('/p6/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
     }));
     const progressUpdated = Object.keys(bySkill).length > 0;
     const total = results.length;
-    const correctCount = results.filter((r) => r.correct).length;
+    // See shouldCreatePracticeMistake's comment: the client field is `answerCorrect`, not `correct`.
+    const correctCount = results.filter((r) => r.answerCorrect ?? r.correct).length;
     const accuracy = total ? Math.round((correctCount / total) * 100) : 0;
     const lifecycleLog = buildPracticeLifecycleLog({ sessionId: req.params.practiceSessionId, studentId, questionId: results.at(-1)?.questionId || '', attemptSaved, mistakeCreated: wrongResults.length > 0, progressUpdated, answeredQuestions: results.length, targetQuestions: existing.estimatedQuestionCount || existing.questions?.length || results.length, completionReason: 'target_reached' });
     const summary = { practiceSessionId: req.params.practiceSessionId, sessionType, results, accuracySummary: { total, correct: correctCount, accuracyPercentage: accuracy }, persisted: true, lifecycleLog };

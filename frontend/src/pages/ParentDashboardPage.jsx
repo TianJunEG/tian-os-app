@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, GraduationCap } from 'lucide-react';
-import { learningAPI } from '../services/api';
+import { ArrowLeft, Plus, GraduationCap, Link2 } from 'lucide-react';
+import { learningAPI, integrationsAPI } from '../services/api';
 import ProgressRing from '../components/ProgressRing';
 
 // Tian OS — Parent dashboard. Overview of every child, each with a headline readiness.
@@ -26,6 +26,59 @@ const bandStyles = {
   building: 'bg-amber-100 text-amber-800',
   'at risk': 'bg-red-100 text-red-800',
 };
+
+function BrightdeskShareButton({ child }) {
+  const [token, setToken] = useState('');
+  const [generating, setGenerating] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [err, setErr] = useState('');
+  const [open, setOpen] = useState(false);
+
+  const generate = async () => {
+    setGenerating(true); setErr(''); setToken('');
+    try {
+      const res = await integrationsAPI.generateBrightdeskToken(child.id);
+      setToken(res.data.token);
+    } catch (e) {
+      setErr(e.response?.data?.error || 'Could not generate token.');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const copy = () => {
+    navigator.clipboard.writeText(token).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
+  };
+
+  if (!open) {
+    return (
+      <button
+        onClick={(e) => { e.stopPropagation(); setOpen(true); generate(); }}
+        className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:text-emerald-900 transition"
+      >
+        <Link2 className="w-3.5 h-3.5" /> Share with BrightDesk
+      </button>
+    );
+  }
+
+  return (
+    <div className="mt-3 space-y-2" onClick={(e) => e.stopPropagation()}>
+      <p className="text-xs text-gray-600 font-medium">Paste this token into BrightDesk → Progress → Link TianOS:</p>
+      {generating && <p className="text-xs text-gray-400">Generating…</p>}
+      {err && <p className="text-xs text-red-600">{err}</p>}
+      {token && (
+        <div className="flex gap-2 items-center">
+          <input readOnly value={token} className="flex-1 min-w-0 text-xs border border-gray-300 rounded-lg px-2 py-1.5 font-mono bg-gray-50" />
+          <button onClick={copy} className="shrink-0 px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-deep text-white hover:bg-emerald transition">
+            {copied ? 'Copied!' : 'Copy'}
+          </button>
+        </div>
+      )}
+      <p className="text-[10px] text-gray-400">Valid for 30 days. Generate a new one anytime.</p>
+      <button onClick={() => { setOpen(false); setToken(''); }} className="text-xs text-gray-400 hover:text-gray-600">Close</button>
+    </div>
+  );
+}
 
 export default function ParentDashboardPage() {
   const { user } = useAuth();
@@ -70,7 +123,7 @@ export default function ParentDashboardPage() {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex-1">
-            <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-gold-600">Progress intelligence</div>
+            <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-gold-deep">Progress intelligence</div>
             <h1 className="text-3xl font-serif font-medium text-emerald-deep leading-tight">My Children</h1>
             <p className="text-gray-500 text-sm">Each child's progress across every learning app.</p>
           </div>
@@ -117,19 +170,22 @@ export default function ParentDashboardPage() {
         {!loading && !error && children.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {children.map((c) => (
-              <button key={c.id} onClick={() => navigate(`/children/${c.id}`)} className="bg-white border border-emerald-tint rounded-2xl shadow-sm p-5 text-left hover:shadow-lg hover:border-emerald-border transition flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-emerald-tint text-emerald-deep grid place-items-center font-bold text-lg">
-                  {c.name?.[0]?.toUpperCase() || '?'}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold text-emerald-deep truncate">{c.name}</div>
-                  <div className="text-xs text-emerald-bright">{c.level || '—'} · {c.subjects} subject{c.subjects === 1 ? '' : 's'}</div>
-                  <span className={`inline-block mt-1.5 text-xs font-bold px-2.5 py-1 rounded-full ${bandStyles[c.band] || 'bg-gray-100 text-gray-700'}`}>{c.band}</span>
-                </div>
-                <div className="text-emerald-deep shrink-0">
-                  <ProgressRing value={c.overall} size={56} stroke={6} trackClass="stroke-navy-100" />
-                </div>
-              </button>
+              <div key={c.id} className="bg-white border border-emerald-tint rounded-2xl shadow-sm p-5 hover:shadow-lg hover:border-emerald-border transition">
+                <button onClick={() => navigate(`/children/${c.id}`)} className="w-full text-left flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-emerald-tint text-emerald-deep grid place-items-center font-bold text-lg shrink-0">
+                    {c.name?.[0]?.toUpperCase() || '?'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-emerald-deep truncate">{c.name}</div>
+                    <div className="text-xs text-emerald-bright">{c.level || '—'} · {c.subjects} subject{c.subjects === 1 ? '' : 's'}</div>
+                    <span className={`inline-block mt-1.5 text-xs font-bold px-2.5 py-1 rounded-full ${bandStyles[c.band] || 'bg-gray-100 text-gray-700'}`}>{c.band}</span>
+                  </div>
+                  <div className="text-emerald-deep shrink-0">
+                    <ProgressRing value={c.overall} size={56} stroke={6} trackClass="stroke-navy-100" />
+                  </div>
+                </button>
+                <BrightdeskShareButton child={c} />
+              </div>
             ))}
           </div>
         )}

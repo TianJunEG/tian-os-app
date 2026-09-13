@@ -112,8 +112,8 @@ export default function CreateAssessment() {
       <div className="mx-auto max-w-3xl p-4 sm:p-6">
         <ClassNav classId={id} name={meta?.name} level={meta?.level} />
         <Card className="p-8 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
-            <Send className="h-6 w-6 text-emerald-600" />
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-tint">
+            <Send className="h-6 w-6 text-emerald" />
           </div>
           <h2 className="text-lg font-semibold text-ink-800">Assessment Assigned</h2>
           <p className="mt-1 text-sm text-ink-500">Sent to {done} student{done !== 1 ? 's' : ''}.</p>
@@ -146,7 +146,7 @@ export default function CreateAssessment() {
           <div className="flex gap-2">
             {MODULES.map((m) => (
               <button key={m.key} type="button" onClick={() => setModule(m.key)}
-                className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${module === m.key ? 'bg-emerald-500 text-white' : 'bg-ink-100 text-ink-600 hover:bg-ink-200'}`}>
+                className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${module === m.key ? 'bg-emerald text-white' : 'bg-ink-100 text-ink-600 hover:bg-ink-200'}`}>
                 {m.label}
               </button>
             ))}
@@ -159,7 +159,7 @@ export default function CreateAssessment() {
             <div>
               <label className="mb-1 block text-sm font-medium text-ink-600">Topic</label>
               <select value={topicId} onChange={(e) => { setTopicId(e.target.value); setSkillId(''); }}
-                className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-700 outline-none focus:border-emerald-400">
+                className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-700 outline-none focus:border-emerald-bright">
                 <option value="">Select topic...</option>
                 {topics.map((t) => <option key={t.topicId} value={t.topicId}>{t.name}</option>)}
               </select>
@@ -167,7 +167,7 @@ export default function CreateAssessment() {
             <div>
               <label className="mb-1 block text-sm font-medium text-ink-600">Skill</label>
               <select value={skillId} onChange={(e) => setSkillId(e.target.value)}
-                className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-700 outline-none focus:border-emerald-400">
+                className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-700 outline-none focus:border-emerald-bright">
                 <option value="">Select skill...</option>
                 {skills.map((s) => <option key={s.skillId || s.id} value={s.skillId || s.id}>{s.name}</option>)}
               </select>
@@ -177,7 +177,7 @@ export default function CreateAssessment() {
               <div className="flex gap-2">
                 {['easy', 'medium', 'hard'].map((d) => (
                   <button key={d} type="button" onClick={() => setDifficulty(d)}
-                    className={`rounded-full px-4 py-1.5 text-sm font-semibold capitalize transition ${difficulty === d ? 'bg-emerald-500 text-white' : 'bg-ink-100 text-ink-600 hover:bg-ink-200'}`}>
+                    className={`rounded-full px-4 py-1.5 text-sm font-semibold capitalize transition ${difficulty === d ? 'bg-emerald text-white' : 'bg-ink-100 text-ink-600 hover:bg-ink-200'}`}>
                     {d}
                   </button>
                 ))}
@@ -191,7 +191,7 @@ export default function CreateAssessment() {
           <div>
             <label className="mb-1 block text-sm font-medium text-ink-600">Skill</label>
             <select value={skillId} onChange={(e) => setSkillId(e.target.value)}
-              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-700 outline-none focus:border-emerald-400">
+              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-700 outline-none focus:border-emerald-bright">
               <option value="">Select skill...</option>
               {pslSkills.map((s) => <option key={s.skillId} value={s.skillId}>{s.name}</option>)}
             </select>
@@ -203,21 +203,21 @@ export default function CreateAssessment() {
           <label className="mb-1 block text-sm font-medium text-ink-600">Questions</label>
           <input type="number" min={1} max={30} value={questionCount}
             onChange={(e) => setQuestionCount(e.target.value)}
-            className="w-24 rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-700 outline-none focus:border-emerald-400" />
+            className="w-24 rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-700 outline-none focus:border-emerald-bright" />
         </div>
 
         {/* Time limit */}
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-2 text-sm font-medium text-ink-600">
             <input type="checkbox" checked={timed} onChange={(e) => setTimed(e.target.checked)}
-              className="h-4 w-4 rounded border-ink-300 text-emerald-500 focus:ring-emerald-400" />
+              className="h-4 w-4 rounded border-ink-300 text-emerald focus:ring-emerald-bright" />
             Timed
           </label>
           {timed && (
             <div className="flex items-center gap-1">
               <input type="number" min={1} max={120} value={timeLimitMinutes}
                 onChange={(e) => setTimeLimitMinutes(e.target.value)} placeholder="15"
-                className="w-20 rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-700 outline-none focus:border-emerald-400" />
+                className="w-20 rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-700 outline-none focus:border-emerald-bright" />
               <span className="text-sm text-ink-500">minutes</span>
             </div>
           )}
@@ -227,7 +227,7 @@ export default function CreateAssessment() {
         <div>
           <label className="mb-1 block text-sm font-medium text-ink-600">Due date (optional)</label>
           <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)}
-            className="rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-700 outline-none focus:border-emerald-400" />
+            className="rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-700 outline-none focus:border-emerald-bright" />
         </div>
 
         {/* Target */}
@@ -235,12 +235,12 @@ export default function CreateAssessment() {
           <label className="mb-1 block text-sm font-medium text-ink-600">Assign to</label>
           <div className="flex flex-wrap gap-2">
             <button type="button" onClick={() => setTarget({ type: 'class' })}
-              className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${target.type === 'class' ? 'bg-emerald-500 text-white' : 'bg-ink-100 text-ink-600 hover:bg-ink-200'}`}>
+              className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${target.type === 'class' ? 'bg-emerald text-white' : 'bg-ink-100 text-ink-600 hover:bg-ink-200'}`}>
               Whole class
             </button>
             {groups.map((g) => (
               <button key={g._id} type="button" onClick={() => setTarget({ type: 'group', id: g._id })}
-                className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${target.type === 'group' && target.id === g._id ? 'bg-emerald-500 text-white' : 'bg-ink-100 text-ink-600 hover:bg-ink-200'}`}>
+                className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${target.type === 'group' && target.id === g._id ? 'bg-emerald text-white' : 'bg-ink-100 text-ink-600 hover:bg-ink-200'}`}>
                 {g.name}
               </button>
             ))}
@@ -266,7 +266,7 @@ export default function CreateAssessment() {
               <div key={q.questionId} className="rounded-lg bg-white p-3 text-sm">
                 <span className="mr-2 font-semibold text-ink-400">Q{i + 1}.</span>
                 <span className="text-ink-700">{q.display || q.storyText}</span>
-                <span className="ml-2 text-xs text-emerald-600">
+                <span className="ml-2 text-xs text-emerald">
                   Ans: {q.answer ?? q.correctAnswer}
                 </span>
                 {q.choices?.length > 0 && (

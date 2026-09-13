@@ -17,7 +17,7 @@ const timeSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['tim/hour-half'],
-    questionFamilies: ['QF_TM001_001', 'QF_TM001_002'],
+    questionFamilies: ['QF_TM001_001', 'QF_TM001_002', 'QF_TM001_003'],
   },
   {
     id: 'TM002',
@@ -34,7 +34,7 @@ const timeSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['TM001'],
     misconceptions: ['tim/minute-skip'],
-    questionFamilies: ['QF_TM002_001', 'QF_TM002_002'],
+    questionFamilies: ['QF_TM002_001', 'QF_TM002_002', 'QF_TM002_003'],
   },
   {
     id: 'TM003',
@@ -51,7 +51,7 @@ const timeSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['TM002'],
     misconceptions: ['tim/base-10-error'],
-    questionFamilies: ['QF_TM003_001', 'QF_TM003_002'],
+    questionFamilies: ['QF_TM003_001', 'QF_TM003_002', 'QF_TM003_003'],
   },
   {
     id: 'TM004',
@@ -68,7 +68,7 @@ const timeSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['TM002'],
     misconceptions: ['mea/24hr-convert'],
-    questionFamilies: ['QF_TM004_001', 'QF_TM004_002'],
+    questionFamilies: ['QF_TM004_001', 'QF_TM004_002', 'QF_TM004_003'],
   },
   {
     id: 'TM005',
@@ -85,7 +85,7 @@ const timeSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['TM003', 'TM004'],
     misconceptions: ['mea/time-base-60'],
-    questionFamilies: ['QF_TM005_001', 'QF_TM005_002'],
+    questionFamilies: ['QF_TM005_001', 'QF_TM005_002', 'QF_TM005_003'],
   },
 ];
 

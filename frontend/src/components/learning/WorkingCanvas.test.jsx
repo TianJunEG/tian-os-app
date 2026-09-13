@@ -16,6 +16,9 @@ beforeEach(() => {
     clearRect: vi.fn(),
     fillRect: vi.fn(),
     drawImage: vi.fn(),
+    // Math-object export bakes glyphs through fillText/measureText.
+    fillText: vi.fn(),
+    measureText: vi.fn((text) => ({ width: String(text || '').length * 10 })),
   };
   HTMLCanvasElement.prototype.getContext = vi.fn(() => canvasContext);
   HTMLCanvasElement.prototype.toDataURL = vi.fn(() => 'data:image/png;base64,working');
@@ -53,6 +56,25 @@ describe('WorkingCanvas', () => {
       workingSubmitted: true,
       workingStrokes: expect.any(Array),
     }));
+  });
+
+  it('clears the text selection when a stroke ends (no lingering highlight)', () => {
+    // Regression: on iPad/stylus, lifting after a stroke left a text selection
+    // that highlighted the whole area until the next tap. endStroke must drop it.
+    const removeAllRanges = vi.fn();
+    const originalGetSelection = window.getSelection;
+    window.getSelection = vi.fn(() => ({ removeAllRanges }));
+    try {
+      render(<WorkingCanvas questionId="q1" />);
+      const canvas = screen.getByLabelText('Working canvas');
+      fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10, pointerId: 1 });
+      fireEvent.pointerMove(canvas, { clientX: 80, clientY: 80, pointerId: 1 });
+      removeAllRanges.mockClear();
+      fireEvent.pointerUp(canvas, { pointerId: 1 });
+      expect(removeAllRanges).toHaveBeenCalled();
+    } finally {
+      window.getSelection = originalGetSelection;
+    }
   });
 
   it('allows working not needed when configured', () => {
@@ -112,5 +134,56 @@ describe('WorkingCanvas', () => {
 
     rerender(<WorkingCanvas questionId="q1" submittedStrokes={savedStrokes} initialSubmitted={false} />);
     expect(screen.getByRole('button', { name: 'Undo' })).not.toBeDisabled();
+  });
+
+  it('inserts a math symbol as a draggable object (not a baked stamp)', () => {
+    const onChange = vi.fn();
+    render(<WorkingCanvas questionId="q1" onChange={onChange} />);
+
+    fireEvent.click(screen.getByTitle('Insert π'));
+
+    expect(screen.getByTestId('math-object-pi')).toBeInTheDocument();
+    // The insert is reported as a math object, not folded into the stroke list.
+    const last = onChange.mock.calls.at(-1)[0];
+    expect(last.workingMathObjects).toHaveLength(1);
+    expect(last.workingMathObjects[0]).toMatchObject({ type: 'pi' });
+  });
+
+  it('restores legacy baked stamp strokes as draggable objects', () => {
+    render(
+      <WorkingCanvas
+        questionId="q1"
+        submittedStrokes={[{ tool: 'stamp', template: 'fraction', numerator: '1', denominator: '2', points: [{ x: 80, y: 60 }] }]}
+      />
+    );
+
+    expect(screen.getByTestId('math-object-fraction')).toBeInTheDocument();
+  });
+
+  it('places a draggable text label with the Text tool', () => {
+    render(<WorkingCanvas questionId="q1" />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Text' }));
+    const canvas = screen.getByLabelText('Working canvas');
+    fireEvent.pointerDown(canvas, { clientX: 120, clientY: 90 });
+    const input = screen.getByLabelText('Text label input');
+    fireEvent.change(input, { target: { value: '= 12' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(screen.getByTestId('math-object-text')).toBeInTheDocument();
+    expect(screen.getByText('= 12')).toBeInTheDocument();
+  });
+
+  it('includes math objects in the saved working payload', () => {
+    const onSubmit = vi.fn();
+    render(<WorkingCanvas questionId="q1" onSubmit={onSubmit} />);
+
+    fireEvent.click(screen.getByTitle('Insert π'));
+    fireEvent.click(screen.getByText('Save working'));
+
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({
+      workingImage: expect.stringContaining('data:image/png'),
+      workingMathObjects: expect.arrayContaining([expect.objectContaining({ type: 'pi' })]),
+    }));
   });
 });

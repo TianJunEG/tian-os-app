@@ -87,15 +87,19 @@ describe('generateProblem', () => {
     }
   });
 
-  it('identify_info expected numbers are actual numbers', async () => {
+  it('identify_info expected clues are normalized non-empty strings', async () => {
     mockTemplates = [TEMPLATE_PW_WHOLE];
     const problem = await generateProblem('psl-p3-bar-pw-find-whole');
 
+    // Clues are kept as normalized STRINGS (not coerced numbers) so compound clues
+    // like fractions ("2/5"), ratios ("3:5"), money ("$4") and percentages ("30%")
+    // survive instead of being dropped by Number()/filter(Boolean).
     const infoStep = problem.scaffoldSteps.find((s) => s.stepId === 'identify_info');
     expect(infoStep.expectedResponse.numbers).toBeInstanceOf(Array);
+    expect(infoStep.expectedResponse.numbers.length).toBeGreaterThan(0);
     for (const n of infoStep.expectedResponse.numbers) {
-      expect(typeof n).toBe('number');
-      expect(n).toBeGreaterThan(0);
+      expect(typeof n).toBe('string');
+      expect(n.length).toBeGreaterThan(0);
     }
   });
 

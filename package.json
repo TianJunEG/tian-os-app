@@ -25,6 +25,7 @@
     "seed:science": "node scripts/seedScience.js",
     "seed:mathpath": "node scripts/seedFoundation.js && node scripts/seedQuestions.js && node scripts/seedFluency.js",
     "seed:fractions-alpha-pack": "node scripts/seedFractionsAlphaPack.js",
+    "provision:workspace": "node scripts/provisionWorkspace.js",
     "seed:tutor": "node scripts/seedTutor.js",
     "seed:teacher": "node scripts/seedTeacher.js",
     "seed:test-accounts": "node scripts/seedTestAccounts.js",
@@ -33,6 +34,7 @@
     "seed:spelling": "node scripts/seedSpelling.js",
     "seed:lifelab": "node scripts/seedLifeLab.js",
     "seed:mechanisms": "node scripts/seedMechanisms.js",
+    "seed:demo-classes": "node scripts/seedDemoTeacherClasses.js",
     "clear": "node clear-db.js",
     "seed": "node seed-tutors.js",
     "seed:5000": "node seed-tutors.js",
@@ -51,12 +53,12 @@
     "qa:fractions:closure": "node scripts/fractions-final-pilot-closure.js",
     "qa:fractions:questions": "node scripts/auditFractionsQuestionQuality.js",
     "seed:resources": "node scripts/seedResources.js",
-
     "seed:decimals-pilot": "node scripts/seedDecimalsPilot.js",
     "postgres:prisma:generate": "prisma generate && esbuild generated/prisma/client.ts --bundle --platform=node --format=esm --packages=external --outfile=generated/prisma/client.js",
     "postgres:health": "node scripts/postgres/checkPrismaHealth.js",
     "postgres:phase1:backfill": "node scripts/postgres/backfillMathPathReferenceData.js",
-    "postgres:phase1:parity": "node scripts/postgres/checkMathPathReferenceParity.js"
+    "postgres:phase1:parity": "node scripts/postgres/checkMathPathReferenceParity.js",
+    "seed:testpapers": "node scripts/seedTestPapers.js"
   },
   "keywords": [
     "tutoring",
@@ -87,6 +89,7 @@
     "pg": "^8.16.3",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
+    "resend": "^6.14.0",
     "stripe": "^22.2.1",
     "tesseract.js": "^7.0.0",
     "validator": "^13.9.0"

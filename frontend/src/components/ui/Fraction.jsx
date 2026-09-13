@@ -38,7 +38,8 @@ export const MathText = React.memo(function MathText({ text, className = '' }) {
     // Inline TeX symbols in prose (outside \frac) → unicode.
     s = s.replace(/\\times/g, '×').replace(/\\div/g, '÷').replace(/\\square/g, '□')
       .replace(/\\%/g, '%').replace(/\\,/g, ' ').replace(/\\cdot/g, '·');
-    const re = /(\$[^$]+\$|\\frac\{[^{}]*\}\{[^{}]*\}|(?:\d+|\?)\s*\/\s*(?:\d+|\?))/g;
+    // $digit... is a currency amount, not LaTeX math — exclude with (?!\d)
+    const re = /(\$(?!\d)[^$]+\$|\\frac\{[^{}]*\}\{[^{}]*\}|(?:\d+|\?)\s*\/\s*(?:\d+|\?))/g;
     return s.split(re).map((p) => {
       if (!p) return null;
       const dollar = p.match(/^\$([^$]+)\$$/);

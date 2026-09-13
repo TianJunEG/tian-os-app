@@ -1,8 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { messagesAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { Send } from 'lucide-react';
 
 export default function MessagesPage() {
+  const { user } = useAuth();
+  // Derive the logged-in user's id from auth state (never localStorage — a
+  // stored 'userId' key would leak across accounts on a shared device).
+  const myId = user?._id;
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -62,7 +67,7 @@ export default function MessagesPage() {
 
     try {
       const otherParticipant = selectedConversation.participantIds.find(
-        p => p._id !== (localStorage.getItem('userId') || 'me')
+        p => p._id !== myId
       );
 
       await messagesAPI.sendMessage({
@@ -152,14 +157,14 @@ export default function MessagesPage() {
                       <div
                         key={message._id}
                         className={`flex ${
-                          message.senderId._id === (localStorage.getItem('userId') || '')
+                          myId && message.senderId._id === myId
                             ? 'justify-end'
                             : 'justify-start'
                         }`}
                       >
                         <div
                           className={`max-w-xs px-4 py-2 rounded-lg ${
-                            message.senderId._id === (localStorage.getItem('userId') || '')
+                            myId && message.senderId._id === myId
                               ? 'bg-emerald text-white'
                               : 'bg-gray-200 text-gray-900'
                           }`}
@@ -167,7 +172,7 @@ export default function MessagesPage() {
                           <p className="text-sm">{message.content}</p>
                           <p
                             className={`text-xs mt-1 ${
-                              message.senderId._id === (localStorage.getItem('userId') || '')
+                              myId && message.senderId._id === myId
                                 ? 'text-emerald-tint'
                                 : 'text-gray-500'
                             }`}

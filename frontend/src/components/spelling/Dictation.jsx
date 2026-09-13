@@ -106,6 +106,14 @@ export default function Dictation({ words = [], onAttempt, lang = 'en' }) {
     stop();
     const r = diff();
     setReport(r);
+    // Dictation is passage-level: it scores the whole typed passage against the
+    // seeded sentences via LCS, which cannot yield reliable PER-WORD spelling
+    // correctness. Logging one attempt per passage token corrupted per-word
+    // mastery/SRS stats — it recorded example-sentence filler words that are on
+    // no list, double-counted words repeated in a passage, and mis-graded
+    // correctly-spelled words when the transcription was reordered or dropped a
+    // word (LCS alignment != spelling correctness). Log a single passage-level
+    // attempt instead; per-word spelling is captured by LookCoverCheck/MockTest.
     onAttempt?.('dictation', r.accuracy >= 80);
     if (r.accuracy >= 70) {
       playWin();

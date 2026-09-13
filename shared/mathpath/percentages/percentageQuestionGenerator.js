@@ -133,19 +133,24 @@ const GENERATORS = {
       const num = p / g;
       const den = 100 / g;
       const display = `${num}/${den}`;
-      return shortAnswer({
-        family,
-        prompt: `Write ${p}% as a fraction in its simplest form.`,
-        answer: display,
-        display,
-        solutionSteps: [
-          `${p}% = ${p}/100.`,
-          `Simplify: divide both by ${g} → ${display}.`,
-        ],
-        misconceptionTag: family.misconceptionTags[0] || 'pct/keep-percent-sign',
-        difficulty,
-        mode,
-      });
+      return {
+        ...shortAnswer({
+          family,
+          prompt: `Write ${p}% as a fraction in its simplest form.`,
+          answer: display,
+          display,
+          solutionSteps: [
+            `${p}% = ${p}/100.`,
+            `Simplify: divide both by ${g} → ${display}.`,
+          ],
+          misconceptionTag: family.misconceptionTags[0] || 'pct/keep-percent-sign',
+          difficulty,
+          mode,
+        }),
+        // Bare proper-fraction answer ("a/b") → render stacked numerator/denominator
+        // input on the client (FractionAnswerInput) instead of a plain text box.
+        answerFormat: 'fraction',
+      };
     }
     const dec = p / 100;
     const display = String(dec);
@@ -171,10 +176,19 @@ const GENERATORS = {
     const step = 100 / g; // smallest q that makes integer
     const q = step * rint(rng, 2, 20);
     const answer = (p * q) / 100;
-    const items = ['students in a class', 'apples in a basket', 'books on a shelf', 'marbles in a bag', 'stickers in a pack'];
-    const item = family.name.toLowerCase().includes('word') ? pick(rng, items) : null;
-    const prompt = item
-      ? `There are ${q} ${item}. ${p}% of them are red. How many are red?`
+    // Object-only items with matched adjectives so the question stays sensible.
+    // "students in a class" was removed because people can't be "red".
+    const objectItems = [
+      { subject: 'apples in a basket', adjective: 'red' },
+      { subject: 'books on a shelf', adjective: 'blue' },
+      { subject: 'marbles in a bag', adjective: 'green' },
+      { subject: 'stickers in a pack', adjective: 'red' },
+      { subject: 'beads in a jar', adjective: 'yellow' },
+      { subject: 'buttons in a box', adjective: 'blue' },
+    ];
+    const chosen = family.name.toLowerCase().includes('word') ? pick(rng, objectItems) : null;
+    const prompt = chosen
+      ? `There are ${q} ${chosen.subject}. ${p}% of them are ${chosen.adjective}. How many are ${chosen.adjective}?`
       : `Find ${p}% of ${q}.`;
     return shortAnswer({
       family,
@@ -382,7 +396,7 @@ const GENERATORS = {
 };
 
 // ── Public API ────────────────────────────────────────────────────────────────
-export function generatePercentageQuestion({ skillId, questionFamilyId, difficulty, mode = 'practice', variant = 0 } = {}) {
+export function generatePercentageQuestion({ skillId, questionFamilyId, difficulty, mode = 'practice', variant = 0, sessionSalt = '' } = {}) {
   let family = questionFamilyId ? getQuestionFamily(questionFamilyId) : null;
   if (!family) {
     if (!skillId) throw new Error('generatePercentageQuestion requires skillId or questionFamilyId');
@@ -397,11 +411,11 @@ export function generatePercentageQuestion({ skillId, questionFamilyId, difficul
   if (!generator) throw new Error(`No generator for kind ${family.generatorKind}`);
 
   const resolvedDifficulty = difficulty ?? family.difficulty;
-  const rng = makeRng(`${family.skillId}:${family.id}:${mode}:${variant}`);
+  const rng = makeRng(`${family.skillId}:${family.id}:${mode}:${variant}:${sessionSalt}`);
   return generator(rng, family, resolvedDifficulty, mode);
 }
 
-export function generatePercentageQuestionSet({ skillId, questionFamilyIds, count = 5, mode = 'practice', difficulty } = {}) {
+export function generatePercentageQuestionSet({ skillId, questionFamilyIds, count = 5, mode = 'practice', difficulty, sessionSalt = '' } = {}) {
   if (!skillId && !(questionFamilyIds && questionFamilyIds.length)) {
     throw new Error('generatePercentageQuestionSet requires skillId or questionFamilyIds');
   }
@@ -410,11 +424,20 @@ export function generatePercentageQuestionSet({ skillId, questionFamilyIds, coun
     : getQuestionFamiliesBySkill(skillId).map((f) => f.id);
   if (!familyIds.length) throw new Error(`No question families for skill ${skillId}`);
 
+  const seenPrompts = new Set();
   const out = [];
-  for (let i = 0; i < count; i++) {
-    const familyId = familyIds[i % familyIds.length];
-    const variant = Math.floor(i / familyIds.length);
-    out.push(generatePercentageQuestion({ questionFamilyId: familyId, mode, difficulty, variant }));
+  let attempt = 0;
+  const maxAttempts = count * 5;
+  while (out.length < count && attempt < maxAttempts) {
+    const familyId = familyIds[attempt % familyIds.length];
+    const variant = Math.floor(attempt / familyIds.length);
+    const q = generatePercentageQuestion({ questionFamilyId: familyId, mode, difficulty, variant, sessionSalt });
+    const dedupKey = q.prompt + '|||' + (q.answer?.display ?? q.answer);
+    if (!seenPrompts.has(dedupKey) || attempt >= count * 3) {
+      seenPrompts.add(dedupKey);
+      out.push(q);
+    }
+    attempt++;
   }
   return out;
 }

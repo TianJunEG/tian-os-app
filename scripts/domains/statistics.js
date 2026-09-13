@@ -64,7 +64,7 @@ export default {
       misconceptions: [{ tag: 'stat/mean-reverse', label: 'Cannot work backwards from the mean to the total (or a missing value)' }],
       practiceModes: ['short_answer', 'worked_example', 'diagnostic'],
       remediation: { onRepeatedFail: 'worked-example', reinforce: ['stat.average-intro'], strategy: 'total = mean × number of values; then find the missing one' },
-      questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'hard', stem: 'The mean of {n} numbers is {m}. {k} of them total {t}. Find the last value.', answerRule: 'm*n - t', misconceptionTag: 'stat/mean-reverse' }] },
+      questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'hard', stem: 'The mean of {n} numbers is {m}. What is the total of all {n} numbers?', answerRule: 'm*n (m≤20, n∈{3,4,5,6})', misconceptionTag: 'stat/mean-reverse' }] },
     { slug: 'stat.pie-charts', name: 'Pie charts', level: 'Primary 6',
       prerequisites: ['stat.bar-graphs', 'pct.of-quantity', 'fr.of-quantity'], masteryType: 'application', fluencyType: 'accuracy',
       figureDependent: true, render: 'katex', visualModels: ['pie-chart'],

@@ -1,14 +1,26 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { PenLine, Calculator } from 'lucide-react';
 import { Modal, Button } from '../ui';
 import WorkingToolbar, { WORKING_COLOURS } from './WorkingToolbar';
+import ColumnOperationsGrid, { makeEmptyGrid } from './ColumnOperationsGrid';
 import { FEATURE_FLAGS } from '../../config/featureFlags';
 import {
   drawStroke,
-  drawMathStamp,
   pointFromEvent as extractPoint,
   beginStrokeData,
   finalizeStroke,
 } from './drawingUtils';
+import {
+  TEXT_OBJECT_DEFAULT,
+  MathObjectView,
+  MathStampBuilder,
+  drawMathObject,
+  wrapText,
+  createMathObject,
+  createTextObject,
+  stampStrokeToMathObject,
+  normaliseMathObject,
+} from './workingMath';
 
 const CANVAS_WIDTH = 1400;
 const CANVAS_HEIGHT = 900;
@@ -26,261 +38,8 @@ function fitZoomFor(el) {
 const QUESTION_PANEL = { x: 48, y: 44, width: 620, height: 170 };
 const EMPTY_STROKES = [];
 const EMPTY_MATH_OBJECTS = [];
-const MATH_STAMPS = [
-  { id: 'fraction', label: 'x/y' },
-  { id: 'subscript', label: 'xₐ' },
-  { id: 'power', label: 'xᵇ' },
-  { id: 'subscriptPower', label: 'xₐᵇ' },
-  { id: 'mixed', label: 'xᵇ/a' },
-  { id: 'root', label: 'ⁿ√x' },
-  { id: 'degree', label: 'x°' },
-  { id: 'angle', label: '∠' },
-  { id: 'pi', label: 'π' },
-  { id: 'theta', label: 'θ' },
-];
-
-const MATH_BUILDERS = {
-  fraction: ['numerator', 'denominator'],
-  subscript: ['base', 'subscript'],
-  power: ['base', 'exponent'],
-  subscriptPower: ['base', 'exponent', 'subscript'],
-  mixed: ['base', 'numerator', 'denominator'],
-  root: ['index', 'radicand'],
-  degree: ['base'],
-};
-
-const MATH_OBJECT_DEFAULT = {
-  width: 132,
-  height: 96,
-};
-
-const TEXT_OBJECT_DEFAULT = {
-  width: 220,
-  height: 48,
-};
-
 /* drawStroke → imported from ./drawingUtils */
 const FS_STAMP_SCALE = CANVAS_WIDTH / 900; // ~1.56 for 1400px canvas
-
-function drawMathObject(ctx, object) {
-  if (!object) return;
-  if (object.type === 'text') {
-    ctx.save();
-    ctx.fillStyle = object.colour || '#111827';
-    ctx.font = '600 30px Arial';
-    wrapText(ctx, object.text || object.value?.text || '', object.x, object.y + 30, object.width || 260, 36);
-    ctx.restore();
-    return;
-  }
-  drawMathStamp(ctx, {
-    tool: 'stamp',
-    template: object.type,
-    colour: object.colour,
-    ...object.value,
-    points: [{ x: object.x, y: object.y }],
-  }, { stampScale: FS_STAMP_SCALE });
-}
-
-/* drawMathStamp → imported from ./drawingUtils (used with FS_STAMP_SCALE) */
-
-function createMathObject(template, values = {}, count = 0) {
-  return {
-    id: `math-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    type: template,
-    x: 740 + ((count % 5) * 130),
-    y: 300 + (Math.floor(count / 5) * 110),
-    value: { ...values },
-    colour: '#f97316',
-    ...MATH_OBJECT_DEFAULT,
-  };
-}
-
-function createTextObject({ text = '', x = 740, y = 300, colour = '#111827' } = {}) {
-  return {
-    id: `text-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    type: 'text',
-    text,
-    x,
-    y,
-    colour,
-    ...TEXT_OBJECT_DEFAULT,
-  };
-}
-
-function stampStrokeToMathObject(stroke, index = 0) {
-  if (stroke?.tool !== 'stamp') return null;
-  const point = stroke.points?.[0] || {};
-  const { tool, template, points, colour, size, ...value } = stroke;
-  return {
-    id: stroke.id || `legacy-math-${index}`,
-    type: template,
-    x: Number(point.x ?? 740),
-    y: Number(point.y ?? 300),
-    value,
-    colour: colour || '#f97316',
-    width: stroke.width || MATH_OBJECT_DEFAULT.width,
-    height: stroke.height || MATH_OBJECT_DEFAULT.height,
-  };
-}
-
-function normaliseMathObject(object, index = 0) {
-  if (!object) return null;
-  if (object.tool === 'stamp') return stampStrokeToMathObject(object, index);
-  return {
-    id: object.id || `math-${index}`,
-    type: object.type || object.template || 'pi',
-    x: Number(object.x ?? object.points?.[0]?.x ?? 740),
-    y: Number(object.y ?? object.points?.[0]?.y ?? 300),
-    text: object.type === 'text' ? String(object.text ?? object.value?.text ?? '') : undefined,
-    value: object.value && typeof object.value === 'object' ? object.value : {},
-    colour: object.colour || (object.type === 'text' ? '#111827' : '#f97316'),
-    width: object.width || (object.type === 'text' ? TEXT_OBJECT_DEFAULT.width : MATH_OBJECT_DEFAULT.width),
-    height: object.height || (object.type === 'text' ? TEXT_OBJECT_DEFAULT.height : MATH_OBJECT_DEFAULT.height),
-  };
-}
-
-function MathObjectView({ object, selected, onPointerDown, onSelect, onDelete, onEdit, ...pointerHandlers }) {
-  const value = object.value || {};
-  if (object.type === 'text') {
-    return (
-      <div
-        role="button"
-        tabIndex={0}
-        aria-label="Text label"
-        data-testid="math-object-text"
-        onPointerDown={onPointerDown}
-        {...pointerHandlers}
-        onClick={(event) => {
-          event.stopPropagation();
-          onSelect?.();
-        }}
-        onDoubleClick={(event) => {
-          event.stopPropagation();
-          onEdit?.();
-        }}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter') {
-            event.preventDefault();
-            onEdit?.();
-          }
-          if (event.key === 'Backspace' || event.key === 'Delete') {
-            event.preventDefault();
-            onDelete?.();
-          }
-        }}
-        className={`pointer-events-auto absolute z-20 touch-none select-none rounded-lg px-2 py-1 text-2xl font-semibold leading-tight text-ink-900 ${
-          selected ? 'outline outline-3 outline-orange-500 outline-offset-3 ring-4 ring-orange-200/80' : 'hover:outline hover:outline-2 hover:outline-orange-200'
-        }`}
-        style={{ left: `${object.x}px`, top: `${object.y}px`, minWidth: `${object.width}px`, minHeight: `${object.height}px`, color: object.colour || '#111827' }}
-      >
-        <span className="whitespace-pre-wrap">{object.text || object.value?.text || 'Text'}</span>
-        {selected && (
-          <>
-            <button
-              type="button"
-              aria-label="Edit selected text"
-              onPointerDown={(event) => event.stopPropagation()}
-              onClick={(event) => {
-                event.stopPropagation();
-                onEdit?.();
-              }}
-              className="absolute -right-12 -top-3 grid h-8 w-8 place-items-center rounded-full bg-emerald-deep text-xs font-bold text-white shadow-card"
-            >
-              Edit
-            </button>
-            <button
-              type="button"
-              aria-label="Delete selected text"
-              onPointerDown={(event) => event.stopPropagation()}
-              onClick={(event) => {
-                event.stopPropagation();
-                onDelete?.();
-              }}
-              className="absolute -right-3 -top-3 grid h-8 w-8 place-items-center rounded-full bg-orange-500 text-base font-bold text-white shadow-card"
-            >
-              ×
-            </button>
-          </>
-        )}
-      </div>
-    );
-  }
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      aria-label={`Math object ${object.type}`}
-      data-testid={`math-object-${object.type}`}
-      onPointerDown={onPointerDown}
-      {...pointerHandlers}
-      onClick={(event) => {
-        event.stopPropagation();
-        onSelect?.();
-      }}
-      onKeyDown={(event) => {
-        if (event.key === 'Backspace' || event.key === 'Delete') {
-          event.preventDefault();
-          onDelete?.();
-        }
-      }}
-      className={`pointer-events-auto absolute z-20 touch-none select-none rounded-xl px-3 py-2 font-serif text-[42px] leading-none text-orange-500 ${
-        selected ? 'outline outline-3 outline-orange-500 outline-offset-4 ring-4 ring-orange-200/80' : 'hover:outline hover:outline-2 hover:outline-orange-200'
-      }`}
-      style={{ left: `${object.x}px`, top: `${object.y}px`, minWidth: `${object.width}px`, minHeight: `${object.height}px` }}
-    >
-      {object.type === 'fraction' ? (
-        <span className="inline-flex min-w-[72px] flex-col items-center text-[38px]">
-          <span>{value.numerator || 'x'}</span>
-          <span className="my-1 h-1 w-full rounded-full bg-orange-500" />
-          <span>{value.denominator || 'y'}</span>
-        </span>
-      ) : object.type === 'subscript' ? (
-        <span>{value.base || 'x'}<sub className="text-[26px]">{value.subscript || 'a'}</sub></span>
-      ) : object.type === 'power' ? (
-        <span>{value.base || 'x'}<sup className="text-[26px]">{value.exponent || 'b'}</sup></span>
-      ) : object.type === 'subscriptPower' ? (
-        <span>{value.base || 'x'}<sup className="text-[24px]">{value.exponent || 'b'}</sup><sub className="text-[24px]">{value.subscript || 'a'}</sub></span>
-      ) : object.type === 'mixed' ? (
-        <span className="inline-flex items-center gap-2">
-          <span>{value.base || 'x'}</span>
-          <span className="inline-flex min-w-[58px] flex-col items-center text-[32px]">
-            <span>{value.numerator || 'b'}</span>
-            <span className="my-1 h-1 w-full rounded-full bg-orange-500" />
-            <span>{value.denominator || 'a'}</span>
-          </span>
-        </span>
-      ) : object.type === 'root' ? (
-        <span className="inline-flex items-start">
-          <sup className="mr-1 text-[22px]">{value.index || 'n'}</sup>
-          <span>√</span>
-          <span className="border-t-4 border-orange-500 px-2 pt-1">{value.radicand || 'x'}</span>
-        </span>
-      ) : object.type === 'degree' ? (
-        <span>{value.base || 'x'}°</span>
-      ) : object.type === 'angle' ? (
-        <span>∠</span>
-      ) : object.type === 'theta' ? (
-        <span>θ</span>
-      ) : (
-        <span>π</span>
-      )}
-      {selected && (
-        <button
-          type="button"
-          aria-label="Delete selected math object"
-          onPointerDown={(event) => event.stopPropagation()}
-          onClick={(event) => {
-            event.stopPropagation();
-            onDelete?.();
-          }}
-          className="absolute -right-3 -top-3 grid h-8 w-8 place-items-center rounded-full bg-orange-500 text-base font-bold text-white shadow-card"
-        >
-          ×
-        </button>
-      )}
-    </div>
-  );
-}
 
 function paintPaper(ctx) {
   ctx.fillStyle = '#ffffff';
@@ -293,23 +52,6 @@ function paintPaper(ctx) {
     ctx.lineTo(CANVAS_WIDTH, y);
     ctx.stroke();
   }
-}
-
-function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-  const words = String(text || '').split(/\s+/).filter(Boolean);
-  const lines = [];
-  let line = '';
-  words.forEach((word) => {
-    const testLine = line ? `${line} ${word}` : word;
-    if (ctx.measureText(testLine).width > maxWidth && line) {
-      lines.push(line);
-      line = word;
-    } else {
-      line = testLine;
-    }
-  });
-  if (line) lines.push(line);
-  lines.slice(0, 6).forEach((row, index) => ctx.fillText(row, x, y + index * lineHeight));
 }
 
 function paintQuestionPanel(ctx, questionText) {
@@ -335,19 +77,6 @@ function paintQuestionPanel(ctx, questionText) {
   ctx.restore();
 }
 
-function MathDraftInput({ value, placeholder, onChange, onEnter, compact = false, autoFocus = false }) {
-  return (
-    <input
-      autoFocus={autoFocus}
-      value={value || ''}
-      onChange={(event) => onChange?.(event.target.value)}
-      onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
-      className={`${compact ? 'h-12 w-14 text-xl' : 'h-14 w-20 text-2xl'} rounded-xl border-2 border-transparent bg-surface-raised px-2 text-center font-serif italic text-ink-700 placeholder:text-ink-300 focus:border-orange-500 focus:bg-surface-raised focus:outline-none`}
-      placeholder={placeholder}
-    />
-  );
-}
-
 export default function FullScreenWorkingMode({
   open = false,
   questionId = '',
@@ -365,9 +94,18 @@ export default function FullScreenWorkingMode({
   const scrollRef = useRef(null);
   const drawingRef = useRef(false);
   const currentStrokeRef = useRef(null);
+
+  // Block text selection while a stroke is active (prevents the pen from
+  // highlighting text or stealing focus into an input).
+  useEffect(() => {
+    const blockSelection = (event) => { if (drawingRef.current) event.preventDefault(); };
+    document.addEventListener('selectstart', blockSelection);
+    return () => document.removeEventListener('selectstart', blockSelection);
+  }, []);
   const strokesRef = useRef(Array.isArray(initialStrokes) ? initialStrokes : []);
   const mathObjectsRef = useRef([]);
   const objectDragRef = useRef(null);
+  const textInputRef = useRef(null);
   const toolRef = useRef('pen');
   const colourRef = useRef(WORKING_COLOURS[0].value);
   const brushSizeRef = useRef(4);
@@ -383,6 +121,12 @@ export default function FullScreenWorkingMode({
   const [hasObjectEdit, setHasObjectEdit] = useState(false);
   const [mathDraft, setMathDraft] = useState(null);
   const [textDraft, setTextDraft] = useState(null);
+  const [toolsOpen, setToolsOpen] = useState(true); // drawer: tools overlay the canvas, open/close
+  // Draw ↔ Four Ops (column arithmetic). 'draw' is the default, so the existing
+  // canvas behaviour is unchanged; Four Ops adds the column grid here too.
+  const [workingMode, setWorkingMode] = useState('draw');
+  const [columnGrid, setColumnGrid] = useState(() => makeEmptyGrid('addition', 0));
+  const hasColumnContent = columnGrid?.rows?.some((r) => r.some((c) => c)) || columnGrid?.dividend?.some((c) => c);
   useEffect(() => { toolRef.current = tool; }, [tool]);
   useEffect(() => { colourRef.current = colour; }, [colour]);
   useEffect(() => { brushSizeRef.current = brushSize; }, [brushSize]);
@@ -431,9 +175,20 @@ export default function FullScreenWorkingMode({
 
   const beginStroke = (event) => {
     event.preventDefault();
+    if (typeof window !== 'undefined') window.getSelection?.()?.removeAllRanges?.();
     if (toolRef.current === 'text') {
       event.stopPropagation();
       const point = pointFromEvent(event);
+      // This pointerdown fires BEFORE the open input's blur, so commit any
+      // in-progress draft synchronously (passing it explicitly to dodge the
+      // setState race) before wiping it with the new empty draft. Without this
+      // the new draft would clobber the old one and its text would be lost.
+      // Mark the live input committed so its trailing blur becomes a no-op and
+      // can't wipe the new draft we open below.
+      if (textDraft && String(textDraft.text || '').trim()) {
+        if (textInputRef.current) textInputRef.current.dataset.committed = 'true';
+        saveTextDraft(textDraft);
+      }
       setSelectedObjectId(null);
       setMathDraft(null);
       setTextDraft({
@@ -442,6 +197,17 @@ export default function FullScreenWorkingMode({
         y: point.y,
         text: '',
       });
+      // React reuses the same input element across draft swaps, so the
+      // `committed` flag set above would persist onto the new draft and silence
+      // its blur-commit. Clear it once the new input is in place.
+      if (typeof window !== 'undefined' && window.requestAnimationFrame) {
+        window.requestAnimationFrame(() => {
+          if (textInputRef.current) textInputRef.current.dataset.committed = 'false';
+        });
+      }
+      // saveTextDraft flips the tool back to 'pen'; keep Text active so the new
+      // draft we just opened stays editable.
+      setTool('text');
       return;
     }
     drawingRef.current = true;
@@ -462,7 +228,10 @@ export default function FullScreenWorkingMode({
       stroke.points.push(pointFromEvent(e));
     }
     setHasCanvasMarks(true);
-    if (stroke.tool === 'line' || stroke.tool === 'rectangle') {
+    // Shade joins line/rectangle in the full-redraw path: it renders the whole
+    // stroke at once as a flat even tone, so incremental tail-stamping (which
+    // would darken self-overlaps) must not be used.
+    if (stroke.tool === 'line' || stroke.tool === 'rectangle' || stroke.tool === 'shade') {
       redraw(strokesRef.current);
       drawStroke(canvasRef.current.getContext('2d'), stroke, { stampScale: FS_STAMP_SCALE });
     } else {
@@ -476,12 +245,11 @@ export default function FullScreenWorkingMode({
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         ctx.globalCompositeOperation = stroke.tool === 'eraser' ? 'destination-out' : 'source-over';
-        ctx.globalAlpha = stroke.tool === 'highlighter' ? 0.18 : stroke.tool === 'shade' ? 0.24 : 1;
+        ctx.globalAlpha = stroke.tool === 'highlighter' ? 0.18 : 1;
         ctx.strokeStyle = stroke.tool === 'eraser' ? '#ffffff' : (stroke.colour || '#172554');
         const baseSize = Number(stroke.size || 4);
         const hasPressure = (stroke.tool === 'pen' || stroke.tool === 'pencil') && tail[2].p != null;
         ctx.lineWidth = stroke.tool === 'eraser' ? 24
-          : stroke.tool === 'shade' ? Math.max(34, baseSize * 8)
           : stroke.tool === 'highlighter' ? Math.max(48, baseSize * 10)
           : stroke.tool === 'pencil' ? Math.max(1, baseSize - 1)
           : hasPressure ? baseSize * (0.3 + (tail[2].p ?? 0.5) * 0.7)
@@ -502,6 +270,9 @@ export default function FullScreenWorkingMode({
     event?.preventDefault?.();
     if (event?.pointerId !== undefined) canvasRef.current?.releasePointerCapture?.(event.pointerId);
     drawingRef.current = false;
+    // Drop any selection the lift started so the canvas isn't left highlighted
+    // until the next tap (iPad/stylus quirk — see WorkingCanvas.endStroke).
+    if (typeof window !== 'undefined') window.getSelection?.()?.removeAllRanges?.();
     const raw = currentStrokeRef.current;
     currentStrokeRef.current = null;
     const stroke = finalizeStroke(raw);
@@ -548,14 +319,16 @@ export default function FullScreenWorkingMode({
     paintPaper(exportCtx);
     paintQuestionPanel(exportCtx, questionText);
     strokesRef.current.forEach((stroke) => drawStroke(exportCtx, stroke, { stampScale: FS_STAMP_SCALE }));
-    mathObjectsRef.current.forEach((object) => drawMathObject(exportCtx, object));
+    mathObjectsRef.current.forEach((object) => drawMathObject(exportCtx, object, { stampScale: FS_STAMP_SCALE }));
     onSave?.({
       workingImage: exportCanvas?.toDataURL('image/png') || canvas?.toDataURL('image/png') || '',
       workingStrokes: strokesRef.current,
       workingMathObjects: mathObjectsRef.current,
+      workingColumnGrid: columnGrid,
+      workingMode,
       workingSubmitted: true,
       workingSubmittedAt: new Date().toISOString(),
-      source: 'fullscreen_working',
+      source: workingMode === 'column' ? 'column_operations' : 'fullscreen_working',
       canvasDimensions: { width: CANVAS_WIDTH, height: CANVAS_HEIGHT },
       questionSnapshot: {
         text: questionText,
@@ -570,6 +343,25 @@ export default function FullScreenWorkingMode({
   };
 
   const undo = () => {
+    // The most recent reversible action is whichever sits on top of the redo
+    // stack's mirror — but undo here pops live state. A Clear leaves nothing on
+    // the canvas, so undoing it means restoring the snapshot it parked on the
+    // redo stack (both strokes AND math objects). Otherwise undo just removes
+    // the last stroke.
+    const topRedo = redoStack.at(-1);
+    if (topRedo && topRedo.type === 'clear') {
+      setRedoStack((prev) => prev.slice(0, -1));
+      const restoredStrokes = Array.isArray(topRedo.strokes) ? topRedo.strokes : [];
+      const restoredObjects = Array.isArray(topRedo.mathObjects) ? topRedo.mathObjects : [];
+      strokesRef.current = restoredStrokes;
+      mathObjectsRef.current = restoredObjects;
+      setStrokes(restoredStrokes);
+      setMathObjects(restoredObjects);
+      setSelectedObjectId(null);
+      setHasCanvasMarks(restoredStrokes.length > 0 || restoredObjects.length > 0);
+      setHasObjectEdit(restoredObjects.length > 0);
+      return;
+    }
     setStrokes((prev) => {
       const undone = prev.at(-1);
       const next = prev.slice(0, -1);
@@ -584,6 +376,17 @@ export default function FullScreenWorkingMode({
     const restored = redoStack.at(-1);
     if (!restored) return;
     setRedoStack((prev) => prev.slice(0, -1));
+    // A clear frame re-applies the wipe: drop both strokes and math objects.
+    if (restored.type === 'clear') {
+      strokesRef.current = [];
+      mathObjectsRef.current = [];
+      setStrokes([]);
+      setMathObjects([]);
+      setSelectedObjectId(null);
+      setHasCanvasMarks(false);
+      setHasObjectEdit(false);
+      return;
+    }
     setStrokes((prev) => {
       const next = [...prev, restored];
       strokesRef.current = next;
@@ -593,7 +396,22 @@ export default function FullScreenWorkingMode({
   };
 
   const clear = () => {
-    if (strokesRef.current.length) setRedoStack((prev) => [...prev, ...strokesRef.current]);
+    // Nothing to clear → no-op (also guards the confirm from firing on an empty
+    // canvas).
+    if (!strokesRef.current.length && !mathObjectsRef.current.length) return;
+    // Clear is destructive, so confirm before wiping.
+    if (typeof window !== 'undefined' && typeof window.confirm === 'function') {
+      const ok = window.confirm('Clear all working? You can undo this.');
+      if (!ok) return;
+    }
+    // Snapshot BOTH strokes and math objects so the clear is reversible via
+    // Undo/Redo (previously only strokes were saved and labels/stamps were lost).
+    const snapshot = {
+      type: 'clear',
+      strokes: strokesRef.current,
+      mathObjects: mathObjectsRef.current,
+    };
+    setRedoStack((prev) => [...prev, snapshot]);
     strokesRef.current = [];
     mathObjectsRef.current = [];
     setStrokes([]);
@@ -643,15 +461,19 @@ export default function FullScreenWorkingMode({
     });
   };
 
-  const saveTextDraft = () => {
-    const text = String(textDraft?.text || '').trim();
+  // `draft` defaults to the current state, but callers that need to commit the
+  // in-progress draft synchronously (e.g. beginStroke flushing a label before
+  // opening a new one) pass it explicitly to avoid a setState race where the
+  // canvas pointerdown wipes `textDraft` before the input's blur reads it.
+  const saveTextDraft = (draft = textDraft) => {
+    const text = String(draft?.text || '').trim();
     if (!text) {
       setTextDraft(null);
       return;
     }
-    if (textDraft.id) {
+    if (draft.id) {
       updateMathObjects((prev) => prev.map((object) => (
-        object.id === textDraft.id
+        object.id === draft.id
           ? {
             ...object,
             text,
@@ -660,12 +482,12 @@ export default function FullScreenWorkingMode({
           }
           : object
       )));
-      setSelectedObjectId(textDraft.id);
+      setSelectedObjectId(draft.id);
     } else {
       const nextObject = createTextObject({
         text,
-        x: textDraft.x,
-        y: textDraft.y,
+        x: draft.x,
+        y: draft.y,
         colour: colourRef.current || '#111827',
       });
       updateMathObjects((prev) => [...prev, nextObject]);
@@ -732,25 +554,6 @@ export default function FullScreenWorkingMode({
     objectDragRef.current = null;
   };
 
-  const openMathTool = (template) => {
-    const fields = MATH_BUILDERS[template];
-    if (!fields) {
-      addStamp(template);
-      return;
-    }
-    const values = fields.reduce((acc, field) => ({ ...acc, [field]: '' }), {});
-    setMathDraft((current) => current?.template === template ? null : { template, ...values });
-  };
-
-  const insertDraftMath = () => {
-    const template = mathDraft?.template;
-    const fields = MATH_BUILDERS[template] || [];
-    const values = fields.reduce((acc, field) => ({ ...acc, [field]: String(mathDraft?.[field] || '').trim() }), {});
-    if (!template || Object.values(values).some((value) => !value)) return;
-    addStamp(template, values);
-  };
-
-  const draftReady = Boolean(mathDraft?.template && (MATH_BUILDERS[mathDraft.template] || []).every((field) => String(mathDraft?.[field] || '').trim()));
 
   return (
     <Modal
@@ -762,16 +565,49 @@ export default function FullScreenWorkingMode({
       footer={(
         <>
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button disabled={!hasCanvasMarks && !strokes.length && !hasObjectEdit} onClick={save}>Save Working</Button>
+          <Button disabled={!hasCanvasMarks && !strokes.length && !hasObjectEdit && !hasColumnContent} onClick={save}>Save Working</Button>
         </>
       )}
     >
-      <div className="flex h-full min-h-0 flex-col gap-2">
+      <div className="relative flex h-full min-h-0 flex-col gap-2">
+        {/* Draw ↔ Four Ops tabs (Four Ops = column arithmetic grid). */}
+        <div className="flex items-center gap-1.5">
+          {[{ id: 'draw', label: 'Draw', Icon: PenLine }, { id: 'column', label: 'Four Ops', Icon: Calculator }].map(({ id, label, Icon }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setWorkingMode(id)}
+              className={`inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${workingMode === id ? 'border-emerald-deep bg-emerald-deep text-white' : 'border-line-soft bg-white text-emerald-deep hover:bg-emerald-tint'}`}
+            >
+              <Icon className="h-3.5 w-3.5" /> {label}
+            </button>
+          ))}
+          {workingMode === 'draw' && (
+            <button
+              type="button"
+              onClick={() => setToolsOpen((o) => !o)}
+              aria-expanded={toolsOpen}
+              className="ml-auto inline-flex items-center gap-1 rounded-lg border border-line-soft bg-white px-3 py-1.5 text-xs font-semibold text-emerald-deep transition hover:bg-emerald-tint"
+            >
+              {toolsOpen ? 'Hide tools' : 'Show tools'}
+            </button>
+          )}
+        </div>
+        {workingMode === 'draw' && (
+        <>
+        {/* Tools DRAWER — overlays the top of the canvas so the drawing area keeps
+            full flex space; slides away when closed. */}
+        <div
+          className={`absolute inset-x-0 top-11 z-30 origin-top px-0.5 transition-all duration-200 ${toolsOpen ? 'pointer-events-auto translate-y-0 opacity-100' : 'pointer-events-none -translate-y-3 opacity-0'}`}
+          aria-hidden={!toolsOpen}
+        >
+        <div className="max-h-[60vh] space-y-2 overflow-y-auto rounded-xl border border-line-soft bg-surface-raised/95 p-2 shadow-lg backdrop-blur">
         <WorkingToolbar
+          compact
           tool={tool}
           colour={colour}
           brushSize={brushSize}
-          canUndo={strokes.length > 0}
+          canUndo={strokes.length > 0 || mathObjects.length > 0 || redoStack.some((frame) => frame?.type === 'clear')}
           canRedo={redoStack.length > 0}
           zoom={zoom}
           onToolChange={setTool}
@@ -785,88 +621,22 @@ export default function FullScreenWorkingMode({
           onZoomReset={resetZoom}
           onPan={pan}
         />
-        {FEATURE_FLAGS.workingMathInserts && <div className="flex flex-wrap gap-2" aria-label="Math insert tools">
-          {MATH_STAMPS.map((stamp) => (
-            <div key={stamp.id} className="relative">
-              {mathDraft?.template === stamp.id && (
-                <div
-                  className={`absolute left-1/2 top-full z-30 mt-3 -translate-x-1/2 rounded-3xl border border-line-soft bg-white p-4 shadow-card ${
-                    stamp.id === 'fraction' ? 'w-36' : stamp.id === 'root' ? 'w-56' : 'w-52'
-                  }`}
-                  aria-label={`${stamp.label} builder`}
-                >
-                  {stamp.id === 'fraction' ? (
-                    <div className="flex flex-col items-center gap-3">
-                      <MathDraftInput autoFocus value={mathDraft.numerator} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), numerator: value }))} onEnter={insertDraftMath} />
-                      <div className="h-px w-20 bg-ink-300" aria-hidden="true" />
-                      <MathDraftInput value={mathDraft.denominator} placeholder="y" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), denominator: value }))} onEnter={insertDraftMath} />
-                    </div>
-                  ) : stamp.id === 'subscript' ? (
-                    <div className="grid grid-cols-[1fr_auto] items-center gap-3">
-                      <MathDraftInput autoFocus value={mathDraft.base} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), base: value }))} onEnter={insertDraftMath} />
-                      <MathDraftInput value={mathDraft.subscript} placeholder="a" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), subscript: value }))} onEnter={insertDraftMath} />
-                    </div>
-                  ) : stamp.id === 'power' ? (
-                    <div className="grid grid-cols-[1fr_auto] items-start gap-3">
-                      <MathDraftInput autoFocus value={mathDraft.base} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), base: value }))} onEnter={insertDraftMath} />
-                      <MathDraftInput value={mathDraft.exponent} placeholder="b" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), exponent: value }))} onEnter={insertDraftMath} />
-                    </div>
-                  ) : stamp.id === 'subscriptPower' ? (
-                    <div className="grid grid-cols-[1fr_auto] items-center gap-3">
-                      <MathDraftInput autoFocus value={mathDraft.base} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), base: value }))} onEnter={insertDraftMath} />
-                      <div className="grid gap-2">
-                        <MathDraftInput value={mathDraft.exponent} placeholder="b" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), exponent: value }))} onEnter={insertDraftMath} />
-                        <MathDraftInput value={mathDraft.subscript} placeholder="a" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), subscript: value }))} onEnter={insertDraftMath} />
-                      </div>
-                    </div>
-                  ) : stamp.id === 'mixed' ? (
-                    <div className="grid grid-cols-[1fr_auto] items-center gap-3">
-                      <MathDraftInput autoFocus value={mathDraft.base} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), base: value }))} onEnter={insertDraftMath} />
-                      <div className="grid gap-2">
-                        <MathDraftInput value={mathDraft.numerator} placeholder="b" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), numerator: value }))} onEnter={insertDraftMath} />
-                        <MathDraftInput value={mathDraft.denominator} placeholder="a" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), denominator: value }))} onEnter={insertDraftMath} />
-                      </div>
-                    </div>
-                  ) : stamp.id === 'root' ? (
-                    <div className="grid grid-cols-[auto_1fr] items-center gap-2">
-                      <MathDraftInput autoFocus value={mathDraft.index} placeholder="n" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), index: value }))} onEnter={insertDraftMath} />
-                      <div className="flex items-center gap-1">
-                        <span className="font-serif text-6xl leading-none text-ink-900">√</span>
-                        <span className="h-px flex-1 self-start bg-ink-900" aria-hidden="true" />
-                        <MathDraftInput value={mathDraft.radicand} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), radicand: value }))} onEnter={insertDraftMath} />
-                      </div>
-                    </div>
-                  ) : stamp.id === 'degree' ? (
-                    <div className="flex items-start justify-center gap-1">
-                      <MathDraftInput autoFocus value={mathDraft.base} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), base: value }))} onEnter={insertDraftMath} />
-                      <span className="font-serif text-3xl text-ink-500">°</span>
-                    </div>
-                  ) : null}
-                  <button
-                    type="button"
-                    disabled={!draftReady}
-                    onClick={insertDraftMath}
-                    className="mt-5 w-full text-center text-xl font-bold text-ink-300 transition enabled:text-orange-500 enabled:hover:text-orange-600 disabled:cursor-not-allowed"
-                  >
-                    Insert
-                  </button>
-                </div>
-              )}
-              <button
-                type="button"
-                onClick={() => openMathTool(stamp.id)}
-                className={`grid h-11 min-w-12 place-items-center rounded-lg border px-3 font-serif text-xl font-semibold transition ${
-                  mathDraft?.template === stamp.id
-                    ? 'border-orange-500 bg-orange-500 text-white'
-                    : 'border-line-soft bg-orange-50 text-orange-600 hover:border-orange-300 hover:bg-orange-100'
-                }`}
-                title={`Insert ${stamp.label}`}
-              >
-                {stamp.label}
-              </button>
-            </div>
-          ))}
-        </div>}
+        {FEATURE_FLAGS.workingMathInserts && (
+          <MathStampBuilder
+            mathDraft={mathDraft}
+            setMathDraft={setMathDraft}
+            onInsert={addStamp}
+            placement="below"
+          />
+        )}
+        </div>
+        </div>
+        {(questionContent || questionText) && (
+          <div className="flex-shrink-0 rounded-xl border border-line-soft bg-surface-raised px-4 py-2.5">
+            <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-ink-400">Q</span>
+            <span className="text-base font-medium text-ink-900">{questionContent || questionText}</span>
+          </div>
+        )}
         <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto rounded-xl border border-line-soft bg-surface-raised p-3">
           <div
             className="relative rounded-xl bg-white shadow-rest"
@@ -902,9 +672,10 @@ export default function FullScreenWorkingMode({
               ref={canvasRef}
               width={CANVAS_WIDTH}
               height={CANVAS_HEIGHT}
-              className="absolute inset-0 block touch-none rounded-xl"
-              style={{ width: `${CANVAS_WIDTH}px`, height: `${CANVAS_HEIGHT}px` }}
+              className="absolute inset-0 block touch-none select-none rounded-xl"
+              style={{ width: `${CANVAS_WIDTH}px`, height: `${CANVAS_HEIGHT}px`, WebkitTouchCallout: 'none' }}
               aria-label="Full-screen working canvas"
+              onContextMenu={(event) => event.preventDefault()}
               onPointerDown={beginPointerStroke}
               onPointerMove={movePointerStroke}
               onPointerUp={endPointerStroke}
@@ -918,6 +689,7 @@ export default function FullScreenWorkingMode({
             <div className="pointer-events-none absolute inset-0 z-10 touch-none" aria-label="Math object layer">
               {textDraft && (
                 <input
+                  ref={textInputRef}
                   autoFocus
                   value={textDraft.text}
                   onPointerDown={(event) => event.stopPropagation()}
@@ -964,6 +736,13 @@ export default function FullScreenWorkingMode({
             </div>
           </div>
         </div>
+        </>
+        )}
+        {workingMode === 'column' && (
+          <div className="min-h-0 flex-1 overflow-auto rounded-xl border border-line-soft bg-surface-raised p-3">
+            <ColumnOperationsGrid grid={columnGrid} onChange={(next) => { setColumnGrid(next); setHasObjectEdit(true); }} />
+          </div>
+        )}
       </div>
     </Modal>
   );

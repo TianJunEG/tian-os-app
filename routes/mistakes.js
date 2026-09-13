@@ -74,6 +74,11 @@ function normalizeMistakePayload(raw = {}) {
     confidence: String(raw.confidence || raw.confidenceLevel || raw.reflection || '').trim(),
     ...shapeWorkingFields(raw),
     workedSolution: String(raw.workedSolution || '').trim(),
+    // Keep the structured walkthrough as an array (don't flatten to a string) so
+    // the review can render an ordered list of steps.
+    solutionSteps: Array.isArray(raw.solutionSteps)
+      ? raw.solutionSteps.map((step) => String(step)).filter((step) => step.trim())
+      : [],
     misconceptionTag: String(raw.misconceptionTag || '').trim(),
     occurredAt: raw.timestamp ? new Date(raw.timestamp) : new Date(),
   };
@@ -141,7 +146,9 @@ router.get('/', protect, asyncHandler(async (req, res) => {
       questionStem: m.questionStem || m.questionText,
       studentAnswer: m.studentAnswer, correctAnswer: m.correctAnswer,
       answerCorrect: Boolean(m.answerCorrect),
-      workedSolution: m.workedSolution, mistakeType: m.mistakeType, misconceptionTag: m.misconceptionTag, source: m.source || 'other',
+      workedSolution: m.workedSolution,
+      solutionSteps: Array.isArray(m.solutionSteps) ? m.solutionSteps : [],
+      mistakeType: m.mistakeType, misconceptionTag: m.misconceptionTag, source: m.source || 'other',
       mistakeTypeLabel: MISCONCEPTION_LABELS[m.misconceptionTag] || '',
       confidence: m.confidence || '',
       workingSubmitted: Boolean(m.workingSubmitted),
@@ -150,6 +157,8 @@ router.get('/', protect, asyncHandler(async (req, res) => {
       workingSessionId: m.workingSessionId || '',
       workingImage: m.workingImage || '',
       workingStrokes: Array.isArray(m.workingStrokes) ? m.workingStrokes : [],
+      workingMathObjects: Array.isArray(m.workingMathObjects) ? m.workingMathObjects : [],
+      fullscreenWorkingSubmitted: Boolean(m.fullscreenWorkingSubmitted),
       timeTaken: m.timeTaken,
       ...(await loadWorkingInsightForMistake(m, student._id)),
       ...shapeMistakeLearningFields(m),
@@ -203,6 +212,7 @@ router.post('/bulk', protect, asyncHandler(async (req, res) => {
         module: raw.module || 'MathPath',
         questionStem: normalized.questionStem,
         workedSolution: normalized.workedSolution,
+        solutionSteps: normalized.solutionSteps,
         studentAnswer: normalized.studentAnswer,
         correctAnswer: normalized.correctAnswer,
         confidence: normalized.confidence,
@@ -274,7 +284,9 @@ router.get('/:id', protect, asyncHandler(async (req, res) => {
       questionStem: m.questionStem || m.questionText,
       studentAnswer: m.studentAnswer, correctAnswer: m.correctAnswer,
       answerCorrect: Boolean(m.answerCorrect),
-      workedSolution: m.workedSolution, mistakeType: m.mistakeType, misconceptionTag: m.misconceptionTag, source: m.source || 'other',
+      workedSolution: m.workedSolution,
+      solutionSteps: Array.isArray(m.solutionSteps) ? m.solutionSteps : [],
+      mistakeType: m.mistakeType, misconceptionTag: m.misconceptionTag, source: m.source || 'other',
       mistakeTypeLabel: MISCONCEPTION_LABELS[m.misconceptionTag] || '',
       confidence: m.confidence || '',
       workingSubmitted: Boolean(m.workingSubmitted),
@@ -283,6 +295,8 @@ router.get('/:id', protect, asyncHandler(async (req, res) => {
       workingSessionId: m.workingSessionId || '',
       workingImage: m.workingImage || '',
       workingStrokes: Array.isArray(m.workingStrokes) ? m.workingStrokes : [],
+      workingMathObjects: Array.isArray(m.workingMathObjects) ? m.workingMathObjects : [],
+      fullscreenWorkingSubmitted: Boolean(m.fullscreenWorkingSubmitted),
       timeTaken: m.timeTaken,
       ...(await loadWorkingInsightForMistake(m, m.studentId)),
       ...shapeMistakeLearningFields(m),
@@ -417,6 +431,24 @@ router.patch('/:id/learning', protect, asyncHandler(async (req, res) => {
       error: err.message || 'Failed to update mistake learning evidence.',
       code: err.code,
     });
+  }
+}));
+
+// @route DELETE /api/mistakes/:id
+// @desc  Remove a falsely-logged mistake (system/grading error) so it stops
+//        skewing the review + counts. Hard delete — these records have no
+//        analytical value. Access: the student themselves, or a guardian/tutor/
+//        teacher with write access to that student (via resolveStudent).
+router.delete('/:id', protect, asyncHandler(async (req, res) => {
+  try {
+    const m = await Mistake.findById(req.params.id);
+    if (!m) return res.status(404).json({ error: 'Mistake not found.' });
+    await resolveStudent(req, m.studentId, { write: true });
+    await Mistake.deleteOne({ _id: m._id });
+    console.info('[mistakes] deleted', { mistakeId: String(m._id), studentId: String(m.studentId), by: req.user.id, role: req.user.role });
+    res.json({ success: true, id: String(m._id) });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to remove mistake.' });
   }
 }));
 

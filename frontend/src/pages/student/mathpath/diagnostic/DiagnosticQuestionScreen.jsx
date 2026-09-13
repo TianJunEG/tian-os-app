@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Volume2, X } from 'lucide-react';
+import { speak, setVoiceEnabled } from '../../../../utils/sound';
+import { getMascotVoice } from '../../../../config/mascots';
 import { Card, Button, ProgressBar, Spinner, ErrorState } from '../../../../components/ui';
 import { MathText } from '../../../../components/ui/Fraction';
 import { checkFractionAnswer } from '../../../../mathpath/fractions/fractionQuestionGenerator';
 import { repairFractionQuestions } from '../../../../mathpath/fractions/fractionQuestionRepair';
-import { mathpathAPI } from '../../../../services/api';
+import { mathpathAPI, diagnosticsAPI } from '../../../../services/api';
 import { useAuth } from '../../../../context/AuthContext';
-import { getVisualModeStyles, resolveStudentVisualMode } from '../../../../design-os/studentVisualMode';
+import { getVisualModeStyles, resolveStudentVisualMode, isLowerPrimary as checkIsLowerPrimary } from '../../../../design-os/studentVisualMode';
 import { shouldUseFractionAnswerInput } from '../components/FractionAnswerInput';
 import QuestionDiagram, { DIAGRAM_LOAD_ERROR_MESSAGE, validateQuestionDiagram } from '../components/QuestionDiagram';
 import FractionExpressionQuestion, { extractFractionExpression } from '../components/FractionExpressionQuestion';
@@ -22,11 +24,28 @@ import {
 } from '../../../../components/learning/WorkingEvidenceDecision';
 import SubmissionReviewModal from '../components/SubmissionReviewModal';
 
+// Strip dot-array lines (⬤⬤⬤ + ⬤⬤ = ?) and math noise; keep the numeric line.
+function toSpeakable(text = '') {
+  return text
+    .split('\n')
+    .filter((line) => !/^[\s⬤●○+\-×÷=?]+$/.test(line.trim()))
+    .join(' ')
+    .replace(/[⬤●○]/g, '')
+    .replace(/([+])/g, ' plus ')
+    .replace(/[−–-]/g, ' minus ')
+    .replace(/[×]/g, ' times ')
+    .replace(/[÷]/g, ' divided by ')
+    .replace(/=/g, ' equals ')
+    .replace(/\?/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 const REFLECTION_OPTIONS = [
-  { value: 'i_know_this', label: 'I know this 100%' },
-  { value: 'not_sure', label: "I'm not sure" },
-  { value: 'dont_know', label: "I don't know" },
-  { value: 'i_need_help', label: 'I need help' },
+  { value: 'i_know_this', label: 'I know this!', emoji: '😊' },
+  { value: 'not_sure', label: 'Not sure', emoji: '🤔' },
+  { value: 'dont_know', label: 'Hard', emoji: '😕' },
+  { value: 'i_need_help', label: 'Need help', emoji: '🙋' },
 ];
 const EMPTY_STROKES = [];
 
@@ -49,7 +68,9 @@ export default function DiagnosticQuestionScreen() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const visualStyles = getVisualModeStyles(resolveStudentVisualMode(user || {}));
+  const visualMode = resolveStudentVisualMode(user || {});
+  const visualStyles = getVisualModeStyles(visualMode);
+  const isLowerPrimary = checkIsLowerPrimary(visualMode);
   const [idx, setIdx] = useState(0);
   const [answer, setAnswer] = useState('');
   const [reflection, setReflection] = useState('');
@@ -98,8 +119,19 @@ export default function DiagnosticQuestionScreen() {
     setStartedAt(questionStart);
     setElapsed(0);
     const t = setInterval(() => setElapsed(Math.floor((Date.now() - questionStart) / 1000)), 250);
-    return () => clearInterval(t);
-  }, [idx, questions.length, session]);
+    if (isLowerPrimary) {
+      // Enable voice so auto-narration is audible (speak() is gated by 'pslVoice').
+      setVoiceEnabled(true);
+      const readable = toSpeakable(questions[idx]?.prompt || questions[idx]?.stem || '');
+      if (readable) speak(readable, getMascotVoice('kylo'));
+    }
+    return () => {
+      clearInterval(t);
+      if (isLowerPrimary && typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, [idx, questions.length, session]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (hydrating && (!session || !questions.length)) return <Spinner label="Loading diagnostic…" />;
 
@@ -117,6 +149,13 @@ export default function DiagnosticQuestionScreen() {
   const workingReady = hasWorkingDecision(currentWorking);
   const questionText = q.prompt || q.stem || '';
   const currentQuestionValidation = validateQuestionDiagram(q);
+  // Enables voice before speaking so the Read button is never silent (speak() is
+  // gated by the 'pslVoice' flag). Available to every student, not just lower primary.
+  const speakQuestion = useCallback(() => {
+    setVoiceEnabled(true);
+    const readable = toSpeakable(questionText);
+    if (readable) speak(readable, getMascotVoice('kylo'));
+  }, [questionText]);
 
   const confidenceCalibration = (correct, value) => {
     if (correct && value === 'i_know_this') return 'mastery_signal';
@@ -127,12 +166,16 @@ export default function DiagnosticQuestionScreen() {
     return correct ? 'low_confidence_correct' : 'needs_review';
   };
 
-  const saveCurrentAnd = (skipped) => {
+  const saveCurrentAnd = (skipped, reflectionOverride, answerOverride) => {
+    const effectiveReflection = reflectionOverride ?? reflection;
+    // answerOverride lets a tapped MCQ choice submit its value directly without
+    // waiting on the async `answer` state to settle (avoids a stale-closure bug).
+    const effectiveAnswer = answerOverride ?? answer;
     const timeTaken = Math.max(1, Math.floor((Date.now() - startedAt) / 1000));
     const correctness = skipped
       ? { correct: false }
       : checkFractionAnswer({
-          studentAnswer: answer,
+          studentAnswer: effectiveAnswer,
           correctAnswer: q.answer,
           acceptedAnswers: q.acceptedAnswers || [],
         });
@@ -140,20 +183,20 @@ export default function DiagnosticQuestionScreen() {
       questionId: q.questionId,
       skillId: q.skillId,
       questionFamilyId: q.questionFamilyId,
-      answer: skipped ? '' : answer,
+      answer: skipped ? '' : effectiveAnswer,
       answerCorrect: correctness.correct,
-      studentAnswer: skipped ? '' : answer,
+      studentAnswer: skipped ? '' : effectiveAnswer,
       correct: correctness.correct,
       timeTaken,
       questionStartedAt: new Date(startedAt).toISOString(),
       questionEndedAt: new Date().toISOString(),
       timedOut: false,
-      confidence: reflection,
-      confidenceLevel: reflection,
-      reflection,
+      confidence: effectiveReflection,
+      confidenceLevel: effectiveReflection,
+      reflection: effectiveReflection,
       helpRequested,
-      confidenceCalibration: confidenceCalibration(correctness.correct, reflection),
-      possibleMisconception: !correctness.correct && reflection === 'i_know_this',
+      confidenceCalibration: confidenceCalibration(correctness.correct, effectiveReflection),
+      possibleMisconception: !correctness.correct && effectiveReflection === 'i_know_this',
       workingImage: currentWorking.workingImage || '',
       workingStrokes: currentWorking.workingStrokes || [],
       workingMathObjects: currentWorking.workingMathObjects || [],
@@ -175,10 +218,15 @@ export default function DiagnosticQuestionScreen() {
     return [...responses, next];
   };
 
-  const nextQuestion = async (skipped = false) => {
+  const nextQuestion = async (skipped = false, reflectionOverride, answerOverride) => {
+    const effectiveReflection = reflectionOverride ?? reflection;
+    const effectiveAnswer = answerOverride ?? answer;
     if (busy) return;
-    if (!skipped && (!answer || !reflection || !workingReady)) return;
-    const nextResponses = saveCurrentAnd(skipped);
+    // Check-ins are fast placement: only a non-empty answer is required to
+    // submit. The confidence prompt and the mandatory working declaration were
+    // removed (working stays available via the canvas, just not required).
+    if (!skipped && !String(effectiveAnswer).trim()) return;
+    const nextResponses = saveCurrentAnd(skipped, reflectionOverride, answerOverride);
     setResponses(nextResponses);
     setBusy(true);
     setError('');
@@ -188,7 +236,7 @@ export default function DiagnosticQuestionScreen() {
         questionId: q.questionId,
         questionFamilyId: q.questionFamilyId,
         answer: skipped ? '' : answer,
-        confidence: skipped ? (reflection || 'dont_know') : reflection,
+        confidence: skipped ? (effectiveReflection || 'dont_know') : effectiveReflection,
         timeTakenMs,
         skipped,
         blankAnswer: skipped || !String(answer || '').trim(),
@@ -232,15 +280,36 @@ export default function DiagnosticQuestionScreen() {
     }
   };
 
-  const openSubmissionReview = () => {
-    if (!answer.trim()) return;
-    setReviewModalOpen(true);
+  // Persistent in-page exit. This route renders inside the activity shell, whose
+  // nav is hidden on phones, so without this control a student is trapped. On exit
+  // we ABANDON the session (progress is discarded); the next entry starts fresh.
+  const exitCheckIn = async () => {
+    if (typeof window !== 'undefined' && !window.confirm("Exit the check-in? Your progress won't be saved.")) return;
+    const sessionId = session?.sessionId || diagnosticSessionId;
+    if (sessionId) {
+      try {
+        await diagnosticsAPI.abandonDiagnostic(sessionId);
+      } catch (_) {
+        // Best-effort — still navigate away even if the abandon call fails.
+      }
+    }
+    navigate('/student/mathpath');
   };
 
-  const confirmSubmissionReview = () => {
-    if (!answer.trim() || !reflection || !workingReady || busy) return;
+  const openSubmissionReview = () => {
+    if (!answer.trim() || busy) return;
+    // Confidence check removed from check-ins (kept in practice). Submit
+    // directly with no reflection — '' is treated as "unrated" by
+    // normalizeConfidence so confidence analytics aren't skewed.
+    nextQuestion(false, '');
+  };
+
+  const confirmSubmissionReview = (reflectionOverride) => {
+    const workingReadyForSubmit = isLowerPrimary ? true : workingReady;
+    const effectiveReflection = reflectionOverride ?? reflection;
+    if (!answer.trim() || !effectiveReflection || !workingReadyForSubmit || busy) return;
     setReviewModalOpen(false);
-    nextQuestion(false);
+    nextQuestion(false, reflectionOverride);
   };
 
   return (
@@ -253,7 +322,7 @@ export default function DiagnosticQuestionScreen() {
 
       <Card className={`overflow-hidden p-3 sm:p-4 xl:h-[calc(100vh-18rem)] xl:min-h-[30rem] ${visualStyles.accentCard}`}>
         {!currentQuestionValidation.ok ? (
-          <div className="rounded-2xl border border-gold-200 bg-gold-50 p-5 text-sm text-ink-700">
+          <div className="rounded-2xl border border-gold-tint bg-gold-tint2 p-5 text-sm text-ink-700">
             <p className="font-semibold text-emerald-deep">{DIAGRAM_LOAD_ERROR_MESSAGE}</p>
             <p className="mt-1 text-ink-500">This visual diagnostic question needs a diagram before it can be answered.</p>
             <Button className="mt-4" onClick={() => nextQuestion(true)} disabled={busy}>
@@ -264,10 +333,29 @@ export default function DiagnosticQuestionScreen() {
         <div className="grid h-full min-h-0 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.75fr)]">
           <section className="min-w-0 min-h-0 xl:overflow-y-auto xl:pr-1">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Fractions Diagnostic</p>
-              <QuestionZoomControls value={questionZoom} onChange={setQuestionZoom} />
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{session?.displayName || 'Maths Diagnostic'}</p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  aria-label="Read question aloud"
+                  onClick={speakQuestion}
+                  className="flex min-h-[44px] items-center gap-1.5 rounded-full bg-sky-100 px-3 py-1.5 text-sm font-semibold text-sky-700 hover:bg-sky-200 active:scale-95 transition"
+                >
+                  <Volume2 className="h-4 w-4" aria-hidden="true" />
+                  Read
+                </button>
+                <QuestionZoomControls value={questionZoom} onChange={setQuestionZoom} />
+                <button
+                  type="button"
+                  aria-label="Exit the check-in"
+                  onClick={exitCheckIn}
+                  className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-surface-raised text-ink-500 transition hover:bg-error-100 hover:text-error-700 active:scale-95"
+                >
+                  <X className="h-5 w-5" aria-hidden="true" />
+                </button>
+              </div>
             </div>
-            <p className="mb-3 rounded-lg bg-emerald-tint px-3 py-1.5 text-xs text-emerald-deep">Do not use a calculator for this diagnostic unless your teacher allows it.</p>
+            {!isLowerPrimary && <p className="mb-3 rounded-lg bg-emerald-tint px-3 py-1.5 text-xs text-emerald-deep">Do not use a calculator for this diagnostic unless your teacher allows it.</p>}
             <div className="origin-top-left" style={{ zoom: questionZoom }}>
             <div className="mb-3 text-lg leading-relaxed text-ink-900">
               {expressionQuestion ? (
@@ -287,12 +375,22 @@ export default function DiagnosticQuestionScreen() {
           </section>
 
           <aside className="min-w-0 min-h-0 rounded-xl bg-surface-raised p-2 xl:h-full xl:overflow-y-auto">
-            <div className="rounded-xl bg-white p-2 sm:p-3">
-              <label className="mb-2 block text-sm font-semibold text-ink-700">Your answer</label>
+            <div className="rounded-xl bg-white p-2 sm:p-3" role="group" aria-labelledby="diagnostic-answer-label">
+              <label id="diagnostic-answer-label" className="mb-2 block text-sm font-semibold text-ink-700">Your answer</label>
               {q.type === 'mcq' ? (
-                <div className="grid gap-2">
+                <div className={`grid gap-2 ${isLowerPrimary ? 'grid-cols-2' : ''}`} role="group" aria-label="Choose your answer">
                   {choices.map((c, i) => (
-                    <button key={`${i}-${c}`} onClick={() => setAnswer(c)} className={`rounded-xl border px-3 py-2 text-left ${answer === c ? 'border-emerald bg-emerald-tint' : 'border-line-soft hover:bg-emerald-tint'}`}>
+                    <button
+                      key={`${i}-${c}`}
+                      onClick={() => {
+                        if (isLowerPrimary) speak(toSpeakable(c), { rate: 0.85, gender: 'female' });
+                        setAnswer(c);
+                        // Fast check-in: a tapped MCQ choice submits directly
+                        // after the read-aloud, no confidence modal.
+                        if (isLowerPrimary) setTimeout(() => nextQuestion(false, '', c), 450);
+                      }}
+                      className={`rounded-xl border text-left ${isLowerPrimary ? 'px-4 py-5 text-2xl font-bold text-center' : 'px-3 py-2'} ${answer === c ? 'border-emerald bg-emerald-tint' : 'border-line-soft hover:bg-emerald-tint'}`}
+                    >
                       <MathText text={c} />
                     </button>
                   ))}
@@ -314,27 +412,38 @@ export default function DiagnosticQuestionScreen() {
               )}
             </div>
 
-            <div className="mt-2 rounded-xl border border-line-soft bg-white p-2">
-              <WorkingPreviewCard
-                workingImage={currentWorking.workingImage || ''}
-                workingSubmitted={Boolean(currentWorking.workingSubmitted)}
-                onOpen={() => setFullscreenQuestionId(q.questionId)}
-                onRemove={currentWorking.workingSubmitted ? () => setWorkingByQuestion((prev) => {
-                  const next = { ...prev };
-                  delete next[q.questionId];
-                  return next;
-                }) : null}
-              />
-            </div>
+            {!isLowerPrimary && (
+              <div className="mt-2 rounded-xl border border-line-soft bg-white p-2">
+                <WorkingPreviewCard
+                  workingImage={currentWorking.workingImage || ''}
+                  workingSubmitted={Boolean(currentWorking.workingSubmitted)}
+                  onOpen={() => setFullscreenQuestionId(q.questionId)}
+                  onRemove={currentWorking.workingSubmitted ? () => setWorkingByQuestion((prev) => {
+                    const next = { ...prev };
+                    delete next[q.questionId];
+                    return next;
+                  }) : null}
+                />
+              </div>
+            )}
 
             {error && <p className="mt-2 text-sm text-error-700">{error}</p>}
 
-            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-              <Button variant="secondary" onClick={() => nextQuestion(true)}>Skip</Button>
-              <Button icon={ArrowRight} disabled={busy || !answer.trim()} onClick={openSubmissionReview}>
-                {busy ? 'Checking…' : 'Next Question'}
-              </Button>
-            </div>
+            {!isLowerPrimary && (
+              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <Button variant="secondary" onClick={() => nextQuestion(true)}>Skip</Button>
+                <Button icon={ArrowRight} disabled={busy || !answer.trim()} onClick={openSubmissionReview}>
+                  {busy ? 'Checking…' : 'Next Question'}
+                </Button>
+              </div>
+            )}
+            {isLowerPrimary && q.type !== 'mcq' && (
+              <div className="mt-3">
+                <Button icon={ArrowRight} className="w-full py-4 text-lg font-bold" disabled={busy || !answer.trim()} onClick={openSubmissionReview}>
+                  {busy ? 'Checking…' : <>Next <span aria-hidden="true">➜</span></>}
+                </Button>
+              </div>
+            )}
           </aside>
         </div>
         )}
@@ -381,10 +490,12 @@ export default function DiagnosticQuestionScreen() {
       />
       <SubmissionReviewModal
         open={reviewModalOpen}
-        title="Review your response"
+        title={isLowerPrimary ? 'How did that feel?' : 'Review your response'}
+        isLowerPrimary={isLowerPrimary}
         reflection={reflection}
         reflectionOptions={REFLECTION_OPTIONS}
         onReflectionChange={setReflection}
+        onSelectAndConfirm={(value) => { setReflection(value); confirmSubmissionReview(value); }}
         working={currentWorking}
         workingRequirementLevel={workingRequirementLevel}
         onDeclareNotNeeded={(checked) => setWorkingByQuestion((prev) => ({
@@ -429,7 +540,7 @@ export default function DiagnosticQuestionScreen() {
         }))}
         onOpenWorking={() => setFullscreenQuestionId(q.questionId)}
         confirmLabel="Next Question"
-        onConfirm={confirmSubmissionReview}
+        onConfirm={() => confirmSubmissionReview()}
         onClose={() => setReviewModalOpen(false)}
         busy={busy}
         canSubmit={() => Boolean(answer.trim() && reflection && workingReady)}

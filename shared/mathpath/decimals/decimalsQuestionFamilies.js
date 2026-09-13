@@ -88,9 +88,33 @@ const familiesBySkillBlueprint = {
   ],
 };
 
-const families = Object.entries(familiesBySkillBlueprint).flatMap(([skillId, configs]) =>
-  configs.map((config, index) => buildFamily(skillId, index + 1, config))
-);
+// Word-problem families: real-world context variants, one per skill.
+const wordProblemBlueprint = {
+  D001: [{ name: 'Place Value — Real-World Reading', description: 'Identify the digit in a given place from a price tag, weight, or length context.', difficulty: 3, generatorKind: 'decimalPlaceValueWord', fluencyTargetSeconds: 20, misconceptionTags: ['dec/place-confuse'] }],
+  D002: [{ name: 'Number Line — Distance / Temperature Context', description: 'Read a marked decimal value from a number line in a real-world measurement context.', difficulty: 3, generatorKind: 'decimalNumberLine', fluencyTargetSeconds: 24, misconceptionTags: ['dec/nl-interval'] }],
+  D003: [{ name: 'Compare Decimals — Which Holds More?', description: 'Choose the larger quantity from a volume, mass, or length word context.', difficulty: 3, generatorKind: 'decimalCompareWord', fluencyTargetSeconds: 12, workingRequired: false, mentalMathEligible: true, misconceptionTags: ['dec/longer-decimal'] }],
+  D004: [{ name: 'Order Decimals — Rank Scores / Distances', description: 'Arrange decimals in order within a ranking or measurement scenario.', difficulty: 4, generatorKind: 'decimalOrderWord', fluencyTargetSeconds: 22, misconceptionTags: ['dec/align-right'] }],
+  D005: [{ name: 'Round a Measurement', description: 'Round a weight, length, or capacity to 1 decimal place in a practical context.', difficulty: 4, generatorKind: 'decimalRoundWord', fluencyTargetSeconds: 14, misconceptionTags: ['dec/truncate'] }],
+  D006: [{ name: 'Add / Subtract Decimals — Word Problem', description: 'Compute a total cost, total length, or remaining amount in a real-world scenario.', difficulty: 4, generatorKind: 'decimalAddSubWord', fluencyTargetSeconds: 25, misconceptionTags: ['dec/add-misalign'] }],
+  D007: [{ name: 'Scale by Power of Ten — Word Problem', description: 'Scale a recipe quantity or split a tank volume by multiplying or dividing by a power of ten.', difficulty: 4, generatorKind: 'decimalScaleWord', fluencyTargetSeconds: 15, misconceptionTags: ['dec/move-wrong-way'] }],
+  D008: [{ name: 'Decimal × Whole — Applied Context', description: 'Multiply a decimal by a whole number to find total cost, weight, or volume.', difficulty: 5, generatorKind: 'decimalMultWholeWord', fluencyTargetSeconds: 30, misconceptionTags: ['dec/lost-point'] }],
+  D009: [{ name: 'Decimal × Decimal — Area Problem', description: 'Find the area of a rectangle with decimal side lengths.', difficulty: 5, generatorKind: 'decimalMultDecimalWord', fluencyTargetSeconds: 35, misconceptionTags: ['dec/wrong-place-count'] }],
+  D010: [{ name: 'Decimal ÷ Whole — Sharing / Cutting', description: 'Divide a decimal length or amount equally among a whole number of parts.', difficulty: 5, generatorKind: 'decimalDivWholeWord', fluencyTargetSeconds: 30, misconceptionTags: ['dec/quotient-point'] }],
+  D011: [{ name: 'Decimal ÷ Decimal — Pieces from a Length', description: 'Find how many pieces of a given decimal length can be cut from a total decimal length.', difficulty: 5, generatorKind: 'decimalDivDecimalWord', fluencyTargetSeconds: 40, misconceptionTags: ['dec/no-scale-divisor'] }],
+  D012: [{ name: 'Decimal → Fraction — Real Context', description: 'Express a test score or recipe proportion as a simplified fraction.', difficulty: 5, generatorKind: 'decimalToFractionWord', fluencyTargetSeconds: 26, misconceptionTags: ['dec/wrong-denominator'] }],
+  D013: [{ name: 'Fraction → Decimal — Test Score Context', description: 'Write a test or quiz score as a decimal.', difficulty: 5, generatorKind: 'fractionToDecimalWord', fluencyTargetSeconds: 26, misconceptionTags: ['dec/divide-reversed'] }],
+  D014: [{ name: 'Measure Convert — Two-Step Word Problem', description: 'Add two decimal distances or masses then convert the total to a smaller unit.', difficulty: 5, generatorKind: 'decimalMeasureConvertWord', fluencyTargetSeconds: 35, misconceptionTags: ['dec/convert-direction'] }],
+};
+
+const families = [
+  ...Object.entries(familiesBySkillBlueprint).flatMap(([skillId, configs]) =>
+    configs.map((config, index) => buildFamily(skillId, index + 1, config))
+  ),
+  ...Object.entries(wordProblemBlueprint).flatMap(([skillId, configs]) => {
+    const baseCount = (familiesBySkillBlueprint[skillId] || []).length;
+    return configs.map((config, index) => buildFamily(skillId, baseCount + index + 1, config));
+  }),
+];
 
 const familyById = new Map(families.map((family) => [family.id, family]));
 

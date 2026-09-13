@@ -5,7 +5,7 @@
 // MVP scope: Math is the core. English = Spelling only (no Reading/Comprehension/
 // Writing/Cloze — ever). See docs/tian-os-master-product-spec.md §2.
 import {
-  Calculator, Timer, Wrench, FileText, Network, SpellCheck, FlaskConical, Sprout, Cog,
+  Calculator, Timer, Wrench, FileText, Network, SpellCheck, FlaskConical, Sprout, Cog, BookOpen,
 } from 'lucide-react';
 import { FEATURE_FLAGS } from './featureFlags';
 
@@ -39,6 +39,14 @@ const ALL_MODULES = [
     purpose: 'Spelling fluency and retention. English · Spelling.', status: 'live',
   },
   {
+    key: 'englishpath', name: 'Vocabulary Builder', icon: BookOpen, path: '/student/english/vocab',
+    purpose: 'Learn the words the P6 paper tests, step by step. English · Vocabulary.', status: 'live',
+  },
+  {
+    key: 'englishpath_cloze', name: 'Comprehension Cloze', icon: FileText, path: '/student/english/cloze',
+    purpose: 'Fill-in-the-blank passages, graded by skill. English · Comprehension.', status: 'live',
+  },
+  {
     key: 'science', name: 'Science Adaptive Revision', icon: FlaskConical, path: '/student/science',
     purpose: 'Open-ended science mastery and revision.', status: 'soon',
   },
@@ -62,8 +70,10 @@ export const MODULES = ALL_MODULES.filter((m) => {
     case 'fluency': return FEATURE_FLAGS.fluency;
     case 'mistakes': return FEATURE_FLAGS.mistakes;
     case 'progress': return FEATURE_FLAGS.progress;
-    case 'worksheets': return FEATURE_FLAGS.worksheets || FEATURE_FLAGS.worksheetsComingSoon;
+    case 'worksheets': return FEATURE_FLAGS.worksheets;
     case 'spelling': return FEATURE_FLAGS.spelling;
+    case 'englishpath': return FEATURE_FLAGS.englishpath;
+    case 'englishpath_cloze': return FEATURE_FLAGS.englishpath;
     case 'science': return FEATURE_FLAGS.science;
     case 'lifelab': return FEATURE_FLAGS.lifelab;
     case 'mechanisms': return FEATURE_FLAGS.mechanisms;

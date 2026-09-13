@@ -444,8 +444,8 @@ function ensureNotAlreadySorted(shown = [], sorted = []) {
   return shown.length > 1 ? [shown[1], ...shown.slice(2), shown[0]] : shown;
 }
 
-function templateContext(skillId, questionFamilyId, difficulty = 2, mode = 'practice', variant = 0) {
-  const seed = hash(`${skillId}|${questionFamilyId}|${difficulty}|${mode}|${variant}`);
+function templateContext(skillId, questionFamilyId, difficulty = 2, mode = 'practice', variant = 0, sessionSalt = '') {
+  const seed = hash(`${skillId}|${questionFamilyId}|${difficulty}|${mode}|${variant}|${sessionSalt}`);
   return { seed, difficulty, mode, variant, questionFamilyId };
 }
 
@@ -521,6 +521,7 @@ function normalizeVisualType(value = '') {
   const raw = String(value || '').trim().toLowerCase();
   const aliases = {
     fraction_bar: 'fraction_strip',
+    fraction_bar_pair: 'fraction_strip',
     fraction_model: 'shaded_fraction_model',
     shaded_shape: 'shaded_fraction_model',
     shaded_grid: 'shaded_fraction_model',
@@ -670,20 +671,37 @@ function templateForSkill(skillId, variant, ctx) {
     case 'F001': {
       const d = seq(s, 2, 8);
       const shaded = variant === 0 ? 1 : seq(s, 1, d - 1);
-      const F001_PROMPTS = [
-        'What fraction of the shape is shaded?',
+      // Rotate through bar → circle → triangle for visual variety.
+      // Circles and triangles cap at 8 and 6 parts respectively for clarity.
+      const shapeChoice = Math.abs(s + variant) % 3;
+      const useCircle = shapeChoice === 1 && d <= 8;
+      // Only use triangle for d=4 or d=9 — those divide cleanly into equal sub-triangles (n²).
+      const useTriangle = shapeChoice === 2 && (d === 4 || d === 9);
+      const shapeType = useCircle ? 'fraction_circle' : useTriangle ? 'fraction_triangle' : 'fraction_bar';
+      const F001_BAR_PROMPTS = [
         'Look at the bar model below. What fraction is shaded?',
         'The bar is divided into equal parts. What fraction of the bar has been shaded?',
         `The bar below has ${d} equal parts. Some parts are shaded. Write the fraction that is shaded.`,
       ];
+      const F001_CIRCLE_PROMPTS = [
+        'What fraction of the circle is shaded?',
+        'The circle is divided into equal parts. What fraction has been shaded?',
+        `Look at the circle below. ${shaded} out of ${d} equal parts are shaded. Write the fraction.`,
+      ];
+      const F001_TRIANGLE_PROMPTS = [
+        'What fraction of the triangle is shaded?',
+        'The triangle is divided into equal sections. What fraction has been shaded?',
+        `Look at the triangle below. ${shaded} out of ${d} equal parts are shaded. Write the fraction.`,
+      ];
+      const promptList = useCircle ? F001_CIRCLE_PROMPTS : useTriangle ? F001_TRIANGLE_PROMPTS : F001_BAR_PROMPTS;
       return {
-        prompt: F001_PROMPTS[Math.abs(s + variant) % F001_PROMPTS.length],
+        prompt: promptList[Math.abs(s + variant) % promptList.length],
         answer: answerPayloadFraction(shaded, d),
         acceptedAnswers: [fracStr({ numerator: shaded, denominator: d })],
         diagramSpec: {
-          type: 'fraction_bar',
+          type: shapeType,
           width: 640,
-          height: 180,
+          height: 200,
           data: { parts: d, shaded, labelMode: 'none' },
         },
         solutionSteps: ['Count shaded parts.', 'Count total equal parts.', `Write fraction as ${shaded}/${d}.`],
@@ -720,6 +738,14 @@ function templateForSkill(skillId, variant, ctx) {
         prompt: `A set has ${total} objects. ${n}/${d} of them are selected. How many are selected?`,
         answer: answerPayloadWhole(shaded),
         acceptedAnswers: [String(shaded)],
+        diagramSpec: {
+          // Bar model: the whole set split into d equal parts, n shaded — the
+          // standard scaffold for "n/d of a quantity".
+          type: 'fraction_bar',
+          width: 640,
+          height: 180,
+          data: { parts: d, shaded: n, labelMode: 'none' },
+        },
         solutionSteps: [`Find 1/${d} of ${total}: ${total}/${d} = ${unit}.`, `Multiply by ${n}: ${shaded}.`],
       };
     }
@@ -764,10 +790,19 @@ function templateForSkill(skillId, variant, ctx) {
       const a = seq(s, 2, 9);
       const b = distinctSeq(s + 5, 2, 9, a);
       const relation = a < b ? '>' : '<';
+      // Also accept the greater fraction as a valid answer — a student who reads
+      // the question as "which is greater?" and writes the larger value is right.
+      const greaterFrac = a < b ? `1/${a}` : `1/${b}`;
       return {
-        prompt: `Which is greater: 1/${a} or 1/${b}?`,
+        prompt: `Write > or < to compare: 1/${a} and 1/${b}`,
         answer: { type: 'text', value: relation, display: relation },
-        acceptedAnswers: [relation],
+        acceptedAnswers: [relation, greaterFrac],
+        diagramSpec: {
+          type: 'fraction_bar_pair',
+          width: 640,
+          height: 260,
+          data: { bars: [{ parts: a, shaded: 1, label: `1/${a}` }, { parts: b, shaded: 1, label: `1/${b}` }] },
+        },
         solutionSteps: ['For unit fractions, smaller denominator means larger value.', `So the sign is "${relation}".`],
       };
     }
@@ -776,10 +811,17 @@ function templateForSkill(skillId, variant, ctx) {
       const a = seq(s + 1, 1, d - 1);
       const b = distinctSeq(s + 4, 1, d - 1, a);
       const greater = a > b ? '>' : '<';
+      const greaterFrac = a > b ? `${a}/${d}` : `${b}/${d}`;
       return {
-        prompt: `Which is greater: ${a}/${d} or ${b}/${d}?`,
+        prompt: `Write > or < to compare: ${a}/${d} and ${b}/${d}`,
         answer: { type: 'text', value: greater, display: greater },
-        acceptedAnswers: [greater],
+        acceptedAnswers: [greater, greaterFrac],
+        diagramSpec: {
+          type: 'fraction_bar_pair',
+          width: 640,
+          height: 260,
+          data: { bars: [{ parts: d, shaded: a, label: `${a}/${d}` }, { parts: d, shaded: b, label: `${b}/${d}` }] },
+        },
         solutionSteps: ['Denominators are equal.', 'Compare numerators directly.', `The symbol is "${greater}".`],
       };
     }
@@ -806,12 +848,22 @@ function templateForSkill(skillId, variant, ctx) {
             solutionSteps: steps,
           };
         }
-        // Visual: show one fraction as a bar model, compare with a symbolic fraction
+        // Visual: show both fractions as bar models so the student can compare directly
         return {
-          prompt: `The bar model shows ${n}/${barFrac}. Which is greater: the shaded fraction or ${n}/${symFrac}?`,
+          prompt: `These bar models show ${n}/${barFrac} and ${n}/${symFrac}. Which fraction is greater?`,
           answer: { type: 'text', value: answer, display: answer },
           acceptedAnswers: [answer],
-          diagramSpec: { type: 'fraction_bar', width: 640, height: 180, data: { parts: barFrac, shaded: n, labelMode: 'none' } },
+          diagramSpec: {
+            type: 'fraction_bar_pair',
+            width: 640,
+            height: 260,
+            data: {
+              bars: [
+                { parts: barFrac, shaded: n, label: `${n}/${barFrac}` },
+                { parts: symFrac, shaded: n, label: `${n}/${symFrac}` },
+              ],
+            },
+          },
           solutionSteps: steps,
         };
       }
@@ -819,10 +871,19 @@ function templateForSkill(skillId, variant, ctx) {
       const a = seq(s + 2, n + 1, 12);
       const b = distinctSeq(s + 5, n + 1, 12, a);
       const greater = a < b ? '>' : '<';
+      // Same-numerator: smaller denominator means larger fraction, so the
+      // greater fraction is n/min(a,b). Also accept it as a valid answer.
+      const greaterFrac = a < b ? `${n}/${a}` : `${n}/${b}`;
       return {
-        prompt: `Which is greater: ${n}/${a} or ${n}/${b}?`,
+        prompt: `Write > or < to compare: ${n}/${a} and ${n}/${b}`,
         answer: { type: 'text', value: greater, display: greater },
-        acceptedAnswers: [greater],
+        acceptedAnswers: [greater, greaterFrac],
+        diagramSpec: {
+          type: 'fraction_bar_pair',
+          width: 640,
+          height: 260,
+          data: { bars: [{ parts: a, shaded: n, label: `${n}/${a}` }, { parts: b, shaded: n, label: `${n}/${b}` }] },
+        },
         solutionSteps: ['Numerators are equal.', 'Smaller denominator gives larger fraction.', `The symbol is "${greater}".`],
       };
     }
@@ -842,6 +903,14 @@ function templateForSkill(skillId, variant, ctx) {
         prompt: `Order these fractions from smallest to largest: ${shown.map(fracStr).join(', ')}.`,
         answer: { type: 'list', value: arr, display: arr.join(', ') },
         acceptedAnswers: [arr.join(','), arr.join(', ')],
+        diagramSpec: {
+          // Aligned bars (in the order shown) so magnitudes are comparable by length
+          // — the standard scaffold for ordering fractions. fractionBarPair renders N bars.
+          type: 'fraction_bar_pair',
+          width: 640,
+          height: 30 + shown.length * 110 + 20,
+          data: { bars: shown.map((f) => ({ parts: f.denominator, shaded: f.numerator, label: fracStr(f) })) },
+        },
         solutionSteps: ['Convert to comparable values (or common denominator).', `Order: ${arr.join(', ')}.`],
       };
     }
@@ -856,8 +925,10 @@ function templateForSkill(skillId, variant, ctx) {
         const simp = simplifyFraction(shaded, total);
         return {
           prompt: `The bar model shows a fraction. Write the fraction in its simplest form.`,
-          answer: answerPayloadFraction(simp.numerator, simp.denominator),
-          acceptedAnswers: [fracStr(simp), `${shaded}/${total}`],
+          answer: { ...answerPayloadFraction(simp.numerator, simp.denominator), requireSimplest: true },
+          // Only the simplified form is accepted — the prompt explicitly asks for
+          // simplest form, so the raw `${shaded}/${total}` must NOT be whitelisted.
+          acceptedAnswers: [fracStr(simp)],
           diagramSpec: { type: 'fraction_bar', width: 640, height: 180, data: { parts: total, shaded, labelMode: 'none' } },
           solutionSteps: [
             `The model shows ${shaded} out of ${total} parts shaded: ${shaded}/${total}.`,
@@ -882,7 +953,7 @@ function templateForSkill(skillId, variant, ctx) {
         const b = seq(s + 4, 1, d - 1);
         const relation = a === b ? '=' : (a > b ? '>' : '<');
         return {
-          prompt: `Fill in the correct symbol: ${a}/${d} __ ${b}/${d}`,
+          prompt: `Write >, < or = to compare: ${a}/${d} and ${b}/${d}`,
           answer: { type: 'text', value: relation, display: relation },
           acceptedAnswers: [relation],
           solutionSteps: ['Denominators are the same, so compare numerators.', `Since ${a} ${relation} ${b}, the symbol is "${relation}".`],
@@ -894,7 +965,7 @@ function templateForSkill(skillId, variant, ctx) {
         const b = seq(s + 6, 1, d - 1);
         const greater = a > b ? '>' : (a < b ? '<' : '=');
         return {
-          prompt: `A model shows ${a}/${d} and ${b}/${d}. Which fraction is greater (or equal if same)?`,
+          prompt: `A model shows ${a}/${d} and ${b}/${d}. Write >, < or = to compare.`,
           answer: { type: 'text', value: greater, display: greater },
           acceptedAnswers: [greater],
           solutionSteps: ['Both fractions have equal-sized parts.', 'Compare the number of parts shaded.', `Answer: ${greater}.`],
@@ -937,7 +1008,7 @@ function templateForSkill(skillId, variant, ctx) {
         const b = seq(s + 7, n + 1, 12);
         const relation = a === b ? '=' : (a < b ? '>' : '<');
         return {
-          prompt: `Fill in the correct symbol: ${n}/${a} __ ${n}/${b}`,
+          prompt: `Write >, < or = to compare: ${n}/${a} and ${n}/${b}`,
           answer: { type: 'text', value: relation, display: relation },
           acceptedAnswers: [relation],
           solutionSteps: ['Numerators are equal.', 'Smaller denominator means larger fraction.', `So the symbol is "${relation}".`],
@@ -972,7 +1043,7 @@ function templateForSkill(skillId, variant, ctx) {
       const simp = simplifyFraction(n, d);
       return {
         prompt: `Simplify ${n}/${d} to lowest terms.`,
-        answer: answerPayloadFraction(simp.numerator, simp.denominator),
+        answer: { ...answerPayloadFraction(simp.numerator, simp.denominator), requireSimplest: true },
         acceptedAnswers: [fracStr(simp)],
         solutionSteps: ['Find the greatest common factor.', `Divide numerator and denominator by ${gcd(n, d)}.`],
       };
@@ -1047,7 +1118,7 @@ function templateForSkill(skillId, variant, ctx) {
         const b = seq(s + 5, -(d - 1), -1);
         const greater = a > 0 && b < 0 ? '>' : '<';
         return {
-          prompt: `Which is greater: ${a}/${d} or ${b}/${d}?`,
+          prompt: `Write > or < to compare: ${a}/${d} and ${b}/${d}`,
           answer: { type: 'text', value: greater, display: greater },
           acceptedAnswers: [greater],
           solutionSteps: ['Positive fractions are always greater than negative fractions.', `${a}/${d} is positive and ${b}/${d} is negative, so the answer is "${greater}".`],
@@ -1112,7 +1183,7 @@ function templateForSkill(skillId, variant, ctx) {
         const n2 = seq(s + 9, 1, d - 1);
         const cmp = w1 !== w2 ? (w1 > w2 ? '>' : '<') : (n1 === n2 ? '=' : (n1 > n2 ? '>' : '<'));
         return {
-          prompt: `Compare: ${w1} ${n1}/${d} __ ${w2} ${n2}/${d}. Fill in >, < or =.`,
+          prompt: `Write >, < or = to compare: ${w1} ${n1}/${d} and ${w2} ${n2}/${d}`,
           answer: { type: 'text', value: cmp, display: cmp },
           acceptedAnswers: [cmp],
           solutionSteps: [
@@ -1203,13 +1274,23 @@ function templateForSkill(skillId, variant, ctx) {
         const d = seq(s, 2, 6); const w = seq(s + 2, 1, 3); const n = seq(s + 5, 1, d - 1);
         const impA = w * d + n;
         const impB = seq(s + 8, d + 1, d * 3);
-        const cmp = impA === impB ? '=' : (impA > impB ? '>' : '<');
         const mixedA = toMixed({ numerator: impA, denominator: d });
+        const mixedAStr = mixedStr(mixedA);
+        const impBStr = `${impB}/${d}`;
+        // Stem asks "Which is greater?" — the answer must be the GREATER value
+        // (matching the F008_003 convention). The earlier answer was the
+        // comparison symbol (<, >, =), which mismatched the stem entirely.
+        const greaterDisplay = impA === impB ? mixedAStr : (impA > impB ? mixedAStr : impBStr);
+        const cmp = impA === impB ? '=' : (impA > impB ? '>' : '<');
+        // Accept either the greater value OR the comparison symbol (lenient).
+        const accepted = impA === impB
+          ? ['=', mixedAStr, impBStr]
+          : [greaterDisplay, cmp];
         return {
-          prompt: `Which is greater: ${mixedStr(mixedA)} or ${impB}/${d}?`,
-          answer: { type: 'text', value: cmp, display: cmp },
-          acceptedAnswers: [cmp],
-          solutionSteps: [`Convert ${mixedStr(mixedA)} to improper: ${impA}/${d}.`, `Compare ${impA}/${d} and ${impB}/${d}.`, `The answer is "${cmp}".`],
+          prompt: `Which is greater: ${mixedAStr} or ${impBStr}?`,
+          answer: { type: 'text', value: greaterDisplay, display: greaterDisplay },
+          acceptedAnswers: accepted,
+          solutionSteps: [`Convert ${mixedAStr} to improper: ${impA}/${d}.`, `Compare ${impA}/${d} and ${impB}/${d}.`, `The greater value is ${greaterDisplay}.`],
         };
       }
       if (familyId.endsWith('_005')) {
@@ -1616,12 +1697,13 @@ export function generateFractionQuestion(options = {}) {
     difficulty = 2,
     mode = 'practice',
     variant = 0,
+    sessionSalt = '',
   } = options;
   if (!getSkill(skillId)) throw new Error(`Invalid skillId: ${skillId}`);
   const family = getQuestionFamily(questionFamilyId);
   if (!family) throw new Error(`Invalid questionFamilyId: ${questionFamilyId}`);
 
-  const ctx = templateContext(skillId, questionFamilyId, difficulty, mode, variant);
+  const ctx = templateContext(skillId, questionFamilyId, difficulty, mode, variant, sessionSalt);
   const payload = templateForSkill(skillId, variant % 3, ctx);
   const workingRequired = shouldRequireWorkingForGeneratedQuestion(skillId, mode, family);
 
@@ -1648,18 +1730,31 @@ export function generateFractionQuestionSet(options = {}) {
     count = 5,
     mode = 'practice',
     difficulty = 2,
+    sessionSalt = '',
   } = options;
   const ids = questionFamilyIds.length ? questionFamilyIds : getQuestionFamiliesBySkill(skillId).map((f) => f.id);
   if (!ids.length) return [];
-  return Array.from({ length: count }).map((_, i) =>
-    generateFractionQuestion({
+  const seenPrompts = new Set();
+  const out = [];
+  let attempt = 0;
+  const maxAttempts = count * 5;
+  while (out.length < count && attempt < maxAttempts) {
+    const q = generateFractionQuestion({
       skillId,
-      questionFamilyId: ids[i % ids.length],
+      questionFamilyId: ids[attempt % ids.length],
       difficulty,
       mode,
-      variant: i,
-    })
-  );
+      variant: attempt,
+      sessionSalt,
+    });
+    const dedupKey = q.prompt + '|||' + (q.answer?.display ?? q.answer);
+    if (!seenPrompts.has(dedupKey) || attempt >= count * 3) {
+      seenPrompts.add(dedupKey);
+      out.push(q);
+    }
+    attempt++;
+  }
+  return out;
 }
 
 export function generateDiagnosticQuestionSet(options = {}) {
@@ -1684,7 +1779,8 @@ export function generateDiagnosticQuestionSet(options = {}) {
 }
 
 export function generatePracticeQuestionSet(options = {}) {
-  const { practiceQueue = [], count = 8 } = options;
+  const { practiceQueue = [], count = 8, difficulty = 2 } = options;
+  const getDifficulty = (i) => (Array.isArray(difficulty) ? (difficulty[i] ?? difficulty[difficulty.length - 1] ?? 2) : difficulty);
   if (!practiceQueue.length) return [];
   const out = [];
   const seenSignatures = new Set();
@@ -1712,7 +1808,7 @@ export function generatePracticeQuestionSet(options = {}) {
         candidate = generateFractionQuestion({
           skillId: row.skillId,
           questionFamilyId: familyId,
-          difficulty: 2,
+          difficulty: getDifficulty(i),
           mode: 'practice',
           variant: variantSeed,
         });
@@ -1729,10 +1825,17 @@ export function generatePracticeQuestionSet(options = {}) {
       }
     }
 
-    // If every attempt collided (very small operand space), keep the last generated
-    // question so the session still has its full length rather than dropping items.
-    const selected = chosen || fallback;
-    if (selected) out.push(selected);
+    // Unique question found → push. Fallback (all variants collided) → only push
+    // if its signature hasn't been seen; a duplicate is worse than a shorter session.
+    if (chosen) {
+      out.push(chosen);
+    } else if (fallback) {
+      const sig = renderedQuestionSignature(fallback);
+      if (!seenSignatures.has(sig)) {
+        seenSignatures.add(sig);
+        out.push(fallback);
+      }
+    }
   }
   return out;
 }
@@ -1853,6 +1956,13 @@ export function checkFractionAnswer(options = {}) {
         correct = Boolean(normalizedStudent && normalizedCorrect && normalizedStudent === normalizedCorrect);
       }
     }
+  }
+  // "Simplest form / lowest terms" questions must reject a correct-but-unreduced
+  // fraction (e.g. 6/8 for 3/4). parseAnswer() reduces the input before the
+  // equivalence check above, so the raw student terms are re-checked here.
+  if (correct && correctAnswer && correctAnswer.requireSimplest) {
+    const m = String(studentAnswer ?? '').trim().match(/^(-?\d+)\s*\/\s*(-?\d+)$/);
+    if (m && gcd(Math.abs(Number(m[1])), Math.abs(Number(m[2]))) > 1) correct = false;
   }
   return {
     correct,

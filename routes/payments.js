@@ -10,6 +10,7 @@ import TutorProfile from '../models/TutorProfile.js';
 import { protect, authorize } from '../middleware/auth.js';
 import { sendPaymentConfirmationEmail } from '../utils/emailService.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
+import { upsertSubscription } from '../services/billing/featureAccessService.js';
 
 const router = express.Router();
 
@@ -370,6 +371,21 @@ router.post('/webhook', express.raw({ type: 'application/json' }), asyncHandler(
               });
             }
           }
+        }
+        // Premium Home PayNow: activate the parent subscription immediately.
+        if (paymentIntent.metadata?.planType && paymentIntent.metadata?.userId) {
+          await upsertSubscription({
+            ownerType: 'user',
+            ownerId: paymentIntent.metadata.userId,
+            planType: paymentIntent.metadata.planType,
+            status: 'active',
+          });
+          const now = new Date();
+          const YEAR_MS = 365 * 24 * 60 * 60 * 1000;
+          await Subscription.updateOne(
+            { ownerType: 'user', ownerId: paymentIntent.metadata.userId },
+            { $set: { currentPeriodStart: now, currentPeriodEnd: new Date(now.getTime() + YEAR_MS) } }
+          );
         }
         break;
 

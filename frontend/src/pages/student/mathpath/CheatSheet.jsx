@@ -1,8 +1,9 @@
 import React, { useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Download, Loader2 } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { getMascot } from '../../../config/mascots';
+import { BackLink } from '../../../components/ui';
 
 import sgP1Numbers from '../../../config/cheatsheets/sg-p1-numbers';
 import sgP1AddSub from '../../../config/cheatsheets/sg-p1-add-sub';
@@ -120,9 +121,7 @@ export default function CheatSheet() {
   return (
     <div className="mx-auto max-w-3xl pb-12">
       <div className="mb-4 flex items-center justify-between">
-        <button onClick={() => navigate(-1)} className="inline-flex items-center gap-1 text-sm font-semibold text-ink-500 hover:text-emerald-deep">
-          <ArrowLeft className="h-4 w-4" /> Back
-        </button>
+        <BackLink onClick={() => navigate(-1)}>Back</BackLink>
         <button
           onClick={handleDownloadPDF}
           disabled={exporting}

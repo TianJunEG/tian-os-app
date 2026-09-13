@@ -5,7 +5,7 @@ export default function CheckPanel({ answer, selected, onSelect, onGoBack }) {
   return (
     <div className="space-y-3">
       <p className="text-sm font-medium text-ink-600">
-        You got <span className="font-mono font-bold text-gold-600">{answer ?? '?'}</span>. Does this answer make sense?
+        You got <span className="font-mono font-bold text-gold-deep">{answer ?? '?'}</span>. Does this answer make sense?
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
         <button

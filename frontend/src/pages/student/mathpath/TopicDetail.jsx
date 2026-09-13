@@ -58,6 +58,34 @@ function findCheatSheet(topicName, moeLevel) {
 }
 import { Card, Button, StatusBadge, ProgressBar, PageHeader, Spinner, EmptyState } from '../../../components/ui';
 
+// Derive a level label from the skills in a topic.
+// Single level → "Primary 4".
+// Same-type range  → "Primary 1–6".
+// Mixed types      → "Primary 4–6, Secondary 1"  (Primary always before Secondary).
+// Falls back to the topic-level moeLevel for topics with no skill-level data.
+const TYPE_ORDER = { primary: 0, secondary: 1 };
+function levelLabel(skills = [], fallback = '') {
+  const raw = [...new Set(skills.map((s) => s.moeLevel).filter(Boolean))];
+  if (!raw.length) return fallback;
+  if (raw.length === 1) return raw[0];
+  const parsed = raw.map((l) => {
+    const m = l.match(/^(Primary|Secondary)\s+(\d+)$/i);
+    return m ? { type: m[1], key: m[1].toLowerCase(), num: parseInt(m[2], 10) } : null;
+  }).filter(Boolean).sort((a, b) => {
+    const td = (TYPE_ORDER[a.key] ?? 9) - (TYPE_ORDER[b.key] ?? 9);
+    return td !== 0 ? td : a.num - b.num;
+  });
+  if (!parsed.length) return raw.join(', ');
+  // Group consecutive entries of the same type into a min–max range.
+  const groups = [];
+  for (const p of parsed) {
+    const last = groups[groups.length - 1];
+    if (last?.type === p.type) last.max = p.num;
+    else groups.push({ type: p.type, min: p.num, max: p.num });
+  }
+  return groups.map((g) => `${g.type} ${g.min === g.max ? g.min : `${g.min}–${g.max}`}`).join(', ');
+}
+
 // One topic: its skills with mastery, and practice entry points.
 export default function TopicDetail() {
   const { topicId } = useParams();
@@ -79,6 +107,7 @@ export default function TopicDetail() {
 
   const startPractice = async (payload) => {
     if (starting) return;
+    setError(null);
     setStarting(true);
     try {
       const skillId = payload?.skillId || '';
@@ -100,7 +129,6 @@ export default function TopicDetail() {
   };
 
   if (loading) return <Spinner label="Loading topic…" />;
-  if (error) return <EmptyState icon={AlertTriangle} message={error} />;
   if (!topic) return <EmptyState icon={AlertTriangle} message="Topic not found." />;
 
   return (
@@ -110,7 +138,7 @@ export default function TopicDetail() {
       </button>
       <PageHeader
         title={topic.name}
-        subtitle={`${topic.moeLevel} · ${topic.masteredCount}/${topic.total} skills mastered`}
+        subtitle={`${levelLabel(topic.skills, topic.moeLevel)} · ${topic.masteredCount}/${topic.total} skills mastered`}
         action={
           <div className="flex items-center gap-2">
             {findCheatSheet(topic.name, topic.moeLevel) && (
@@ -120,6 +148,13 @@ export default function TopicDetail() {
           </div>
         }
       />
+
+      {error && (
+        <div className="mb-3 flex items-start justify-between gap-3 rounded-lg border border-error-200 bg-error-50 px-4 py-3">
+          <p className="text-sm font-medium text-error-700">{error}</p>
+          <button onClick={() => setError(null)} className="shrink-0 text-sm font-semibold text-error-700 hover:opacity-70">Dismiss</button>
+        </div>
+      )}
 
       <div className="space-y-3">
         {topic.skills.map((s) => (

@@ -10,13 +10,16 @@ function normalizeUnit(raw = '') {
 }
 
 function parseUnit(raw = '') {
-  const input = String(raw).trim();
-  const match = input.match(/^(.*\S)\s+([A-Za-z][A-Za-z0-9%°\/\u00b0]*)$/);
-  if (!match) return { value: input, unit: '' };
-  return {
-    value: match[1].trim(),
-    unit: normalizeUnit(match[2]),
-  };
+  let input = String(raw).trim();
+  let unit = '';
+  // Leading currency symbol ($, S$, RM) - a prefix "unit" so "$60" parses to 60.
+  const cur = input.match(/^(S\$|\$|RM)\s*(\S.*)$/i);
+  if (cur) { unit = normalizeUnit(cur[1]); input = cur[2].trim(); }
+  // Trailing unit, SPACE-separated only - keeps algebra like "2x" / "3a" as
+  // expressions rather than misreading the letter as a unit.
+  const match = input.match(/^(.*\S)\s+([A-Za-z][A-Za-z0-9%°\/\u00b0\u00b2\u00b3]*)$/);
+  if (match) { if (!unit) unit = normalizeUnit(match[2]); input = match[1].trim(); }
+  return { value: input, unit };
 }
 
 function normalizeSignedFraction(n, d) {
@@ -63,7 +66,9 @@ function parseFraction(s) {
 function parseDecimal(s) {
   const unitParsed = parseUnit(s);
   const input = String(unitParsed.value || '').trim();
-  const normalized = input.replace(/\s+/g, '');
+  // Strip inter-digit thousands separators ("2,808" -> "2808") so a correctly
+  // grouped number isn't false-rejected. (Domain checkers already do this.)
+  const normalized = input.replace(/\s+/g, '').replace(/(\d),(?=\d)/g, '$1');
   if (!/^[-+]?(\d+(\.\d+)?|\.\d+)$/.test(normalized)) return null;
   const value = Number(normalized);
   if (!Number.isFinite(value)) return null;
@@ -72,7 +77,7 @@ function parseDecimal(s) {
 
 function parseWhole(s) {
   const unitParsed = parseUnit(s);
-  const input = String(unitParsed.value || '').trim();
+  const input = String(unitParsed.value || '').trim().replace(/(\d),(?=\d)/g, '$1');
   if (!/^-?\d+$/.test(input)) return null;
   return { kind: 'whole', value: Number(input), unit: unitParsed.unit };
 }
@@ -113,9 +118,12 @@ function hasUnitMismatch(given, expected) {
   if (!given || !expected) return false;
   const expectedUnit = expected.unit || '';
   const givenUnit = given.unit || '';
-  if (!expectedUnit) {
-    return Boolean(givenUnit);
-  }
+  // Only a mismatch when BOTH sides carry a unit and they genuinely differ.
+  // A unit present on one side but absent on the other is NOT a mismatch — the
+  // numeric VALUE is what's graded, and the unit is shown as a fixed input
+  // adornment rather than typed. This stops a correct number being marked wrong
+  // because of the unit, e.g. "38 cm" vs "38" or "165" vs "165 min".
+  if (!expectedUnit || !givenUnit) return false;
   return givenUnit !== expectedUnit;
 }
 

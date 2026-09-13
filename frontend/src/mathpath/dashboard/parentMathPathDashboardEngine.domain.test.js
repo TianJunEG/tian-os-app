@@ -12,16 +12,18 @@ describe('domainSkillGraphResolver', () => {
     expect(getSkill('P6-PCT-01')?.name).toBe('Percentage Increase & Decrease');
   });
 
-  it('falls back to a safe empty graph for unmapped (lower-primary) domains', () => {
-    expect(hasDomainSkillGraph('money')).toBe(false);
+  it('resolves the lower-primary money domain to a real graph (registry now covers all domains)', () => {
+    expect(hasDomainSkillGraph('money')).toBe(true);
     const { skillGraph, getSkill } = resolveDomainSkillGraph('money');
-    expect(skillGraph.skillIds).toEqual([]);
-    expect(getSkill('anything')).toBeNull();
+    expect(skillGraph.skillIds.length).toBeGreaterThan(0);
+    expect(getSkill(skillGraph.skillIds[0])?.name).toBeTruthy();
   });
 
-  it('defaults unknown domains without throwing', () => {
-    const { skillGraph } = resolveDomainSkillGraph('totally_made_up');
-    expect(Array.isArray(skillGraph.skillIds)).toBe(true);
+  it('falls back to a safe empty graph for genuinely unmapped domains', () => {
+    expect(hasDomainSkillGraph('totally_made_up')).toBe(false);
+    const { skillGraph, getSkill } = resolveDomainSkillGraph('totally_made_up');
+    expect(skillGraph.skillIds).toEqual([]);
+    expect(getSkill('anything')).toBeNull();
   });
 });
 

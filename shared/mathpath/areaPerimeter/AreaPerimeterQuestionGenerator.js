@@ -109,7 +109,7 @@ const BUILDERS = {
     }
     const l = rint(rng, 4, 18), w = rint(rng, 3, 12);
     return { prompt: `A rectangle is ${l} cm long and ${w} cm wide. What is its area?`, value: l * w, unit: 'cm²', tag: 'ap/perimeter-area-confuse',
-      steps: ['Area = length × width.', `${l} × ${w} = ${l * w} cm².`], distractors: [2 * (l + w), l + w, l * w + l], diagram: { kind: 'rectangle', l, w } };
+      steps: ['Area = length × width.', `${l} × ${w} = ${l * w} cm².`], distractors: [2 * (l + w), l + w, l * w + l], diagram: { kind: 'rectangle', l, w, unit: 'cm' } };
   },
   // AP004 — Area of triangles
   [AP(4)]: (rng) => {
@@ -135,11 +135,11 @@ const BUILDERS = {
       const ans = 2 * (l + w) * cost;
       return { prompt: `A rectangular garden is ${l} m long and ${w} m wide. Fencing costs $${cost} per metre. Find the total cost to fence all the way around.`, value: ans, money: true, tag: 'mea/area-units',
         steps: [`Perimeter = 2 × (${l} + ${w}) = ${2 * (l + w)} m.`, `Cost = ${2 * (l + w)} × $${cost} = $${ans}.`],
-        distractors: [l * w * cost, 2 * (l + w), l * w], diagram: { kind: 'rectangle', l, w } };
+        distractors: [l * w * cost, 2 * (l + w), l * w], diagram: { kind: 'rectangle', l, w, unit: 'm' } };
     }
     const ans = l * w;
     return { prompt: `A rectangular room is ${l} m long and ${w} m wide. How many square metres of carpet are needed to cover the floor?`, value: ans, unit: 'm²', tag: 'mea/area-units',
-      steps: ['Area = length × width.', `${l} × ${w} = ${ans} m².`], distractors: [2 * (l + w), l + w, l * w + l], diagram: { kind: 'rectangle', l, w } };
+      steps: ['Area = length × width.', `${l} × ${w} = ${ans} m².`], distractors: [2 * (l + w), l + w, l * w + l], diagram: { kind: 'rectangle', l, w, unit: 'm' } };
   },
 
   // ── Secondary 1 (G1) — Mensuration ──────────────────────────────────────────
@@ -204,16 +204,27 @@ const GENERATORS = {
   apAreaTrapezium: makePractice(AP(8)), apAreaTrapeziumMCQ: makeMCQ(AP(8)),
 };
 
-export function generateAreaPerimeterQuestionSet({ skillId, count = 6, mode = 'practice' }) {
+export function generateAreaPerimeterQuestionSet({ skillId, count = 6, mode = 'practice', sessionSalt = '' }) {
   const families = getQuestionFamiliesBySkill(skillId);
   if (!families.length) return [];
   const questions = [];
+  const seenPrompts = new Set();
   let variant = 0;
-  for (let i = 0; i < count; i++) {
-    const family = families[i % families.length];
-    const rng = makeRng(`${skillId}-${family.id}-${variant}`);
+  let fi = 0;
+  const maxAttempts = count * 5;
+  while (questions.length < count && variant < maxAttempts) {
+    const family = families[fi % families.length];
+    const rng = makeRng(`${skillId}-${family.id}-${variant}-${sessionSalt}`);
     const gen = GENERATORS[family.generatorKind];
-    if (gen) questions.push(gen(family, rng, variant));
+    if (gen) {
+      const q = gen(family, rng, variant);
+      const dedupKey = q.prompt + '|||' + (q.answer?.display ?? q.answer);
+      if (!seenPrompts.has(dedupKey) || variant >= count * 3) {
+        seenPrompts.add(dedupKey);
+        questions.push(q);
+        fi++;
+      }
+    }
     variant++;
   }
   return questions;

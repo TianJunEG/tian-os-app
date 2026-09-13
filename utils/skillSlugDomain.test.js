@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { domainIdFromSlug, PREFIX_TO_DOMAIN } from './skillSlugDomain.js';
+import { domainIdFromSlug, slugPrefixForDomain, PREFIX_TO_DOMAIN } from './skillSlugDomain.js';
 
 describe('domainIdFromSlug', () => {
   it('maps known slug prefixes to canonical domain IDs', () => {
@@ -24,5 +24,29 @@ describe('domainIdFromSlug', () => {
     expect(domainIdFromSlug(null)).toBeNull();
     expect(domainIdFromSlug('zzz.unknown')).toBeNull();
     expect(domainIdFromSlug('noprefix')).toBeNull();
+  });
+});
+
+describe('slugPrefixForDomain', () => {
+  it('maps canonical domain IDs back to their slug prefix', () => {
+    expect(slugPrefixForDomain('fractions')).toBe('fr');
+    expect(slugPrefixForDomain('four_operations')).toBe('op');
+    expect(slugPrefixForDomain('number_sense')).toBe('ns');
+    expect(slugPrefixForDomain('area_perimeter')).toBe('ap');
+    expect(slugPrefixForDomain('circles')).toBe('cir');
+  });
+
+  it('round-trips with domainIdFromSlug for every domain', () => {
+    for (const domain of Object.values(PREFIX_TO_DOMAIN)) {
+      const prefix = slugPrefixForDomain(domain);
+      expect(prefix).toBeTruthy();
+      expect(domainIdFromSlug(`${prefix}.example`)).toBe(domain);
+    }
+  });
+
+  it('returns null for unknown or empty domains', () => {
+    expect(slugPrefixForDomain('not_a_domain')).toBeNull();
+    expect(slugPrefixForDomain('')).toBeNull();
+    expect(slugPrefixForDomain(null)).toBeNull();
   });
 });

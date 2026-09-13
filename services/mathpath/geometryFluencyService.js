@@ -101,7 +101,7 @@ export function buildGeometryFluencyDrill({ skillId, count = 8 } = {}) {
     throw err;
   }
   const benchmarks = getFluencyBenchmarks(families[0]);
-  const raw = generateGeometryQuestionSet({ skillId, count, mode: 'fluency' });
+  const raw = generateGeometryQuestionSet({ skillId, count, mode: 'fluency', sessionSalt: Date.now().toString() });
   const questions = raw.map((q, index) => {
     const family = getQuestionFamily(q.questionFamilyId) || {};
     return {

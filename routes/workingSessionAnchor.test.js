@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { resolveWorkingSessionAnchor, hasWorkingSessionAnchor } from './mathpathWorking.js';
+import {
+  resolveWorkingSessionAnchor,
+  hasWorkingSessionAnchor,
+  statusForWorkingSessionCreateError,
+} from './mathpathWorking.js';
 
 describe('working session anchor guard (orphan upload prevention)', () => {
   it('resolves a practice anchor (and accepts the sessionId alias)', () => {
@@ -22,5 +26,22 @@ describe('working session anchor guard (orphan upload prevention)', () => {
     expect(hasWorkingSessionAnchor({})).toBe(false);
     expect(hasWorkingSessionAnchor({ studentId: 's1', skillIds: ['F016'], questionIds: ['q1'] })).toBe(false);
     expect(hasWorkingSessionAnchor({ practiceSessionId: null, assessmentSessionId: null })).toBe(false);
+  });
+});
+
+describe('working session creation error handling', () => {
+  it('preserves expected access/validation statuses instead of converting them to 500', () => {
+    expect(statusForWorkingSessionCreateError({ status: 404, message: 'Student not found.' })).toBe(404);
+    expect(statusForWorkingSessionCreateError({ status: 403, message: 'No access to this student.' })).toBe(403);
+  });
+
+  it('maps mongoose validation/cast/duplicate failures to bad request', () => {
+    expect(statusForWorkingSessionCreateError({ name: 'ValidationError' })).toBe(400);
+    expect(statusForWorkingSessionCreateError({ name: 'CastError' })).toBe(400);
+    expect(statusForWorkingSessionCreateError({ code: 11000 })).toBe(400);
+  });
+
+  it('keeps unexpected failures as server errors', () => {
+    expect(statusForWorkingSessionCreateError(new Error('database unavailable'))).toBe(500);
   });
 });

@@ -55,9 +55,23 @@ describe('diagnostic runtime completion rules', () => {
     });
   });
 
-  it('does not mark the diagnostic complete when question generation fails', () => {
+  it('completes (places the student) when the bank exhausts after at least one answer', () => {
+    // Changed by the volume-diagnostic fix: rather than trapping the student with a
+    // retryable error, an exhausted bank after ≥1 answer completes as coverage_complete.
     expect(resolveDiagnosticCompletion({
       answeredCount: 1,
+      maxQuestions: 10,
+      minimumQuestions: 10,
+      decision: { shouldStopDiagnostic: false },
+      nextQuestionAvailable: false,
+      generationFailed: true,
+    })).toMatchObject({
+      sessionComplete: true,
+      completionReason: 'coverage_complete',
+    });
+    // With zero answers there's nothing to place on, so it still errors.
+    expect(resolveDiagnosticCompletion({
+      answeredCount: 0,
       maxQuestions: 10,
       minimumQuestions: 10,
       decision: { shouldStopDiagnostic: false },

@@ -12,7 +12,7 @@ const bandStyles = {
   building: 'bg-amber-100 text-amber-800',
   'at risk': 'bg-red-100 text-red-800',
 };
-const barColor = (band) => (band === 'on track' ? 'bg-green-500' : band === 'building' ? 'bg-amber-500' : 'bg-gold-400');
+const barColor = (band) => (band === 'on track' ? 'bg-green-500' : band === 'building' ? 'bg-amber-500' : 'bg-gold');
 
 export default function LearningProfile({ profile }) {
   const navigate = useNavigate();
@@ -22,9 +22,9 @@ export default function LearningProfile({ profile }) {
     <>
       {/* Hero: overall readiness with progress ring */}
       <div className="relative overflow-hidden bg-gradient-to-br from-navy-900 via-navy-800 to-navy-600 text-white rounded-3xl p-6 sm:p-8 mb-6 flex items-center justify-between shadow-xl">
-        <div className="absolute -right-10 -top-10 w-48 h-48 rounded-full bg-gold-400/10 blur-2xl pointer-events-none" />
+        <div className="absolute -right-10 -top-10 w-48 h-48 rounded-full bg-gold/10 blur-2xl pointer-events-none" />
         <div className="relative">
-          <div className="flex items-center gap-2 text-gold-300 text-xs font-semibold tracking-wide uppercase">
+          <div className="flex items-center gap-2 text-gold-label text-xs font-semibold tracking-wide uppercase">
             <Sparkles className="w-4 h-4" /> Progress intelligence
           </div>
           <div className="text-white/70 text-sm mt-2">Overall readiness</div>
@@ -53,12 +53,12 @@ export default function LearningProfile({ profile }) {
             </div>
             {s.weak?.length > 0 && (
               <div className="mb-3">
-                <div className="flex items-center gap-1 text-xs font-semibold text-gold-600 mb-1.5">
+                <div className="flex items-center gap-1 text-xs font-semibold text-gold-deep mb-1.5">
                   <AlertTriangle className="w-3.5 h-3.5" /> Needs work
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {s.weak.slice(0, 4).map((w, i) => (
-                    <span key={i} className="text-xs bg-gold-50 text-gold-700 px-2 py-1 rounded-md">{w.label}</span>
+                    <span key={i} className="text-xs bg-gold-tint text-gold-deep px-2 py-1 rounded-md">{w.label}</span>
                   ))}
                 </div>
               </div>

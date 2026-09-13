@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { ChevronDown, LogOut, Check, Bell } from 'lucide-react';
+import { ChevronDown, LogOut, Check, Bell, MoreHorizontal } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { NAV } from '../../config/nav';
 import { notificationsAPI } from '../../services/api';
 import { Spinner } from '../ui';
 import { getVisualModeStyles, resolveStudentVisualMode } from '../../design-os/studentVisualMode';
+import VoiceToggle from './VoiceToggle';
 
 // The single Tian OS shell every role-dashboard renders inside:
 //   desktop/tablet → top navigation
@@ -123,6 +124,21 @@ export default function AppShell({ children }) {
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
+  // Phone bottom nav can only show 4 primary items; everything else (Progress,
+  // Worksheets, Profile, …) plus Sign out lives in a "More" overflow sheet so
+  // nothing is unreachable at phone widths.
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef(null);
+  const overflowItems = set.more || [];
+  // Close the overflow sheet on navigation or outside tap.
+  useEffect(() => { setMoreOpen(false); }, [location.pathname]);
+  useEffect(() => {
+    if (!moreOpen) return undefined;
+    const onPointer = (e) => { if (moreRef.current && !moreRef.current.contains(e.target)) setMoreOpen(false); };
+    document.addEventListener('pointerdown', onPointer);
+    return () => document.removeEventListener('pointerdown', onPointer);
+  }, [moreOpen]);
+
   if (loading) return <div className="min-h-screen bg-surface-app"><Spinner /></div>;
 
   return (
@@ -148,6 +164,7 @@ export default function AppShell({ children }) {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-2">
+            <VoiceToggle />
             {role === 'parent' && <NotificationBell />}
             <RoleSwitcher />
             <WorkspaceSwitcher />
@@ -159,16 +176,41 @@ export default function AppShell({ children }) {
         <main className={`mx-auto px-4 pb-20 pt-5 sm:px-6 md:pb-10 ${activityShell ? 'max-w-[96rem]' : 'max-w-app'}`}>{children}</main>
       </div>
       {!activityShell && (
-        <nav className={`fixed inset-x-3 bottom-3 z-40 flex items-center justify-around rounded-dash border px-2 shadow-card backdrop-blur md:hidden ${isStudentShell ? 'border-white/80 bg-white/90' : 'border-line bg-surface-white/90'}`}
-          style={{ minHeight: 64, paddingBottom: 'env(safe-area-inset-bottom)' }}>
-          {set.bottom.map((item) => (
-            <NavLink key={item.to} to={item.to} end={item.end !== false}
-              className={({ isActive }) => `flex flex-1 flex-col items-center justify-center gap-0.5 rounded-shell py-2 transition ${isActive ? activeNavClass : 'text-body-faint'}`}>
-              <item.icon className="h-5 w-5" />
-              <span className="text-xs font-semibold">{item.label}</span>
-            </NavLink>
-          ))}
-        </nav>
+        <div ref={moreRef} className="md:hidden">
+          {moreOpen && (
+            <div
+              className={`fixed inset-x-3 bottom-[calc(64px+0.75rem+env(safe-area-inset-bottom))] z-40 overflow-hidden rounded-dash border shadow-card backdrop-blur ${isStudentShell ? 'border-white/80 bg-white/95' : 'border-line bg-surface-white/95'}`}
+            >
+              {overflowItems.map((item) => (
+                <NavLink key={item.to} to={item.to} end={item.end !== false} onClick={() => setMoreOpen(false)}
+                  className={({ isActive }) => `flex items-center gap-3 px-4 py-3 text-sm font-semibold transition ${isActive ? activeNavClass : 'text-body-muted hover:bg-line'}`}>
+                  <item.icon className="h-5 w-5 shrink-0" />
+                  <span>{item.label}</span>
+                </NavLink>
+              ))}
+              <button type="button" onClick={() => { setMoreOpen(false); handleLogout(); }}
+                className="flex w-full items-center gap-3 border-t border-line-soft px-4 py-3 text-left text-sm font-semibold text-body-muted hover:bg-line">
+                <LogOut className="h-5 w-5 shrink-0" />
+                <span>Sign out</span>
+              </button>
+            </div>
+          )}
+          <nav className={`fixed inset-x-3 bottom-3 z-40 flex items-center justify-around rounded-dash border px-2 shadow-card backdrop-blur ${isStudentShell ? 'border-white/80 bg-white/90' : 'border-line bg-surface-white/90'}`}
+            style={{ minHeight: 64, paddingBottom: 'env(safe-area-inset-bottom)' }}>
+            {set.bottom.map((item) => (
+              <NavLink key={item.to} to={item.to} end={item.end !== false}
+                className={({ isActive }) => `flex flex-1 flex-col items-center justify-center gap-0.5 rounded-shell py-2 transition ${isActive ? activeNavClass : 'text-body-faint'}`}>
+                <item.icon className="h-5 w-5" />
+                <span className="text-xs font-semibold">{item.label}</span>
+              </NavLink>
+            ))}
+            <button type="button" onClick={() => setMoreOpen((v) => !v)} aria-expanded={moreOpen} aria-label="More"
+              className={`flex flex-1 flex-col items-center justify-center gap-0.5 rounded-shell py-2 transition ${moreOpen ? activeNavClass : 'text-body-faint'}`}>
+              <MoreHorizontal className="h-5 w-5" />
+              <span className="text-xs font-semibold">More</span>
+            </button>
+          </nav>
+        </div>
       )}
     </div>
   );

@@ -35,6 +35,7 @@ export default function LessonRecorder() {
   const flushTimerRef = useRef(null);
   const mediaRef = useRef(null);
   const chunksRef = useRef([]);
+  const recordingActiveRef = useRef(false);
 
   const [tool, setTool] = useState('pen');
   const [colour, setColour] = useState(COLOURS[0]);
@@ -51,7 +52,34 @@ export default function LessonRecorder() {
     if (currentStrokeRef.current?.points?.length >= 2) drawStroke(ctx, currentStrokeRef.current);
   };
 
-  useEffect(() => () => { if (flushTimerRef.current) clearInterval(flushTimerRef.current); }, []);
+  // Release all live capture resources. Safe to call repeatedly (idempotent):
+  // stops the flush timer, stops the MediaRecorder if still running, and stops
+  // every track on the underlying mic stream so the OS mic indicator turns off.
+  const releaseCapture = () => {
+    if (flushTimerRef.current) { clearInterval(flushTimerRef.current); flushTimerRef.current = null; }
+    const mr = mediaRef.current;
+    if (mr) {
+      try { if (mr.state !== 'inactive') mr.stop(); } catch { /* already stopped */ }
+      try { mr.stream?.getTracks().forEach((t) => t.stop()); } catch { /* no stream */ }
+    }
+    recordingActiveRef.current = false;
+  };
+
+  // On unmount: warn-and-teardown if a recording is still live so the mic is
+  // never left open and the orphaned recording's resources are freed.
+  useEffect(() => {
+    const onBeforeUnload = (e) => {
+      if (!recordingActiveRef.current) return;
+      e.preventDefault();
+      e.returnValue = ''; // triggers the browser's native "leave site?" prompt
+      return '';
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', onBeforeUnload);
+      releaseCapture();
+    };
+  }, []);
 
   const flushInk = async () => {
     if (!ridRef.current || pendingRef.current.length === 0) return;
@@ -89,18 +117,20 @@ export default function LessonRecorder() {
       mediaRef.current = mr;
     }
     flushTimerRef.current = setInterval(flushInk, FLUSH_EVERY_MS);
+    recordingActiveRef.current = true;
     setStatus('recording');
   };
 
   const stop = async () => {
+    recordingActiveRef.current = false; // user-initiated stop: silence the unload guard
     setStatus('saving');
     if (flushTimerRef.current) { clearInterval(flushTimerRef.current); flushTimerRef.current = null; }
     await flushInk();
 
     const rid = ridRef.current;
     const mr = mediaRef.current;
-    try {
-      if (mr && mr.state !== 'inactive') {
+    if (mr && mr.state !== 'inactive') {
+      try {
         await new Promise((resolve) => { mr.onstop = resolve; mr.stop(); });
         mr.stream.getTracks().forEach((t) => t.stop());
         const type = mr.mimeType || 'audio/webm';
@@ -108,11 +138,17 @@ export default function LessonRecorder() {
         const fd = new FormData();
         fd.append('audio', blob, 'audio.webm');
         await recordingsAPI.uploadAudio(rid, fd);
+      } catch (e) {
+        console.warn('[LessonRecorder] audio upload failed:', e);
+        // Non-fatal: ink is saved; proceed to finalise so the recording is usable.
       }
+    }
+    try {
       await recordingsAPI.finalise(rid, { durationMs: Date.now() - t0Ref.current, pageCount: 1 });
       setStatus('done');
-    } catch {
-      setError('Saved your ink, but uploading audio/finalising failed. Try again.');
+    } catch (e) {
+      console.error('[LessonRecorder] finalise failed:', e);
+      setError('Ink was saved but the recording could not be finalised. Please try again.');
       setStatus('error');
     }
   };
@@ -120,8 +156,16 @@ export default function LessonRecorder() {
   const toggleShare = async () => {
     const next = !shared;
     setShared(next);
-    try { await recordingsAPI.setVisibility(ridRef.current, next ? 'shared_parent' : 'private'); }
-    catch { setShared(!next); }
+    try {
+      await recordingsAPI.setVisibility(ridRef.current, next ? 'shared_parent' : 'private');
+      setError(null);
+    } catch (e) {
+      console.error('[LessonRecorder] share toggle failed:', e);
+      setShared(!next); // revert to actual server state
+      setError(next
+        ? 'Could not share the recording with the parent. Please try again.'
+        : 'Could not stop sharing the recording. Please try again.');
+    }
   };
 
   // ── pointer handlers ──

@@ -11,12 +11,13 @@ import { closeRedis } from './config/redis.js';
 import { isObjectStorageConfigured, signedUrlForUploadPath } from './services/storage/objectStore.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { requestLogger } from './middleware/requestLogger.js';
-import { apiRateLimit, authRateLimit } from './middleware/rateLimiter.js';
+import { apiRateLimit, authRateLimit, rateLimit } from './middleware/rateLimiter.js';
 import { sanitizeInputs } from './middleware/validation.js';
 import authRoutes from './routes/auth.js';
 import tutorRoutes from './routes/tutors.js';
 import parentRoutes from './routes/parents.js';
 import parentMathPathDashboardRoutes from './routes/parentMathPathDashboard.js';
+import parentTestPapersRoutes from './routes/parentTestPapers.js';
 import searchRoutes from './routes/search.js';
 import bookingRoutes from './routes/bookings.js';
 import paymentRoutes from './routes/payments.js';
@@ -38,6 +39,9 @@ import fluencyRoutes from './routes/fluency.js';
 import mistakeRoutes from './routes/mistakes.js';
 import masteryRoutes from './routes/mastery.js';
 import diagnosticRoutes from './routes/diagnostics.js';
+import kioskDiagnosticRoutes from './routes/kioskDiagnostics.js';
+import vocabRoutes from './routes/vocab.js';
+import announcementRoutes from './routes/announcements.js';
 import studentProfileRoutes from './routes/studentProfile.js';
 import studentAnalyticsRoutes from './routes/studentAnalytics.js';
 import studentCareRoutes from './routes/studentCare.js';
@@ -45,11 +49,12 @@ import pilotAnalyticsRoutes from './routes/pilotAnalytics.js';
 import telemetryRoutes from './routes/telemetry.js';
 import mathpathWorkingRoutes from './routes/mathpathWorking.js';
 import mathpathDecimalsRoutes from './routes/mathpathDecimals.js';
-import mathpathPercentageRoutes from './routes/mathpathPercentage.js';
+import mathpathPercentageRoutes from './routes/mathpathPercentages.js';
 import mathpathRatioRateRoutes from './routes/mathpathRatioRate.js';
 import mathpathOperationsRoutes from './routes/mathpathOperations.js';
 import mathpathNumberSenseRoutes from './routes/mathpathNumberSense.js';
 import mathpathMoneyRoutes from './routes/mathpathMoney.js';
+import mathpathEarlyNumeracyRoutes from './routes/mathpathEarlyNumeracy.js';
 import mathpathTimeRoutes from './routes/mathpathTime.js';
 import mathpathMeasurementRoutes from './routes/mathpathMeasurement.js';
 import mathpathGeometryRoutes from './routes/mathpathGeometry.js';
@@ -77,6 +82,7 @@ import lifelabRoutes from './routes/lifelab.js';
 import spellingPracticeRoutes from './routes/spellingPractice.js';
 import mechanismsRoutes from './routes/mechanisms.js';
 import pslRoutes from './routes/psl.js';
+import testPaperRoutes from './routes/testPapers.js';
 import comicsRoutes from './routes/comics.js';
 import assessmentSpecificationRoutes from './routes/assessmentSpecifications.js';
 import assessmentBlueprintRoutes from './routes/assessmentBlueprints.js';
@@ -124,6 +130,42 @@ if (fs.existsSync(path.join(clientDist, 'index.html'))) {
   app.use(express.static(clientDist));
 }
 
+// Standalone Vocabulary Builder (lead-gen app) — served at /vocab. It is a
+// static ES-module app whose app.js imports the self-contained vocabulary
+// engine via `../shared/englishpath/vocabulary/index.js`, so both the app dir
+// and that engine dir must be reachable. Mounted here (before CORS / rate-limit,
+// like frontend/dist) so its JS/CSS/ESM load cleanly and aren't rate-limited.
+const vocabAppDir = path.resolve(__dirname, 'englishpath-vocab-app');
+if (fs.existsSync(path.join(vocabAppDir, 'index.html'))) {
+  // ELPath is offered as a FREE, EMBEDDABLE practice resource (e.g. inside the
+  // BrightDesk tutoring marketplace). Relax the frame headers for these static
+  // routes ONLY, so partners can iframe them; every other route keeps helmet's
+  // default `frame-ancestors 'self'` + `X-Frame-Options: SAMEORIGIN`. Lock the
+  // embed down to specific partner origins by setting EMBED_FRAME_ANCESTORS
+  // (space-separated list of origins); defaults to '*' for an open resource.
+  const embedAncestors = (process.env.EMBED_FRAME_ANCESTORS || '*').trim();
+  const allowEmbed = (req, res, next) => {
+    res.removeHeader('X-Frame-Options');
+    res.setHeader('Content-Security-Policy', [
+      "default-src 'self'",
+      "base-uri 'self'",
+      "font-src 'self' https: data:",
+      "form-action 'self'",
+      "img-src 'self' data:",
+      "object-src 'none'",
+      "script-src 'self'",
+      "script-src-attr 'none'",
+      "style-src 'self' 'unsafe-inline'",
+      `frame-ancestors ${embedAncestors}`,
+      'upgrade-insecure-requests',
+    ].join(';'));
+    next();
+  };
+  app.use('/vocab', allowEmbed, express.static(vocabAppDir));
+  // The self-contained EnglishPath engines the app's ES modules import from.
+  app.use('/shared/englishpath', allowEmbed, express.static(path.resolve(__dirname, 'shared', 'englishpath')));
+}
+
 // Allowed origins come from CORS_ORIGIN (comma-separated); defaults to local dev.
 // Vercel preview domains are also allowed by pattern.
 const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173')
@@ -154,13 +196,24 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Workspace-Id']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Workspace-Id', 'X-Attempt-Token']
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Security & Validation Middleware
 app.use(sanitizeInputs);
+
+// Public in-class diagnostic kiosk (unauthenticated). Mounted BEFORE the global
+// apiRateLimit so a whole class behind one classroom IP isn't throttled by the
+// per-IP cap; it gets its own, higher limit instead.
+app.use('/api/kiosk', rateLimit(800, 15 * 60 * 1000), kioskDiagnosticRoutes);
+
+// Standalone Vocabulary Builder cross-device save (public, passwordless). Its
+// endpoints carry their own per-route rate limits, so mount before the global
+// apiRateLimit like the kiosk above.
+app.use('/api/vocab', vocabRoutes);
+
 app.use(apiRateLimit);
 
 // Serve uploaded files. When object storage is configured, 302-redirect to a
@@ -202,6 +255,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/tutors', tutorRoutes);
 app.use('/api/parents', parentRoutes);
 app.use('/api/parents', parentMathPathDashboardRoutes);
+app.use('/api/parents', parentTestPapersRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/payments', paymentRoutes);
@@ -229,6 +283,7 @@ app.use('/api/practice', practiceRoutes);
 app.use('/api/fluency', fluencyRoutes);
 app.use('/api/mistakes', mistakeRoutes);
 app.use('/api/diagnostics', diagnosticRoutes);
+app.use('/api/announcements', announcementRoutes);
 app.use('/api/student-profile', studentProfileRoutes);
 app.use('/api/student', studentAnalyticsRoutes);
 app.use('/api/student-care', studentCareRoutes);
@@ -242,6 +297,7 @@ app.use('/api/mathpath/ratio-rate', mathpathRatioRateRoutes);
 app.use('/api/mathpath/operations', mathpathOperationsRoutes);
 app.use('/api/mathpath/number-sense', mathpathNumberSenseRoutes);
 app.use('/api/mathpath/money', mathpathMoneyRoutes);
+app.use('/api/mathpath/early-numeracy', mathpathEarlyNumeracyRoutes);
 app.use('/api/mathpath/time', mathpathTimeRoutes);
 app.use('/api/mathpath/measurement', mathpathMeasurementRoutes);
 app.use('/api/mathpath/geometry', mathpathGeometryRoutes);
@@ -275,6 +331,9 @@ app.use('/api/lifelab', featureGate({ feature: 'lifelab', minVersion: 'v0.6' }),
 app.use('/api/spelling-practice', featureGate({ feature: 'spelling', minVersion: 'v0.6' }), spellingPracticeRoutes);
 app.use('/api/mechanisms', featureGate({ feature: 'mechanisms', minVersion: 'v0.6' }), mechanismsRoutes);
 app.use('/api/psl', featureGate({ feature: 'psl', minVersion: 'v0.7' }), pslRoutes);
+// Test Papers gated on the flag only (high minVersion so a version bump never
+// auto-enables it) — flip FEAT_TEST_PAPERS=1 to launch.
+app.use('/api/test-papers', featureGate({ feature: 'testPapers', minVersion: 'v99' }), testPaperRoutes);
 app.use('/api/comics', featureGate({ feature: 'comics', minVersion: 'v0.7' }), comicsRoutes);
 app.use('/api/assessment-specifications', assessmentSpecificationRoutes);
 app.use('/api/assessment-blueprints', assessmentBlueprintRoutes);
@@ -343,6 +402,7 @@ async function shutdown(signal) {
 
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
+
 
 // Resilience: a single unhandled async error must not silently take the whole
 // server down. Under `npm start` (plain node, no nodemon) an unhandled rejection

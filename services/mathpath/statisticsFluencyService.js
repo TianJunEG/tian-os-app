@@ -90,7 +90,7 @@ export function buildStatisticsFluencyDrill({ skillId, count = 8 } = {}) {
   }
   const fastestTargetSeconds = families[0].fluencyTargetSeconds;
   const benchmarks = getFluencyBenchmarks(families[0]);
-  const raw = generateStatisticsQuestionSet({ skillId, count, mode: 'fluency' });
+  const raw = generateStatisticsQuestionSet({ skillId, count, mode: 'fluency', sessionSalt: Date.now().toString() });
   const questions = raw.map((q, index) => {
     const family = families.find((f) => f.id === q.questionFamilyId) || families[0];
     return {

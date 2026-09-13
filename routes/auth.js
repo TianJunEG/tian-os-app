@@ -4,9 +4,11 @@ import mongoose from 'mongoose';
 import { body, validationResult } from 'express-validator';
 import User from '../models/User.js';
 import Student from '../models/Student.js';
+import Workspace from '../models/Workspace.js';
+import WorkspaceMember from '../models/WorkspaceMember.js';
 import { protect, getSignedToken } from '../middleware/auth.js';
 import { authRateLimit } from '../middleware/rateLimiter.js';
-import { sendPasswordResetEmail } from '../utils/emailService.js';
+import { sendPasswordResetEmail, sendWelcomeEmail, appBaseUrl } from '../utils/emailService.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
@@ -44,6 +46,15 @@ router.post(
       .isIn(['parent', 'tutor'])
   ],
   async (req, res) => {
+    // Self-serve registration is closed until the company is registered and
+    // pricing is confirmed. Set FEAT_OPEN_REGISTRATION=1 to re-enable.
+    if (process.env.FEAT_OPEN_REGISTRATION !== '1') {
+      return res.status(403).json({
+        error: 'registration_closed',
+        message: 'Tian OS is currently in early access. Contact us to get an account.',
+      });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -56,20 +67,12 @@ router.post(
       // misses case variants (e.g. John@X.com vs the stored john@x.com).
       const email = String(req.body.email).toLowerCase().trim();
 
-      // Check if user already exists
       let user = await User.findOne({ email });
       if (user) {
         return res.status(400).json({ error: 'User already exists with that email' });
       }
 
-      // Create user
-      user = new User({
-        name,
-        email,
-        password,
-        role
-      });
-
+      user = new User({ name, email, password, role, roles: [role] });
       try {
         await user.save();
       } catch (saveError) {
@@ -82,7 +85,28 @@ router.post(
         throw saveError;
       }
 
-      // Generate token
+      // Create default workspace and membership
+      const workspace = await Workspace.create({
+        type: role,
+        role,
+        name: `${name}'s ${role.charAt(0).toUpperCase() + role.slice(1)} Workspace`,
+        ownerUserId: user._id,
+      });
+      await WorkspaceMember.create({
+        workspaceId: workspace._id,
+        userId: user._id,
+        role,
+        status: 'active',
+      });
+      user.defaultWorkspace = workspace._id;
+      await user.save();
+
+      // Fire welcome email — non-blocking, failure must not break registration
+      const loginUrl = `${appBaseUrl()}/${role}`;
+      sendWelcomeEmail({ user, role, loginUrl }).catch((err) =>
+        console.error('Welcome email failed (non-fatal):', err.message)
+      );
+
       const token = getSignedToken(user._id, user.role);
 
       res.status(201).json({
@@ -92,8 +116,8 @@ router.post(
           id: user._id,
           name: user.name,
           email: user.email,
-          role: user.role
-        }
+          role: user.role,
+        },
       });
     } catch (error) {
       console.error(error);
@@ -109,7 +133,7 @@ router.post(
   '/login',
   authRateLimit,
   [
-    body('email', 'Please provide a valid email').isEmail(),
+    // Accept either `email` (legacy) or `identifier` (email or username).
     body('password', 'Password is required').notEmpty()
   ],
   async (req, res) => {
@@ -119,13 +143,14 @@ router.post(
     }
 
     try {
-      const { password } = req.body;
-      // Emails are stored lowercased; normalise the lookup so a different-case
-      // entry (mobile keyboards auto-capitalise) still matches the account.
-      const email = String(req.body.email).toLowerCase().trim();
+      const { email, identifier, password } = req.body;
+      const loginId = (identifier || email || '').trim().toLowerCase();
+      if (!loginId) return res.status(400).json({ error: 'Email or username is required' });
 
-      // Find user and select password
-      const user = await User.findOne({ email }).select('+password');
+      // Find user by email or username
+      const user = await User.findOne(
+        loginId.includes('@') ? { email: loginId } : { username: loginId }
+      ).select('+password');
 
       if (!user) {
         return res.status(401).json({ error: 'Invalid credentials' });
@@ -221,9 +246,9 @@ router.post('/forgot-password', authRateLimit, asyncHandler(async (req, res) => 
     user.resetPasswordExpire = new Date(Date.now() + 60 * 60 * 1000);
     await user.save({ validateBeforeSave: false });
 
-    const baseUrl = process.env.FRONTEND_URL || process.env.RAILWAY_PUBLIC_DOMAIN
+    const baseUrl = process.env.FRONTEND_URL || (process.env.RAILWAY_PUBLIC_DOMAIN
       ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
-      : 'http://localhost:5173';
+      : 'http://localhost:5173');
     const resetUrl = `${baseUrl}/reset-password/${token}`;
 
     await sendPasswordResetEmail({ to: user.email, name: user.name, resetUrl });

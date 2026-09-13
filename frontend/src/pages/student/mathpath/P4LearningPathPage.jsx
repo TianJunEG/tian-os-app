@@ -11,6 +11,7 @@ import p4FractionsSkillGraph from '../../../mathpath/primary/p4FractionsSkillGra
 import p4DecimalsSkillGraph from '../../../mathpath/primary/p4DecimalsSkillGraph';
 import p4WordProbSkillGraph from '../../../mathpath/primary/p4WordProbSkillGraph';
 import p4StatSkillGraph from '../../../mathpath/primary/p4StatSkillGraph';
+import MasteryStars, { effectiveMasteryPct } from '../../../components/mathpath/learning/MasteryStars';
 
 // ---------------------------------------------------------------------------
 // Domain configuration — order matters (progression sequence)
@@ -81,7 +82,7 @@ const COLOR_MAP = {
   violet: { badge: 'navy', border: 'border-purple-tint', bg: 'bg-gradient-to-br from-violet-50 via-white to-violet-50', icon: 'bg-purple-tint text-purple' },
   navy: { badge: 'navy', border: 'border-emerald-border', bg: 'bg-gradient-to-br from-navy-50 via-white to-emerald-50', icon: 'bg-emerald-tint text-emerald-deep' },
   sky: { badge: 'navy', border: 'border-sky-200', bg: 'bg-gradient-to-br from-sky-50 via-white to-navy-50', icon: 'bg-sky-100 text-emerald-deep' },
-  gold: { badge: 'gold', border: 'border-gold-200', bg: 'bg-gradient-to-br from-gold-50 via-white to-yellow-50', icon: 'bg-gold-100 text-gold-700' },
+  gold: { badge: 'gold', border: 'border-gold-tint', bg: 'bg-gradient-to-br from-gold-tint2 via-white to-yellow-50', icon: 'bg-gold-tint text-gold-deep' },
   mint: { badge: 'success', border: 'border-mint-200', bg: 'bg-gradient-to-br from-mint-50 via-white to-emerald-50', icon: 'bg-mint-100 text-success-700' },
   emerald: { badge: 'navy', border: 'border-emerald-200', bg: 'bg-gradient-to-br from-emerald-50 via-white to-violet-50', icon: 'bg-emerald-100 text-emerald-deep' },
 };
@@ -143,11 +144,11 @@ function P4SkillCard({ skill, onStart, skillState }) {
               {accuracy != null ? ` ${accuracy}%` : ''}
             </Badge>
           )}
+          <MasteryStars percentage={effectiveMasteryPct(status, accuracy)} size="sm" className="mt-1" />
         </div>
       </div>
       <p className="mt-1 line-clamp-2 text-sm text-ink-500">{skill.description}</p>
       <div className="mt-3 flex flex-wrap gap-2">
-        <Badge tone="neutral">{skill.id}</Badge>
         {skill.prerequisites?.length > 0 && (
           <Badge tone="neutral">{skill.prerequisites.length} prerequisite{skill.prerequisites.length > 1 ? 's' : ''}</Badge>
         )}
@@ -272,7 +273,7 @@ export default function P4LearningPathPage() {
       <Card className="p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase text-emerald-700">P4 Maths</p>
+            <p className="text-sm font-semibold uppercase text-emerald-700">Learning path</p>
             <h2 className="font-display text-2xl sm:text-3xl font-semibold text-ink-900">P4 Maths</h2>
             <p className="mt-1 text-sm text-ink-500">
               Browse all Primary 4 skills and start practising any topic.

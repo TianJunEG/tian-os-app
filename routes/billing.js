@@ -234,4 +234,81 @@ router.post('/premium-home/requests/:id/reject', protect, asyncHandler(async (re
   res.json({ rejected: true });
 }));
 
+// ── Stripe PayNow flow (automatic — no manual admin step) ──────────────────
+
+// POST /api/billing/paynow/create — create and confirm a Stripe PaymentIntent
+// with payment_method_types: ['paynow']. Stripe generates a dynamic QR code
+// which the parent scans in their banking app. On success Stripe fires
+// payment_intent.succeeded and the webhook activates the subscription.
+router.post('/paynow/create', protect, asyncHandler(async (req, res) => {
+  if (!stripe) {
+    return res.status(503).json({ error: 'Billing is not configured on this server.', billingConfigured: false });
+  }
+  try {
+    const pricing = getPremiumHomePricing();
+    const entitlements = await entitlementsFor(req);
+    const early = earlyRenewalEligible(entitlements, pricing.earlyRenewalWindowDays);
+    const amountSgd = early ? pricing.earlyRenewalSgd : pricing.annualSgd;
+    const amountCents = Math.round(amountSgd * 100);
+
+    const pi = await stripe.paymentIntents.create({
+      amount: amountCents,
+      currency: 'sgd',
+      payment_method_types: ['paynow'],
+      metadata: {
+        userId: String(req.user.id),
+        planType: PREMIUM_HOME_PLAN,
+        amountSgd: String(amountSgd),
+        earlyRenewal: String(early),
+      },
+    });
+
+    const confirmed = await stripe.paymentIntents.confirm(pi.id, {
+      payment_method: { type: 'paynow' },
+    });
+
+    const qr = confirmed.next_action?.paynow_display_qr_code;
+    if (!qr) {
+      return res.status(500).json({ error: 'Stripe did not return a PayNow QR code. Check that PayNow is enabled for this Stripe account.' });
+    }
+
+    res.json({
+      paymentIntentId: confirmed.id,
+      qrImageUrl: qr.image_url_png,
+      expiresAt: qr.expires_at,
+      amountSgd,
+      currency: pricing.currency,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Could not create PayNow payment.' });
+  }
+}));
+
+// GET /api/billing/paynow/status/:piId — poll payment intent status.
+// Activates the subscription inline so the UI can transition immediately
+// without waiting for a webhook (useful in dev where webhooks aren't forwarded).
+router.get('/paynow/status/:piId', protect, asyncHandler(async (req, res) => {
+  if (!stripe) return res.status(503).json({ error: 'Billing is not configured.' });
+  try {
+    const pi = await stripe.paymentIntents.retrieve(req.params.piId);
+    if (String(pi.metadata?.userId) !== String(req.user.id)) {
+      return res.status(403).json({ error: 'Not your payment.' });
+    }
+    if (pi.status === 'succeeded') {
+      const current = await entitlementsFor(req);
+      if (current.tier !== 'premium_home' || current.status !== 'active') {
+        await upsertSubscription({ ownerType: 'user', ownerId: req.user.id, planType: pi.metadata?.planType || PREMIUM_HOME_PLAN, status: 'active' });
+        const now = new Date();
+        await Subscription.updateOne(
+          { ownerType: 'user', ownerId: String(req.user.id) },
+          { $set: { currentPeriodStart: now, currentPeriodEnd: new Date(now.getTime() + YEAR_MS) } }
+        );
+      }
+    }
+    res.json({ piStatus: pi.status, entitlements: await entitlementsFor(req) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}));
+
 export default router;

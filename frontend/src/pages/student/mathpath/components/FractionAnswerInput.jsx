@@ -132,17 +132,24 @@ export default function FractionAnswerInput({
       const host = hostRef.current;
       if (!host || typeof window === 'undefined') return;
       const rect = host.getBoundingClientRect();
-      // Use visualViewport when available so the virtual keyboard height is excluded
-      const vvHeight = window.visualViewport?.height ?? window.innerHeight;
-      const vvWidth = window.visualViewport?.width ?? window.innerWidth;
+      // Use visualViewport when available so the virtual keyboard height is excluded.
+      // offsetTop/offsetLeft convert layout-viewport rect coords to visual-viewport
+      // coords needed for position:fixed elements (matters on iOS when keyboard opens).
+      const vv = window.visualViewport;
+      const vvHeight = vv?.height ?? window.innerHeight;
+      const vvWidth = vv?.width ?? window.innerWidth;
+      const vvOffsetTop = vv?.offsetTop ?? 0;
+      const vvOffsetLeft = vv?.offsetLeft ?? 0;
       const width = Math.min(352, vvWidth - 32);
       const estHeight = 280;
-      let left = rect.left + rect.width / 2 - width / 2;
+      const rectTopVV = rect.top - vvOffsetTop;
+      const rectBottomVV = rect.bottom - vvOffsetTop;
+      let left = (rect.left - vvOffsetLeft) + rect.width / 2 - width / 2;
       left = Math.max(16, Math.min(left, vvWidth - width - 16));
-      let top = rect.bottom + 8;
+      let top = rectBottomVV + 8;
       // Flip above the input if there isn't room below (accounts for virtual keyboard)
       if (top + estHeight > vvHeight - 16) {
-        top = Math.max(16, rect.top - estHeight - 8);
+        top = Math.max(16, rectTopVV - estHeight - 8);
       }
       setPopupPos({ left, top, width });
     };
@@ -150,10 +157,12 @@ export default function FractionAnswerInput({
     window.addEventListener('resize', updatePosition);
     window.addEventListener('scroll', updatePosition, true);
     window.visualViewport?.addEventListener('resize', updatePosition);
+    window.visualViewport?.addEventListener('scroll', updatePosition);
     return () => {
       window.removeEventListener('resize', updatePosition);
       window.removeEventListener('scroll', updatePosition, true);
       window.visualViewport?.removeEventListener('resize', updatePosition);
+      window.visualViewport?.removeEventListener('scroll', updatePosition);
     };
   }, [popupOpen]);
 
@@ -198,21 +207,24 @@ export default function FractionAnswerInput({
 
   const focusFraction = (nextMode = 'fraction') => {
     setAnswerMode(nextMode);
+    hostRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     setPopupOpen(true);
     const target = parts.numerator && !parts.denominator ? denominatorRef : numeratorRef;
-    requestAnimationFrame(() => target.current?.focus());
+    setTimeout(() => target.current?.focus(), 50);
   };
 
   const focusMixed = () => {
     setAnswerMode('mixed');
+    hostRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     setPopupOpen(true);
-    requestAnimationFrame(() => (partsRef.current.whole ? numeratorRef : wholeRef).current?.focus());
+    setTimeout(() => (partsRef.current.whole ? numeratorRef : wholeRef).current?.focus(), 50);
   };
 
   const focusWhole = () => {
     setAnswerMode('whole');
+    hostRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     setPopupOpen(true);
-    requestAnimationFrame(() => wholeRef.current?.focus());
+    setTimeout(() => wholeRef.current?.focus(), 50);
   };
 
   const handleTool = (toolId) => {
@@ -330,12 +342,15 @@ export default function FractionAnswerInput({
           type="button"
           disabled={disabled}
           onClick={() => {
+            // Scroll the host into view before opening so iOS keyboard doesn't
+            // push the host off-screen, then delay focus to let the layout settle.
+            hostRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             setPopupOpen(true);
-            requestAnimationFrame(() => {
+            setTimeout(() => {
               if (answerMode === 'whole') wholeRef.current?.focus();
               else if (answerMode === 'mixed' && !partsRef.current.whole) wholeRef.current?.focus();
               else numeratorRef.current?.focus();
-            });
+            }, 50);
           }}
           className="min-h-10 min-w-[8rem] flex-1 rounded-xl border border-line-soft bg-surface-raised px-3 py-1.5 text-center font-mono text-base text-ink-900 shadow-sm transition hover:border-orange-300 hover:bg-orange-50 disabled:cursor-not-allowed disabled:opacity-50 sm:max-w-[9rem] sm:whitespace-nowrap"
           aria-label="Math answer value"

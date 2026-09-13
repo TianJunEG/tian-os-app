@@ -57,6 +57,31 @@ describe('Decimals practice service — grading', () => {
     expect(scored.mistakes.every((m) => m.misconceptionTag)).toBe(true);
   });
 
+  it('preserves working evidence on wrong-answer results', () => {
+    const session = buildDecimalsPracticeSession({ targetSkillId: 'D006', questionCount: 1 });
+    const scored = scoreDecimalsSubmission({
+      questions: session.questions,
+      responses: [{
+        questionId: session.questions[0].questionId,
+        studentAnswer: '-999',
+        workingSubmitted: true,
+        workingImage: 'data:image/png;base64,abc',
+        workingStrokes: [{ points: [{ x: 1, y: 2 }] }],
+        workingMathObjects: [{ type: 'text', text: '0.1' }],
+        workingSessionId: 'decpractice_1',
+        fullscreenWorkingSubmitted: true,
+      }],
+    });
+    expect(scored.mistakes[0]).toMatchObject({
+      workingSubmitted: true,
+      workingImage: 'data:image/png;base64,abc',
+      workingStrokes: [{ points: [{ x: 1, y: 2 }] }],
+      workingMathObjects: [{ type: 'text', text: '0.1' }],
+      workingSessionId: 'decpractice_1',
+      fullscreenWorkingSubmitted: true,
+    });
+  });
+
   it('computes learning status for partial accuracy', () => {
     const session = buildDecimalsPracticeSession({ targetSkillId: 'D003', questionCount: 4 });
     const responses = session.questions.map((q, i) => ({

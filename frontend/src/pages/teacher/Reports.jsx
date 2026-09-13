@@ -51,12 +51,57 @@ export default function Reports() {
           </div>
           <h4 className="mb-2 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">By topic</h4>
           <ul className="space-y-1.5">
-            {report.topics.map((t) => (
+            {(report.topics || []).map((t) => (
               <li key={t.topic} className="flex items-center justify-between gap-2 text-sm">
                 <span className="text-ink-700">{t.topic}</span><Badge tone={t.avg < 50 ? 'error' : 'navy'}>{t.avg}%</Badge>
               </li>
             ))}
           </ul>
+
+          {type === 'intervention_summary' && report.interventionSummary && (
+            <div className="mt-6">
+              <h4 className="mb-2 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Interventions</h4>
+              <div className="mb-3 grid grid-cols-3 gap-3 sm:gap-6">
+                <StatTile label="Total" value={report.interventionSummary.total} />
+                <StatTile label="Active" value={report.interventionSummary.active} />
+                <StatTile label="Mastered" value={report.interventionSummary.byStatus?.mastered ?? 0} />
+              </div>
+              {(report.interventionSummary.records || []).length === 0 ? (
+                <p className="text-sm text-ink-500">No interventions recorded for this class.</p>
+              ) : (
+                <ul className="space-y-1.5">
+                  {report.interventionSummary.records.map((r) => (
+                    <li key={`${r.studentId}-${r.status}`} className="flex items-center justify-between gap-2 text-sm">
+                      <span className="text-ink-700">{r.studentName}{r.targetSkill ? ` · ${r.targetSkill}` : ''}</span>
+                      <Badge tone={r.status === 'needs_support' ? 'error' : 'navy'}>{r.status.replace(/_/g, ' ')}</Badge>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {type === 'parent_friendly' && report.parentFriendly && (
+            <div className="mt-6">
+              <h4 className="mb-2 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Parent-friendly summaries</h4>
+              {(report.parentFriendly.narratives || []).length === 0 ? (
+                <p className="text-sm text-ink-500">No students to summarize yet.</p>
+              ) : (
+                <div className="space-y-3">
+                  {report.parentFriendly.narratives.map((n) => (
+                    <div key={n.studentId} className="rounded-lg border border-line-soft p-3">
+                      <div className="mb-1 flex items-center justify-between gap-2">
+                        <span className="font-medium text-ink-700">{n.studentName}</span>
+                        <Badge tone={n.averageMastery < 50 ? 'error' : 'navy'}>{n.averageMastery}%</Badge>
+                      </div>
+                      <p className="text-sm text-ink-600">{n.narrative}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="mt-5"><Button variant="secondary" size="s" disabled>Export / share (coming soon)</Button></div>
         </Card>
       )}

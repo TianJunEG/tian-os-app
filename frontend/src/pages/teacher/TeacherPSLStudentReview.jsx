@@ -60,9 +60,9 @@ function SessionRow({ session, onExpand, expanded }) {
 
 function StepRow({ step }) {
   return (
-    <div className={`flex items-center gap-3 rounded-lg border px-3 py-2 text-sm ${step.correct ? 'border-emerald-200 bg-emerald-50/40' : 'border-red-200 bg-red-50/40'}`}>
+    <div className={`flex items-center gap-3 rounded-lg border px-3 py-2 text-sm ${step.correct ? 'border-emerald-border bg-emerald-tint/40' : 'border-danger-border bg-danger-tint/40'}`}>
       <span className="w-28 font-medium text-ink-700">{STEP_LABELS[step.stepId] || step.stepId}</span>
-      <span className={`font-semibold ${step.correct ? 'text-emerald-700' : 'text-red-700'}`}>
+      <span className={`font-semibold ${step.correct ? 'text-emerald-deep' : 'text-danger-deep'}`}>
         {step.correct ? 'Correct' : 'Incorrect'}
       </span>
       {step.misconceptionTag && <Badge tone="error">{step.misconceptionTag.replace(/^psl\//, '')}</Badge>}

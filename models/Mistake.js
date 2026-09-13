@@ -16,6 +16,9 @@ const mistakeSchema = new mongoose.Schema({
   questionText: { type: String, default: '' },
   questionStem: { type: String, default: '' },
   workedSolution: { type: String, default: '' },
+  // Structured step-by-step walkthrough for the review screen. Rendered as an
+  // ordered list (SolutionStepsCard); falls back to the workedSolution paragraph.
+  solutionSteps: { type: [String], default: [] },
   studentAnswer: { type: String, default: '' },
   correctAnswer: { type: String, default: '' },
   answerCorrect: { type: Boolean, default: false },
@@ -26,6 +29,8 @@ const mistakeSchema = new mongoose.Schema({
   workingSessionId: { type: String, default: '', trim: true },
   workingImage: { type: String, default: '' },
   workingStrokes: { type: [mongoose.Schema.Types.Mixed], default: [] },
+  workingMathObjects: { type: [mongoose.Schema.Types.Mixed], default: [] },
+  fullscreenWorkingSubmitted: { type: Boolean, default: false },
   timeTaken: { type: Number, default: null },
   workingId: { type: String, default: '', trim: true },
   remediationId: { type: String, default: '', trim: true },

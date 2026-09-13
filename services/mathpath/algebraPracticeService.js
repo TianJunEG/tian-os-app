@@ -25,13 +25,14 @@ export function buildAlgebraPracticeSession({
     err.status = 400;
     throw err;
   }
-  const raw = generateAlgebraQuestionSet({ skillId, count: questionCount, mode });
+  const raw = generateAlgebraQuestionSet({ skillId, count: questionCount, mode, sessionSalt: Date.now().toString() });
   const questions = raw.map((q, index) => ({
     questionId: `${q.questionFamilyId}_${index}`,
     skillId: q.skillId,
     questionFamilyId: q.questionFamilyId,
     type: q.type,
     prompt: q.prompt,
+    unit: q.unit || '',
     choices: q.choices || [],
     answer: q.answer,
     acceptedAnswers: q.acceptedAnswers || [],
@@ -39,6 +40,7 @@ export function buildAlgebraPracticeSession({
     misconceptionTag: q.misconceptionTag || '',
     difficulty: q.difficulty,
     workingRequired: Boolean(q.workingRequired),
+    answerFormat: q.answerFormat,
   }));
   return {
     domainId: DOMAIN_ID,

@@ -3,12 +3,19 @@ import { useParams } from 'react-router-dom';
 import { teacherAPI } from '../../services/api';
 import { useClass } from './useClass';
 import ClassNav from './ClassNav';
-import { Button, Card, ErrorState, Spinner, StatusBadge } from '../../components/ui';
+import { Badge, Button, Card, ErrorState, Spinner } from '../../components/ui';
 
-function priorityStatus(priority) {
-  if (priority === 'high') return 'needs_support';
-  if (priority === 'medium') return 'learning';
-  return 'stable';
+// Weak-group priority is high/medium/low. Show plain, human labels rather than
+// mapping it onto unrelated learning-status enums (which read as "Learning" etc.).
+const PRIORITY_LABELS = {
+  high: ['error', 'High priority'],
+  medium: ['gold', 'Medium priority'],
+  low: ['neutral', 'Low priority'],
+};
+
+function PriorityBadge({ priority }) {
+  const [tone, label] = PRIORITY_LABELS[priority] || PRIORITY_LABELS.low;
+  return <Badge tone={tone}>{label}</Badge>;
 }
 
 export default function WeakGroups() {
@@ -64,7 +71,7 @@ export default function WeakGroups() {
         </Card>
       </div>
 
-      {message && <Card className="mb-4 border-l-4 border-navy-400 p-4 text-sm text-ink-700">{message}</Card>}
+      {message && <Card className="mb-4 border-l-4 border-emerald-bright p-4 text-sm text-ink-700">{message}</Card>}
 
       {(data.groups || []).length === 0 ? (
         <Card className="p-6 text-sm text-ink-500">No MathPath weak groups are ready yet. They will appear after diagnostics, practice mistakes, paper analysis, or recovery pack evidence.</Card>
@@ -76,7 +83,7 @@ export default function WeakGroups() {
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="font-display text-lg font-semibold text-emerald-deep">{group.skillName}</h2>
-                    <StatusBadge status={priorityStatus(group.priority)} />
+                    <PriorityBadge priority={group.priority} />
                   </div>
                   <p className="mt-1 text-sm text-ink-500">{group.evidenceSummary}</p>
                   <p className="mt-2 text-sm font-medium text-ink-700">{group.recommendedAction}</p>

@@ -48,7 +48,7 @@ export default function TeacherWorksheets() {
         <h1 className="font-display text-xl font-semibold text-emerald-deep">Class Worksheets</h1>
         <p className="mt-1 text-sm text-ink-500">Generate focused worksheets from current MathPath weak-group evidence.</p>
       </Card>
-      {message && <Card className="mb-4 border-l-4 border-navy-400 p-4 text-sm text-ink-700">{message}</Card>}
+      {message && <Card className="mb-4 border-l-4 border-emerald-bright p-4 text-sm text-ink-700">{message}</Card>}
       {groups.length === 0 ? (
         <Card className="p-6 text-sm text-ink-500">No weak-group worksheet recommendations yet. Ask students to complete diagnostics or practice first.</Card>
       ) : (

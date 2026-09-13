@@ -83,7 +83,7 @@ export default function MistakeHistory() {
               <div
                 key={m.id}
                 ref={isHighlighted ? highlightRef : undefined}
-                className={isHighlighted ? 'rounded-2xl ring-2 ring-gold-400 animate-pulse-once' : ''}
+                className={isHighlighted ? 'rounded-2xl ring-2 ring-gold animate-pulse-once' : ''}
               >
                 <MistakeCard
                   mistake={m}

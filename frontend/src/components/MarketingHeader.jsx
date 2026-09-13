@@ -4,7 +4,7 @@ import { Menu, X } from 'lucide-react';
 
 const NAV = [
   { to: '/our-story', label: 'Our Story' },
-  { to: '/edu-apps', label: 'Platform' },
+  { to: '/', label: 'Platform' },
   { to: '/resources', label: 'Resources' },
 ];
 

@@ -1,0 +1,616 @@
+// ELPath · Vocabulary Builder — task generator
+// ----------------------------------------------------------------------------
+// Turns a single word entry into a concrete, renderable exercise for a given
+// task type. Distractors are drawn first from the word's *real exam confusables*
+// and synonyms, then padded from the rest of the bank (preferring the same
+// theme/part-of-speech) so every option is plausible.
+//
+// Generation is deterministic given a seeded RNG, so the unit tests are stable
+// and a session can be reproduced from a seed.
+
+import {
+  TASK_TYPE_BY_ID,
+  taskApplies,
+  gradedLadder,
+} from './vocabularyModel.js';
+import { vocabularyWordBank } from './vocabularyWordBank.js';
+import { distractorGlossary } from './distractorGlossary.js';
+
+const BLANK_RE = /_{3,}/;
+export const BLANK_DISPLAY = '________';
+
+// ---- deterministic RNG ----------------------------------------------------
+
+/** mulberry32 — small, fast, seedable PRNG returning a float in [0, 1). */
+export function makeRng(seed = 1) {
+  let a = seed >>> 0;
+  return function rng() {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function shuffle(arr, rng) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// `norm` is called on the same handful of words/answers many times (grading checks,
+// dedup, the shared-pool build). Memoise by input so each distinct string is
+// trimmed/lower-cased once — pure, so generated output is unaffected, it just turns
+// repeated normalisations into cheap Map hits.
+const NORM_CACHE = new Map();
+const norm = (s) => {
+  const key = typeof s === 'string' ? s : String(s);
+  let v = NORM_CACHE.get(key);
+  if (v === undefined) { v = key.trim().toLowerCase(); NORM_CACHE.set(key, v); }
+  return v;
+};
+
+// ---- option assembly ------------------------------------------------------
+
+/**
+ * Build a shuffled MCQ option set: one correct answer plus distinct distractors.
+ * Distractors are taken from `distractors` (plain strings), then `padPool` if more
+ * are needed. `padPool` is a bank-wide pool of items { text, nt, w, id } (see
+ * sharedPools); `exclude` drops the current entry ({ id, w }) and, when given, any
+ * item whose source word is in `exclude.words` (used to keep a word's own family out
+ * of its morphology distractors). Returns null when fewer than `min` options fit.
+ */
+function buildOptions({ correct, distractors = [], padPool = [], exclude = null, rng, min = 4, max = 4 }) {
+  const taken = new Set([norm(correct)]);
+  const chosen = [];
+  const want = max - 1;
+  // Real distractors first (a short list — full shuffle is cheap).
+  for (const d of shuffle(uniqueStrings(distractors), rng)) {
+    if (chosen.length >= want) break;
+    const nd = norm(d);
+    if (!taken.has(nd)) { taken.add(nd); chosen.push(d); }
+  }
+  // Pad from the wider bank. padPool is the shared ~2k-item pool; draw only the
+  // handful we still need with a partial Fisher–Yates instead of shuffling the whole
+  // array — the dominant cost when this ran over every rung of every word.
+  drawFromPool(padPool, want - chosen.length, rng, (item) => {
+    if (exclude && (item.id === exclude.id || item.w === exclude.w ||
+        (exclude.words && exclude.words.has(item.w)))) return false;
+    if (taken.has(item.nt)) return false;
+    taken.add(item.nt);
+    chosen.push(item.text);
+    return true;
+  });
+  if (chosen.length + 1 < min) return null;
+  const options = shuffle([{ text: correct, correct: true }, ...chosen.map((t) => ({ text: t, correct: false }))], rng);
+  return options.map((o, i) => ({ id: String(i + 1), text: o.text, correct: o.correct }));
+}
+
+// Draw up to `need` accepted items from `pool`, sampling without replacement via a
+// partial Fisher–Yates: O(need + collisions) rng calls, not O(pool). `accept`
+// returns true when it keeps the item (it may reject e.g. an item already taken),
+// and we keep drawing until `need` are kept or the pool is exhausted. Never mutates
+// `pool` (the memoised pools are shared) — swaps live in a sparse index overlay.
+function drawFromPool(pool, need, rng, accept) {
+  if (need <= 0 || !pool.length) return;
+  const swap = new Map(); // drawn index -> value now occupying it
+  const at = (i) => (swap.has(i) ? swap.get(i) : pool[i]);
+  let kept = 0;
+  for (let hi = pool.length - 1; hi >= 0 && kept < need; hi--) {
+    const j = Math.floor(rng() * (hi + 1));
+    const picked = at(j);
+    swap.set(j, at(hi)); // move the current top element into the drawn slot
+    if (accept(picked)) kept++;
+  }
+}
+
+function uniqueStrings(list) {
+  const seen = new Set();
+  const out = [];
+  for (const s of list || []) {
+    const v = typeof s === 'string' ? s.trim() : '';
+    if (v && !seen.has(norm(v))) {
+      seen.add(norm(v));
+      out.push(v);
+    }
+  }
+  return out;
+}
+
+function fillBlank(example, text) {
+  return example.replace(BLANK_RE, text);
+}
+
+function hasBlank(example) {
+  return BLANK_RE.test(example || '');
+}
+
+// Function words that don't, on their own, pin down which word fills a blank.
+// A collocation whose only remaining context is one of these ("____ to") is a
+// weak single-answer question because many near-synonyms share it.
+const COLLOCATION_FUNCTION_WORDS = new Set([
+  'to', 'of', 'on', 'in', 'with', 'for', 'at', 'by', 'a', 'an', 'the', 'and', 'or',
+  'up', 'off', 'out', 'as', 'into', 'from', 'over', 'about', 'that', 'this',
+  'his', 'her', 'its', 'their', 'your', 'my', 'our', 'is', 'was', 'be', 'been',
+  'so', 'than', 'too', 'it', 'them', 'you',
+]);
+
+// True when blanking `re` (the target word) out of `phrase` leaves a distinctive
+// content word behind — not just prepositions/articles.
+function hasContentRemainder(phrase, re) {
+  const rest = String(phrase).replace(re, ' ');
+  return rest
+    .toLowerCase()
+    .split(/[^a-z]+/)
+    .some((tok) => tok && !COLLOCATION_FUNCTION_WORDS.has(tok));
+}
+
+// ---- distractor pools from the wider bank ---------------------------------
+
+// Memo keyed on the bank object. Everything derived from the bank alone (the
+// shared pools, the word/answer index) is built once and cached here.
+const POOL_MEMO = new WeakMap();
+function poolMemo(bank) {
+  let m = POOL_MEMO.get(bank);
+  if (!m) { m = new Map(); POOL_MEMO.set(bank, m); }
+  return m;
+}
+
+// norm(word) | norm(answer) -> the FIRST bank entry with that word/answer, so a
+// `bank.find(w => norm(w.word)===c || norm(w.answer)===c)` becomes an O(1) lookup.
+// Built once per bank (first-wins in bank order preserves find()'s semantics).
+function bankWordAnswerIndex(bank) {
+  const memo = poolMemo(bank);
+  let idx = memo.get('__wordAnswerIndex');
+  if (idx) return idx;
+  idx = new Map();
+  for (const w of bank) {
+    const nw = norm(w.word);
+    const na = norm(w.answer);
+    if (!idx.has(nw)) idx.set(nw, w);
+    if (!idx.has(na)) idx.set(na, w);
+  }
+  memo.set('__wordAnswerIndex', idx);
+  return idx;
+}
+
+// Bank-wide draw pools, built ONCE per bank. Distractors are always sampled at
+// random (buildOptions/drawFromPool draw a few items uniformly), so there is no
+// reason to materialise a filtered, theme-sorted pool per word — the sort was
+// erased by the shuffle anyway. The only thing that varied per word was *which
+// entry to exclude*, and the draw now does that in O(1) per item via each item's
+// source word/id. This turns pool construction from O(words²) (re-scanning the bank
+// for every word, × every rung) into a single O(words) pass.
+//
+// Each item is { text, nt, w, id }: the display string, its normalised form (for
+// de-dup), and the source entry's normalised word + id (for exclusion).
+function sharedPools(bank) {
+  const memo = poolMemo(bank);
+  let sp = memo.get('__sharedPools');
+  if (sp) return sp;
+  const answers = [];
+  const answersByPos = new Map();
+  const meanings = [];
+  const words = [];
+  const collocationEntries = [];
+  for (const w of bank) {
+    const base = { w: norm(w.word), id: w.id };
+    if (w.word) words.push({ ...base, text: w.word, nt: base.w });
+    if (w.answer) {
+      const a = { ...base, text: w.answer, nt: norm(w.answer) };
+      answers.push(a);
+      let byPos = answersByPos.get(w.pos);
+      if (!byPos) { byPos = []; answersByPos.set(w.pos, byPos); }
+      byPos.push(a);
+    }
+    if (w.meaning) meanings.push({ ...base, text: w.meaning, nt: norm(w.meaning) });
+    if (w.collocations?.length) collocationEntries.push(w);
+  }
+  sp = { answers, answersByPos, meanings, words, collocationEntries };
+  memo.set('__sharedPools', sp);
+  return sp;
+}
+
+// The shared answer pool for an entry's distractors — same-POS when asked (so the
+// options are all the same part of speech), otherwise the whole bank.
+function poolWords(bank, { samePos = false, pos } = {}) {
+  const sp = sharedPools(bank);
+  return samePos ? (sp.answersByPos.get(pos) || []) : sp.answers;
+}
+
+function poolMeanings(bank) {
+  return sharedPools(bank).meanings;
+}
+
+// What an entry excludes from its own bank-wide distractor pool: itself (by id) and
+// any homograph (same spelling). drawFromPool drops these via each item's { id, w }.
+const selfExclude = (entry) => ({ id: entry.id, w: norm(entry.word) });
+
+// ---- per task-type generators ---------------------------------------------
+
+const GENERATORS = {
+  meet_word(entry) {
+    return {
+      kind: 'teach',
+      card: {
+        word: entry.word,
+        pos: entry.pos,
+        meaning: entry.meaning,
+        example: hasBlank(entry.example) ? fillBlank(entry.example, entry.answer) : entry.example,
+        synonyms: entry.synonyms,
+        connotation: entry.connotation,
+        mnemonic: entry.mnemonic,
+        wordFamily: entry.wordFamily.length
+          ? entry.wordFamily.map((f) => `${f.word} (${f.pos})`).join(', ')
+          : '',
+      },
+    };
+  },
+
+  meaning_match(entry, bank, rng) {
+    const options = buildOptions({
+      correct: entry.meaning,
+      padPool: poolMeanings(bank),
+      exclude: selfExclude(entry),
+      rng,
+    });
+    if (!options) return null;
+    return {
+      kind: 'mcq',
+      prompt: `What does **${entry.word}** mean?`,
+      options,
+      rationale: `“${entry.word}” means: ${entry.meaning}`,
+    };
+  },
+
+  word_recall(entry, bank, rng) {
+    const options = buildOptions({
+      correct: entry.answer,
+      distractors: entry.confusables,
+      padPool: poolWords(bank, { samePos: true, pos: entry.pos }),
+      exclude: selfExclude(entry),
+      rng,
+    });
+    if (!options) return null;
+    return {
+      kind: 'mcq',
+      prompt: `Which word means: “${entry.meaning}”?`,
+      options,
+      rationale: `“${entry.answer}” means ${entry.meaning}`,
+    };
+  },
+
+  synonym_match(entry, bank, rng) {
+    if (!entry.synonyms.length) return null;
+    const correct = entry.synonyms[0];
+    const options = buildOptions({
+      correct,
+      distractors: entry.confusables,
+      padPool: poolWords(bank),
+      exclude: selfExclude(entry),
+      rng,
+    });
+    if (!options) return null;
+    return {
+      kind: 'mcq',
+      prompt: `Which word is closest in meaning to **${entry.word}**?`,
+      options,
+      rationale: `“${entry.word}” means ${entry.meaning}, so it is closest to “${correct}”.`,
+    };
+  },
+
+  context_infer(entry, bank, rng) {
+    if (!entry.example) return null;
+    const sentence = hasBlank(entry.example)
+      ? fillBlank(entry.example, `**${entry.answer}**`)
+      : entry.example.replace(
+          new RegExp(`\\b(${entry.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})\\b`, 'i'),
+          '**$1**',
+        );
+    const byWordOrAnswer = bankWordAnswerIndex(bank);
+    const confusableMeanings = entry.confusables
+      .map((c) => byWordOrAnswer.get(norm(c)))       // first entry whose word OR answer === c (as bank.find did)
+      .filter(Boolean)
+      .map((w) => w.meaning);
+    const options = buildOptions({
+      correct: entry.meaning,
+      distractors: confusableMeanings,
+      padPool: poolMeanings(bank),
+      exclude: selfExclude(entry),
+      rng,
+    });
+    if (!options) return null;
+    return {
+      kind: 'mcq',
+      prompt: `What does the bold word most likely mean?\n\n${sentence}`,
+      options,
+      rationale: `"${entry.word}" means: ${entry.meaning}. The sentence gives clues to its meaning.`,
+    };
+  },
+
+  morphology_match(entry, bank, rng) {
+    // The correct answer must be a DIFFERENTLY-spelled family member — otherwise
+    // it's just the question word again (e.g. "consent" the verb vs "consent" the
+    // noun), which reads as "the answer is the word being asked about". Skip the
+    // task for words whose family has no distinct-form member.
+    const members = entry.wordFamily.filter((f) => norm(f.word) !== norm(entry.word));
+    if (!members.length) return null;
+    const member = members[Math.floor(rng() * members.length)];
+    // Distractors: the confusables, padded with random bank words — but never a
+    // member of this word's own family (that would be a second correct answer).
+    // Some phrasal verbs list family members among their confusables too, so filter
+    // the family out of both sources.
+    const familyWords = new Set(entry.wordFamily.map((f) => norm(f.word)));
+    const options = buildOptions({
+      correct: member.word,
+      distractors: entry.confusables.filter((c) => !familyWords.has(norm(c))),
+      padPool: sharedPools(bank).words,
+      exclude: { ...selfExclude(entry), words: familyWords },
+      rng,
+    });
+    if (!options) return null;
+    const posLabel = member.pos !== 'other' ? ` (${member.pos})` : '';
+    return {
+      kind: 'mcq',
+      prompt: `Which word belongs to the same word family as **${entry.word}**?`,
+      options,
+      rationale: `"${member.word}"${posLabel} and "${entry.word}" (${entry.pos}) are in the same word family.`,
+    };
+  },
+
+  collocation_natural(entry, bank, rng) {
+    const real = entry.collocations.find((c) => norm(c).includes(norm(entry.word)));
+    if (!real) return null;
+    const ne = norm(entry.word);
+    const fakes = [];
+    // Draw up to 3 other collocating words at random (partial Fisher–Yates over the
+    // shared list of entries that have collocations), each contributing one fake
+    // phrase built by swapping its word for ours.
+    drawFromPool(sharedPools(bank).collocationEntries, 3, rng, (w) => {
+      if (w.id === entry.id || norm(w.word) === ne) return false;
+      for (const col of w.collocations) {
+        if (!norm(col).includes(norm(w.word))) continue;
+        const fake = col.replace(new RegExp(w.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), entry.word);
+        if (norm(fake) !== norm(real) && norm(fake) !== norm(col)) { fakes.push(fake); return true; }
+      }
+      return false;
+    });
+    if (fakes.length < 2) return null;
+    const options = buildOptions({ correct: real, distractors: fakes.slice(0, 3), rng });
+    if (!options) return null;
+    return {
+      kind: 'mcq',
+      prompt: `Which phrase uses **${entry.word}** naturally?`,
+      options,
+      rationale: `"${real}" is the natural pairing — these words collocate.`,
+    };
+  },
+
+  odd_one_out(entry, bank, rng) {
+    // The odd word must be a genuine non-synonym, so exclude any confusable that
+    // also appears among the synonyms.
+    const synSet = new Set(entry.synonyms.map(norm));
+    const odd = entry.confusables.find((c) => !synSet.has(norm(c)));
+    if (!odd || entry.synonyms.length < 2) return null;
+    // three "belong" words: the headword's synonyms (and the headword itself if needed)
+    const belong = uniqueStrings([...entry.synonyms, entry.word]).filter((w) => norm(w) !== norm(odd)).slice(0, 3);
+    if (belong.length < 3) return null;
+    const options = shuffle([{ text: odd, correct: true }, ...belong.map((t) => ({ text: t, correct: false }))], rng).map(
+      (o, i) => ({ id: String(i + 1), text: o.text, correct: o.correct })
+    );
+    return {
+      kind: 'mcq',
+      prompt: `Three of these words share a similar meaning. Which one does **not** belong?`,
+      options,
+      rationale: `“${belong.join('”, “')}” all relate to ${entry.meaning} — but “${odd}” does not.`,
+    };
+  },
+
+  connotation_pick(entry) {
+    const labelMap = { positive: 'Positive', negative: 'Negative', neutral: 'Neutral' };
+    const options = ['positive', 'negative', 'neutral'].map((c, i) => ({
+      id: String(i + 1),
+      text: labelMap[c],
+      correct: c === entry.connotation,
+    }));
+    return {
+      kind: 'mcq',
+      prompt: `What kind of feeling does the word **${entry.word}** give?`,
+      options,
+      rationale: `“${entry.word}” has a ${entry.connotation} connotation.`,
+    };
+  },
+
+  nuance_pick(entry, bank, rng) {
+    if (!hasBlank(entry.example) || !entry.confusables.length) return null;
+    const options = buildOptions({ correct: entry.answer, distractors: entry.confusables, rng, min: 3 });
+    if (!options) return null;
+    return {
+      kind: 'mcq',
+      prompt: entry.example,
+      options,
+      rationale: `These words are close, but “${entry.answer}” fits because it means ${entry.meaning}.`,
+    };
+  },
+
+  collocation_pick(entry, bank, rng) {
+    const re = new RegExp(entry.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    // Only use a collocation whose remaining words (after blanking the target)
+    // include a distinctive content word. A stem that leaves only a function word
+    // — e.g. "____ to" — is satisfied by many near-synonyms (reluctant / resistant
+    // / receptive to), so it isn't a fair single-answer question. The distractors
+    // here ARE near-synonyms, which is exactly what makes such stems ambiguous.
+    const phrase = entry.collocations.find(
+      (c) => norm(c).includes(norm(entry.word)) && hasContentRemainder(c, re)
+    );
+    if (!phrase) return null;
+    const blanked = phrase.replace(re, BLANK_DISPLAY);
+    const options = buildOptions({
+      correct: entry.word,
+      distractors: entry.confusables,
+      padPool: poolWords(bank, { samePos: true, pos: entry.pos }),
+      exclude: selfExclude(entry),
+      rng,
+    });
+    if (!options) return null;
+    return {
+      kind: 'mcq',
+      prompt: `Which word fits this common phrase?\n\n“${blanked}”`,
+      options,
+      rationale: `“${phrase}” is the natural pairing — these words collocate.`,
+    };
+  },
+
+  word_form_pick(entry, bank, rng) {
+    // Ask for a part-of-speech form that only one family member has, so the
+    // answer is unambiguous.
+    const candidate = entry.wordFamily.find((f) => f.pos !== entry.pos && f.pos !== 'other');
+    if (!candidate) return null;
+    const sharesPos = entry.wordFamily.filter((f) => f.pos === candidate.pos).length;
+    if (sharesPos !== 1) return null;
+    const distractors = [
+      entry.word,
+      ...entry.wordFamily.filter((f) => f.word !== candidate.word).map((f) => f.word),
+      ...entry.confusables,
+    ];
+    const options = buildOptions({ correct: candidate.word, distractors, rng });
+    if (!options) return null;
+    return {
+      kind: 'mcq',
+      prompt: `Which word is the **${candidate.pos}** form in the “${entry.word}” word family?`,
+      options,
+      rationale: `“${candidate.word}” is the ${candidate.pos}; “${entry.word}” is the ${entry.pos}.`,
+    };
+  },
+
+  phrasal_verb_pick(entry, bank, rng) {
+    if (!entry.isPhrasalVerb || !hasBlank(entry.example)) return null;
+    const options = buildOptions({ correct: entry.answer, distractors: entry.confusables, rng, min: 3 });
+    if (!options) return null;
+    return {
+      kind: 'mcq',
+      prompt: entry.example,
+      options,
+      rationale: `“${entry.answer}” means ${entry.meaning}.`,
+    };
+  },
+
+  sentence_cloze(entry, bank, rng) {
+    if (!hasBlank(entry.example)) return null;
+    const options = buildOptions({
+      correct: entry.answer,
+      distractors: entry.confusables,
+      padPool: poolWords(bank, { samePos: true, pos: entry.pos }),
+      exclude: selfExclude(entry),
+      rng,
+    });
+    if (!options) return null;
+    return {
+      kind: 'mcq',
+      prompt: entry.example,
+      options,
+      rationale: `“${entry.answer}” best fits because it means ${entry.meaning}.`,
+    };
+  },
+
+  cloze_synonym(entry, bank, rng) {
+    if (!hasBlank(entry.example) || !entry.synonyms.length) return null;
+    const correct = entry.synonyms[0];
+    const sentence = fillBlank(entry.example, `__${entry.answer}__`); // __word__ = underline marker for the UI
+    const options = buildOptions({
+      correct,
+      distractors: entry.confusables,
+      padPool: poolWords(bank),
+      exclude: selfExclude(entry),
+      rng,
+    });
+    if (!options) return null;
+    return {
+      kind: 'mcq',
+      prompt: `Choose the word closest in meaning to the underlined word.\n\n${sentence}`,
+      options,
+      rationale: `“${entry.answer}” means ${entry.meaning}, so it is closest to “${correct}”.`,
+    };
+  },
+};
+
+/**
+ * Generate a single task for an entry + task type. Returns null when the task
+ * does not apply or there are not enough distractors to make a fair question.
+ */
+// A word -> one-line meaning lookup covering every option a student can see:
+// a taught headword uses its own (authoritative) meaning; an untaught distractor
+// uses its generated gloss. Built once, lazily. Used to teach ALL four options
+// in the answer feedback, not just the correct one.
+let _glossMap = null;
+function glossMap() {
+  if (_glossMap) return _glossMap;
+  _glossMap = new Map();
+  for (const [word, gloss] of Object.entries(distractorGlossary)) _glossMap.set(norm(word), gloss);
+  for (const w of vocabularyWordBank) {
+    if (!w.meaning) continue;
+    _glossMap.set(norm(w.word), w.meaning);
+    _glossMap.set(norm(w.answer), w.meaning);
+  }
+  return _glossMap;
+}
+
+/** One-line meaning for an option's text, or null (e.g. an option that is itself a meaning). */
+export function glossFor(text) {
+  return glossMap().get(norm(text)) || null;
+}
+
+export function generateTask(entry, taskTypeId, { bank = vocabularyWordBank, rng = makeRng(1) } = {}) {
+  const taskType = TASK_TYPE_BY_ID[taskTypeId];
+  if (!taskType) throw new Error(`Unknown task type: ${taskTypeId}`);
+  if (!taskApplies(taskType, entry)) return null;
+  const gen = GENERATORS[taskTypeId];
+  if (!gen) return null;
+  const body = gen(entry, bank, rng);
+  if (!body) return null;
+  const task = {
+    id: `${entry.id}::${taskTypeId}`,
+    taskType: taskTypeId,
+    label: taskType.label,
+    tier: taskType.tier,
+    instruction: taskType.instruction,
+    examSection: taskType.examSection,
+    subskills: taskType.subskills,
+    wordId: entry.id,
+    word: entry.word,
+    ...body,
+    answer: body.kind === 'mcq' ? body.options.find((o) => o.correct)?.text : entry.answer,
+  };
+  // Attach a one-line meaning to each word-option so the feedback can teach every
+  // option. Meaning-valued options (e.g. "What does X mean?") get no gloss.
+  if (task.kind === 'mcq' && Array.isArray(task.options)) {
+    task.options = task.options.map((o) => {
+      const gloss = glossFor(o.text);
+      return gloss ? { ...o, gloss } : o;
+    });
+  }
+  return task;
+}
+
+/** Every graded task that can be built for an entry, in ladder (tier) order. */
+export function generateLadder(entry, { bank = vocabularyWordBank, rng = makeRng(1) } = {}) {
+  return gradedLadder(entry)
+    .map((t) => generateTask(entry, t.id, { bank, rng }))
+    .filter(Boolean);
+}
+
+/**
+ * The graded task-type ids that actually produce a question for this entry
+ * (some rungs need ≥2 distractors and are skipped when the word lacks them),
+ * in ladder (tier) order. The adaptive engine uses this as the authoritative
+ * "ladder" for a word so progression never stalls on an un-buildable rung.
+ */
+export function generatableTaskTypes(entry, { bank = vocabularyWordBank } = {}) {
+  return gradedLadder(entry)
+    .filter((t) => generateTask(entry, t.id, { bank, rng: makeRng(7) }) != null)
+    .map((t) => t.id);
+}

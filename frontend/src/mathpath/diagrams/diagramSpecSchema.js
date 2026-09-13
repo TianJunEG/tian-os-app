@@ -3,6 +3,7 @@ export const DIAGRAM_SCHEMA_VERSION = 'mathpath-diagram-spec-v1';
 export const DIAGRAM_TYPES = [
   'fraction_bar',
   'fraction_circle',
+  'hundred_grid',
   'number_line',
   'part_whole_bar',
   'comparison_bar',

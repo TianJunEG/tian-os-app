@@ -11,13 +11,14 @@ const STUDENT_MORE_ORDER = [
   'worksheets',
   'science',
   'spelling',
+  'englishpath',
   'lifelab',
   'mechanisms',
 ];
 
 const STUDENT_SECTIONS = [
   { label: 'MathPath tools', keys: ['fluency', 'mistakes', 'worksheets'] },
-  { label: 'Other subjects', keys: ['science', 'spelling', 'lifelab'] },
+  { label: 'Other subjects', keys: ['science', 'spelling', 'englishpath', 'lifelab'] },
   { label: 'Secondary', keys: ['mechanisms'] },
 ];
 

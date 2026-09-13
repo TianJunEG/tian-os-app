@@ -42,7 +42,8 @@ describe('FullScreenWorkingMode', () => {
 
     expect(screen.getByTestId('worksheet-working-space')).toBeInTheDocument();
     expect(screen.getByTestId('worksheet-question-panel')).toBeInTheDocument();
-    expect(screen.getByText('Ali had 18 stickers left.')).toBeInTheDocument();
+    // Component renders question text in both the compact header and the full body panel.
+    expect(screen.getAllByText('Ali had 18 stickers left.').length).toBeGreaterThan(0);
     expect(screen.getByTestId('working-toolbar')).toBeInTheDocument();
 
     const canvas = screen.getByLabelText('Full-screen working canvas');
@@ -75,14 +76,17 @@ describe('FullScreenWorkingMode', () => {
       />
     );
 
-    expect(screen.getByText('Shade 3/5 of the bar.')).toBeInTheDocument();
+    expect(screen.getAllByText('Shade 3/5 of the bar.').length).toBeGreaterThan(0);
     expect(screen.getByRole('button', { name: 'Clear' })).not.toBeDisabled();
+    // Clear is now destructive and prompts for confirmation; approve it.
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
     fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
-    expect(screen.getByText('Shade 3/5 of the bar.')).toBeInTheDocument();
+    confirmSpy.mockRestore();
+    expect(screen.getAllByText('Shade 3/5 of the bar.').length).toBeGreaterThan(0);
     expect(screen.getByText('Save Working')).toBeDisabled();
   });
 
-  it('hides math insert tools by default for pilot stability', () => {
+  it('shows math insert tools by default (pilot gate lifted)', () => {
     render(
       <FullScreenWorkingMode
         open
@@ -92,7 +96,7 @@ describe('FullScreenWorkingMode', () => {
       />
     );
 
-    expect(screen.queryByLabelText('Math insert tools')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Math insert tools')).toBeInTheDocument();
   });
 
   it('keeps drawing while re-rendering with equivalent empty initial arrays', () => {
@@ -131,6 +135,21 @@ describe('FullScreenWorkingMode', () => {
         }),
       ]),
     }));
+  });
+
+  it('offers operator stamps and inserts one as a draggable object (parity with the scratchpad)', () => {
+    render(
+      <FullScreenWorkingMode
+        open
+        questionText="3 + 4 = ?"
+        onClose={vi.fn()}
+        onSave={vi.fn()}
+      />
+    );
+
+    // Operators were previously missing from the full-screen stamp list.
+    fireEvent.click(screen.getByTitle('Insert +'));
+    expect(screen.getByTestId('math-object-plus')).toBeInTheDocument();
   });
 
   it('restores saved math objects so they can be reselected and deleted', () => {

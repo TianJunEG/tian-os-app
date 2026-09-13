@@ -13,6 +13,7 @@ export default function TutorStudentNav({ studentId, name, level }) {
     ['Lesson prep', `${base}/lesson-prep`],
     ['Mistakes', `${base}/mistakes`],
     ['Lesson notes', `${base}/lesson-notes`],
+    ['Rewards', `${base}/rewards`],
     ['Record', `${base}/record`],
     ['Assign homework', `${base}/assign-homework`],
   ];

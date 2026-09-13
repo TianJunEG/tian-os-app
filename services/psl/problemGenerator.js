@@ -202,6 +202,13 @@ function substituteTokens(text, vars) {
   return text.replace(/\{(\w+)\}/g, (_, key) => vars[key] ?? `{${key}}`);
 }
 
+// Canonicalise a clue token so it matches the tappable token keys produced on the client
+// (StoryPanel.canonicalizeToken): collapse all internal whitespace, keep fractions/ratios/
+// money/percent intact, but DO NOT coerce to a number (that would drop "2/5", "3:5", "30%").
+function normalizeClue(token) {
+  return String(token).trim().replace(/\s+/g, '');
+}
+
 function buildScaffoldSteps(scaffold, vars) {
   const STEP_IDS = ['understand', 'identify_info', 'identify_question', 'plan', 'solve', 'check'];
   return STEP_IDS.map((stepId) => {
@@ -215,7 +222,13 @@ function buildScaffoldSteps(scaffold, vars) {
       if (raw.choices) step.choices = raw.choices.map((c) => substituteTokens(c, vars));
     } else if (raw.type === 'highlight') {
       step.prompt = 'Tap the numbers that are given in the story.';
-      step.expectedResponse = { numbers: (raw.expected || []).map((t) => substituteTokens(t, vars)).map(Number).filter(Boolean) };
+      // Keep clues as normalized STRINGS (not coerced numbers) so fractions ("2/5"),
+      // ratios ("3:5"), money ("$4"), and percentages ("30%") survive. Avoid filter(Boolean)
+      // dropping a legitimate "0".
+      const tokens = (raw.expected || [])
+        .map((t) => normalizeClue(substituteTokens(String(t), vars)))
+        .filter((t) => t.length > 0);
+      step.expectedResponse = { numbers: tokens };
     } else if (raw.type === 'model') {
       step.prompt = 'Which bar model fits this problem?';
       step.expectedResponse = { modelType: raw.modelType, unknownPosition: raw.unknownPosition };
@@ -451,6 +464,32 @@ export async function generateProblem(skillId, options = {}) {
     }
   }
 
+  // Derive {part} and {total} for fraction templates (e.g. P5 bar-model fraction questions)
+  if (vars.fracNum !== undefined && vars.fracDen !== undefined
+      && vars.groups !== undefined && vars.perGroup !== undefined) {
+    const fracNum = Number(vars.fracNum);
+    const fracDen = Number(vars.fracDen);
+    vars.groups = fracDen;
+    vars.total = fracDen * vars.perGroup;
+    vars.part = fracNum * vars.perGroup;
+    vars.fractionPart = vars.part; // the {fractionPart} token (the fraction that was taken away)
+    // "Remainder" templates (... ÷ ... × ... then SUBTRACT) ask for what's LEFT, not the
+    // fraction itself — answer = total − part. Without this, a correct answer reads as wrong.
+    const isRemainder = Array.isArray(template.operations) && template.operations.includes('subtraction');
+    if (template.unknownPosition === 'whole') {
+      vars.answer = vars.total;
+    } else if (isRemainder) {
+      vars.answer = vars.total - vars.part;
+    } else if (template.unknownPosition === 'part') {
+      vars.answer = vars.part;
+    }
+    // keep nums in sync so the visual/answer key match the worked solution
+    nums.total = vars.total;
+    nums.part = vars.part;
+    nums.fractionPart = vars.fractionPart;
+    nums.answer = vars.answer;
+  }
+
   const storyText = substituteTokens(template.storyTemplate, vars);
   const solutionText = substituteTokens(template.solutionTemplate || '', vars);
   const correctAnswer = computeAnswer(template.scaffold, vars);
@@ -460,6 +499,46 @@ export async function generateProblem(skillId, options = {}) {
     .filter((v) => typeof v === 'number');
 
   const scaffoldSteps = buildScaffoldSteps(template.scaffold, vars);
+
+  // Classic ratio-share problems get an interactive ratio-bar plan step, built
+  // in code at generation time so no template re-seed is needed. Gated tightly
+  // on the value-per-unit decomposition holding (valueA = ratioA × valuePerPart,
+  // valueB = ratioB × valuePerPart), so proportion / fraction-of-ratio variants
+  // keep their existing plan step. Old in-flight sessions keep whatever scaffold
+  // they were generated with — the dispatcher and grader handle both shapes.
+  if (template.heuristic === 'ratio') {
+    const rA = Number(vars.ratioA);
+    const rB = Number(vars.ratioB);
+    const vpp = Number(vars.valuePerPart);
+    const vA = Number(vars.valueA);
+    const vB = Number(vars.valueB);
+    const totalVal = Number(vars.totalValue ?? vars.total);
+    const decompositionHolds = [rA, rB, vpp, vA, vB].every(Number.isFinite)
+      && vpp > 0
+      && Math.abs(vA - rA * vpp) < 1e-6
+      && Math.abs(vB - rB * vpp) < 1e-6;
+    if (decompositionHolds) {
+      const planIdx = scaffoldSteps.findIndex((s) => s.stepId === 'plan');
+      if (planIdx !== -1) {
+        scaffoldSteps[planIdx] = {
+          stepId: 'plan',
+          type: 'ratioBar',
+          prompt: 'Build the ratio bar: set the value of one unit.',
+          expectedResponse: {
+            type: 'ratioBar',
+            ratioA: rA,
+            ratioB: rB,
+            valuePerPart: vpp,
+            valueA: vA,
+            valueB: vB,
+            total: Number.isFinite(totalVal) ? totalVal : (rA + rB) * vpp,
+            labelA: vars.entityA || 'A',
+            labelB: vars.entityB || 'B',
+          },
+        };
+      }
+    }
+  }
 
   const isBarModel = ['partWhole', 'comparison', 'twoStep'].includes(template.structure);
   return {

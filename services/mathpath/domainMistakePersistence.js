@@ -1,5 +1,7 @@
 import Mistake from '../../models/Mistake.js';
 import MathPathMistakeRecord from '../../models/mathpath/MathPathMistakeRecord.js';
+import { recordLearningEvents } from '../telemetry/learningTelemetryService.js';
+import { awardPerfectRoundSticker, awardMasterySticker } from '../rewards/stickerService.js';
 
 // Shared mistake persistence for every non-fractions MathPath domain practice
 // submission. Replaces the inline MathPathMistakeRecord loop that was
@@ -19,6 +21,44 @@ import MathPathMistakeRecord from '../../models/mathpath/MathPathMistakeRecord.j
 // than flooding the review with duplicates.
 export async function persistDomainPracticeMistakes({ student, domainId, sessionId = '', scored = {}, questions = [] }) {
   const studentId = String(student._id);
+
+  // Telemetry FIRST (before any early return): emit a question_answered event
+  // for EVERY answered question so the global dashboard ("Questions answered",
+  // weekly accuracy, confidence) reflects domain practice. Domain submits used
+  // to update only per-skill mastery and never these events, so a student who
+  // practised a lot of non-fractions questions saw the dashboard counters stay
+  // flat (the reported "I answered a lot but it's not updated"). Best-effort:
+  // never fail a submit on telemetry. NOTE: must run before the mistake
+  // early-return below, or a 100%-correct session would emit nothing.
+  const results = Array.isArray(scored.results) ? scored.results : [];
+  const answered = results.filter((r) => r && r.questionId != null && !r.error);
+  if (answered.length) {
+    try {
+      await recordLearningEvents(answered.map((r) => ({
+        studentId,
+        eventType: 'question_answered',
+        domain: 'mathpath',
+        skillCode: String(r.skillId || ''),
+        questionId: String(r.questionId || ''),
+        sessionId,
+        metadata: { answerCorrect: Boolean(r.correct), domainId },
+      })));
+    } catch { /* telemetry is best-effort */ }
+  }
+
+  // Practice-earned stickers (students earn from their OWN domain practice; this
+  // shared hook runs for every domain submit). MUST be BEFORE the no-mistakes
+  // early-return below — a perfect round has no mistakes yet is exactly when the
+  // perfect-round sticker should fire. Best-effort + idempotent per milestone;
+  // generic practice (routes/practice.js) and fluency award their own separately.
+  try {
+    const acc = scored.accuracySummary || {};
+    await awardPerfectRoundSticker({ studentId, sessionId, correct: acc.correct, total: acc.total });
+    for (const [skillId, s] of Object.entries(scored.perSkill || {})) {
+      if (s && s.status === 'mastered' && s.total > 0) await awardMasterySticker({ studentId, skillId });
+    }
+  } catch { /* stickers are best-effort */ }
+
   const mistakes = Array.isArray(scored.mistakes) ? scored.mistakes : [];
   if (!mistakes.length) return { aggregateCount: 0, mistakeCount: 0 };
 
@@ -40,6 +80,8 @@ export async function persistDomainPracticeMistakes({ student, domainId, session
             source: `${domainId}-practice-incorrect`, questionId: mistake.questionId,
             sessionId, studentAnswer: mistake.studentAnswer, correctAnswer: mistake.correctAnswer,
             answerCorrect: false, confidence: mistake.confidence, timeTaken: mistake.timeTaken, seenAt: new Date(),
+            workingSubmitted: Boolean(mistake.workingSubmitted || mistake.fullscreenWorkingSubmitted),
+            workingSessionId: mistake.workingSessionId || '',
           },
         },
       },
@@ -60,12 +102,24 @@ export async function persistDomainPracticeMistakes({ student, domainId, session
           module: 'MathPath',
           questionText,
           questionStem: questionText,
-          workedSolution: Array.isArray(q.solutionSteps) ? q.solutionSteps.join('\n') : '',
+          // Structured walkthrough + flattened paragraph so the review can render
+          // an ordered list (preferred) and still fall back to prose.
+          solutionSteps: Array.isArray(q.solutionSteps) ? q.solutionSteps : [],
+          workedSolution: String(
+            q.workedSolution || (Array.isArray(q.solutionSteps) ? q.solutionSteps.join('\n') : '')
+          ),
           studentAnswer: String(mistake.studentAnswer ?? ''),
           correctAnswer: String(mistake.correctAnswer ?? ''),
           answerCorrect: false,
           confidence: String(mistake.confidence || ''),
           timeTaken: Number(mistake.timeTaken || 0),
+          workingSubmitted: Boolean(mistake.workingSubmitted || mistake.fullscreenWorkingSubmitted),
+          workingImage: mistake.workingImage || '',
+          workingPreviewImage: mistake.workingImage || '',
+          workingStrokes: Array.isArray(mistake.workingStrokes) ? mistake.workingStrokes : [],
+          workingMathObjects: Array.isArray(mistake.workingMathObjects) ? mistake.workingMathObjects : [],
+          workingSessionId: mistake.workingSessionId || '',
+          fullscreenWorkingSubmitted: Boolean(mistake.fullscreenWorkingSubmitted || mistake.workingSubmitted),
           mistakeType: 'unknown',
           misconceptionTag: tag,
           status: 'open',

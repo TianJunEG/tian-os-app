@@ -3,13 +3,23 @@ import { Check, Grid, Paperclip, PenLine, ListOrdered, Calculator, ZoomIn, ZoomO
 import WorkingToolbar, { WORKING_COLOURS } from './WorkingToolbar';
 import MathStepsEditor from './MathStepsEditor';
 import ColumnOperationsGrid, { makeEmptyGrid } from './ColumnOperationsGrid';
+import {
+  MathStampBuilder,
+  MathObjectView,
+  drawMathObject,
+  createMathObject,
+  createTextObject,
+  stampStrokeToMathObject,
+  normaliseMathObject,
+  SCRATCHPAD_LAYOUT,
+  TEXT_OBJECT_DEFAULT,
+} from './workingMath';
 import { FEATURE_FLAGS } from '../../config/featureFlags';
 import {
   CANVAS_WIDTH,
   CANVAS_HEIGHT,
   drawStroke,
   paintBackground,
-  exportCanvas as exportCanvasImage,
   pointFromEvent as extractPoint,
   beginStrokeData,
   finalizeStroke,
@@ -22,190 +32,30 @@ const WORKING_MODES = [
 ];
 
 const EMPTY_STROKES = [];
-const MATH_STAMPS = [
-  { id: 'fraction', label: 'x/y' },
-  { id: 'subscript', label: 'xₐ' },
-  { id: 'power', label: 'xᵇ' },
-  { id: 'subscriptPower', label: 'xₐᵇ' },
-  { id: 'mixed', label: 'xᵇ/a' },
-  { id: 'root', label: 'ⁿ√x' },
-  { id: 'degree', label: 'x°' },
-  { id: 'angle', label: '∠' },
-  { id: 'pi', label: 'π' },
-  { id: 'theta', label: 'θ' },
-];
+const EMPTY_OBJECTS = [];
+// Math/text inserts are draggable DOM objects overlaid on the canvas, same as
+// the full-screen canvas. They store canvas-pixel coords (0–900 × 0–320) and
+// are positioned by percentage so they track the CSS-stretched canvas. Glyphs
+// are sized for the 1400px full-screen canvas, so shrink them for the inline
+// scratchpad.
+const CANVAS_BOUNDS = { width: CANVAS_WIDTH, height: CANVAS_HEIGHT };
+const OBJECT_SCALE = 0.62;
 
-const MATH_BUILDERS = {
-  fraction: {
-    fields: [
-      { key: 'numerator', placeholder: 'x', className: 'mx-auto w-20' },
-      { key: 'denominator', placeholder: 'y', className: 'mx-auto w-20' },
-    ],
-  },
-  subscript: {
-    fields: [
-      { key: 'base', placeholder: 'x', className: 'w-20' },
-      { key: 'subscript', placeholder: 'a', className: 'w-16 text-base' },
-    ],
-  },
-  power: {
-    fields: [
-      { key: 'base', placeholder: 'x', className: 'w-20' },
-      { key: 'exponent', placeholder: 'b', className: 'w-16 text-base' },
-    ],
-  },
-  subscriptPower: {
-    fields: [
-      { key: 'base', placeholder: 'x', className: 'w-20' },
-      { key: 'exponent', placeholder: 'b', className: 'w-16 text-base' },
-      { key: 'subscript', placeholder: 'a', className: 'w-16 text-base' },
-    ],
-  },
-  mixed: {
-    fields: [
-      { key: 'base', placeholder: 'x', className: 'w-20' },
-      { key: 'numerator', placeholder: 'b', className: 'w-16 text-base' },
-      { key: 'denominator', placeholder: 'a', className: 'w-16 text-base' },
-    ],
-  },
-  root: {
-    fields: [
-      { key: 'index', placeholder: 'n', className: 'w-16 text-base' },
-      { key: 'radicand', placeholder: 'x', className: 'w-20' },
-    ],
-  },
-  degree: {
-    fields: [
-      { key: 'base', placeholder: 'x', className: 'w-20' },
-    ],
-  },
-};
-
-const FONT = "'Hanken Grotesk', system-ui, sans-serif";
-const MONO = "'JetBrains Mono', monospace";
-
-const shellStyle = {
-  fontFamily: FONT,
-  color: '#232c39',
-  background: '#fff',
-  border: '1px solid #e7eaef',
-  borderRadius: 16,
-  boxShadow: '0 1px 3px rgba(30,42,66,0.05)',
-  overflow: 'hidden',
-};
-
-const appBarStyle = {
-  background: 'linear-gradient(160deg, #13223e, #101d36)',
-  padding: '10px 16px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  flexWrap: 'wrap',
-  gap: 8,
-};
-
-const modeTabStyle = (active) => ({
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 6,
-  height: 44,
-  padding: '0 14px',
-  borderRadius: 9,
-  fontSize: 13,
-  fontWeight: 700,
-  fontFamily: FONT,
-  border: 'none',
-  cursor: 'pointer',
-  background: active ? 'rgba(217,137,46,0.2)' : 'transparent',
-  color: active ? '#f0c078' : 'rgba(255,255,255,0.55)',
-});
-
-const toolbarRowStyle = {
-  background: '#f5f6f8',
-  borderBottom: '1px solid #e7eaef',
-  padding: '8px 14px',
-  display: 'flex',
-  flexWrap: 'wrap',
-  alignItems: 'center',
-  gap: 6,
-};
-
-const canvasWrapperStyle = (bg) => ({
-  overflow: 'auto',
-  borderRadius: 0,
-  background: bg === 'grid'
-    ? 'linear-gradient(#dbe4ef 1px, transparent 1px), linear-gradient(90deg, #dbe4ef 1px, transparent 1px)'
-    : '#f5f1e9',
-  backgroundSize: bg === 'grid' ? '24px 24px' : undefined,
-  ...(bg !== 'grid' ? {
-    backgroundImage: 'repeating-linear-gradient(0deg, #f5f1e9, #f5f1e9 31px, #e7ddcb 32px)',
-  } : {}),
-  position: 'relative',
-});
-
-const footerStyle = {
-  background: '#f5f6f8',
-  borderTop: '1px solid #e7eaef',
-  padding: '10px 16px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'flex-end',
-  gap: 10,
-};
-
-const goldBtnStyle = {
-  height: 42,
-  borderRadius: 11,
-  background: '#d9892e',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 7,
-  color: '#fff',
-  fontWeight: 700,
-  fontSize: 14,
-  padding: '0 20px',
-  border: 'none',
-  cursor: 'pointer',
-  fontFamily: FONT,
-  boxShadow: '0 2px 8px rgba(217,137,46,0.35)',
-};
-
-const outlineBtnStyle = {
-  height: 42,
-  borderRadius: 11,
-  border: '1.5px solid #cfd5dd',
-  background: '#fff',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 7,
-  color: '#6b7585',
-  fontWeight: 700,
-  fontSize: 14,
-  padding: '0 20px',
-  cursor: 'pointer',
-  fontFamily: FONT,
-};
-
-const viewCtrlStyle = {
-  width: 30, height: 30, borderRadius: 8,
-  border: '1px solid #e7eaef', background: '#fff',
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  cursor: 'pointer', color: '#6b7585', padding: 0,
-};
-
-const statusBadgeStyle = (tone) => ({
-  fontFamily: MONO,
-  fontSize: 11,
-  fontWeight: 600,
-  padding: '4px 10px',
-  borderRadius: 7,
-  letterSpacing: '0.03em',
-  ...(tone === 'gold' ? { background: '#fbf1e1', color: '#a8743a' }
-    : tone === 'success' ? { background: '#e7f3ec', color: '#1f8a5b' }
-    : { background: '#eef0f4', color: '#6b7585' }),
-});
+// Chrome expressed as shared Tailwind tokens (each value equals its design
+// token; the skeuomorphic notebook paper / grid / navy app-bar have no token so
+// they stay as arbitrary values). Canvas geometry + pen colours stay inline.
+const SHELL_CLASS = 'overflow-hidden rounded-shell border border-line bg-surface-white font-sans text-ink shadow-rest';
+const APPBAR_CLASS = 'flex flex-wrap items-center justify-between gap-2 bg-[linear-gradient(160deg,#13223e,#101d36)] px-4 py-2.5';
+const modeTabClass = (active) => `inline-flex h-11 cursor-pointer items-center gap-1.5 rounded-chip px-3.5 text-[13px] font-bold ${active ? 'bg-[rgba(217,137,46,0.2)] text-[#f0c078]' : 'bg-transparent text-white/55'}`;
+const TOOLBAR_CLASS = 'flex flex-wrap items-center gap-1.5 border-b border-line bg-surface-raised px-3.5 py-2';
+const canvasWrapperClass = (bg) => `relative overflow-auto ${bg === 'grid'
+  ? 'bg-[linear-gradient(#dbe4ef_1px,transparent_1px),linear-gradient(90deg,#dbe4ef_1px,transparent_1px)] bg-[length:24px_24px]'
+  : 'bg-[repeating-linear-gradient(0deg,#f5f1e9,#f5f1e9_31px,#e7ddcb_32px)]'}`;
+const FOOTER_CLASS = 'flex items-center justify-end gap-2.5 border-t border-line bg-surface-raised px-4 py-2.5';
+const GOLD_BTN_CLASS = 'flex h-[42px] cursor-pointer items-center justify-center gap-[7px] rounded-pill2 bg-gold px-5 text-sm font-bold text-white shadow-gold disabled:cursor-default disabled:opacity-50';
+const OUTLINE_BTN_CLASS = 'flex h-[42px] cursor-pointer items-center justify-center gap-[7px] rounded-pill2 border-[1.5px] border-[#cfd5dd] bg-surface-white px-5 text-sm font-bold text-body-muted';
+const VIEW_CTRL_CLASS = 'flex h-[30px] w-[30px] cursor-pointer items-center justify-center rounded-lg border border-line bg-surface-white p-0 text-body-muted';
+const statusBadgeClass = (tone) => `rounded-[7px] px-2.5 py-1 font-mono text-[11px] font-semibold tracking-[0.03em] ${tone === 'gold' ? 'bg-gold-tint text-gold-label' : tone === 'success' ? 'bg-emerald-tint text-emerald' : 'bg-[#eef0f4] text-body-muted'}`;
 
 export function resolveWorkingRequirement(question = {}, sessionType = 'practice') {
   const explicitRequired = question.requiresWorking ?? question.workingRequired;
@@ -241,34 +91,6 @@ export function resolveWorkingRequirement(question = {}, sessionType = 'practice
   };
 }
 
-function MathDraftInput({ value, placeholder, onChange, onEnter, compact = false, autoFocus = false }) {
-  return (
-    <input
-      autoFocus={autoFocus}
-      value={value || ''}
-      onChange={(event) => onChange?.(event.target.value)}
-      onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
-      style={{
-        width: compact ? 56 : 80,
-        height: compact ? 48 : 56,
-        borderRadius: 12,
-        border: '2px solid transparent',
-        background: '#f3f4f7',
-        padding: '0 10px',
-        textAlign: 'center',
-        fontFamily: 'Georgia, serif',
-        fontStyle: 'italic',
-        fontSize: compact ? 20 : 26,
-        color: '#232c39',
-        outline: 'none',
-      }}
-      onFocus={(e) => { e.target.style.borderColor = '#d9892e'; e.target.style.background = '#fdf6ea'; }}
-      onBlur={(e) => { e.target.style.borderColor = 'transparent'; e.target.style.background = '#f3f4f7'; }}
-      placeholder={placeholder}
-    />
-  );
-}
-
 export default function WorkingCanvas({
   questionId = '',
   workingCode = '',
@@ -277,6 +99,9 @@ export default function WorkingCanvas({
   readOnly = false,
   submittedImage = '',
   submittedStrokes = EMPTY_STROKES,
+  initialMathObjects = EMPTY_OBJECTS,
+  initialColumnGrid = null,
+  initialMathSteps = null,
   initialSubmitted = null,
   initialWorkingNotNeeded = false,
   label = 'Show your working',
@@ -291,11 +116,32 @@ export default function WorkingCanvas({
   const fileInputRef = useRef(null);
   const drawingRef = useRef(false);
   const currentStrokeRef = useRef(null);
+  // Palm rejection: only the pointer that started the active stroke may drive it.
+  // A resting palm fires its own pointerdown/move; those are ignored mid-stroke.
+  const activePointerRef = useRef(null);
+  // Math/text objects mirror state into a ref so drag-move and export read the
+  // latest list without waiting on a re-render.
+  const mathObjectsRef = useRef([]);
+  const objectDragRef = useRef(null);
+  const textInputRef = useRef(null);
   const [tool, setTool] = useState('pen');
   const [colour, setColour] = useState(WORKING_COLOURS[0]?.value || '#111827');
   const [brushSize, setBrushSize] = useState(4);
   const [background, setBackground] = useState('ruled');
-  const [strokes, setStrokes] = useState(Array.isArray(submittedStrokes) ? submittedStrokes : []);
+  // Legacy stamp strokes (old baked inserts) are split out into draggable
+  // objects so previously-saved working still opens with movable inserts.
+  const [strokes, setStrokes] = useState(
+    () => (Array.isArray(submittedStrokes) ? submittedStrokes : []).filter((s) => s?.tool !== 'stamp'),
+  );
+  const [mathObjects, setMathObjects] = useState(() => {
+    const raw = Array.isArray(submittedStrokes) ? submittedStrokes : [];
+    const saved = (Array.isArray(initialMathObjects) ? initialMathObjects : []).map(normaliseMathObject).filter(Boolean);
+    const next = saved.length ? saved : raw.map((s, i) => stampStrokeToMathObject(s, i)).filter(Boolean);
+    mathObjectsRef.current = next;
+    return next;
+  });
+  const [selectedObjectId, setSelectedObjectId] = useState(null);
+  const [textDraft, setTextDraft] = useState(null);
   const [redoStack, setRedoStack] = useState([]);
   const [zoom, setZoom] = useState(1);
   const [submitted, setSubmitted] = useState(initialSubmitted ?? Boolean(submittedImage || submittedStrokes?.length));
@@ -305,6 +151,10 @@ export default function WorkingCanvas({
   const [workingMode, setWorkingMode] = useState('draw');
   const [mathSteps, setMathSteps] = useState([{ id: 'step-1', text: '' }]);
   const [columnGrid, setColumnGrid] = useState(() => makeEmptyGrid('addition', 0));
+
+  // Collapse an empty `initialMathObjects` (consumers often pass a fresh `[]`)
+  // to one constant reference so the reset effect doesn't fire every render.
+  const stableMathObjects = Array.isArray(initialMathObjects) && initialMathObjects.length ? initialMathObjects : EMPTY_OBJECTS;
 
   const status = useMemo(() => {
     if (readOnly) return 'Review';
@@ -339,22 +189,42 @@ export default function WorkingCanvas({
     redraw(strokes, submittedImage);
   }, [strokes, submittedImage, background]);
 
+  // While a stroke is in progress, block text selection so dragging the pen
+  // never highlights nearby text or steals focus into an input. Scoped to active
+  // strokes, so normal selection (e.g. in the steps editor) still works.
   useEffect(() => {
-    const nextStrokes = Array.isArray(submittedStrokes) ? submittedStrokes : [];
-    const nextSubmitted = initialSubmitted ?? Boolean(submittedImage || nextStrokes.length);
+    const blockSelection = (event) => { if (drawingRef.current) event.preventDefault(); };
+    document.addEventListener('selectstart', blockSelection);
+    return () => document.removeEventListener('selectstart', blockSelection);
+  }, []);
+
+  useEffect(() => {
+    const rawStrokes = Array.isArray(submittedStrokes) ? submittedStrokes : [];
+    const nextStrokes = rawStrokes.filter((s) => s?.tool !== 'stamp');
+    const savedObjects = stableMathObjects.map(normaliseMathObject).filter(Boolean);
+    const legacyObjects = rawStrokes.map((s, i) => stampStrokeToMathObject(s, i)).filter(Boolean);
+    const nextObjects = savedObjects.length ? savedObjects : legacyObjects;
+    const nextSubmitted = initialSubmitted ?? Boolean(submittedImage || nextStrokes.length || nextObjects.length);
     const nextNotNeeded = Boolean(initialWorkingNotNeeded);
     drawingRef.current = false;
     currentStrokeRef.current = null;
+    activePointerRef.current = null;
     setStrokes(nextStrokes);
+    mathObjectsRef.current = nextObjects;
+    setMathObjects(nextObjects);
+    setSelectedObjectId(null);
+    setTextDraft(null);
     setRedoStack([]);
     setSubmitted(nextSubmitted);
     setNotNeeded(nextNotNeeded);
     setAttachedImage(submittedImage || '');
     setMathDraft(null);
+    setColumnGrid(initialColumnGrid ?? makeEmptyGrid('addition', 0));
+    setMathSteps(Array.isArray(initialMathSteps) && initialMathSteps.length ? initialMathSteps : [{ id: 'step-1', text: '' }]);
     setZoom(1);
     scrollRef.current?.scrollTo?.({ left: 0, top: 0 });
     redraw(nextStrokes, submittedImage);
-  }, [questionId, submittedImage, submittedStrokes, initialSubmitted, initialWorkingNotNeeded]);
+  }, [questionId, submittedImage, submittedStrokes, stableMathObjects, initialColumnGrid, initialMathSteps, initialSubmitted, initialWorkingNotNeeded]);
 
   const pointFromEvent = (event) => extractPoint(event, canvasRef.current);
 
@@ -363,6 +233,7 @@ export default function WorkingCanvas({
       workingSubmitted: submitted,
       workingNotNeeded: notNeeded,
       workingStrokes: strokes,
+      workingMathObjects: mathObjects,
       workingSteps: mathSteps,
       workingColumnGrid: columnGrid,
       workingMode,
@@ -370,15 +241,146 @@ export default function WorkingCanvas({
     });
   };
 
-  const beginStroke = (event) => {
+  // ── Math / text objects (draggable, shared with the full-screen canvas) ──
+
+  const commitObjects = (nextObjects, { emit = true } = {}) => {
+    mathObjectsRef.current = nextObjects;
+    setMathObjects(nextObjects);
+    if (emit) {
+      setRedoStack([]);
+      setSubmitted(false);
+      setNotNeeded(false);
+      emitChange({ workingSubmitted: false, workingNotNeeded: false, workingMathObjects: nextObjects });
+    }
+  };
+
+  const addMathObject = (template, values = {}) => {
+    const object = createMathObject(template, values, mathObjectsRef.current.length, SCRATCHPAD_LAYOUT);
+    commitObjects([...mathObjectsRef.current, object]);
+    setSelectedObjectId(object.id);
+    setMathDraft(null);
+  };
+
+  const deleteObject = (id) => {
+    commitObjects(mathObjectsRef.current.filter((object) => object.id !== id));
+    setSelectedObjectId(null);
+  };
+
+  const beginObjectDrag = (event, object) => {
     if (readOnly) return;
     event.preventDefault();
+    event.stopPropagation();
+    setSelectedObjectId(object.id);
+    const start = pointFromEvent(event);
+    objectDragRef.current = { id: object.id, pointerId: event.pointerId, offsetX: start.x - object.x, offsetY: start.y - object.y };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  };
+
+  const moveObjectDrag = (event) => {
+    const drag = objectDragRef.current;
+    if (!drag) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const point = pointFromEvent(event);
+    // Drag updates skip emit/submitted churn — the final position is committed
+    // on pointer up.
+    commitObjects(mathObjectsRef.current.map((object) => (
+      object.id === drag.id
+        ? {
+          ...object,
+          x: Math.max(0, Math.min(CANVAS_WIDTH - 20, point.x - drag.offsetX)),
+          y: Math.max(0, Math.min(CANVAS_HEIGHT - 20, point.y - drag.offsetY)),
+        }
+        : object
+    )), { emit: false });
+  };
+
+  const endObjectDrag = (event) => {
+    if (!objectDragRef.current) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.releasePointerCapture?.(objectDragRef.current.pointerId);
+    objectDragRef.current = null;
+    setSubmitted(false);
+    emitChange({ workingSubmitted: false, workingMathObjects: mathObjectsRef.current });
+  };
+
+  const saveTextDraft = (draft = textDraft) => {
+    const text = String(draft?.text || '').trim();
+    if (!text) {
+      setTextDraft(null);
+      return;
+    }
+    let next;
+    if (draft.id) {
+      next = mathObjectsRef.current.map((object) => (
+        object.id === draft.id
+          ? {
+            ...object,
+            text,
+            value: { ...(object.value || {}), text },
+            width: Math.max(TEXT_OBJECT_DEFAULT.width, Math.min(440, text.length * 15 + 36)),
+          }
+          : object
+      ));
+      setSelectedObjectId(draft.id);
+    } else {
+      const object = createTextObject({ text, x: draft.x, y: draft.y, colour: colour || '#111827' });
+      next = [...mathObjectsRef.current, object];
+      setSelectedObjectId(object.id);
+    }
+    commitObjects(next);
+    setTextDraft(null);
+    setTool('pen');
+  };
+
+  const editTextObject = (object) => {
+    if (!object || object.type !== 'text') return;
+    setMathDraft(null);
+    setTextDraft({ id: object.id, x: object.x, y: object.y, text: object.text || object.value?.text || '' });
+    setSelectedObjectId(object.id);
+  };
+
+  const beginStroke = (event) => {
+    if (readOnly) return;
+    // Text tool: drop a label at the press point instead of starting a stroke.
+    if (tool === 'text') {
+      event.preventDefault();
+      const point = pointFromEvent(event);
+      if (textDraft && String(textDraft.text || '').trim()) {
+        if (textInputRef.current) textInputRef.current.dataset.committed = 'true';
+        saveTextDraft(textDraft);
+      }
+      setSelectedObjectId(null);
+      setMathDraft(null);
+      setTextDraft({ id: null, x: point.x, y: point.y, text: '' });
+      if (typeof window !== 'undefined' && window.requestAnimationFrame) {
+        window.requestAnimationFrame(() => { if (textInputRef.current) textInputRef.current.dataset.committed = 'false'; });
+      }
+      return;
+    }
+    // Palm rejection: if a pointer is already drawing, ignore the new
+    // pointerdown (e.g. a palm landing while the pen draws).
+    if (drawingRef.current) return;
+    event.preventDefault();
+    // A fresh stroke deselects any active object.
+    setSelectedObjectId(null);
+    // Clear any selection the press may have started so writing never leaves
+    // highlighted text or a caret stranded in a nearby input.
+    if (typeof window !== 'undefined') window.getSelection?.()?.removeAllRanges?.();
     drawingRef.current = true;
+    if (event.pointerId !== undefined) {
+      activePointerRef.current = event.pointerId;
+      canvasRef.current?.setPointerCapture?.(event.pointerId);
+    }
     currentStrokeRef.current = beginStrokeData(event, tool, colour, brushSize, canvasRef.current);
   };
 
   const moveStroke = (event) => {
     if (!drawingRef.current || readOnly) return;
+    // Ignore moves from any pointer other than the one that began the stroke.
+    if (activePointerRef.current !== null && event.pointerId !== undefined
+      && event.pointerId !== activePointerRef.current) return;
     event.preventDefault();
     const stroke = currentStrokeRef.current;
     const coalescedEvents = event.getCoalescedEvents?.() || [event];
@@ -387,6 +389,14 @@ export default function WorkingCanvas({
     }
     const ctx = canvasRef.current.getContext('2d');
     const pts = stroke.points;
+    if (stroke.tool === 'shade') {
+      // Shade renders the WHOLE stroke at once (even, flat tone). Incremental
+      // tail-stamps would re-composite overlaps and darken them, so redraw the
+      // committed strokes then the full current shade stroke every move.
+      redraw(strokes, submittedImage);
+      drawStroke(ctx, stroke);
+      return;
+    }
     if (pts.length < 3) {
       drawStroke(ctx, { ...stroke, points: pts.slice(-2) });
     } else {
@@ -395,12 +405,11 @@ export default function WorkingCanvas({
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
       ctx.globalCompositeOperation = stroke.tool === 'eraser' ? 'destination-out' : 'source-over';
-      ctx.globalAlpha = stroke.tool === 'highlighter' ? 0.18 : stroke.tool === 'shade' ? 0.24 : 1;
+      ctx.globalAlpha = stroke.tool === 'highlighter' ? 0.18 : 1;
       ctx.strokeStyle = stroke.tool === 'eraser' ? '#ffffff' : (stroke.colour || '#172554');
       const baseSize = Number(stroke.size || 4);
       const hasPressure = (stroke.tool === 'pen' || stroke.tool === 'pencil') && tail[2].p != null;
       ctx.lineWidth = stroke.tool === 'eraser' ? 24
-        : stroke.tool === 'shade' ? Math.max(34, baseSize * 8)
         : stroke.tool === 'highlighter' ? Math.max(48, baseSize * 10)
         : stroke.tool === 'pencil' ? Math.max(1, baseSize - 1)
         : hasPressure ? baseSize * (0.3 + (tail[2].p ?? 0.5) * 0.7)
@@ -415,8 +424,19 @@ export default function WorkingCanvas({
     }
   };
 
-  const endStroke = () => {
+  const endStroke = (event) => {
     if (!drawingRef.current || readOnly) return;
+    // Ignore pointerup/leave from a non-active pointer (e.g. a resting palm
+    // lifting); only the pointer that owns the stroke may end it.
+    if (activePointerRef.current !== null && event?.pointerId !== undefined
+      && event.pointerId !== activePointerRef.current) return;
+    if (event?.pointerId !== undefined) canvasRef.current?.releasePointerCapture?.(event.pointerId);
+    // Suppress the trailing tap and drop any selection the lift started, so the
+    // canvas isn't left fully highlighted (an iPad/stylus quirk where the next
+    // stroke's first tap only clears the selection instead of drawing).
+    event?.preventDefault?.();
+    if (typeof window !== 'undefined') window.getSelection?.()?.removeAllRanges?.();
+    activePointerRef.current = null;
     drawingRef.current = false;
     const raw = currentStrokeRef.current;
     currentStrokeRef.current = null;
@@ -432,11 +452,15 @@ export default function WorkingCanvas({
 
   const clear = () => {
     setStrokes([]);
+    mathObjectsRef.current = [];
+    setMathObjects([]);
+    setSelectedObjectId(null);
+    setTextDraft(null);
     setRedoStack([]);
     setSubmitted(false);
     setNotNeeded(false);
     redraw([]);
-    emitChange({ workingSubmitted: false, workingNotNeeded: false, workingStrokes: [], workingImage: '' });
+    emitChange({ workingSubmitted: false, workingNotNeeded: false, workingStrokes: [], workingMathObjects: [], workingImage: '' });
   };
 
   const undo = () => {
@@ -478,13 +502,27 @@ export default function WorkingCanvas({
 
   const hasStepsContent = mathSteps.some((s) => s.text.trim());
   const hasColumnContent = columnGrid?.rows?.some((r) => r.some((c) => c)) || columnGrid?.dividend?.some((c) => c);
-  const hasAnyWorking = strokes.length > 0 || attachedImage || hasStepsContent || hasColumnContent;
+  const hasAnyWorking = strokes.length > 0 || mathObjects.length > 0 || attachedImage || hasStepsContent || hasColumnContent;
+
+  // Flatten strokes + draggable objects onto a backgrounded canvas for the saved
+  // PNG, matching the full-screen canvas's composite export.
+  const exportWorkingImage = () => {
+    const output = document.createElement('canvas');
+    output.width = CANVAS_WIDTH;
+    output.height = CANVAS_HEIGHT;
+    const ctx = output.getContext('2d');
+    paintBackground(ctx, CANVAS_WIDTH, CANVAS_HEIGHT, background);
+    if (canvasRef.current) ctx.drawImage(canvasRef.current, 0, 0);
+    mathObjectsRef.current.forEach((object) => drawMathObject(ctx, object, { stampScale: 1 }));
+    return output.toDataURL('image/png');
+  };
 
   const submit = () => {
-    const image = attachedImage || exportCanvasImage(canvasRef.current, CANVAS_WIDTH, CANVAS_HEIGHT, background);
+    const image = attachedImage || exportWorkingImage();
     const payload = {
       workingImage: image,
       workingStrokes: strokes,
+      workingMathObjects: mathObjectsRef.current,
       workingSteps: mathSteps,
       workingColumnGrid: columnGrid,
       workingMode,
@@ -513,49 +551,6 @@ export default function WorkingCanvas({
     emitChange(payload);
   };
 
-  const insertMathStamp = (template, values = {}) => {
-    const stampCount = strokes.filter((stroke) => stroke.tool === 'stamp').length;
-    const nextStroke = {
-      tool: 'stamp',
-      template,
-      colour: '#f97316',
-      size: 4,
-      ...values,
-      points: [{
-        x: 36 + ((stampCount % 7) * 96),
-        y: 72 + (Math.floor(stampCount / 7) * 76),
-      }],
-    };
-    const nextStrokes = [...strokes, nextStroke];
-    setStrokes(nextStrokes);
-    setRedoStack([]);
-    setSubmitted(false);
-    setNotNeeded(false);
-    setMathDraft(null);
-    emitChange({ workingSubmitted: false, workingNotNeeded: false, workingStrokes: nextStrokes });
-  };
-
-  const handleMathTool = (template) => {
-    const builder = MATH_BUILDERS[template];
-    if (builder) {
-      const nextValues = builder.fields.reduce((acc, field) => ({ ...acc, [field.key]: '' }), {});
-      setMathDraft((current) => current?.template === template ? null : { template, ...nextValues });
-      return;
-    }
-    insertMathStamp(template);
-  };
-
-  const insertDraftMath = () => {
-    const template = mathDraft?.template;
-    const builder = MATH_BUILDERS[template];
-    if (!template || !builder) return;
-    const values = builder.fields.reduce((acc, field) => ({ ...acc, [field.key]: String(mathDraft?.[field.key] || '').trim() }), {});
-    if (Object.values(values).some((value) => !value)) return;
-    insertMathStamp(template, values);
-  };
-
-  const draftReady = Boolean(mathDraft?.template && MATH_BUILDERS[mathDraft.template]?.fields.every((field) => String(mathDraft?.[field.key] || '').trim()));
-
   const attachPhoto = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -583,15 +578,15 @@ export default function WorkingCanvas({
 
   if (readOnly) {
     return (
-      <div style={{ ...shellStyle, padding: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <span style={{ fontSize: 14, fontWeight: 700, color: '#232c39' }}>Student workings</span>
-          <span style={statusBadgeStyle('neutral')}>{status}</span>
+      <div className={`${SHELL_CLASS} p-4`}>
+        <div className="mb-3 flex items-center justify-between">
+          <span className="text-sm font-bold text-ink">Student workings</span>
+          <span className={statusBadgeClass('neutral')}>{status}</span>
         </div>
         {submittedImage ? (
-          <img src={submittedImage} alt="Student submitted workings" style={{ width: '100%', borderRadius: 10, border: '1px solid #e7eaef', objectFit: 'contain' }} />
+          <img src={submittedImage} alt="Student submitted workings" className="w-full rounded-[10px] border border-line object-contain" />
         ) : (
-          <div style={{ background: '#f5f6f8', borderRadius: 10, padding: '10px 14px', fontSize: 14, color: '#8a93a3' }}>
+          <div className="rounded-[10px] bg-surface-raised px-3.5 py-2.5 text-sm text-[#8a93a3]">
             No working image submitted.
           </div>
         )}
@@ -600,37 +595,37 @@ export default function WorkingCanvas({
   }
 
   return (
-    <div style={shellStyle} data-testid="working-canvas">
+    <div className={SHELL_CLASS} data-testid="working-canvas">
       {/* Dark app bar */}
-      <div style={appBarStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      <div className={APPBAR_CLASS}>
+        <div className="flex items-center gap-1">
           {WORKING_MODES.map((mode) => (
             <button
               key={mode.id}
               type="button"
               onClick={() => setWorkingMode(mode.id)}
-              style={modeTabStyle(workingMode === mode.id)}
+              className={modeTabClass(workingMode === mode.id)}
             >
-              <mode.icon style={{ width: 15, height: 15 }} />
+              <mode.icon className="h-[15px] w-[15px]" />
               {mode.label}
             </button>
           ))}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={statusBadgeStyle(statusTone)}>{status}</span>
+        <div className="flex items-center gap-2">
+          <span className={statusBadgeClass(statusTone)}>{status}</span>
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            style={{ ...viewCtrlStyle, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.6)' }}
+            className="flex h-[30px] w-[30px] cursor-pointer items-center justify-center rounded-lg border border-white/[0.12] bg-white/[0.08] p-0 text-white/60"
             title="Attach photo"
           >
-            <Paperclip style={{ width: 14, height: 14 }} />
+            <Paperclip className="h-3.5 w-3.5" />
           </button>
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
-            style={{ display: 'none' }}
+            className="hidden"
             onChange={attachPhoto}
           />
         </div>
@@ -638,21 +633,21 @@ export default function WorkingCanvas({
 
       {/* Working code banner */}
       {workingCode && (
-        <div style={{ background: '#fbf1e1', borderBottom: '1px solid #f0dcb8', padding: '8px 16px', fontSize: 13, color: '#a8743a' }}>
-          <span style={{ fontWeight: 700 }}>Working code: </span>
-          <span style={{ fontFamily: MONO }}>{workingCode}</span>
-          <span style={{ marginLeft: 8, fontSize: 12, color: '#b8a076' }}>Write this code at the top of your working page before taking a photo.</span>
+        <div className="border-b border-gold-border bg-gold-tint px-4 py-2 text-[13px] text-gold-label">
+          <span className="font-bold">Working code: </span>
+          <span className="font-mono">{workingCode}</span>
+          <span className="ml-2 text-xs text-[#b8a076]">Write this code at the top of your working page before taking a photo.</span>
         </div>
       )}
 
       {/* Toolbar row */}
       {workingMode === 'draw' && (
-        <div style={toolbarRowStyle}>
+        <div className={TOOLBAR_CLASS}>
           <WorkingToolbar
             tool={tool}
             colour={colour}
             brushSize={brushSize}
-            canUndo={strokes.length > 0}
+            canUndo={strokes.length > 0 || mathObjects.length > 0}
             canRedo={redoStack.length > 0}
             zoom={zoom}
             onToolChange={setTool}
@@ -667,20 +662,20 @@ export default function WorkingCanvas({
             onPan={pan}
             compact={compact}
           />
-          <span style={{ width: 1, height: 22, background: '#dde1e8', margin: '0 4px' }} />
-          <button type="button" onClick={() => setBackground((v) => v === 'grid' ? 'ruled' : 'grid')} style={viewCtrlStyle} title={background === 'grid' ? 'Ruled lines' : 'Grid'}>
-            <Grid style={{ width: 14, height: 14 }} />
+          <span className="mx-1 h-[22px] w-px bg-line-strong" />
+          <button type="button" onClick={() => setBackground((v) => v === 'grid' ? 'ruled' : 'grid')} className={VIEW_CTRL_CLASS} title={background === 'grid' ? 'Ruled lines' : 'Grid'}>
+            <Grid className="h-3.5 w-3.5" />
           </button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginLeft: 'auto' }}>
-            <button type="button" onClick={() => zoomBy(-0.25)} style={viewCtrlStyle} title="Zoom out">
-              <ZoomOut style={{ width: 14, height: 14 }} />
+          <div className="ml-auto flex items-center gap-[3px]">
+            <button type="button" onClick={() => zoomBy(-0.25)} className={VIEW_CTRL_CLASS} title="Zoom out">
+              <ZoomOut className="h-3.5 w-3.5" />
             </button>
-            <span style={{ fontFamily: MONO, fontSize: 11, color: '#8a93a3', minWidth: 36, textAlign: 'center' }}>{Math.round(zoom * 100)}%</span>
-            <button type="button" onClick={() => zoomBy(0.25)} style={viewCtrlStyle} title="Zoom in">
-              <ZoomIn style={{ width: 14, height: 14 }} />
+            <span className="min-w-[36px] text-center font-mono text-[11px] text-[#8a93a3]">{Math.round(zoom * 100)}%</span>
+            <button type="button" onClick={() => zoomBy(0.25)} className={VIEW_CTRL_CLASS} title="Zoom in">
+              <ZoomIn className="h-3.5 w-3.5" />
             </button>
-            <button type="button" onClick={() => setZoom(1)} style={viewCtrlStyle} title="Reset zoom">
-              <RotateCcw style={{ width: 13, height: 13 }} />
+            <button type="button" onClick={() => setZoom(1)} className={VIEW_CTRL_CLASS} title="Reset zoom">
+              <RotateCcw className="h-[13px] w-[13px]" />
             </button>
           </div>
         </div>
@@ -688,129 +683,110 @@ export default function WorkingCanvas({
 
       {/* Attached image banner */}
       {attachedImage && (
-        <div style={{ background: '#f5f6f8', borderBottom: '1px solid #e7eaef', padding: 10 }}>
-          <img src={attachedImage} alt="Attached working photo" style={{ maxHeight: 140, width: '100%', objectFit: 'contain', borderRadius: 8 }} />
+        <div className="border-b border-line bg-surface-raised p-2.5">
+          <img src={attachedImage} alt="Attached working photo" className="max-h-[140px] w-full rounded-lg object-contain" />
         </div>
       )}
 
-      {/* Math stamps */}
+      {/* Math stamps — shared with the full-screen canvas via MathStampBuilder */}
       {workingMode === 'draw' && showMathStamps && (
-        <div style={{ ...toolbarRowStyle, gap: 7, borderTop: 'none' }} aria-label="Math insert tools">
-          {MATH_STAMPS.map((stamp) => (
-            <div key={stamp.id} style={{ position: 'relative' }}>
-              {mathDraft?.template === stamp.id && MATH_BUILDERS[stamp.id] ? (
-                <div style={{
-                  position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)',
-                  marginBottom: 10, background: '#fff', border: '1px solid #e7eaef', borderRadius: 16,
-                  padding: 16, boxShadow: '0 8px 24px rgba(30,42,66,0.14)', zIndex: 20,
-                  width: stamp.id === 'fraction' ? 140 : stamp.id === 'root' ? 220 : 200,
-                }} aria-label={`${stamp.label} builder`}>
-                  {stamp.id === 'fraction' ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-                      <MathDraftInput autoFocus value={mathDraft.numerator} placeholder="x" onChange={(v) => setMathDraft((c) => ({ ...(c || { template: stamp.id }), numerator: v }))} onEnter={insertDraftMath} />
-                      <div style={{ height: 1, width: 60, background: '#aab2bf' }} />
-                      <MathDraftInput value={mathDraft.denominator} placeholder="y" onChange={(v) => setMathDraft((c) => ({ ...(c || { template: stamp.id }), denominator: v }))} onEnter={insertDraftMath} />
-                    </div>
-                  ) : stamp.id === 'subscript' ? (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', gap: 10 }}>
-                      <MathDraftInput autoFocus value={mathDraft.base} placeholder="x" onChange={(v) => setMathDraft((c) => ({ ...(c || { template: stamp.id }), base: v }))} onEnter={insertDraftMath} />
-                      <MathDraftInput value={mathDraft.subscript} placeholder="a" compact onChange={(v) => setMathDraft((c) => ({ ...(c || { template: stamp.id }), subscript: v }))} onEnter={insertDraftMath} />
-                    </div>
-                  ) : stamp.id === 'power' ? (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'start', gap: 10 }}>
-                      <MathDraftInput autoFocus value={mathDraft.base} placeholder="x" onChange={(v) => setMathDraft((c) => ({ ...(c || { template: stamp.id }), base: v }))} onEnter={insertDraftMath} />
-                      <MathDraftInput value={mathDraft.exponent} placeholder="b" compact onChange={(v) => setMathDraft((c) => ({ ...(c || { template: stamp.id }), exponent: v }))} onEnter={insertDraftMath} />
-                    </div>
-                  ) : stamp.id === 'subscriptPower' ? (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', gap: 10 }}>
-                      <MathDraftInput autoFocus value={mathDraft.base} placeholder="x" onChange={(v) => setMathDraft((c) => ({ ...(c || { template: stamp.id }), base: v }))} onEnter={insertDraftMath} />
-                      <div style={{ display: 'grid', gap: 6 }}>
-                        <MathDraftInput value={mathDraft.exponent} placeholder="b" compact onChange={(v) => setMathDraft((c) => ({ ...(c || { template: stamp.id }), exponent: v }))} onEnter={insertDraftMath} />
-                        <MathDraftInput value={mathDraft.subscript} placeholder="a" compact onChange={(v) => setMathDraft((c) => ({ ...(c || { template: stamp.id }), subscript: v }))} onEnter={insertDraftMath} />
-                      </div>
-                    </div>
-                  ) : stamp.id === 'mixed' ? (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', gap: 10 }}>
-                      <MathDraftInput autoFocus value={mathDraft.base} placeholder="x" onChange={(v) => setMathDraft((c) => ({ ...(c || { template: stamp.id }), base: v }))} onEnter={insertDraftMath} />
-                      <div style={{ display: 'grid', gap: 6 }}>
-                        <MathDraftInput value={mathDraft.numerator} placeholder="b" compact onChange={(v) => setMathDraft((c) => ({ ...(c || { template: stamp.id }), numerator: v }))} onEnter={insertDraftMath} />
-                        <MathDraftInput value={mathDraft.denominator} placeholder="a" compact onChange={(v) => setMathDraft((c) => ({ ...(c || { template: stamp.id }), denominator: v }))} onEnter={insertDraftMath} />
-                      </div>
-                    </div>
-                  ) : stamp.id === 'root' ? (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', alignItems: 'center', gap: 8 }}>
-                      <MathDraftInput autoFocus value={mathDraft.index} placeholder="n" compact onChange={(v) => setMathDraft((c) => ({ ...(c || { template: stamp.id }), index: v }))} onEnter={insertDraftMath} />
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <span style={{ fontFamily: 'Georgia, serif', fontSize: 48, lineHeight: 1, color: '#232c39' }}>√</span>
-                        <MathDraftInput value={mathDraft.radicand} placeholder="x" onChange={(v) => setMathDraft((c) => ({ ...(c || { template: stamp.id }), radicand: v }))} onEnter={insertDraftMath} />
-                      </div>
-                    </div>
-                  ) : stamp.id === 'degree' ? (
-                    <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'center', gap: 4 }}>
-                      <MathDraftInput autoFocus value={mathDraft.base} placeholder="x" onChange={(v) => setMathDraft((c) => ({ ...(c || { template: stamp.id }), base: v }))} onEnter={insertDraftMath} />
-                      <span style={{ fontFamily: 'Georgia, serif', fontSize: 28, color: '#8a93a3' }}>°</span>
-                    </div>
-                  ) : null}
-                  <button
-                    type="button"
-                    disabled={!draftReady}
-                    onClick={insertDraftMath}
-                    style={{
-                      marginTop: 14, width: '100%', textAlign: 'center', fontSize: 16,
-                      fontWeight: 700, fontFamily: FONT, border: 'none', background: 'none',
-                      cursor: draftReady ? 'pointer' : 'default',
-                      color: draftReady ? '#d9892e' : '#cfd5dd',
-                    }}
-                  >
-                    Insert
-                  </button>
-                </div>
-              ) : null}
-              <button
-                type="button"
-                onClick={() => handleMathTool(stamp.id)}
-                style={{
-                  display: 'grid', placeItems: 'center', height: 38, minWidth: 42,
-                  padding: '0 10px', borderRadius: 9, fontFamily: 'Georgia, serif',
-                  fontSize: 17, fontWeight: 600, border: 'none', cursor: 'pointer',
-                  background: mathDraft?.template === stamp.id ? '#d9892e' : '#fbf1e1',
-                  color: mathDraft?.template === stamp.id ? '#fff' : '#b06f1f',
-                }}
-                title={`Insert ${stamp.label}`}
-              >
-                {stamp.label}
-              </button>
-            </div>
-          ))}
+        <div className="flex flex-wrap items-center gap-[7px] border-b border-line bg-surface-raised px-3.5 py-2">
+          <MathStampBuilder
+            mathDraft={mathDraft}
+            setMathDraft={setMathDraft}
+            onInsert={addMathObject}
+            placement="above"
+          />
         </div>
       )}
 
       {/* Canvas area */}
       {workingMode === 'draw' && (
-        <div ref={scrollRef} style={canvasWrapperStyle(background)}>
-          <canvas
-            ref={canvasRef}
-            width={CANVAS_WIDTH}
-            height={CANVAS_HEIGHT}
+        <div ref={scrollRef} className={canvasWrapperClass(background)}>
+          {/* Inner box sized to the displayed canvas so the absolutely-positioned
+              math-object layer lines up with canvas pixels at any zoom. The width
+              tracks zoom and the height is the canvas bitmap, so both stay inline. */}
+          <div
+            className="relative min-w-full"
             style={{
-              display: 'block',
-              touchAction: 'none',
               width: `${zoom * 100}%`,
-              minWidth: '100%',
-              height: compact ? 150 : 260,
+              // Display height is decoupled from `compact` (which only controls
+              // toolbar density) so the embedded canvas is never squashed below
+              // its 320px bitmap. PSL/story/similar-question scratchpads all
+              // render the same un-squashed height.
+              height: CANVAS_HEIGHT,
+              minHeight: CANVAS_HEIGHT,
             }}
-            onPointerDown={beginStroke}
-            onPointerMove={moveStroke}
-            onPointerUp={endStroke}
-            onPointerCancel={endStroke}
-            onPointerLeave={endStroke}
-            aria-label="Working canvas"
-          />
+          >
+            <canvas
+              ref={canvasRef}
+              width={CANVAS_WIDTH}
+              height={CANVAS_HEIGHT}
+              className="block h-full w-full touch-none select-none [-webkit-touch-callout:none]"
+              onContextMenu={(event) => event.preventDefault()}
+              onPointerDown={beginStroke}
+              onPointerMove={moveStroke}
+              onPointerUp={endStroke}
+              onPointerCancel={endStroke}
+              onPointerLeave={endStroke}
+              aria-label="Working canvas"
+            />
+            {showMathStamps && (
+              <div className="pointer-events-none absolute inset-0" aria-label="Math object layer">
+                {textDraft && (
+                  <input
+                    ref={textInputRef}
+                    autoFocus
+                    value={textDraft.text}
+                    onPointerDown={(event) => event.stopPropagation()}
+                    onClick={(event) => event.stopPropagation()}
+                    onChange={(event) => setTextDraft((current) => ({ ...(current || {}), text: event.target.value }))}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault();
+                        event.currentTarget.dataset.committed = 'true';
+                        saveTextDraft();
+                      }
+                      if (event.key === 'Escape') {
+                        event.preventDefault();
+                        setTextDraft(null);
+                        setTool('pen');
+                      }
+                    }}
+                    onBlur={(event) => {
+                      if (event.currentTarget.dataset.committed === 'true') return;
+                      saveTextDraft();
+                    }}
+                    className="pointer-events-auto absolute z-30 min-h-[34px] min-w-[130px] rounded-lg border-2 border-orange-500 bg-white px-2 py-1 text-base font-semibold text-ink-900 shadow-card focus:outline-none"
+                    style={{ left: `${(textDraft.x / CANVAS_WIDTH) * 100}%`, top: `${(textDraft.y / CANVAS_HEIGHT) * 100}%`, color: colour }}
+                    placeholder="Type label"
+                    aria-label="Text label input"
+                  />
+                )}
+                {mathObjects.map((object) => (
+                  <MathObjectView
+                    key={object.id}
+                    object={object}
+                    selected={selectedObjectId === object.id}
+                    bounds={CANVAS_BOUNDS}
+                    scale={OBJECT_SCALE}
+                    onSelect={() => setSelectedObjectId(object.id)}
+                    onDelete={() => deleteObject(object.id)}
+                    onEdit={() => editTextObject(object)}
+                    onPointerDown={(event) => beginObjectDrag(event, object)}
+                    onPointerMove={moveObjectDrag}
+                    onPointerUp={endObjectDrag}
+                    onPointerCancel={endObjectDrag}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
       {workingMode === 'steps' && (
-        <div style={{ background: '#f5f6f8', padding: 14 }}>
+        <div className="bg-surface-raised p-3.5">
           <MathStepsEditor
             steps={mathSteps}
             onChange={(next) => {
@@ -825,7 +801,7 @@ export default function WorkingCanvas({
       )}
 
       {workingMode === 'column' && (
-        <div style={{ background: '#f5f6f8', padding: 14 }}>
+        <div className="bg-surface-raised p-3.5">
           <ColumnOperationsGrid
             grid={columnGrid}
             onChange={(next) => {
@@ -840,14 +816,14 @@ export default function WorkingCanvas({
       )}
 
       {/* Footer */}
-      <div style={footerStyle}>
+      <div className={FOOTER_CLASS}>
         {required && !submitted && !notNeeded && (
-          <span style={{ fontSize: 12, fontWeight: 700, color: '#a8743a', marginRight: 'auto' }}>
+          <span className="mr-auto text-xs font-bold text-gold-label">
             Show your working before submitting your answer.
           </span>
         )}
         {allowNoWorking && (
-          <button type="button" onClick={markNotNeeded} style={outlineBtnStyle}>
+          <button type="button" onClick={markNotNeeded} className={OUTLINE_BTN_CLASS}>
             Working not needed
           </button>
         )}
@@ -855,9 +831,9 @@ export default function WorkingCanvas({
           type="button"
           disabled={!hasAnyWorking}
           onClick={submit}
-          style={{ ...goldBtnStyle, opacity: hasAnyWorking ? 1 : 0.5, cursor: hasAnyWorking ? 'pointer' : 'default' }}
+          className={GOLD_BTN_CLASS}
         >
-          <Check style={{ width: 16, height: 16 }} />
+          <Check className="h-4 w-4" />
           {submitted ? 'Redo/Edit workings' : 'Save working'}
         </button>
       </div>

@@ -7,7 +7,7 @@ export function buildMeasurementRetentionReview({ skillId, studentId = null, pre
   const skill = getSkill(skillId);
   if (!skill) throw new Error(`Unknown measurement skill: ${skillId}`);
   const review = generateRetentionReview({ skillId, previousQuestionFamilyIds, difficulty });
-  const questions = generateMeasurementQuestionSet({ skillId, count: review.recommendedQuestionCount, mode: 'retention', familyIds: review.questionFamilyIds });
+  const questions = generateMeasurementQuestionSet({ skillId, count: review.recommendedQuestionCount, mode: 'retention', familyIds: review.questionFamilyIds, sessionSalt: Date.now().toString() });
   return { ...review, domainId: DOMAIN_ID, skillId, skillName: skill.name, studentId, mode: 'retention', questions, totalQuestions: questions.length, generatedAt: new Date().toISOString() };
 }
 

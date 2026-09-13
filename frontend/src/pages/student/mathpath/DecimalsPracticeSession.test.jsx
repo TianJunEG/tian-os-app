@@ -5,12 +5,32 @@ describe('DecimalsPracticeSession.buildSubmitPayload', () => {
   it('maps collected answers to the submit payload shape', () => {
     const payload = buildSubmitPayload([
       { questionId: 'QF_D001_001_0', studentAnswer: '2', timeTaken: 7 },
-      { questionId: 'QF_D001_001_1', studentAnswer: '0.5', timeTaken: 9 },
+      {
+        questionId: 'QF_D001_001_1',
+        studentAnswer: '0.5',
+        timeTaken: 9,
+        workingSubmitted: true,
+        workingImage: 'data:image/png;base64,abc',
+        workingStrokes: [{ points: [{ x: 1, y: 2 }] }],
+        workingMathObjects: [{ type: 'text', text: '0.5' }],
+        workingSessionId: 'decpractice_1',
+        fullscreenWorkingSubmitted: true,
+      },
     ]);
     expect(payload).toEqual({
       responses: [
         { questionId: 'QF_D001_001_0', studentAnswer: '2', timeTaken: 7 },
-        { questionId: 'QF_D001_001_1', studentAnswer: '0.5', timeTaken: 9 },
+        {
+          questionId: 'QF_D001_001_1',
+          studentAnswer: '0.5',
+          timeTaken: 9,
+          workingSubmitted: true,
+          workingImage: 'data:image/png;base64,abc',
+          workingStrokes: [{ points: [{ x: 1, y: 2 }] }],
+          workingMathObjects: [{ type: 'text', text: '0.5' }],
+          workingSessionId: 'decpractice_1',
+          fullscreenWorkingSubmitted: true,
+        },
       ],
     });
   });

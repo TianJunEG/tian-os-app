@@ -7,11 +7,13 @@
 // slug to its API methods, friendly labels, and skill-name source.
 
 import { mathpathAPI } from '../../../../services/api';
+import { stripEmoji } from '../../../../utils/sound';
 
 import { buildAlgebraLearningPathView } from '../../../../mathpath/algebra/AlgebraLearningPathModel';
 import { buildAreaPerimeterLearningPathView } from '../../../../mathpath/areaPerimeter/AreaPerimeterLearningPathModel';
 import { buildCirclesLearningPathView } from '../../../../mathpath/circles/CirclesLearningPathModel';
 import { buildDecimalsLearningPathView } from '../../../../mathpath/decimals/decimalsLearningPathModel';
+import { buildEarlyNumeracyLearningPathView } from '../../../../mathpath/earlyNumeracy/EarlyNumeracyLearningPathModel';
 import { buildGeometryLearningPathView } from '../../../../mathpath/geometry/GeometryLearningPathModel';
 import { buildMeasurementLearningPathView } from '../../../../mathpath/measurement/MeasurementLearningPathModel';
 import { buildMoneyLearningPathView } from '../../../../mathpath/money/MoneyLearningPathModel';
@@ -28,11 +30,21 @@ export function buildSubmitPayload(answers = []) {
   return {
     responses: answers
       .filter((a) => a && a.questionId != null && String(a.studentAnswer ?? '').trim() !== '')
-      .map((a) => ({
-        questionId: a.questionId,
-        studentAnswer: String(a.studentAnswer),
-        timeTaken: Number(a.timeTaken || 0),
-      })),
+      .map((a) => {
+        const response = {
+          questionId: a.questionId,
+          studentAnswer: String(a.studentAnswer),
+          timeTaken: Number(a.timeTaken || 0),
+        };
+        if (a.reflection) response.confidence = a.reflection;
+        if (a.workingSubmitted) response.workingSubmitted = true;
+        if (a.workingImage) response.workingImage = a.workingImage;
+        if (Array.isArray(a.workingStrokes)) response.workingStrokes = a.workingStrokes;
+        if (Array.isArray(a.workingMathObjects)) response.workingMathObjects = a.workingMathObjects;
+        if (a.workingSessionId) response.workingSessionId = String(a.workingSessionId);
+        if (a.fullscreenWorkingSubmitted) response.fullscreenWorkingSubmitted = true;
+        return response;
+      }),
   };
 }
 
@@ -76,14 +88,20 @@ export const DOMAIN_PRACTICE_CONFIG = {
   percentages: {
     label: 'Percentage', start: mathpathAPI.startPercentagesPractice, submit: mathpathAPI.submitPercentagesPractice, buildView: buildPercentagesLearningPathView,
     skillStates: mathpathAPI.percentagesSkillStates, pattern: /^P0\d\d$/, subtitle: 'Per hundred, conversions, discount, GST and interest (P5–P6).',
+    startFluency: mathpathAPI.startPercentagesFluency, submitFluency: mathpathAPI.submitPercentagesFluency,
+    startRetention: mathpathAPI.startPercentagesRetention, submitRetention: mathpathAPI.submitPercentagesRetention,
   },
   'ratio-rate': {
     label: 'Ratio & Rate', start: mathpathAPI.startRatioRatePractice, submit: mathpathAPI.submitRatioRatePractice, buildView: buildRatioRateLearningPathView,
     skillStates: mathpathAPI.ratioRateSkillStates, pattern: /^R0\d\d$/, subtitle: 'Equivalent ratios, dividing in a ratio, speed and direct proportion (P5–P6).',
+    startFluency: mathpathAPI.startRatioRateFluency, submitFluency: mathpathAPI.submitRatioRateFluency,
+    startRetention: mathpathAPI.startRatioRateRetention, submitRetention: mathpathAPI.submitRatioRateRetention,
   },
   algebra: {
     label: 'Algebra', start: mathpathAPI.startAlgebraPractice, submit: mathpathAPI.submitAlgebraPractice, buildView: buildAlgebraLearningPathView,
     skillStates: mathpathAPI.algebraSkillStates, pattern: /AL0\d\d/, subtitle: 'Patterns, unknowns, linear equations and algebraic manipulation (P4–P6).',
+    startFluency: mathpathAPI.startAlgebraFluency, submitFluency: mathpathAPI.submitAlgebraFluency,
+    startRetention: mathpathAPI.startAlgebraRetention, submitRetention: mathpathAPI.submitAlgebraRetention,
   },
   'area-perimeter': {
     label: 'Area & Perimeter', start: mathpathAPI.startAreaPerimeterPractice, submit: mathpathAPI.submitAreaPerimeterPractice, buildView: buildAreaPerimeterLearningPathView,
@@ -96,6 +114,8 @@ export const DOMAIN_PRACTICE_CONFIG = {
   geometry: {
     label: 'Geometry', start: mathpathAPI.startGeometryPractice, submit: mathpathAPI.submitGeometryPractice, buildView: buildGeometryLearningPathView,
     skillStates: mathpathAPI.geometrySkillStates, pattern: /GE0\d\d/, subtitle: 'Angles, triangles, quadrilaterals, symmetry and nets (P3–P6).',
+    startFluency: mathpathAPI.startGeometryFluency, submitFluency: mathpathAPI.submitGeometryFluency,
+    startRetention: mathpathAPI.startGeometryRetention, submitRetention: mathpathAPI.submitGeometryRetention,
   },
   measurement: {
     label: 'Measurement', start: mathpathAPI.startMeasurementPractice, submit: mathpathAPI.submitMeasurementPractice, buildView: buildMeasurementLearningPathView,
@@ -104,6 +124,12 @@ export const DOMAIN_PRACTICE_CONFIG = {
   money: {
     label: 'Money', start: mathpathAPI.startMoneyPractice, submit: mathpathAPI.submitMoneyPractice, buildView: buildMoneyLearningPathView,
     skillStates: mathpathAPI.moneySkillStates, pattern: /MN0\d\d/, subtitle: 'Notes, coins, addition, subtraction and change (P1–P3).',
+  },
+  'early-numeracy': {
+    label: 'Numeracy', start: mathpathAPI.startEarlyNumeracyPractice, submit: mathpathAPI.submitEarlyNumeracyPractice, buildView: buildEarlyNumeracyLearningPathView,
+    skillStates: mathpathAPI.earlyNumeracySkillStates, pattern: /EN0\d\d/, subtitle: 'Counting, comparing and number bonds — for K2/P1.',
+    // Gentle K2 "Explore" mode: no high-stakes diagnostic check-in.
+    gentle: true,
   },
   'number-sense': {
     label: 'Whole Numbers', start: mathpathAPI.startNumberSensePractice, submit: mathpathAPI.submitNumberSensePractice, buildView: buildNumberSenseLearningPathView,
@@ -124,6 +150,8 @@ export const DOMAIN_PRACTICE_CONFIG = {
   volume: {
     label: 'Volume', start: mathpathAPI.startVolumePractice, submit: mathpathAPI.submitVolumePractice, buildView: buildVolumeLearningPathView,
     skillStates: mathpathAPI.volumeSkillStates, pattern: /VL0\d\d/, subtitle: 'Cubes, cuboids, liquid volume and displacement (P4–P6).',
+    startFluency: mathpathAPI.startVolumeFluency, submitFluency: mathpathAPI.submitVolumeFluency,
+    startRetention: mathpathAPI.startVolumeRetention, submitRetention: mathpathAPI.submitVolumeRetention,
   },
 };
 
@@ -142,7 +170,7 @@ export const DOMAIN_ANSWER_SYMBOLS = {
   'area-perimeter': ['square', 'root', 'times', 'fraction'],
   volume: ['cube', 'square', 'times', 'fraction'],
   measurement: ['times', 'divide', 'fraction'],
-  'ratio-rate': ['fraction', 'divide', 'times'],
+  'ratio-rate': ['colon', 'fraction', 'divide', 'times'],
   percentages: ['fraction', 'divide', 'times'],
 };
 
@@ -175,4 +203,36 @@ export function getSkillNameMap(domain) {
 export function friendlySkillName(domain, skillId, fallback = '') {
   const name = getSkillNameMap(domain).get(String(skillId));
   return name || fallback || String(skillId || '');
+}
+
+// Turn a question prompt (which renders through <MathText>: KaTeX commands,
+// $…$, a/b fractions, math symbols) into something a TTS engine reads naturally
+// — and strip emoji so they aren't spoken literally. Used by the read-aloud
+// button on the practice question screen.
+export function toSpeakable(text = '') {
+  return stripEmoji(
+    String(text ?? '')
+      // KaTeX / LaTeX noise → spoken words.
+      .replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, ' $1 over $2 ')
+      .replace(/\\times/g, ' times ')
+      .replace(/\\div/g, ' divided by ')
+      .replace(/\\cdot/g, ' times ')
+      .replace(/\\square/g, ' square ')
+      .replace(/\\%/g, ' percent ')
+      .replace(/\\,/g, ' ')
+      .replace(/\$/g, ' ')
+      // a/b fraction notation → "a over b".
+      .replace(/(\d+|\?)\s*\/\s*(\d+|\?)/g, '$1 over $2')
+      // Bare math symbols → words.
+      .replace(/[×]/g, ' times ')
+      .replace(/[÷]/g, ' divided by ')
+      .replace(/[−–]/g, ' minus ')
+      .replace(/=/g, ' equals ')
+      .replace(/%/g, ' percent ')
+      .replace(/[²]/g, ' squared ')
+      .replace(/[³]/g, ' cubed ')
+      .replace(/\?/g, '')
+      .replace(/\s+/g, ' ')
+      .trim(),
+  );
 }

@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { authAPI } from '../services/api';
+import { clearClientCaches } from '../utils/clientCache';
 
 export const AuthContext = createContext();
 
@@ -34,6 +35,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (data) => {
     try {
+      clearClientCaches();
       const response = await authAPI.register(data);
       const { token, user } = response.data;
       localStorage.setItem('token', token);
@@ -50,6 +52,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (data) => {
     try {
+      clearClientCaches();
       const response = await authAPI.login(data);
       const { token, user } = response.data;
       localStorage.setItem('token', token);
@@ -79,6 +82,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    clearClientCaches();
     setToken(null);
     setUser(null);
   };
