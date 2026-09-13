@@ -105,16 +105,16 @@ describe('p2MulDivQuestionGenerator', () => {
         const q = generateQuestion('P2-MD-01', { questionFamilyId: 'QF_P2-MD-01_003' });
         expect(q).not.toBeNull();
         expect(q.prompt).toContain('?');
-        expect(q.answerType).toBe('mcq');
-        expect(q.choices).toBeDefined();
-        expect(q.choices).toHaveLength(4);
-        expect(q.choices).toContain(q.answer);
+        expect(q.answerType).toBe('choice');
+        expect(q.options).toBeDefined();
+        expect(q.options).toHaveLength(4);
+        expect(q.options).toContain(q.answer);
         // Answer should be a valid factor (1-10)
         expect(q.answer).toBeGreaterThanOrEqual(1);
         expect(q.answer).toBeLessThanOrEqual(10);
         // Choices should be sorted
-        for (let j = 1; j < q.choices.length; j++) {
-          expect(q.choices[j]).toBeGreaterThanOrEqual(q.choices[j - 1]);
+        for (let j = 1; j < q.options.length; j++) {
+          expect(q.options[j]).toBeGreaterThanOrEqual(q.options[j - 1]);
         }
       }
     });

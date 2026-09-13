@@ -49,15 +49,15 @@ function generateTablesMul(familyId) {
     const d = randInt(1, 10);
     if (d !== correctAnswer) distractors.add(d);
   }
-  const choices = [correctAnswer, ...distractors].sort((a, b) => a - b);
+  const options = [correctAnswer, ...distractors].sort((a, b) => a - b);
 
   return {
     skillId: 'P2-MD-01',
     questionFamilyId: familyId,
     prompt: `${table} x ? = ${product}`,
     answer: correctAnswer,
-    answerType: 'mcq',
-    choices,
+    answerType: 'choice',
+    options,
     instructionHint: 'Find the missing number.',
     solutionText: `${table} x ${correctAnswer} = ${product}, so the missing number is ${correctAnswer}.`,
     misconceptionTraps: ['times_table_recall_error', 'confuses_multiplication_addition'],

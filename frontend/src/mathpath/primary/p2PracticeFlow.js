@@ -76,13 +76,11 @@ function normalizeP3Question(raw) {
   const normalized = { ...raw };
 
   // Normalize answer to { display, type, value } object
-  if (raw.answerType === 'number' || typeof raw.answer === 'number') {
-    normalized.answer = {
-      display: String(raw.answer),
-      type: 'whole',
-      value: Number(raw.answer),
-    };
-  } else if (raw.answerType === 'choice') {
+  // NOTE: 'choice' must be checked before the numeric fallback below — an MCQ
+  // whose correct answer happens to be a number (e.g. a missing-factor
+  // question) would otherwise be caught by `typeof raw.answer === 'number'`
+  // and rendered as a free-text box instead of choice buttons.
+  if (raw.answerType === 'choice') {
     normalized.answer = {
       display: String(raw.answer),
       type: 'text',
@@ -91,6 +89,12 @@ function normalizeP3Question(raw) {
     // Map to MCQ rendering
     normalized.type = 'mcq';
     normalized.choices = raw.options || [];
+  } else if (raw.answerType === 'number' || typeof raw.answer === 'number') {
+    normalized.answer = {
+      display: String(raw.answer),
+      type: 'whole',
+      value: Number(raw.answer),
+    };
   } else if (raw.answerType === 'text') {
     normalized.answer = {
       display: String(raw.answer),
