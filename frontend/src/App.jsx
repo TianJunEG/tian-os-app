@@ -121,6 +121,10 @@ const SpellingPracticeMistakes = lazy(() => import('./pages/student/spelling/Spe
 const VocabHome = lazy(() => import('./pages/student/englishpath/VocabHome'));
 const VocabSession = lazy(() => import('./pages/student/englishpath/VocabSession'));
 const VocabResults = lazy(() => import('./pages/student/englishpath/VocabResults'));
+const ClozeHome = lazy(() => import('./pages/student/englishpath/ClozeHome'));
+const ClozeSession = lazy(() => import('./pages/student/englishpath/ClozeSession'));
+const ClozeResults = lazy(() => import('./pages/student/englishpath/ClozeResults'));
+const ClozeFocusSession = lazy(() => import('./pages/student/englishpath/ClozeFocusSession'));
 const StudentLifeLab = lazy(() => import('./pages/student/StudentLifeLab'));
 const SkillGraph = lazy(() => import('./pages/student/SkillGraph'));
 const StudentWorksheets = lazy(() => import('./pages/student/StudentWorksheets'));
@@ -758,6 +762,11 @@ function App() {
             <Route path="/student/english/vocab" element={<FeatureGuard feature="englishpath"><VocabHome /></FeatureGuard>} />
             <Route path="/student/english/vocab/practice" element={<FeatureGuard feature="englishpath"><VocabSession /></FeatureGuard>} />
             <Route path="/student/english/vocab/results" element={<FeatureGuard feature="englishpath"><VocabResults /></FeatureGuard>} />
+            {/* EnglishPath · Comprehension Cloze (English · Comprehension) — client-side adaptive engine */}
+            <Route path="/student/english/cloze" element={<FeatureGuard feature="englishpath"><ClozeHome /></FeatureGuard>} />
+            <Route path="/student/english/cloze/practice" element={<FeatureGuard feature="englishpath"><ClozeSession /></FeatureGuard>} />
+            <Route path="/student/english/cloze/results" element={<FeatureGuard feature="englishpath"><ClozeResults /></FeatureGuard>} />
+            <Route path="/student/english/cloze/focus" element={<FeatureGuard feature="englishpath"><ClozeFocusSession /></FeatureGuard>} />
 
             {/* Tian 7 Chronicles — comic word problems */}
             <Route path="/student/comics" element={<FeatureGuard feature="comics"><ComicsHome /></FeatureGuard>} />

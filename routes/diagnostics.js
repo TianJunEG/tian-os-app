@@ -5,6 +5,7 @@ import MathPathDiagnosticSession from '../models/mathpath/MathPathDiagnosticSess
 import {
   answerAdaptiveDiagnostic,
   startAdaptiveDiagnostic,
+  scrubQuestionForClient,
 } from '../services/diagnostics/diagnosticRuntime.js';
 import {
   getDiagnosticDomain,
@@ -164,7 +165,9 @@ router.get('/:sessionId/resume', protect, asyncHandler(async (req, res) => {
         });
         const questionDoc = await domain.getQuestionById(session.currentQuestionId);
         if (questionDoc) {
-          currentQuestion = domain.normaliseQuestion(questionDoc, questionDoc.skillId);
+          // Scrub the answer — the resume payload renders this question for the
+          // student to answer, so it must not carry its own solution.
+          currentQuestion = scrubQuestionForClient(domain.normaliseQuestion(questionDoc, questionDoc.skillId));
         }
       } catch (_) {
         // Non-fatal: frontend will display a fallback if currentQuestion is null.

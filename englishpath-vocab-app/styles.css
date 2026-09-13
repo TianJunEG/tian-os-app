@@ -143,14 +143,19 @@ h3 { font-size: 15px; margin: 0 0 12px; }
 .opt {
   text-align: left; width: 100%; cursor: pointer; font: inherit;
   background: var(--paper); border: 1px solid var(--line); border-radius: 11px; padding: 13px 15px;
-  display: flex; justify-content: space-between; align-items: center; gap: 10px; transition: border-color 0.12s, background 0.12s;
+  display: flex; flex-direction: column; align-items: stretch; gap: 6px; transition: border-color 0.12s, background 0.12s;
 }
+.opt-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .opt:hover:not(:disabled) { border-color: var(--emerald); background: var(--emerald-tint); }
 .opt:disabled { cursor: default; }
 .opt.correct { border-color: var(--emerald); background: var(--success-bg); color: var(--emerald-deep); }
 .opt.wrong { border-color: var(--error); background: var(--error-bg); color: var(--error); }
-.opt.dim { opacity: 0.5; }
+/* Dim only the word of a not-picked wrong option — keep its meaning readable. */
+.opt.dim .opt-text { opacity: 0.5; }
 .opt .mk { font-weight: 700; }
+/* Revealed after answering — teaches what each option means. */
+.opt-gloss { font-size: 13px; line-height: 1.35; color: var(--ink-500); }
+.opt.correct .opt-gloss, .opt.wrong .opt-gloss { color: var(--ink-700); }
 
 .feedback { margin-top: 18px; padding: 12px 14px; border-radius: 11px; font-size: 14px; display: flex; gap: 8px; }
 .feedback.ok { background: var(--success-bg); color: var(--emerald-deep); }
@@ -254,3 +259,36 @@ html.dark .card.focus { border-color: #452f2a; background: linear-gradient(180de
 html.dark .card.focus .chip { border-color: #4a332e; }
 html.dark .locked { background: linear-gradient(180deg, #211d15 0%, var(--paper) 60%); border-color: #3a3320; }
 html.dark .lockpill { background: #2e2717; }
+
+/* Touch devices (iPad) keep :hover applied to the last element tapped, which
+   left an option looking pre-selected on the next question. Where there is no
+   true hovering pointer, cancel every hover effect back to its resting state.
+   All values use palette variables, so this holds in both light and dark. */
+@media (hover: none) {
+  .opt:hover:not(:disabled) { border-color: var(--line); background: var(--paper); }
+  .btn:hover { background: var(--emerald); }
+  .btn.secondary:hover, html.dark .btn.secondary:hover { background: var(--emerald-tint); }
+  .btn.ghost:hover { color: var(--ink-500); }
+  .theme-toggle:hover { background: transparent; }
+  .linkbtn:hover { color: var(--emerald); }
+  .modal .x:hover { color: var(--ink-300); }
+}
+
+/* "My words" review list */
+.tag.ok { background: var(--success-bg); color: var(--emerald-deep); }
+.wordsearch {
+  width: 100%; font: inherit; padding: 11px 14px; margin-bottom: 14px;
+  border: 1px solid var(--line); border-radius: 11px; background: var(--paper); color: var(--ink-900);
+}
+.wordsearch:focus { outline: none; border-color: var(--emerald); }
+.wordlist { display: flex; flex-direction: column; gap: 10px; }
+.wordrow { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.wordhead {
+  display: flex; width: 100%; justify-content: space-between; align-items: center; gap: 10px;
+  background: transparent; border: 0; padding: 0; cursor: pointer; font: inherit; text-align: left;
+}
+.wordhead .ww b { font-size: 16px; color: var(--ink-900); }
+.wordhead .pos { font-size: 12px; color: var(--ink-300); font-style: italic; margin-left: 4px; }
+.wordmean { font-size: 14px; color: var(--ink-700); margin-top: 5px; }
+.worddetail { margin-top: 8px; }
+.worddetail .ex { background: var(--emerald-tint); border-radius: 9px; padding: 10px 12px; font-size: 14px; }

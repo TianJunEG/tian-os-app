@@ -1,4 +1,4 @@
-// EnglishPath Vocabulary — client-side progress store.
+// ELPath Vocabulary — client-side progress store.
 // The adaptive engine state is plain JSON, so we persist it in localStorage,
 // namespaced per student. This makes the module fully playable with no backend;
 // a server-backed store can replace this later behind the same load/save shape.

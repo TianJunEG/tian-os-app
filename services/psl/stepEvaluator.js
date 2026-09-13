@@ -167,11 +167,21 @@ function evaluateSolveExpression(response, expected) {
 
   if (expected?.steps) {
     if (submittedAnswer === correctAnswer) return { correct: true, partial: false, score: 1, misconceptionTag: '' };
-    const intermediateCorrect = (response?.intermediates || []).some((v, i) => {
-      const expStep = expected.steps[i];
-      return expStep && Number(v) === safeEval(expStep.expression);
-    });
-    if (intermediateCorrect) {
+    // Value of each expected step (position-independent — the student may reach a
+    // step by a different but valid route, e.g. 147÷3 then ×2 vs 147×2÷3).
+    const stepValues = expected.steps
+      .map((s) => safeEval(s.expression))
+      .filter((v) => Number.isFinite(v));
+    // The student handed in a valid INTERMEDIATE as their final answer — they
+    // stopped one step short (e.g. gave "how many burst" = 98 instead of "how
+    // many left" = 49). Their numbers were right; they just didn't finish.
+    if (Number.isFinite(submittedAnswer) && submittedAnswer !== correctAnswer && stepValues.includes(submittedAnswer)) {
+      return { correct: false, partial: true, score: 0.5, misconceptionTag: 'psl/forgot-subtract' };
+    }
+    // Some of their working matched an expected step but the final answer is off
+    // → a slip in a later step, not the wrong numbers.
+    const studentValues = [submittedAnswer, ...(response?.intermediates || []).map((v) => Number(v))].filter((v) => Number.isFinite(v));
+    if (studentValues.some((v) => stepValues.includes(v))) {
       return { correct: false, partial: true, score: 0.5, misconceptionTag: 'psl/arithmetic-error' };
     }
     return { correct: false, partial: false, score: 0, misconceptionTag: 'psl/used-wrong-numbers' };

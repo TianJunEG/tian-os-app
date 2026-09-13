@@ -137,6 +137,21 @@ describe('FullScreenWorkingMode', () => {
     }));
   });
 
+  it('offers operator stamps and inserts one as a draggable object (parity with the scratchpad)', () => {
+    render(
+      <FullScreenWorkingMode
+        open
+        questionText="3 + 4 = ?"
+        onClose={vi.fn()}
+        onSave={vi.fn()}
+      />
+    );
+
+    // Operators were previously missing from the full-screen stamp list.
+    fireEvent.click(screen.getByTitle('Insert +'));
+    expect(screen.getByTestId('math-object-plus')).toBeInTheDocument();
+  });
+
   it('restores saved math objects so they can be reselected and deleted', () => {
     const onSave = vi.fn();
     render(

@@ -6,7 +6,7 @@ import { MascotBubble } from '../../../../components/MascotAvatar';
 import { MathText } from '../../../../components/ui/Fraction';
 import FullScreenWorkingMode from '../../../../components/learning/FullScreenWorkingMode';
 import WorkingPreviewCard from '../../../../components/learning/WorkingPreviewCard';
-import ManipulativeDotArray, { parseDotStem, numericLine, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram, parseCountDiagram, ManipulativeCountArray, parseCompareDiagram, ManipulativeCompareSets, parsePatternDiagram, ManipulativePatternStrip, parseShapeChoice, ShapeGlyph, parsePositionDiagram, ManipulativePositionStack, DragAnswerChips } from '../../../../components/learning/ManipulativeDotArray';
+import ManipulativeDotArray, { parseDotStem, numericLine, parseMoneyPrompt, ManipulativeCoinArray, parseCoinsDiagram, ManipulativeMoneyDiagram, parseCountDiagram, ManipulativeCountArray, parseCompareDiagram, ManipulativeCompareSets, parsePatternDiagram, ManipulativePatternStrip, parseShapeChoice, ShapeGlyph, parsePositionDiagram, ManipulativePositionStack, DragAnswerChips, parseBondDiagram, ManipulativeBondFrame, parseSortDiagram, ManipulativeSortActivity, parseDistanceDiagram, ManipulativeDistanceScene } from '../../../../components/learning/ManipulativeDotArray';
 import { speak, isVoiceEnabled, setVoiceEnabled } from '../../../../utils/sound';
 import { confettiBurst } from '../../../../utils/confetti';
 import { studentProfileAPI } from '../../../../services/api';
@@ -204,9 +204,15 @@ export default function DomainPracticeSession({ domain }) {
 
   const questions = session?.questions || [];
   const current = questions[index] || null;
-  // K2 pattern questions become a drag-or-tap activity: drag the missing piece
-  // into the box on the pattern strip (tap still works as the a11y fallback).
-  const lpPatternMcq = isLPrimary && current?.type === 'mcq' ? parsePatternDiagram(current) : null;
+  // K2 questions with a "missing piece" slot (pattern strip, number-bond frame)
+  // become a drag-or-tap activity: drag the answer into the box (tap still works
+  // as the a11y fallback).
+  const lpDragMcq = isLPrimary && current?.type === 'mcq'
+    ? (parsePatternDiagram(current) || parseBondDiagram(current))
+    : null;
+  // Sort is a self-contained activity (buckets + tray + "Check!") — it renders
+  // its own answer UI, so the normal MCQ button section is suppressed for it.
+  const lpSortMcq = isLPrimary && current?.type === 'mcq' ? parseSortDiagram(current) : null;
   const isLast = index >= questions.length - 1;
   const currentWorking = current?.questionId ? (workingByQuestion[current.questionId] || {}) : {};
 
@@ -379,6 +385,23 @@ export default function DomainPracticeSession({ domain }) {
               const compareData = parseCompareDiagram(current);
               const patternData = parsePatternDiagram(current);
               const positionData = parsePositionDiagram(current);
+              const distanceData = parseDistanceDiagram(current);
+              const bondData = parseBondDiagram(current);
+              const sortData = isLPrimary ? parseSortDiagram(current) : null;
+              if (sortData) {
+                return (
+                  <>
+                    <ManipulativeSortActivity
+                      key={current?.questionId}
+                      buckets={sortData.buckets}
+                      items={sortData.items}
+                      onAnswer={(value) => submitAnswer(value)}
+                      disabled={showReflection || submitting}
+                    />
+                    <p className="text-xl font-bold text-ink-900">{prompt}</p>
+                  </>
+                );
+              }
               if (coinTokens) {
                 return (
                   <>
@@ -412,10 +435,26 @@ export default function DomainPracticeSession({ domain }) {
                   </>
                 );
               }
+              if (bondData) {
+                return (
+                  <>
+                    <ManipulativeBondFrame key={current?.questionId} whole={bondData.whole} part={bondData.part} />
+                    <p className="text-xl font-bold text-ink-900">{prompt}</p>
+                  </>
+                );
+              }
               if (positionData) {
                 return (
                   <>
                     <ManipulativePositionStack key={current?.questionId} top={positionData.top} bottom={positionData.bottom} />
+                    <p className="text-xl font-bold text-ink-900">{prompt}</p>
+                  </>
+                );
+              }
+              if (distanceData) {
+                return (
+                  <>
+                    <ManipulativeDistanceScene key={current?.questionId} near={distanceData.near} far={distanceData.far} />
                     <p className="text-xl font-bold text-ink-900">{prompt}</p>
                   </>
                 );
@@ -473,8 +512,8 @@ export default function DomainPracticeSession({ domain }) {
           </button>
         </div>
 
-        {current?.type === 'mcq' ? (
-          lpPatternMcq ? (
+        {lpSortMcq ? null : current?.type === 'mcq' ? (
+          lpDragMcq ? (
             <DragAnswerChips
               key={current?.questionId}
               choices={current.choices || []}

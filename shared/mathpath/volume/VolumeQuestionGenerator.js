@@ -301,14 +301,32 @@ export function generateVolumeQuestionSet({ skillId, count = 6, mode = 'practice
   return questions;
 }
 
+// Which unit token (if any) leads the string, canonicalised so equivalent
+// spellings compare equal ("cm3" ≡ "cm³", "cube" ≡ "cubes", "litre" ≡ "l").
+// `\bm\b` must stay LAST in the alternation — earlier two-letter tokens
+// (cm/km/mm) already claim any position where they apply, so a lone "m" only
+// ever matches a true bare metre.
+const UNIT_TOKEN = /cm³|cm3|cm²|cm2|m³|m3|m²|m2|cubes?|litres?|cm|km|mm|ml|kg|\bl\b|\bg\b|\bm\b/;
+const UNIT_CANON = { cm3: 'cm³', cm2: 'cm²', m3: 'm³', m2: 'm²', cube: 'cubes', litre: 'l', litres: 'l' };
+function extractUnit(s) {
+  const m = UNIT_TOKEN.exec(s);
+  return m ? (UNIT_CANON[m[0]] || m[0]) : null;
+}
+
 // Unit-tolerant: "60", "60cm3", "60 cm³" all match.
 export function checkVolumeAnswer({ question, studentResponse }) {
   if (!question || studentResponse == null) return { correct: false };
   const raw = String(studentResponse).trim().toLowerCase();
   const exp = String(question.answer?.display ?? question.answer ?? '').trim().toLowerCase();
   if (raw === exp) return { correct: true };
+  // A student who named a DIFFERENT unit than the key (e.g. "96 cm²" for a
+  // "96 m²" key, or "5 cubes" for a "5 cm³" key) has the wrong dimension —
+  // reject even though the digits match. A student who typed no unit at all
+  // (the common case; the UI shows the unit as a fixed adornment) is unaffected.
+  const unitRaw = extractUnit(raw), unitExp = extractUnit(exp);
+  if (unitRaw && unitExp && unitRaw !== unitExp) return { correct: false };
   // Strip unit tokens first so the "3" in "cm3" isn't read as a digit.
-  const stripUnits = (s) => s.replace(/cm³|cm3|cm²|cm2|m³|m3|m²|m2|cubes?|litres?|cm|km|mm|ml|kg|\bl\b|\bg\b/g, '');
+  const stripUnits = (s) => s.replace(/cm³|cm3|cm²|cm2|m³|m3|m²|m2|cubes?|litres?|cm|km|mm|ml|kg|\bl\b|\bg\b|\bm\b/g, '');
   const digits = (s) => stripUnits(s).replace(/[^0-9.\-]/g, '');
   const a = digits(raw), b = digits(exp);
   if (a !== '' && a === b) return { correct: true };

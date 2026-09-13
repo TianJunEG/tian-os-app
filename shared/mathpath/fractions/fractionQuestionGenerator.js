@@ -925,8 +925,10 @@ function templateForSkill(skillId, variant, ctx) {
         const simp = simplifyFraction(shaded, total);
         return {
           prompt: `The bar model shows a fraction. Write the fraction in its simplest form.`,
-          answer: answerPayloadFraction(simp.numerator, simp.denominator),
-          acceptedAnswers: [fracStr(simp), `${shaded}/${total}`],
+          answer: { ...answerPayloadFraction(simp.numerator, simp.denominator), requireSimplest: true },
+          // Only the simplified form is accepted — the prompt explicitly asks for
+          // simplest form, so the raw `${shaded}/${total}` must NOT be whitelisted.
+          acceptedAnswers: [fracStr(simp)],
           diagramSpec: { type: 'fraction_bar', width: 640, height: 180, data: { parts: total, shaded, labelMode: 'none' } },
           solutionSteps: [
             `The model shows ${shaded} out of ${total} parts shaded: ${shaded}/${total}.`,
@@ -1041,7 +1043,7 @@ function templateForSkill(skillId, variant, ctx) {
       const simp = simplifyFraction(n, d);
       return {
         prompt: `Simplify ${n}/${d} to lowest terms.`,
-        answer: answerPayloadFraction(simp.numerator, simp.denominator),
+        answer: { ...answerPayloadFraction(simp.numerator, simp.denominator), requireSimplest: true },
         acceptedAnswers: [fracStr(simp)],
         solutionSteps: ['Find the greatest common factor.', `Divide numerator and denominator by ${gcd(n, d)}.`],
       };
@@ -1954,6 +1956,13 @@ export function checkFractionAnswer(options = {}) {
         correct = Boolean(normalizedStudent && normalizedCorrect && normalizedStudent === normalizedCorrect);
       }
     }
+  }
+  // "Simplest form / lowest terms" questions must reject a correct-but-unreduced
+  // fraction (e.g. 6/8 for 3/4). parseAnswer() reduces the input before the
+  // equivalence check above, so the raw student terms are re-checked here.
+  if (correct && correctAnswer && correctAnswer.requireSimplest) {
+    const m = String(studentAnswer ?? '').trim().match(/^(-?\d+)\s*\/\s*(-?\d+)$/);
+    if (m && gcd(Math.abs(Number(m[1])), Math.abs(Number(m[2]))) > 1) correct = false;
   }
   return {
     correct,

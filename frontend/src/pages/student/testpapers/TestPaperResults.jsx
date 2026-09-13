@@ -13,10 +13,10 @@ export default function TestPaperResults() {
 
   if (!result) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-16 text-center text-slate-600">
+      <div className="mx-auto max-w-2xl px-4 py-16 text-center text-body-soft">
         This result is no longer available.
         <div className="mt-4">
-          <button className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white" onClick={() => navigate('/student/test-papers')}>Back to papers</button>
+          <button className="rounded-xl bg-emerald px-4 py-2 text-sm font-semibold text-white" onClick={() => navigate('/student/test-papers')}>Back to papers</button>
         </div>
       </div>
     );
@@ -26,7 +26,7 @@ export default function TestPaperResults() {
   const questions = result.questions || [];
   const pct = s.scorePct ?? 0;
   const tone = pct >= 75 ? 'emerald' : pct >= 50 ? 'amber' : 'rose';
-  const toneBg = { emerald: 'bg-emerald-50 text-emerald-700', amber: 'bg-amber-50 text-amber-700', rose: 'bg-rose-50 text-rose-700' }[tone];
+  const toneBg = { emerald: 'bg-emerald-tint text-emerald', amber: 'bg-gold-tint text-gold-deep', rose: 'bg-danger-tint text-danger-deep' }[tone];
   const mins = Math.floor((s.durationUsedSec || 0) / 60);
   const secs = (s.durationUsedSec || 0) % 60;
 
@@ -42,13 +42,13 @@ export default function TestPaperResults() {
         </p>
       </div>
 
-      <h2 className="mb-3 mt-6 text-sm font-bold uppercase tracking-wide text-slate-500">Review</h2>
+      <h2 className="mb-3 mt-6 text-sm font-bold uppercase tracking-wide text-body-muted">Review</h2>
       <SittingReview questions={questions} pslHref="/student/psl" />
 
       <div className="mt-6 flex justify-center">
         <button
           type="button" onClick={() => navigate('/student/test-papers')}
-          className="inline-flex items-center gap-1 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700"
+          className="inline-flex items-center gap-1 rounded-xl bg-emerald px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-deep"
         ><FileText size={15} /> Back to papers</button>
       </div>
     </div>

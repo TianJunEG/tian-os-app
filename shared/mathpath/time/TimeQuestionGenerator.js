@@ -555,7 +555,23 @@ function normalizeTime(raw) {
 export function checkTimeAnswer({ question, studentResponse }) {
   if (!question || studentResponse == null) return { correct: false };
   const expected = String(question.answer?.display ?? question.answer ?? '');
-  return { correct: normalizeTime(studentResponse) === normalizeTime(expected) };
+  const student = normalizeTime(studentResponse);
+  const key = normalizeTime(expected);
+  if (student === key) return { correct: true };
+  // A plain clock face — a bare "h:mm" reading with h ≤ 12 and no meridiem (the
+  // "read the clock" skills) — is a.m./p.m.-ambiguous, so a student's chosen
+  // meridiem must not decide the mark: also accept the same clock position 12h
+  // away. Keys that fix the time of day are UNAFFECTED and stay strict — a
+  // meridiem in the key (12/24-hour conversion), or 24-hour form like "1430"
+  // (which has no colon), so a student's "2:30 pm" still only matches "1430".
+  // Fixes the old asymmetry: a.m. accepted but p.m. rejected at 1–11 o'clock,
+  // and the reverse at 12 o'clock.
+  const clockFace = /^\s*(\d{1,2}):\d{2}\s*$/.exec(expected);
+  if (clockFace && +clockFace[1] <= 12 && !/[ap]\.?\s?m/i.test(expected) && key.startsWith('T')) {
+    const alt = `T${(parseInt(key.slice(1), 10) + 720) % 1440}`;
+    if (student === alt) return { correct: true };
+  }
+  return { correct: false };
 }
 
 export default { generateTimeQuestionSet, checkTimeAnswer };

@@ -2,12 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, ArrowLeft, ChevronDown, ChevronRight, RotateCcw, Volume2, VolumeX } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
-import MISCONCEPTIONS, { CATEGORY_ORDER, getMisconception } from './utils/misconceptions';
-import { useAuth } from '../../../context/AuthContext';
-import { resolveStudentVisualMode, getVisualModeStyles } from '../../../design-os/studentVisualMode';
-import MascotAvatar from '../../../components/MascotAvatar';
+import { CATEGORY_ORDER, getMisconception } from './utils/misconceptions';
 import { speak, setVoiceEnabled, isVoiceEnabled } from '../../../utils/sound';
 import { getMascotVoice } from '../../../config/mascots';
+import { BackLink, Button, Card, EmptyState, Spinner, StatTile } from '../../../components/ui';
 
 // Spoken script for a PSL mistake: the story stem, then the student's answer
 // and the correct answer so the read-aloud reinforces the gap.
@@ -34,10 +32,9 @@ function PSLReadAloudButton({ mistake }) {
     setSpeaking(true);
   };
   return (
-    <button type="button" onClick={onClick} className="btn-gold-outline mt-2 !h-9 !px-3 !text-xs">
-      {speaking ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+    <Button variant="secondary" size="s" onClick={onClick} icon={speaking ? VolumeX : Volume2} className="mt-2">
       {speaking ? 'Stop' : 'Read aloud'}
-    </button>
+    </Button>
   );
 }
 
@@ -60,8 +57,6 @@ const HEURISTIC_NAMES = {
 
 export default function PSLMistakeReview() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const visualStyles = getVisualModeStyles(resolveStudentVisualMode(user || {}));
   const [mistakes, setMistakes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState({});
@@ -73,16 +68,7 @@ export default function PSLMistakeReview() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) {
-    return (
-      <div className="bg-dot-grid min-h-screen">
-        <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#dde1e8] border-t-[#d9892e]" />
-          <p className="text-sm font-medium" style={{ color: '#6b7585' }}>Loading mistakes…</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <Spinner label="Loading mistakes…" />;
 
   const tagCounts = {};
   const mistakesByTag = {};
@@ -110,167 +96,142 @@ export default function PSLMistakeReview() {
   )];
 
   return (
-    <div className={`bg-dot-grid min-h-screen pb-8 ${visualStyles.page}`}>
-      <div className="mx-auto max-w-[1180px] px-3 pt-4 sm:px-6 sm:pt-6 lg:px-10">
-        <div className="step-shell">
-          {/* Header */}
-          <div className="mb-5 flex items-center gap-3">
-            <button
-              onClick={() => navigate('/student/psl')}
-              className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl transition-colors"
-              style={{ border: '1px solid #dde1e8', background: '#fff' }}
-            >
-              <ArrowLeft className="h-4 w-4" style={{ color: '#5a6675' }} />
-            </button>
-            <div>
-              <h1 className="text-lg font-bold sm:text-xl" style={{ color: '#232c39' }}>Mistake Review</h1>
-              <p className="text-sm" style={{ color: '#6b7585' }}>
-                {mistakes.length} mistake{mistakes.length !== 1 ? 's' : ''} to learn from
-              </p>
-            </div>
-          </div>
+    <div className="mx-auto max-w-3xl space-y-4 px-3 pt-4 pb-8 sm:px-6 sm:pt-6">
+      {/* Header */}
+      <div>
+        <BackLink to="/student/psl" className="mb-3">Problem Solving</BackLink>
+        <h1 className="text-lg font-bold text-ink sm:text-xl">Mistake Review</h1>
+        <p className="text-sm text-body-muted">
+          {mistakes.length} mistake{mistakes.length !== 1 ? 's' : ''} to learn from
+        </p>
+      </div>
 
-          {mistakes.length === 0 ? (
-            <div className="flex flex-col items-center gap-4 py-16 text-center">
-              <MascotAvatar name="lejo" size="lg" showRing={false} />
-              <div>
-                <p className="text-base font-semibold" style={{ color: '#232c39' }}>No mistakes yet!</p>
-                <p className="mt-1 text-sm" style={{ color: '#6b7585' }}>
-                  Complete some practice sessions to see your learning areas here.
-                </p>
-              </div>
-              <button onClick={() => navigate('/student/psl')} className="btn-gold mt-2">
-                Start Practising
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {/* Summary bar */}
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                <div className="rounded-xl border p-3 text-center" style={{ borderColor: '#dde1e8', background: '#f5f6f8' }}>
-                  <p className="font-mono text-xl font-bold" style={{ color: '#232c39' }}>{mistakes.length}</p>
-                  <p className="text-[11px] font-medium" style={{ color: '#8a93a3' }}>Total mistakes</p>
-                </div>
-                <div className="rounded-xl border p-3 text-center" style={{ borderColor: '#dde1e8', background: '#f5f6f8' }}>
-                  <p className="font-mono text-xl font-bold" style={{ color: '#232c39' }}>{totalCategories}</p>
-                  <p className="text-[11px] font-medium" style={{ color: '#8a93a3' }}>Categories</p>
-                </div>
-                <div className="col-span-2 rounded-xl border p-3 text-center sm:col-span-1" style={{ borderColor: '#dde1e8', background: '#f5f6f8' }}>
-                  <p className="font-mono text-xl font-bold" style={{ color: '#232c39' }}>{Object.keys(tagCounts).length}</p>
-                  <p className="text-[11px] font-medium" style={{ color: '#8a93a3' }}>Unique types</p>
-                </div>
-              </div>
+      {mistakes.length === 0 ? (
+        <EmptyState
+          mascot="lejo"
+          message="No mistakes yet! Complete some practice sessions to see your learning areas here."
+        >
+          <Button onClick={() => navigate('/student/psl')}>Start Practising</Button>
+        </EmptyState>
+      ) : (
+        <>
+          {/* Summary */}
+          <Card className="grid grid-cols-2 gap-4 p-4 sm:grid-cols-3">
+            <StatTile label="Total mistakes" value={mistakes.length} />
+            <StatTile label="Categories" value={totalCategories} />
+            <StatTile label="Unique types" value={Object.keys(tagCounts).length} />
+          </Card>
 
-              {/* Category groups */}
-              {sortedCategories.map((category) => {
-                const isOpen = expanded[category] !== false;
-                const items = grouped[category];
-                return (
-                  <div key={category}>
-                    <button
-                      type="button"
-                      onClick={() => setExpanded((prev) => ({ ...prev, [category]: !isOpen }))}
-                      className="mb-2 flex w-full items-center gap-2 text-left"
-                    >
-                      {isOpen
-                        ? <ChevronDown className="h-4 w-4" style={{ color: '#8a93a3' }} />
-                        : <ChevronRight className="h-4 w-4" style={{ color: '#8a93a3' }} />}
-                      <span className="mono-label" style={{ color: '#5a6675' }}>{category} errors</span>
-                      <span className="mono-label" style={{ color: '#8a93a3' }}>
-                        {items.reduce((s, i) => s + i.count, 0)}x
-                      </span>
-                    </button>
+          {/* Category groups */}
+          <Card className="space-y-4 p-4 sm:p-5">
+            {sortedCategories.map((category) => {
+              const isOpen = expanded[category] !== false;
+              const items = grouped[category];
+              return (
+                <div key={category}>
+                  <button
+                    type="button"
+                    onClick={() => setExpanded((prev) => ({ ...prev, [category]: !isOpen }))}
+                    className="mb-2 flex w-full items-center gap-2 text-left"
+                  >
+                    {isOpen
+                      ? <ChevronDown className="h-4 w-4 text-body-faint" />
+                      : <ChevronRight className="h-4 w-4 text-body-faint" />}
+                    <span className="text-xs font-bold uppercase tracking-wider text-body-soft">{category} errors</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-body-faint">
+                      {items.reduce((s, i) => s + i.count, 0)}x
+                    </span>
+                  </button>
 
-                    {isOpen && (
-                      <div className="space-y-2 pl-6">
-                        {items.map(({ tag, count, label, tip }) => (
-                          <div
-                            key={tag}
-                            className="mistake-hint-box flex items-start gap-3"
-                          >
-                            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" style={{ color: '#d9892e' }} />
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between gap-2">
-                                <p className="text-sm font-semibold" style={{ color: '#232c39' }}>{label}</p>
-                                <span className="mono-label shrink-0" style={{ color: '#b06f1f' }}>{count}x</span>
-                              </div>
-                              {tip && <p className="mt-1 text-xs" style={{ color: '#5a6675' }}>{tip}</p>}
-                              {/* Individual mistakes for this tag: the story stem plus
-                                  the student's and correct answers the endpoint returns,
-                                  each read-aloud-able. */}
-                              {(mistakesByTag[tag] || [])
-                                .filter((m) => (m.questionText || m.questionStem))
-                                .map((m, idx) => (
-                                  <div
-                                    key={m._id || m.id || `${tag}-${idx}`}
-                                    className="mt-2 rounded-lg border p-2"
-                                    style={{ borderColor: '#e6e9ef', background: '#fff' }}
-                                  >
-                                    <p className="text-xs" style={{ color: '#232c39' }}>
-                                      {m.questionText || m.questionStem}
-                                    </p>
-                                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px]">
-                                      {m.studentAnswer && (
-                                        <span style={{ color: '#b06f1f' }}>Your answer: {m.studentAnswer}</span>
-                                      )}
-                                      {m.correctAnswer && (
-                                        <span style={{ color: '#2f7d5b' }}>Correct: {m.correctAnswer}</span>
-                                      )}
-                                    </div>
-                                    <PSLReadAloudButton mistake={m} />
-                                  </div>
-                                ))}
-                              {tag === 'psl/arithmetic-error' && (
-                                <button
-                                  onClick={() => navigate('/student/mathpath')}
-                                  className="btn-gold-outline mt-2 !h-9 !px-3 !text-xs"
-                                >
-                                  Practice in MathPath
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-
-              {/* Retry CTAs */}
-              <div className="pt-4 space-y-3">
-                {weakHeuristics.length > 0 && (
-                  <div>
-                    <p className="mono-label mb-2" style={{ color: '#5a6675' }}>Practice your weak areas</p>
-                    <div className="flex flex-wrap gap-2">
-                      {weakHeuristics.map((h) => (
-                        <button
-                          key={h}
-                          onClick={() => navigate(`/student/psl?heuristic=${h}`)}
-                          className="btn-gold-outline !h-9 !px-3 !text-xs"
+                  {isOpen && (
+                    <div className="space-y-2 pl-6">
+                      {items.map(({ tag, count, label, tip }) => (
+                        <div
+                          key={tag}
+                          className="flex items-start gap-3 rounded-btn border border-gold-border bg-gold-tint2 p-3"
                         >
-                          <RotateCcw className="h-3.5 w-3.5" />
-                          {HEURISTIC_NAMES[h] || h}
-                        </button>
+                          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-gold" />
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="text-sm font-semibold text-ink">{label}</p>
+                              <span className="shrink-0 text-xs font-bold uppercase tracking-wider text-gold-deep">{count}x</span>
+                            </div>
+                            {tip && <p className="mt-1 text-xs text-body-soft">{tip}</p>}
+                            {/* Individual mistakes for this tag: the story stem plus
+                                the student's and correct answers the endpoint returns,
+                                each read-aloud-able. */}
+                            {(mistakesByTag[tag] || [])
+                              .filter((m) => (m.questionText || m.questionStem))
+                              .map((m, idx) => (
+                                <div
+                                  key={m._id || m.id || `${tag}-${idx}`}
+                                  className="mt-2 rounded-lg border border-line bg-surface-white p-2"
+                                >
+                                  <p className="text-xs text-ink">
+                                    {m.questionText || m.questionStem}
+                                  </p>
+                                  <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px]">
+                                    {m.studentAnswer && (
+                                      <span className="text-gold-deep">Your answer: {m.studentAnswer}</span>
+                                    )}
+                                    {m.correctAnswer && (
+                                      <span className="text-emerald-deep">Correct: {m.correctAnswer}</span>
+                                    )}
+                                  </div>
+                                  <PSLReadAloudButton mistake={m} />
+                                </div>
+                              ))}
+                            {tag === 'psl/arithmetic-error' && (
+                              <Button
+                                variant="secondary"
+                                size="s"
+                                onClick={() => navigate('/student/mathpath')}
+                                className="mt-2"
+                              >
+                                Practice in MathPath
+                              </Button>
+                            )}
+                          </div>
+                        </div>
                       ))}
                     </div>
-                  </div>
-                )}
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <button onClick={() => navigate('/student/psl')} className="btn-gold w-full sm:w-auto">
-                    <RotateCcw className="h-4 w-4" />
-                    Practice Again
-                  </button>
-                  <button onClick={() => navigate('/student/psl')} className="btn-gold-outline w-full sm:w-auto">
-                    <ArrowLeft className="h-4 w-4" />
-                    Back to Skills
-                  </button>
+                  )}
+                </div>
+              );
+            })}
+          </Card>
+
+          {/* Retry CTAs */}
+          <div className="space-y-3">
+            {weakHeuristics.length > 0 && (
+              <div>
+                <p className="mb-2 text-xs font-bold uppercase tracking-wider text-body-soft">Practice your weak areas</p>
+                <div className="flex flex-wrap gap-2">
+                  {weakHeuristics.map((h) => (
+                    <Button
+                      key={h}
+                      variant="secondary"
+                      size="s"
+                      icon={RotateCcw}
+                      onClick={() => navigate(`/student/psl?heuristic=${h}`)}
+                    >
+                      {HEURISTIC_NAMES[h] || h}
+                    </Button>
+                  ))}
                 </div>
               </div>
+            )}
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button icon={RotateCcw} onClick={() => navigate('/student/psl')} className="w-full sm:w-auto">
+                Practice Again
+              </Button>
+              <Button variant="secondary" icon={ArrowLeft} onClick={() => navigate('/student/psl')} className="w-full sm:w-auto">
+                Back to Skills
+              </Button>
             </div>
-          )}
-        </div>
-      </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

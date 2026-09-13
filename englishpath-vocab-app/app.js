@@ -28,6 +28,8 @@ import {
   LEVEL_GROUP_LIST,
 } from '../shared/englishpath/vocabulary/index.js';
 import { CONFIG } from './config.js';
+import { initPartner } from './partner.js';
+import { initTipsSignup } from './tipsSignup.js';
 
 const PRICE = CONFIG.PRICE || 'S$9/mo'; // display only — real pricing comes from Stripe
 const LEVELS = [
@@ -305,11 +307,10 @@ function renderHome() {
 
   const weak = premium ? weakWords(state, { bank: b }) : [];
   const ctaEyebrow = premium ? (s.counts.dueNow ? 'Review due' : 'Your practice') : 'Free · no sign-up';
-  const sessionLabel = group.sessionSize === 10 ? '10-question' : '6-question';
   const ctaHeading =
     premium && s.counts.dueNow
       ? `${s.counts.dueNow} word${s.counts.dueNow === 1 ? '' : 's'} to review + new`
-      : `Start a ${sessionLabel} session`;
+      : 'Start a 5-minute session';
 
   const premiumBlock = premium
     ? `
@@ -361,7 +362,11 @@ function renderHome() {
     ${b.length ? `<div class="card cta">
       <div class="eyebrow">${ctaEyebrow}</div>
       <h2>${ctaHeading}</h2>
-      <p class="muted">Meet a few new words, then test yourself. About 5 minutes.</p>
+      <p class="muted">${
+        premium && s.counts.dueNow
+          ? 'First, review the words that are due (spaced to bring them back right before you forget), then meet a few new ones.'
+          : "A few new words to meet, then questions — with quick review of words you're already learning mixed in."
+      }</p>
       <button class="btn full mt" data-go="practice">${premium ? 'Continue' : 'Start practice'} →</button>
     </div>` : `<div class="card" style="text-align:center;padding:32px 22px">
       <h2 style="color:var(--ink-700)">Coming soon</h2>
@@ -379,11 +384,14 @@ function renderHome() {
 
     ${premium ? '' : premiumBlock}
 
+    ${premium && s.counts.introduced ? `<button class="btn secondary full" data-words>📖 Review my words (${s.counts.introduced})</button>` : ''}
     ${premium ? '<button class="btn ghost" data-reset>↺ Reset my progress</button>' : ''}
   `;
 
   const goBtn = app.querySelector('[data-go="practice"]');
   if (goBtn) goBtn.onclick = startSession;
+  const wordsBtn = app.querySelector('[data-words]');
+  if (wordsBtn) wordsBtn.onclick = renderWords;
   const focusBtn = app.querySelector('[data-focus]');
   if (focusBtn) focusBtn.onclick = startFocusSession;
   for (const btn of app.querySelectorAll('[data-group]')) {
@@ -419,6 +427,67 @@ function readinessRow(key, label, examReadiness) {
       <div class="top"><b>${label}</b><span>${examReadiness[key] || 0}%</span></div>
       <div class="bar"><span style="width:${examReadiness[key] || 0}%"></span></div>
     </div>`;
+}
+
+// A browsable personal dictionary of every word the learner has met, so they can
+// look meanings back up. Grouped tricky → learning → reviewing → mastered; tap a
+// word to see its example sentence and similar words.
+function renderWords() {
+  state = loadProgress();
+  const b = bank();
+  const weakSet = new Set(weakWords(state, { bank: b }).map((w) => w.wordId));
+  const rows = [];
+  for (const wp of Object.values(state.words)) {
+    if (!wp.introduced) continue;
+    const entry = b.find((w) => w.id === wp.wordId);
+    if (!entry) continue;
+    const status = wp.mastered ? 'mastered' : weakSet.has(wp.wordId) ? 'tricky' : wp.box > 0 ? 'review' : 'learning';
+    rows.push({ id: wp.wordId, word: entry.word, pos: entry.pos, meaning: entry.meaning, example: entry.example, answer: entry.answer, synonyms: entry.synonyms, status });
+  }
+  const order = { tricky: 0, learning: 1, review: 2, mastered: 3 };
+  rows.sort((a, c) => order[a.status] - order[c.status] || a.word.localeCompare(c.word));
+  const tag = {
+    tricky: '<span class="tag warn">Tricky</span>',
+    learning: '<span class="tag">Learning</span>',
+    review: '<span class="tag gold">Review</span>',
+    mastered: '<span class="tag ok">Mastered</span>',
+  };
+
+  app.innerHTML = `
+    <button class="btn ghost" data-home>← Home</button>
+    <div class="hero" style="padding:6px 0 2px"><h1 style="font-size:24px">My words</h1>
+      <p class="sub" style="font-size:15px">${rows.length} word${rows.length === 1 ? '' : 's'} you've met — tap any to see its example.</p></div>
+    <input class="wordsearch" type="search" placeholder="Search your words…" aria-label="Search your words" />
+    <div class="wordlist">
+      ${rows
+        .map(
+          (r) => `<div class="wordrow" data-w="${esc(r.word.toLowerCase())}">
+        <button class="wordhead" data-toggle="${r.id}">
+          <span class="ww"><b>${esc(r.word)}</b> <span class="pos">${esc(r.pos || '')}</span></span>
+          ${tag[r.status] || ''}
+        </button>
+        <div class="wordmean">${esc(r.meaning)}</div>
+        <div class="worddetail" data-detail="${r.id}" hidden>
+          ${r.example ? `<div class="ex">${markup(r.example.replace(/_{3,}/g, `**${r.answer || r.word}**`))}</div>` : ''}
+          ${r.synonyms && r.synonyms.length ? `<p class="muted" style="margin:8px 0 0"><b>Similar:</b> ${esc(r.synonyms.join(', '))}</p>` : ''}
+        </div>
+      </div>`
+        )
+        .join('')}
+    </div>`;
+  app.querySelector('[data-home]').onclick = renderHome;
+  for (const btn of app.querySelectorAll('[data-toggle]')) {
+    btn.onclick = () => {
+      const d = app.querySelector(`[data-detail="${btn.getAttribute('data-toggle')}"]`);
+      if (d) d.hidden = !d.hidden;
+    };
+  }
+  const search = app.querySelector('.wordsearch');
+  if (search)
+    search.oninput = () => {
+      const q = search.value.trim().toLowerCase();
+      for (const row of app.querySelectorAll('.wordrow')) row.hidden = q && !row.dataset.w.includes(q);
+    };
 }
 
 function shuffle(arr) {
@@ -516,7 +585,7 @@ function renderSession() {
       <p class="muted" style="margin:4px 0 0">${esc(t.instruction)}</p>
       <div class="prompt">${markup(t.prompt)}</div>
       <div class="options">
-        ${t.options.map((o) => `<button class="opt" data-opt="${o.id}">${esc(o.text)}<span class="mk" data-mk="${o.id}"></span></button>`).join('')}
+        ${t.options.map((o) => `<button class="opt" data-opt="${o.id}"><span class="opt-row"><span class="opt-text">${esc(o.text)}</span><span class="mk" data-mk="${o.id}"></span></span>${o.gloss ? `<span class="opt-gloss" hidden>${esc(o.gloss)}</span>` : ''}</button>`).join('')}
       </div>
       <div data-foot></div>
     </div>`;
@@ -561,6 +630,12 @@ function answer(t, optId) {
     } else {
       btn.classList.add('dim');
     }
+  });
+  // Reveal every option's meaning — so each question teaches all four words,
+  // not just the answer (students often miss because they don't know the
+  // distractors). Hidden until now so glosses don't give the answer away.
+  app.querySelectorAll('.opt-gloss').forEach((el) => {
+    el.hidden = false;
   });
 
   const last = session.idx + 1 >= session.tasks.length;
@@ -774,6 +849,16 @@ function initTheme() {
 }
 
 // ---- boot -----------------------------------------------------------------
+// Embed / co-brand mode (e.g. ?partner=brightdesk) — shows a co-brand ribbon and
+// logs an anonymous attribution event. No-op when opened without the param.
+const partnerId = initPartner({ onLand: (id) => logEvent('partner_land', { partner: id }) });
+// Keep the partner/embed context when crossing to the cloze page.
+if (location.search) {
+  const toCloze = document.getElementById('to-cloze');
+  if (toCloze) toCloze.href = './cloze.html' + location.search;
+}
+// Optional "free study tips by email" opt-in → BrightDesk marketing list.
+initTipsSignup(partnerId ? 'elpath-' + partnerId : 'elpath');
 initTheme();
 consumePaymentReturn(); // grant Premium if returning from a successful checkout
 renderHome(); // render immediately so there's no blank frame

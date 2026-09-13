@@ -85,6 +85,33 @@ describe('VolumeQuestionGenerator', () => {
     expect(checkVolumeAnswer({ question: q, studentResponse: String(Number(dig(q.answer.display)) + 1) }).correct).toBe(false);
   });
 
+  it('rejects a wrong-DIMENSION unit even when the digits match', () => {
+    // Regression: stripUnits used to remove the unit entirely before comparing
+    // digits, so "45 m3" was wrongly accepted for a "45 cm³" key, and "12 cm3"
+    // for a "12 cubes" key (VL001, counting unit cubes). A response with NO
+    // unit (the common case) must still be accepted, and equivalent spellings
+    // of the SAME unit (litre/litres/L) must still match.
+    const mk = (display) => ({ answer: { display } });
+    expect(checkVolumeAnswer({ question: mk('45 cm³'), studentResponse: '45 m3' }).correct).toBe(false);
+    expect(checkVolumeAnswer({ question: mk('12 cubes'), studentResponse: '12 cm3' }).correct).toBe(false);
+    expect(checkVolumeAnswer({ question: mk('45 cm³'), studentResponse: '45' }).correct).toBe(true);
+    expect(checkVolumeAnswer({ question: mk('18 L'), studentResponse: '18 litres' }).correct).toBe(true);
+    expect(checkVolumeAnswer({ question: mk('18 L'), studentResponse: '18 l' }).correct).toBe(true);
+    expect(checkVolumeAnswer({ question: mk('18 L'), studentResponse: '18 cm3' }).correct).toBe(false);
+  });
+
+  it('rejects a mass unit answered for a volume question (and vice versa)', () => {
+    // Supplements the volume-vs-length regression above: a mass unit is
+    // dimensionally wrong for either a 3D volume or a capacity (L / ml) key.
+    const mk = (display) => ({ answer: { display } });
+    expect(checkVolumeAnswer({ question: mk('75 cm³'), studentResponse: '75 kg' }).correct).toBe(false);
+    expect(checkVolumeAnswer({ question: mk('32 L'), studentResponse: '32 kg' }).correct).toBe(false);
+    // And ASCII "cm3" input still catches the wrong-dimension case (bare-int match).
+    expect(checkVolumeAnswer({ question: mk('75 cm³'), studentResponse: '75 cm2' }).correct).toBe(false);
+    // ASCII "cm3" typed for a "cm³" key must still pass — canonicalisation regression.
+    expect(checkVolumeAnswer({ question: mk('75 cm³'), studentResponse: '75 cm3' }).correct).toBe(true);
+  });
+
   describe('Secondary 1 (G1) — VL005 prism, VL006 surface area', () => {
     it('tags both skills as Secondary 1', () => {
       for (const id of ['VL005', 'VL006']) {

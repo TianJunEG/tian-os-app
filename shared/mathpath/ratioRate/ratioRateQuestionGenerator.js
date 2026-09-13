@@ -748,6 +748,11 @@ export function checkRatioRateAnswer({ question, studentResponse } = {}) {
   // Multi-value match: "$78 and $130" == "78, 130" == "78 130" == "$78, $130"
   // Extracts all numbers from both sides, sorts, compares element-by-element.
   const multiValueMatch = accepted.some((a) => {
+    // Order matters for colon-delimited ratios ("3:2" != "2:3") — the reversed
+    // distractor is authored on purpose. This order-independent number match is
+    // ONLY for unordered amount lists ("$78 and $130" == "78, 130"), so it must
+    // not fire on a ratio; ratioMatch above already compares ratios in order.
+    if (String(a).includes(':') || String(submitted).includes(':')) return false;
     const accNums = extractNumbers(a);
     const subNums = extractNumbers(submitted);
     if (accNums.length < 2 || accNums.length !== subNums.length) return false;

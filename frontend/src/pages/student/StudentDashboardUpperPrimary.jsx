@@ -31,10 +31,7 @@ import {
 import { NavLink } from 'react-router-dom';
 import { Card, Button } from '../../components/ui';
 import { buildStudentInsight, interpretConfidence } from '../../mathpath/insights/insightQualityEngine';
-import {
-  ASSESSMENT_LOCK_MESSAGE,
-  getFractionAssessmentBlueprintReadiness,
-} from '../../mathpath/fractions/fractionAssessmentReadinessGate';
+import { ASSESSMENT_LOCK_MESSAGE } from '../../mathpath/fractions/fractionAssessmentReadinessGate';
 import FEATURE_FLAGS from '../../config/featureFlags';
 import { getLatestEpisode } from '../../data/comics/episodes';
 
@@ -113,14 +110,11 @@ function buildUpperPrimaryMetricCards(analytics = {}) {
   };
 }
 
-function UpperPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, masteredSkillCount = 0 }) {
+export function UpperPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, assessmentGate = { ready: false } }) {
   // A student is only "returning" when there's a real skill name to point at.
   // Without this, brand-new students saw the misleading "Pick up where you
   // left off" body even though they had nothing to continue.
   const isReturning = hasPlacement && Boolean(currentSkill?.skillName);
-  const assessmentGate = getFractionAssessmentBlueprintReadiness({
-    completedSkillIds: Array.from({ length: masteredSkillCount }, (_, index) => `F${String(index + 1).padStart(3, '0')}`),
-  });
   const action = actionMeta(nextAction, assessmentGate.ready);
   const continueState = hasPlacement
     ? {
@@ -231,6 +225,7 @@ export default function StudentDashboardUpperPrimary({
   vm,
   dashboardAnalytics,
   safeMasteredCount,
+  assessmentGate,
   showDiagnosticPrompt,
   diagnosticDomains,
   studentLevel,
@@ -447,7 +442,7 @@ export default function StudentDashboardUpperPrimary({
 
         {/* Recommended Next */}
         <div style={{ marginTop: 24 }}>
-          <UpperPrimaryRecommendedNext currentSkill={vm.currentSkill} nextAction={vm.nextAction} hasPlacement={vm.hasPlacement} masteredSkillCount={safeMasteredCount} />
+          <UpperPrimaryRecommendedNext currentSkill={vm.currentSkill} nextAction={vm.nextAction} hasPlacement={vm.hasPlacement} assessmentGate={assessmentGate} />
         </div>
 
         {FEATURE_FLAGS.comics && (

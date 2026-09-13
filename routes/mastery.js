@@ -285,7 +285,14 @@ export function buildPracticeMistakeSnapshot({
 }
 
 export function shouldCreatePracticeMistake(result = {}) {
-  return Boolean(result && !result.correct && !result.error);
+  // The P1-P6 practice-flow clients tag each submitted answer `answerCorrect`
+  // (never `correct` — see the P1-P6 submit routes below for the same gotcha).
+  // Reading only `.correct` made this ALWAYS true (undefined is falsy), so
+  // every correct answer across every primary level silently logged a phantom
+  // mistake record. Nullish-coalesce so an explicit `answerCorrect` wins, but
+  // a payload that genuinely only carries `correct` still works.
+  const isCorrect = result?.answerCorrect ?? result?.correct;
+  return Boolean(result && !isCorrect && !result.error);
 }
 
 function normalizeSkillGraphStatus(status = '') {
@@ -1071,7 +1078,7 @@ router.post('/p1/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
       if (!skillId) return acc;
       if (!acc[skillId]) acc[skillId] = { total: 0, correct: 0 };
       acc[skillId].total += 1;
-      if (r.correct) acc[skillId].correct += 1;
+      if (r.answerCorrect ?? r.correct) acc[skillId].correct += 1;
       return acc;
     }, {});
 
@@ -1104,7 +1111,8 @@ router.post('/p1/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
     });
 
     const total = results.length;
-    const correctCount = results.filter((r) => r.correct).length;
+    // See shouldCreatePracticeMistake's comment: the client field is `answerCorrect`, not `correct`.
+    const correctCount = results.filter((r) => r.answerCorrect ?? r.correct).length;
     const accuracy = total ? Math.round((correctCount / total) * 100) : 0;
 
     const summary = {
@@ -1265,7 +1273,7 @@ router.post('/p2/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
         { upsert: true, new: true, setDefaultsOnInsert: true }
       );
     }
-    const bySkill = results.filter((r) => !r.error).reduce((acc, r) => { const skillId = r.skillId || ''; if (!skillId) return acc; if (!acc[skillId]) acc[skillId] = { total: 0, correct: 0 }; acc[skillId].total += 1; if (r.correct) acc[skillId].correct += 1; return acc; }, {});
+    const bySkill = results.filter((r) => !r.error).reduce((acc, r) => { const skillId = r.skillId || ''; if (!skillId) return acc; if (!acc[skillId]) acc[skillId] = { total: 0, correct: 0 }; acc[skillId].total += 1; if (r.answerCorrect ?? r.correct) acc[skillId].correct += 1; return acc; }, {});
     await Promise.all(Object.entries(bySkill).map(([skillId, counts]) => {
       const accuracy = counts.total ? Math.round((counts.correct / counts.total) * 100) : 0;
       const set = { status: accuracy >= 90 ? 'accurate' : accuracy >= 60 ? 'learning' : 'needsReview', accuracy, lastPractisedAt: new Date() };
@@ -1274,7 +1282,8 @@ router.post('/p2/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
     }));
     const progressUpdated = Object.keys(bySkill).length > 0;
     const total = results.length;
-    const correctCount = results.filter((r) => r.correct).length;
+    // See shouldCreatePracticeMistake's comment: the client field is `answerCorrect`, not `correct`.
+    const correctCount = results.filter((r) => r.answerCorrect ?? r.correct).length;
     const accuracy = total ? Math.round((correctCount / total) * 100) : 0;
     const lifecycleLog = buildPracticeLifecycleLog({ sessionId: req.params.practiceSessionId, studentId, questionId: results.at(-1)?.questionId || '', attemptSaved, mistakeCreated: wrongResults.length > 0, progressUpdated, answeredQuestions: results.length, targetQuestions: existing.estimatedQuestionCount || existing.questions?.length || results.length, completionReason: 'target_reached' });
     const summary = { practiceSessionId: req.params.practiceSessionId, sessionType, results, accuracySummary: { total, correct: correctCount, accuracyPercentage: accuracy }, persisted: true, lifecycleLog };
@@ -1391,7 +1400,7 @@ router.post('/p3/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
       if (!skillId) return acc;
       if (!acc[skillId]) acc[skillId] = { total: 0, correct: 0 };
       acc[skillId].total += 1;
-      if (r.correct) acc[skillId].correct += 1;
+      if (r.answerCorrect ?? r.correct) acc[skillId].correct += 1;
       return acc;
     }, {});
 
@@ -1424,7 +1433,8 @@ router.post('/p3/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
     });
 
     const total = results.length;
-    const correctCount = results.filter((r) => r.correct).length;
+    // See shouldCreatePracticeMistake's comment: the client field is `answerCorrect`, not `correct`.
+    const correctCount = results.filter((r) => r.answerCorrect ?? r.correct).length;
     const accuracy = total ? Math.round((correctCount / total) * 100) : 0;
 
     const summary = {
@@ -1820,16 +1830,27 @@ function readinessBandFromLevel(level = '') {
   return 'beginner';
 }
 
+// Fraction Skill documents are seed-time reference data (only ever written by
+// scripts/seed*.js, never by a live route) so a per-process cache is safe and
+// avoids re-running this regex scan on every /mastery request. Cache the
+// in-flight PROMISE (not just the resolved value) so concurrent callers during
+// the first population share one query instead of racing duplicate ones.
+let fractionsSkillsCache = null;
 async function loadFractionsSkills() {
-  const skills = await Skill.find({ slug: /^fr\./ }).sort({ order: 1 });
-  const byFrameworkId = new Map();
-  const byObjectId = new Map();
-  for (const s of skills) {
-    const fid = s.metadata?.mathPathSkillId || s.metadata?.frameworkCode || '';
-    if (fid) byFrameworkId.set(String(fid).toUpperCase(), s);
-    byObjectId.set(String(s._id), s);
+  if (!fractionsSkillsCache) {
+    fractionsSkillsCache = (async () => {
+      const skills = await Skill.find({ slug: /^fr\./ }).sort({ order: 1 });
+      const byFrameworkId = new Map();
+      const byObjectId = new Map();
+      for (const s of skills) {
+        const fid = s.metadata?.mathPathSkillId || s.metadata?.frameworkCode || '';
+        if (fid) byFrameworkId.set(String(fid).toUpperCase(), s);
+        byObjectId.set(String(s._id), s);
+      }
+      return { skills, byFrameworkId, byObjectId };
+    })().catch((err) => { fractionsSkillsCache = null; throw err; });
   }
-  return { skills, byFrameworkId, byObjectId };
+  return fractionsSkillsCache;
 }
 
 // Shape fractions MathPathStudentSkillState docs into /mastery records keyed by the
@@ -2782,7 +2803,7 @@ router.post('/p4/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
         { upsert: true, new: true, setDefaultsOnInsert: true }
       );
     }
-    const bySkill = results.filter((r) => !r.error).reduce((acc, r) => { const skillId = r.skillId || ''; if (!skillId) return acc; if (!acc[skillId]) acc[skillId] = { total: 0, correct: 0 }; acc[skillId].total += 1; if (r.correct) acc[skillId].correct += 1; return acc; }, {});
+    const bySkill = results.filter((r) => !r.error).reduce((acc, r) => { const skillId = r.skillId || ''; if (!skillId) return acc; if (!acc[skillId]) acc[skillId] = { total: 0, correct: 0 }; acc[skillId].total += 1; if (r.answerCorrect ?? r.correct) acc[skillId].correct += 1; return acc; }, {});
     await Promise.all(Object.entries(bySkill).map(([skillId, counts]) => {
       const accuracy = counts.total ? Math.round((counts.correct / counts.total) * 100) : 0;
       const set = { status: accuracy >= 90 ? 'accurate' : accuracy >= 60 ? 'learning' : 'needsReview', accuracy, lastPractisedAt: new Date() };
@@ -2791,7 +2812,8 @@ router.post('/p4/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
     }));
     const progressUpdated = Object.keys(bySkill).length > 0;
     const total = results.length;
-    const correctCount = results.filter((r) => r.correct).length;
+    // See shouldCreatePracticeMistake's comment: the client field is `answerCorrect`, not `correct`.
+    const correctCount = results.filter((r) => r.answerCorrect ?? r.correct).length;
     const accuracy = total ? Math.round((correctCount / total) * 100) : 0;
     const lifecycleLog = buildPracticeLifecycleLog({ sessionId: req.params.practiceSessionId, studentId, questionId: results.at(-1)?.questionId || '', attemptSaved, mistakeCreated: wrongResults.length > 0, progressUpdated, answeredQuestions: results.length, targetQuestions: existing.estimatedQuestionCount || existing.questions?.length || results.length, completionReason: 'target_reached' });
     const summary = { practiceSessionId: req.params.practiceSessionId, sessionType, results, accuracySummary: { total, correct: correctCount, accuracyPercentage: accuracy }, persisted: true, lifecycleLog };
@@ -2879,7 +2901,7 @@ router.post('/p5/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
         { upsert: true, new: true, setDefaultsOnInsert: true }
       );
     }
-    const bySkill = results.filter((r) => !r.error).reduce((acc, r) => { const skillId = r.skillId || ''; if (!skillId) return acc; if (!acc[skillId]) acc[skillId] = { total: 0, correct: 0 }; acc[skillId].total += 1; if (r.correct) acc[skillId].correct += 1; return acc; }, {});
+    const bySkill = results.filter((r) => !r.error).reduce((acc, r) => { const skillId = r.skillId || ''; if (!skillId) return acc; if (!acc[skillId]) acc[skillId] = { total: 0, correct: 0 }; acc[skillId].total += 1; if (r.answerCorrect ?? r.correct) acc[skillId].correct += 1; return acc; }, {});
     await Promise.all(Object.entries(bySkill).map(([skillId, counts]) => {
       const accuracy = counts.total ? Math.round((counts.correct / counts.total) * 100) : 0;
       const set = { status: accuracy >= 90 ? 'accurate' : accuracy >= 60 ? 'learning' : 'needsReview', accuracy, lastPractisedAt: new Date() };
@@ -2888,7 +2910,8 @@ router.post('/p5/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
     }));
     const progressUpdated = Object.keys(bySkill).length > 0;
     const total = results.length;
-    const correctCount = results.filter((r) => r.correct).length;
+    // See shouldCreatePracticeMistake's comment: the client field is `answerCorrect`, not `correct`.
+    const correctCount = results.filter((r) => r.answerCorrect ?? r.correct).length;
     const accuracy = total ? Math.round((correctCount / total) * 100) : 0;
     const lifecycleLog = buildPracticeLifecycleLog({ sessionId: req.params.practiceSessionId, studentId, questionId: results.at(-1)?.questionId || '', attemptSaved, mistakeCreated: wrongResults.length > 0, progressUpdated, answeredQuestions: results.length, targetQuestions: existing.estimatedQuestionCount || existing.questions?.length || results.length, completionReason: 'target_reached' });
     const summary = { practiceSessionId: req.params.practiceSessionId, sessionType, results, accuracySummary: { total, correct: correctCount, accuracyPercentage: accuracy }, persisted: true, lifecycleLog };
@@ -2977,7 +3000,7 @@ router.post('/p6/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
         { upsert: true, new: true, setDefaultsOnInsert: true }
       );
     }
-    const bySkill = results.filter((r) => !r.error).reduce((acc, r) => { const skillId = r.skillId || ''; if (!skillId) return acc; if (!acc[skillId]) acc[skillId] = { total: 0, correct: 0 }; acc[skillId].total += 1; if (r.correct) acc[skillId].correct += 1; return acc; }, {});
+    const bySkill = results.filter((r) => !r.error).reduce((acc, r) => { const skillId = r.skillId || ''; if (!skillId) return acc; if (!acc[skillId]) acc[skillId] = { total: 0, correct: 0 }; acc[skillId].total += 1; if (r.answerCorrect ?? r.correct) acc[skillId].correct += 1; return acc; }, {});
     await Promise.all(Object.entries(bySkill).map(([skillId, counts]) => {
       const accuracy = counts.total ? Math.round((counts.correct / counts.total) * 100) : 0;
       const set = { status: accuracy >= 90 ? 'accurate' : accuracy >= 60 ? 'learning' : 'needsReview', accuracy, lastPractisedAt: new Date() };
@@ -2986,7 +3009,8 @@ router.post('/p6/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
     }));
     const progressUpdated = Object.keys(bySkill).length > 0;
     const total = results.length;
-    const correctCount = results.filter((r) => r.correct).length;
+    // See shouldCreatePracticeMistake's comment: the client field is `answerCorrect`, not `correct`.
+    const correctCount = results.filter((r) => r.answerCorrect ?? r.correct).length;
     const accuracy = total ? Math.round((correctCount / total) * 100) : 0;
     const lifecycleLog = buildPracticeLifecycleLog({ sessionId: req.params.practiceSessionId, studentId, questionId: results.at(-1)?.questionId || '', attemptSaved, mistakeCreated: wrongResults.length > 0, progressUpdated, answeredQuestions: results.length, targetQuestions: existing.estimatedQuestionCount || existing.questions?.length || results.length, completionReason: 'target_reached' });
     const summary = { practiceSessionId: req.params.practiceSessionId, sessionType, results, accuracySummary: { total, correct: correctCount, accuracyPercentage: accuracy }, persisted: true, lifecycleLog };

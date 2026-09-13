@@ -176,6 +176,22 @@ function boundedArray(value, cap) {
   return Array.isArray(value) ? value.slice(0, cap) : [];
 }
 
+// Strip the correct answer (and any worked-solution fields) from a question
+// object before it is sent to the client. The engine always scores server-side
+// via getQuestionById + scoreAnswer, so the diagnostic item the student receives
+// must never carry its own answer — otherwise the answer sits in the network
+// response / React state, a real leak on shared classroom iPads (and any
+// browser). Non-mutating: internal question objects keep `answer` for scoring
+// and response logging; only the client-facing copy is scrubbed.
+export function scrubQuestionForClient(question) {
+  if (!question || typeof question !== 'object') return question;
+  const {
+    answer, correctAnswer, workedSolution, modelAnswer, solution, explanation,
+    ...safe
+  } = question;
+  return safe;
+}
+
 function normalizeResponseBody(body = {}, question = {}) {
   const answer = String(body.answer ?? body.studentAnswer ?? '');
   const skipped = Boolean(body.skipped);
@@ -581,9 +597,9 @@ export async function startAdaptiveDiagnostic({
     sessionId: doc.diagnosticSessionId,
     subjectId: domain.subjectId,
     domainId: domain.domainId,
-    currentQuestion: firstQuestion,
-    nextQuestion: firstQuestion,
-    questions: firstQuestion ? [firstQuestion] : [],
+    currentQuestion: scrubQuestionForClient(firstQuestion),
+    nextQuestion: scrubQuestionForClient(firstQuestion),
+    questions: firstQuestion ? [scrubQuestionForClient(firstQuestion)] : [],
     progress: {
       answeredCount: 0,
       estimatedQuestionCount: count,
@@ -1028,7 +1044,7 @@ export async function answerAdaptiveDiagnostic({ student, sessionId, body = {} }
   return {
     isCorrect: correct,
     decision,
-    nextQuestion,
+    nextQuestion: scrubQuestionForClient(nextQuestion),
     progress: {
       answeredCount,
       estimatedQuestionCount: maxQuestions,

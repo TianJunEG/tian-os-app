@@ -9,10 +9,9 @@ import { getMisconception } from './utils/misconceptions';
 import WorkedSolutionWalkthrough from './components/WorkedSolutionWalkthrough';
 import { confettiBurst } from '../../../utils/confetti';
 import { playWin } from '../../../utils/sound';
-import { useAuth } from '../../../context/AuthContext';
-import { resolveStudentVisualMode, getVisualModeStyles } from '../../../design-os/studentVisualMode';
 import { MascotBubble } from '../../../components/MascotAvatar';
 import { getMascotForModule } from '../../../config/mascots';
+import { Card, Button, Badge, StatTile, Spinner } from '../../../components/ui';
 
 /* ─── Step labels ─────────────────────────────────────────────── */
 const STEP_FRIENDLY_LABELS = {
@@ -24,31 +23,14 @@ const STEP_FRIENDLY_LABELS = {
   check: 'Check',
 };
 
-/* ─── Step outcome badge ──────────────────────────────────────── */
+/* ─── Step outcome badge (shared Badge tones) ─────────────────── */
 function StepBadge({ step }) {
-  if (step.correct)
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold"
-        style={{ color: '#1f9d57', background: '#f3faf6' }}>
-        <CheckCircle className="h-3 w-3" /> Correct
-      </span>
-    );
-  if (step.partial)
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold"
-        style={{ color: '#d9892e', background: '#fbf1e1' }}>
-        <AlertTriangle className="h-3 w-3" /> Partial
-      </span>
-    );
-  return (
-    <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold"
-      style={{ color: '#d8694f', background: '#fbece9' }}>
-      <XCircle className="h-3 w-3" /> Wrong
-    </span>
-  );
+  if (step.correct) return <Badge tone="success"><CheckCircle className="h-3 w-3" /> Correct</Badge>;
+  if (step.partial) return <Badge tone="gold"><AlertTriangle className="h-3 w-3" /> Partial</Badge>;
+  return <Badge tone="rose"><XCircle className="h-3 w-3" /> Wrong</Badge>;
 }
 
-/* ─── Score ring (SVG) ────────────────────────────────────────── */
+/* ─── Score ring (SVG) — light background ─────────────────────── */
 function ScoreRing({ percent }) {
   const r = 54;
   const circ = 2 * Math.PI * r;
@@ -58,19 +40,17 @@ function ScoreRing({ percent }) {
   return (
     <div className="relative mx-auto" style={{ width: 140, height: 140 }}>
       <svg viewBox="0 0 120 120" className="w-full h-full" style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx="60" cy="60" r={r} fill="none" stroke="#1e3258" strokeWidth="10" />
+        <circle cx="60" cy="60" r={r} fill="none" stroke="#e6e8ec" strokeWidth="10" />
         <circle
           cx="60" cy="60" r={r} fill="none"
-          stroke={color} strokeWidth="10"
-          strokeLinecap="round"
-          strokeDasharray={circ}
-          strokeDashoffset={offset}
+          stroke={color} strokeWidth="10" strokeLinecap="round"
+          strokeDasharray={circ} strokeDashoffset={offset}
           style={{ transition: 'stroke-dashoffset 1s ease' }}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-mono text-3xl font-bold" style={{ color: '#f4f0e8' }}>{percent}%</span>
-        <span className="text-xs font-medium" style={{ color: '#8b9ab3' }}>Score</span>
+        <span className="font-mono text-3xl font-bold text-ink">{percent}%</span>
+        <span className="text-xs font-medium text-body-muted">Score</span>
       </div>
     </div>
   );
@@ -83,65 +63,47 @@ function ProblemCard({ attempt, problem, index }) {
   const scorePercent = Math.round((attempt.overallScore || 0) * 100);
 
   return (
-    <div className="step-shell overflow-hidden" style={{ padding: 0 }}>
+    <Card className="overflow-hidden p-0">
       <button
         type="button"
-        className="flex w-full items-center gap-3 px-5 py-4 text-left transition-colors hover:bg-white/40"
+        className="flex w-full items-center gap-3 px-5 py-4 text-left transition hover:bg-line-soft"
         onClick={() => setOpen(!open)}
       >
-        {/* number circle */}
-        <div
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
-          style={{ background: correct ? '#1f9d57' : '#d8694f' }}
-        >
+        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white ${correct ? 'bg-emerald' : 'bg-danger'}`}>
           {index + 1}
         </div>
-        {/* text */}
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold" style={{ color: '#232c39' }}>
-            {problem?.storyText?.slice(0, 80)}...
-          </p>
-          <p className="mt-0.5 text-xs" style={{ color: '#6b7585' }}>
-            Score: {scorePercent}%
-          </p>
+          <p className="truncate text-sm font-semibold text-ink">{problem?.storyText?.slice(0, 80)}...</p>
+          <p className="mt-0.5 text-xs text-body-muted">Score: {scorePercent}%</p>
         </div>
-        {/* chevron */}
         {open
-          ? <ChevronDown className="h-4 w-4 shrink-0" style={{ color: '#6b7585' }} />
-          : <ChevronRight className="h-4 w-4 shrink-0" style={{ color: '#6b7585' }} />}
+          ? <ChevronDown className="h-4 w-4 shrink-0 text-body-faint" />
+          : <ChevronRight className="h-4 w-4 shrink-0 text-body-faint" />}
       </button>
 
       {open && (
-        <div className="border-t px-5 py-4 space-y-3" style={{ borderColor: '#dde1e8', background: '#eef0f4' }}>
-          <p className="text-sm leading-relaxed" style={{ color: '#5a6675' }}>
-            {problem?.storyText}
-          </p>
+        <div className="space-y-3 border-t border-line bg-surface-raised px-5 py-4">
+          <p className="text-sm leading-relaxed text-body">{problem?.storyText}</p>
 
-          {/* step breakdown */}
           <div className="space-y-1.5">
             {(attempt.steps || []).map((step) => {
               const m = step.misconceptionTag ? getMisconception(step.misconceptionTag) : null;
               return (
-                <div key={step.stepId} className="rounded-xl bg-white px-4 py-2.5" style={{ border: '1px solid #e4e7ec' }}>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium" style={{ color: '#232c39' }}>
+                <div key={step.stepId} className="rounded-btn border border-line bg-surface-white px-4 py-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-medium text-ink">
                       {STEP_FRIENDLY_LABELS[step.stepId] || step.stepId.replace('_', ' ')}
                     </span>
                     <StepBadge step={step} />
                   </div>
                   {m && !step.correct && (
-                    <div className="mistake-hint-box mt-2">
-                      <p className="text-xs font-medium" style={{ color: '#b06f1f' }}>
-                        {m.tip}
-                      </p>
-                    </div>
+                    <p className="mt-2 rounded-btn bg-gold-tint px-3 py-2 text-xs font-medium text-gold-deep">{m.tip}</p>
                   )}
                 </div>
               );
             })}
           </div>
 
-          {/* worked solution */}
           {problem?.solutionText && (
             <WorkedSolutionWalkthrough
               solutionText={problem.solutionText}
@@ -153,7 +115,7 @@ function ProblemCard({ attempt, problem, index }) {
           )}
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -163,8 +125,6 @@ function ProblemCard({ attempt, problem, index }) {
 export default function PSLResults() {
   const { sessionId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const visualStyles = getVisualModeStyles(resolveStudentVisualMode(user || {}));
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -202,34 +162,19 @@ export default function PSLResults() {
   }, [sessionId]);
   useEffect(() => { load(); }, [load]);
 
-  /* ── Loading state ─────────────────────────────────────────── */
-  if (loading) {
-    return (
-      <div className="bg-dot-grid min-h-screen">
-        <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#dde1e8] border-t-[#d9892e]" />
-          <p className="text-sm font-medium" style={{ color: '#6b7585' }}>Loading results…</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <Spinner label="Loading results…" />;
 
   if (loadError) {
     return (
-      <div className="bg-dot-grid min-h-screen">
-        <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-6 text-center">
-          <p className="text-base font-semibold text-ink-700">We couldn&apos;t load your results just now.</p>
-          <p className="text-sm text-ink-500">Your work is saved — this is usually a brief connection hiccup.</p>
-          <div className="flex gap-3">
-            <button type="button" onClick={load} className="inline-flex items-center gap-1 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
-              <RotateCcw className="h-4 w-4" /> Try again
-            </button>
-            <button type="button" onClick={() => navigate('/student/psl')} className="rounded-xl border border-ink-200 px-4 py-2 text-sm font-semibold text-ink-600 hover:bg-ink-50">
-              Back to Problems
-            </button>
-          </div>
+      <Card className="mx-auto flex max-w-md flex-col items-center gap-3 px-6 py-12 text-center">
+        <span className="grid h-12 w-12 place-items-center rounded-shell bg-danger-tint text-lg font-bold text-danger">!</span>
+        <p className="text-base font-semibold text-ink">We couldn&apos;t load your results just now.</p>
+        <p className="text-sm text-body-muted">Your work is saved — this is usually a brief connection hiccup.</p>
+        <div className="mt-2 flex flex-wrap justify-center gap-3">
+          <Button size="s" icon={RotateCcw} onClick={load}>Try again</Button>
+          <Button size="s" variant="secondary" onClick={() => navigate('/student/psl')}>Back to Problems</Button>
         </div>
-      </div>
+      </Card>
     );
   }
 
@@ -240,6 +185,7 @@ export default function PSLResults() {
   const problems = data.problems || [];
   const misconceptions = Object.entries(summary.misconceptionCounts || {});
   const mascot = getMascotForModule('psl');
+  const scoreTone = scorePercent >= 80 ? 'emerald' : scorePercent >= 50 ? 'gold' : 'rose';
   const mascotMessage = scorePercent >= 80
     ? `${scorePercent}% — amazing problem solving!`
     : scorePercent >= 50
@@ -247,126 +193,82 @@ export default function PSLResults() {
       : `${scorePercent}% this round. Every problem teaches you something!`;
 
   return (
-    <div className={`bg-dot-grid min-h-screen pb-8 ${visualStyles.page}`}>
-      <div className="mx-auto max-w-[1180px] px-6 pt-6 sm:px-10">
+    <>
+      {/* Score hero — a light, tone-tinted Card (was a dark panel). */}
+      <Card tone={scoreTone} className="p-6 sm:p-8">
+        <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:gap-10">
+          <div className="shrink-0"><ScoreRing percent={scorePercent} /></div>
+          <div className="flex-1 text-center sm:text-left">
+            <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-body-muted">Session complete</p>
+            <h1 className="font-display text-2xl font-semibold text-ink sm:text-3xl">
+              {scorePercent >= 80 ? 'Great work!' : scorePercent >= 50 ? 'Good effort!' : 'Keep going!'}
+            </h1>
+            <p className="mt-1 text-sm font-medium text-body-muted">{data.skillName || data.skillId}</p>
 
-        {/* ── Hero (dark panel) ──────────────────────────────── */}
-        <div className="results-dark px-6 py-8 sm:px-10 sm:py-10">
-          <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:gap-10">
-            {/* score ring */}
-            <div className="shrink-0">
-              <ScoreRing percent={scorePercent} />
+            <div className="mt-5 flex flex-wrap justify-center gap-x-8 gap-y-3 sm:justify-start">
+              <StatTile label={<><Award className="h-3.5 w-3.5" /> Full marks</>} value={`${summary.fullMarks || 0}/${summary.totalProblems || 0}`} />
+              <StatTile label={<><Clock className="h-3.5 w-3.5" /> Avg time</>} value={summary.averageTimeMs ? Math.round(summary.averageTimeMs / 1000) : '—'} suffix={summary.averageTimeMs ? 's' : ''} />
+              <StatTile label={<><Target className="h-3.5 w-3.5" /> Problems</>} value={problems.length} />
             </div>
+          </div>
+        </div>
+      </Card>
 
-            {/* text + stat cards */}
-            <div className="flex-1 text-center sm:text-left">
-              <p className="mono-label mb-1" style={{ color: '#8b9ab3' }}>Session Complete</p>
-              <h1 className="text-2xl font-bold sm:text-3xl" style={{ color: '#f4f0e8' }}>
-                {scorePercent >= 80 ? 'Great work!' : scorePercent >= 50 ? 'Good effort!' : 'Keep going!'}
-              </h1>
-              <p className="mt-1 text-sm font-medium" style={{ color: '#8b9ab3' }}>
-                {data.skillName || data.skillId}
-              </p>
+      {mascot && (
+        <MascotBubble name={mascot.key} message={mascotMessage} size="sm" className="mt-6" voiced />
+      )}
 
-              {/* stat cards row */}
-              <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                <div className="results-dark-card flex flex-col items-center gap-1 px-4 py-3 sm:items-start">
-                  <Award className="h-4 w-4" style={{ color: '#d9892e' }} />
-                  <span className="font-mono text-xl font-bold" style={{ color: '#f4f0e8' }}>
-                    {summary.fullMarks || 0}/{summary.totalProblems || 0}
-                  </span>
-                  <span className="text-[11px] font-medium" style={{ color: '#8b9ab3' }}>Full marks</span>
-                </div>
-                <div className="results-dark-card flex flex-col items-center gap-1 px-4 py-3 sm:items-start">
-                  <Clock className="h-4 w-4" style={{ color: '#2f80d8' }} />
-                  <span className="font-mono text-xl font-bold" style={{ color: '#f4f0e8' }}>
-                    {summary.averageTimeMs ? `${Math.round(summary.averageTimeMs / 1000)}s` : '—'}
-                  </span>
-                  <span className="text-[11px] font-medium" style={{ color: '#8b9ab3' }}>Avg time</span>
-                </div>
-                <div className="results-dark-card col-span-2 flex flex-col items-center gap-1 px-4 py-3 sm:col-span-1 sm:items-start">
-                  <Target className="h-4 w-4" style={{ color: '#1f9d57' }} />
-                  <span className="font-mono text-xl font-bold" style={{ color: '#f4f0e8' }}>
-                    {problems.length}
-                  </span>
-                  <span className="text-[11px] font-medium" style={{ color: '#8b9ab3' }}>Problems</span>
-                </div>
+      {misconceptions.length > 0 && (
+        <div className="mt-6">
+          <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-body-muted">Areas to work on</h2>
+          <Card className="space-y-2 p-4">
+            {misconceptions.map(([tag, count]) => (
+              <div key={tag} className="flex items-center justify-between gap-3">
+                <span className="text-sm font-medium capitalize text-ink">{tag.replace('psl/', '').replace(/-/g, ' ')}</span>
+                <span className="text-xs font-bold text-gold-deep">{count}x</span>
               </div>
-            </div>
-          </div>
+            ))}
+          </Card>
         </div>
+      )}
 
-        {/* ── Mascot feedback ────────────────────────────────── */}
-        {mascot && (
-          <MascotBubble name={mascot.key} message={mascotMessage} size="sm" className="mt-6" voiced />
-        )}
-
-        {/* ── Misconceptions ─────────────────────────────────── */}
-        {misconceptions.length > 0 && (
-          <div className="mt-6">
-            <h2 className="mono-label mb-3" style={{ color: '#5a6675' }}>Areas to work on</h2>
-            <div className="mistake-hint-box space-y-2">
-              {misconceptions.map(([tag, count]) => (
-                <div key={tag} className="flex items-center justify-between">
-                  <span className="text-sm font-medium capitalize" style={{ color: '#232c39' }}>
-                    {tag.replace('psl/', '').replace(/-/g, ' ')}
-                  </span>
-                  <span className="mono-label" style={{ color: '#b06f1f' }}>{count}x</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── Problems list ──────────────────────────────────── */}
-        <div className="mt-8">
-          <h2 className="mono-label mb-3" style={{ color: '#5a6675' }}>Problem breakdown</h2>
-          <div className="space-y-3">
-            {problems.map((problem, i) => {
-              const attempt = data.attempts?.[problem.problemId];
-              return (
-                <ProblemCard
-                  key={problem.problemId}
-                  problem={problem}
-                  attempt={attempt || {
-                    overallCorrect: problem.status === 'completed',
-                    overallScore: 0,
-                    steps: [],
-                  }}
-                  index={i}
-                />
-              );
-            })}
-          </div>
+      <div className="mt-8">
+        <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-body-muted">Problem breakdown</h2>
+        <div className="space-y-3">
+          {problems.map((problem, i) => {
+            const attempt = data.attempts?.[problem.problemId];
+            return (
+              <ProblemCard
+                key={problem.problemId}
+                problem={problem}
+                attempt={attempt || { overallCorrect: problem.status === 'completed', overallScore: 0, steps: [] }}
+                index={i}
+              />
+            );
+          })}
         </div>
-
-        {/* ── CTAs ───────────────────────────────────────────── */}
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <button
-            onClick={() => navigate('/student/psl')}
-            className="btn-gold-outline w-full sm:w-auto"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Skills
-          </button>
-          <button
-            disabled={restarting}
-            onClick={async () => {
-              if (restarting) return;
-              setRestarting(true);
-              try {
-                const res = await pslAPI.startSession({ skillId: data.skillId, problemCount: 5 });
-                navigate(`/student/psl/session/${res.data.sessionId}`);
-              } catch { setRestarting(false); }
-            }}
-            className="btn-gold w-full sm:w-auto disabled:opacity-60"
-          >
-            <RotateCcw className="h-4 w-4" />
-            {restarting ? 'Starting…' : 'Practice Again'}
-          </button>
-        </div>
-
       </div>
-    </div>
+
+      <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+        <Button variant="secondary" icon={ArrowLeft} onClick={() => navigate('/student/psl')} className="w-full sm:w-auto">
+          Back to Skills
+        </Button>
+        <Button
+          icon={RotateCcw}
+          disabled={restarting}
+          onClick={async () => {
+            if (restarting) return;
+            setRestarting(true);
+            try {
+              const res = await pslAPI.startSession({ skillId: data.skillId, problemCount: 5 });
+              navigate(`/student/psl/session/${res.data.sessionId}`);
+            } catch { setRestarting(false); }
+          }}
+          className="w-full sm:w-auto"
+        >
+          {restarting ? 'Starting…' : 'Practice Again'}
+        </Button>
+      </div>
+    </>
   );
 }

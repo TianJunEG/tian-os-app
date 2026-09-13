@@ -781,6 +781,7 @@ export default function StudentDashboard() {
         vm={vm}
         dashboardAnalytics={dashboardAnalytics}
         safeMasteredCount={safeMasteredCount}
+        assessmentGate={assessmentGate}
         showDiagnosticPrompt={showDiagnosticPrompt}
         diagnosticDomains={diagnosticDomains}
         studentLevel={user?.studentLevel}

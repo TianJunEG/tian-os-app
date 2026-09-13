@@ -220,7 +220,12 @@ export function questionRequiresDiagram(question = {}) {
   if (question?.diagram || question?.visual?.payload?.type) return true;
   if (question?.requiresDiagram || question?.requiresVisual || question?.visualRequired) return true;
   const text = `${question?.prompt || ''} ${question?.stem || ''}`.toLowerCase();
-  return /\b(number line|shaded|shape|fraction strip|bar model|area model|diagram|graph)\b/.test(text);
+  // NOTE: bare "shape" was here but only ever caused false "could not load"
+  // errors — figure questions attach a real `diagram.kind` (handled above), while
+  // shape-IDENTIFICATION questions ("Which shape has 3 sides?", "What shape is
+  // this? 🚌", "What quadrilateral shape…?") correctly have no diagram and cannot
+  // infer one, so requiring a diagram blocked a perfectly good question.
+  return /\b(number line|shaded|fraction strip|bar model|area model|diagram|graph)\b/.test(text);
 }
 
 function explicitDiagramCandidates(question = {}) {
@@ -249,6 +254,7 @@ function canRenderSpec(spec) {
   try {
     return Boolean(renderers[spec.type](spec));
   } catch (err) {
+    console.debug('[QuestionDiagram] renderer threw while probing a candidate spec', spec.type, err);
     return false;
   }
 }
@@ -277,6 +283,7 @@ export function validateQuestionDiagram(question = {}) {
       ? { ok: true, requiresDiagram: true, spec }
       : { ok: false, requiresDiagram: true, spec, error: DIAGRAM_LOAD_ERROR_MESSAGE };
   } catch (err) {
+    console.debug('[QuestionDiagram] renderer threw during validation', spec.type, err);
     return { ok: false, requiresDiagram: true, spec, error: DIAGRAM_LOAD_ERROR_MESSAGE };
   }
 }
@@ -307,6 +314,7 @@ export default function QuestionDiagram({ question }) {
   try {
     svg = renderer(spec);
   } catch (err) {
+    console.debug('[QuestionDiagram] renderer threw during render', spec.type, err);
     return (
       <div className="mb-5 rounded-xl border border-danger-border bg-danger-tint px-3 py-4 text-sm text-rose-800">
         <p className="font-semibold">Diagram render error</p>

@@ -66,7 +66,9 @@ function parseFraction(s) {
 function parseDecimal(s) {
   const unitParsed = parseUnit(s);
   const input = String(unitParsed.value || '').trim();
-  const normalized = input.replace(/\s+/g, '');
+  // Strip inter-digit thousands separators ("2,808" -> "2808") so a correctly
+  // grouped number isn't false-rejected. (Domain checkers already do this.)
+  const normalized = input.replace(/\s+/g, '').replace(/(\d),(?=\d)/g, '$1');
   if (!/^[-+]?(\d+(\.\d+)?|\.\d+)$/.test(normalized)) return null;
   const value = Number(normalized);
   if (!Number.isFinite(value)) return null;
@@ -75,7 +77,7 @@ function parseDecimal(s) {
 
 function parseWhole(s) {
   const unitParsed = parseUnit(s);
-  const input = String(unitParsed.value || '').trim();
+  const input = String(unitParsed.value || '').trim().replace(/(\d),(?=\d)/g, '$1');
   if (!/^-?\d+$/.test(input)) return null;
   return { kind: 'whole', value: Number(input), unit: unitParsed.unit };
 }

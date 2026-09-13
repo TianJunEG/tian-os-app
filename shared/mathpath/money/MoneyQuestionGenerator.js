@@ -414,7 +414,7 @@ export function generateMoneyQuestionSet({ skillId, count = 6, mode = 'practice'
 // Returns null for non-numeric input so the caller can fall back to a string
 // compare. This fixes coin-value questions like "total value of 8 5-cent coins"
 // where the answer is $0.40 but a child writes 40, 40¢, or 40c.
-function moneyCentCandidates(s) {
+function moneyCentCandidates(s, { allowWholeCents = true } = {}) {
   let t = String(s).trim().toLowerCase().replace(/\s+/g, '').replace(/,/g, '');
   const explicitCents = /(?:¢|cents?|c)$/.test(t);
   const explicitDollars = t.includes('$');
@@ -423,10 +423,11 @@ function moneyCentCandidates(s) {
   const num = parseFloat(t);
   if (explicitCents) return new Set([Math.round(num)]);
   if (explicitDollars) return new Set([Math.round(num * 100)]);
-  // Bare number: dollars by default; also accept whole-number cents (so "40"
-  // grades a 40-cent answer correct without rejecting "$40"-style answers).
+  // Bare number: dollars by default. Also accept whole-number cents ONLY for
+  // sub-$1 coin-value answers (so "40" grades $0.40 correct); for a dollar answer
+  // this would wrongly accept a 100x place-value error ("500" for "$5.00").
   const cands = new Set([Math.round(num * 100)]);
-  if (Number.isInteger(num)) cands.add(Math.round(num));
+  if (allowWholeCents && Number.isInteger(num)) cands.add(Math.round(num));
   return cands;
 }
 
@@ -441,9 +442,12 @@ export function checkMoneyAnswer({ question, studentResponse }) {
     question.answer?.display ?? question.answer ?? '',
     ...(Array.isArray(question.acceptedAnswers) ? question.acceptedAnswers : []),
   ].map((e) => String(e)).filter(Boolean);
-  const studentCents = moneyCentCandidates(studentResponse);
   for (const expected of expectedList) {
     const expectedCents = moneyCentCandidates(expected);
+    // The bare-integer-as-cents leniency only applies when the expected answer is
+    // itself sub-$1 (a coin-value item). Otherwise "500" must not match "$5.00".
+    const expectedIsSubDollar = Boolean(expectedCents) && [...expectedCents].every((c) => c < 100);
+    const studentCents = moneyCentCandidates(studentResponse, { allowWholeCents: expectedIsSubDollar });
     if (studentCents && expectedCents) {
       for (const cents of studentCents) if (expectedCents.has(cents)) return { correct: true };
     } else if (moneyStringKey(studentResponse) === moneyStringKey(expected)) {

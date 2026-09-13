@@ -41,131 +41,21 @@ const EMPTY_OBJECTS = [];
 const CANVAS_BOUNDS = { width: CANVAS_WIDTH, height: CANVAS_HEIGHT };
 const OBJECT_SCALE = 0.62;
 
-const FONT = "'Hanken Grotesk', system-ui, sans-serif";
-const MONO = "'JetBrains Mono', monospace";
-
-const shellStyle = {
-  fontFamily: FONT,
-  color: '#232c39',
-  background: '#fff',
-  border: '1px solid #e7eaef',
-  borderRadius: 16,
-  boxShadow: '0 1px 3px rgba(30,42,66,0.05)',
-  overflow: 'hidden',
-};
-
-const appBarStyle = {
-  background: 'linear-gradient(160deg, #13223e, #101d36)',
-  padding: '10px 16px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  flexWrap: 'wrap',
-  gap: 8,
-};
-
-const modeTabStyle = (active) => ({
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 6,
-  height: 44,
-  padding: '0 14px',
-  borderRadius: 9,
-  fontSize: 13,
-  fontWeight: 700,
-  fontFamily: FONT,
-  border: 'none',
-  cursor: 'pointer',
-  background: active ? 'rgba(217,137,46,0.2)' : 'transparent',
-  color: active ? '#f0c078' : 'rgba(255,255,255,0.55)',
-});
-
-const toolbarRowStyle = {
-  background: '#f5f6f8',
-  borderBottom: '1px solid #e7eaef',
-  padding: '8px 14px',
-  display: 'flex',
-  flexWrap: 'wrap',
-  alignItems: 'center',
-  gap: 6,
-};
-
-const canvasWrapperStyle = (bg) => ({
-  overflow: 'auto',
-  borderRadius: 0,
-  background: bg === 'grid'
-    ? 'linear-gradient(#dbe4ef 1px, transparent 1px), linear-gradient(90deg, #dbe4ef 1px, transparent 1px)'
-    : '#f5f1e9',
-  backgroundSize: bg === 'grid' ? '24px 24px' : undefined,
-  ...(bg !== 'grid' ? {
-    backgroundImage: 'repeating-linear-gradient(0deg, #f5f1e9, #f5f1e9 31px, #e7ddcb 32px)',
-  } : {}),
-  position: 'relative',
-});
-
-const footerStyle = {
-  background: '#f5f6f8',
-  borderTop: '1px solid #e7eaef',
-  padding: '10px 16px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'flex-end',
-  gap: 10,
-};
-
-const goldBtnStyle = {
-  height: 42,
-  borderRadius: 11,
-  background: '#d9892e',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 7,
-  color: '#fff',
-  fontWeight: 700,
-  fontSize: 14,
-  padding: '0 20px',
-  border: 'none',
-  cursor: 'pointer',
-  fontFamily: FONT,
-  boxShadow: '0 2px 8px rgba(217,137,46,0.35)',
-};
-
-const outlineBtnStyle = {
-  height: 42,
-  borderRadius: 11,
-  border: '1.5px solid #cfd5dd',
-  background: '#fff',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 7,
-  color: '#6b7585',
-  fontWeight: 700,
-  fontSize: 14,
-  padding: '0 20px',
-  cursor: 'pointer',
-  fontFamily: FONT,
-};
-
-const viewCtrlStyle = {
-  width: 30, height: 30, borderRadius: 8,
-  border: '1px solid #e7eaef', background: '#fff',
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  cursor: 'pointer', color: '#6b7585', padding: 0,
-};
-
-const statusBadgeStyle = (tone) => ({
-  fontFamily: MONO,
-  fontSize: 11,
-  fontWeight: 600,
-  padding: '4px 10px',
-  borderRadius: 7,
-  letterSpacing: '0.03em',
-  ...(tone === 'gold' ? { background: '#fbf1e1', color: '#a8743a' }
-    : tone === 'success' ? { background: '#e7f3ec', color: '#1f8a5b' }
-    : { background: '#eef0f4', color: '#6b7585' }),
-});
+// Chrome expressed as shared Tailwind tokens (each value equals its design
+// token; the skeuomorphic notebook paper / grid / navy app-bar have no token so
+// they stay as arbitrary values). Canvas geometry + pen colours stay inline.
+const SHELL_CLASS = 'overflow-hidden rounded-shell border border-line bg-surface-white font-sans text-ink shadow-rest';
+const APPBAR_CLASS = 'flex flex-wrap items-center justify-between gap-2 bg-[linear-gradient(160deg,#13223e,#101d36)] px-4 py-2.5';
+const modeTabClass = (active) => `inline-flex h-11 cursor-pointer items-center gap-1.5 rounded-chip px-3.5 text-[13px] font-bold ${active ? 'bg-[rgba(217,137,46,0.2)] text-[#f0c078]' : 'bg-transparent text-white/55'}`;
+const TOOLBAR_CLASS = 'flex flex-wrap items-center gap-1.5 border-b border-line bg-surface-raised px-3.5 py-2';
+const canvasWrapperClass = (bg) => `relative overflow-auto ${bg === 'grid'
+  ? 'bg-[linear-gradient(#dbe4ef_1px,transparent_1px),linear-gradient(90deg,#dbe4ef_1px,transparent_1px)] bg-[length:24px_24px]'
+  : 'bg-[repeating-linear-gradient(0deg,#f5f1e9,#f5f1e9_31px,#e7ddcb_32px)]'}`;
+const FOOTER_CLASS = 'flex items-center justify-end gap-2.5 border-t border-line bg-surface-raised px-4 py-2.5';
+const GOLD_BTN_CLASS = 'flex h-[42px] cursor-pointer items-center justify-center gap-[7px] rounded-pill2 bg-gold px-5 text-sm font-bold text-white shadow-gold disabled:cursor-default disabled:opacity-50';
+const OUTLINE_BTN_CLASS = 'flex h-[42px] cursor-pointer items-center justify-center gap-[7px] rounded-pill2 border-[1.5px] border-[#cfd5dd] bg-surface-white px-5 text-sm font-bold text-body-muted';
+const VIEW_CTRL_CLASS = 'flex h-[30px] w-[30px] cursor-pointer items-center justify-center rounded-lg border border-line bg-surface-white p-0 text-body-muted';
+const statusBadgeClass = (tone) => `rounded-[7px] px-2.5 py-1 font-mono text-[11px] font-semibold tracking-[0.03em] ${tone === 'gold' ? 'bg-gold-tint text-gold-label' : tone === 'success' ? 'bg-emerald-tint text-emerald' : 'bg-[#eef0f4] text-body-muted'}`;
 
 export function resolveWorkingRequirement(question = {}, sessionType = 'practice') {
   const explicitRequired = question.requiresWorking ?? question.workingRequired;
@@ -688,15 +578,15 @@ export default function WorkingCanvas({
 
   if (readOnly) {
     return (
-      <div style={{ ...shellStyle, padding: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <span style={{ fontSize: 14, fontWeight: 700, color: '#232c39' }}>Student workings</span>
-          <span style={statusBadgeStyle('neutral')}>{status}</span>
+      <div className={`${SHELL_CLASS} p-4`}>
+        <div className="mb-3 flex items-center justify-between">
+          <span className="text-sm font-bold text-ink">Student workings</span>
+          <span className={statusBadgeClass('neutral')}>{status}</span>
         </div>
         {submittedImage ? (
-          <img src={submittedImage} alt="Student submitted workings" style={{ width: '100%', borderRadius: 10, border: '1px solid #e7eaef', objectFit: 'contain' }} />
+          <img src={submittedImage} alt="Student submitted workings" className="w-full rounded-[10px] border border-line object-contain" />
         ) : (
-          <div style={{ background: '#f5f6f8', borderRadius: 10, padding: '10px 14px', fontSize: 14, color: '#8a93a3' }}>
+          <div className="rounded-[10px] bg-surface-raised px-3.5 py-2.5 text-sm text-[#8a93a3]">
             No working image submitted.
           </div>
         )}
@@ -705,37 +595,37 @@ export default function WorkingCanvas({
   }
 
   return (
-    <div style={shellStyle} data-testid="working-canvas">
+    <div className={SHELL_CLASS} data-testid="working-canvas">
       {/* Dark app bar */}
-      <div style={appBarStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      <div className={APPBAR_CLASS}>
+        <div className="flex items-center gap-1">
           {WORKING_MODES.map((mode) => (
             <button
               key={mode.id}
               type="button"
               onClick={() => setWorkingMode(mode.id)}
-              style={modeTabStyle(workingMode === mode.id)}
+              className={modeTabClass(workingMode === mode.id)}
             >
-              <mode.icon style={{ width: 15, height: 15 }} />
+              <mode.icon className="h-[15px] w-[15px]" />
               {mode.label}
             </button>
           ))}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={statusBadgeStyle(statusTone)}>{status}</span>
+        <div className="flex items-center gap-2">
+          <span className={statusBadgeClass(statusTone)}>{status}</span>
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            style={{ ...viewCtrlStyle, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.6)' }}
+            className="flex h-[30px] w-[30px] cursor-pointer items-center justify-center rounded-lg border border-white/[0.12] bg-white/[0.08] p-0 text-white/60"
             title="Attach photo"
           >
-            <Paperclip style={{ width: 14, height: 14 }} />
+            <Paperclip className="h-3.5 w-3.5" />
           </button>
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
-            style={{ display: 'none' }}
+            className="hidden"
             onChange={attachPhoto}
           />
         </div>
@@ -743,16 +633,16 @@ export default function WorkingCanvas({
 
       {/* Working code banner */}
       {workingCode && (
-        <div style={{ background: '#fbf1e1', borderBottom: '1px solid #f0dcb8', padding: '8px 16px', fontSize: 13, color: '#a8743a' }}>
-          <span style={{ fontWeight: 700 }}>Working code: </span>
-          <span style={{ fontFamily: MONO }}>{workingCode}</span>
-          <span style={{ marginLeft: 8, fontSize: 12, color: '#b8a076' }}>Write this code at the top of your working page before taking a photo.</span>
+        <div className="border-b border-gold-border bg-gold-tint px-4 py-2 text-[13px] text-gold-label">
+          <span className="font-bold">Working code: </span>
+          <span className="font-mono">{workingCode}</span>
+          <span className="ml-2 text-xs text-[#b8a076]">Write this code at the top of your working page before taking a photo.</span>
         </div>
       )}
 
       {/* Toolbar row */}
       {workingMode === 'draw' && (
-        <div style={toolbarRowStyle}>
+        <div className={TOOLBAR_CLASS}>
           <WorkingToolbar
             tool={tool}
             colour={colour}
@@ -772,20 +662,20 @@ export default function WorkingCanvas({
             onPan={pan}
             compact={compact}
           />
-          <span style={{ width: 1, height: 22, background: '#dde1e8', margin: '0 4px' }} />
-          <button type="button" onClick={() => setBackground((v) => v === 'grid' ? 'ruled' : 'grid')} style={viewCtrlStyle} title={background === 'grid' ? 'Ruled lines' : 'Grid'}>
-            <Grid style={{ width: 14, height: 14 }} />
+          <span className="mx-1 h-[22px] w-px bg-line-strong" />
+          <button type="button" onClick={() => setBackground((v) => v === 'grid' ? 'ruled' : 'grid')} className={VIEW_CTRL_CLASS} title={background === 'grid' ? 'Ruled lines' : 'Grid'}>
+            <Grid className="h-3.5 w-3.5" />
           </button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginLeft: 'auto' }}>
-            <button type="button" onClick={() => zoomBy(-0.25)} style={viewCtrlStyle} title="Zoom out">
-              <ZoomOut style={{ width: 14, height: 14 }} />
+          <div className="ml-auto flex items-center gap-[3px]">
+            <button type="button" onClick={() => zoomBy(-0.25)} className={VIEW_CTRL_CLASS} title="Zoom out">
+              <ZoomOut className="h-3.5 w-3.5" />
             </button>
-            <span style={{ fontFamily: MONO, fontSize: 11, color: '#8a93a3', minWidth: 36, textAlign: 'center' }}>{Math.round(zoom * 100)}%</span>
-            <button type="button" onClick={() => zoomBy(0.25)} style={viewCtrlStyle} title="Zoom in">
-              <ZoomIn style={{ width: 14, height: 14 }} />
+            <span className="min-w-[36px] text-center font-mono text-[11px] text-[#8a93a3]">{Math.round(zoom * 100)}%</span>
+            <button type="button" onClick={() => zoomBy(0.25)} className={VIEW_CTRL_CLASS} title="Zoom in">
+              <ZoomIn className="h-3.5 w-3.5" />
             </button>
-            <button type="button" onClick={() => setZoom(1)} style={viewCtrlStyle} title="Reset zoom">
-              <RotateCcw style={{ width: 13, height: 13 }} />
+            <button type="button" onClick={() => setZoom(1)} className={VIEW_CTRL_CLASS} title="Reset zoom">
+              <RotateCcw className="h-[13px] w-[13px]" />
             </button>
           </div>
         </div>
@@ -793,14 +683,14 @@ export default function WorkingCanvas({
 
       {/* Attached image banner */}
       {attachedImage && (
-        <div style={{ background: '#f5f6f8', borderBottom: '1px solid #e7eaef', padding: 10 }}>
-          <img src={attachedImage} alt="Attached working photo" style={{ maxHeight: 140, width: '100%', objectFit: 'contain', borderRadius: 8 }} />
+        <div className="border-b border-line bg-surface-raised p-2.5">
+          <img src={attachedImage} alt="Attached working photo" className="max-h-[140px] w-full rounded-lg object-contain" />
         </div>
       )}
 
       {/* Math stamps — shared with the full-screen canvas via MathStampBuilder */}
       {workingMode === 'draw' && showMathStamps && (
-        <div style={{ ...toolbarRowStyle, gap: 7, borderTop: 'none' }}>
+        <div className="flex flex-wrap items-center gap-[7px] border-b border-line bg-surface-raised px-3.5 py-2">
           <MathStampBuilder
             mathDraft={mathDraft}
             setMathDraft={setMathDraft}
@@ -812,14 +702,14 @@ export default function WorkingCanvas({
 
       {/* Canvas area */}
       {workingMode === 'draw' && (
-        <div ref={scrollRef} style={canvasWrapperStyle(background)}>
+        <div ref={scrollRef} className={canvasWrapperClass(background)}>
           {/* Inner box sized to the displayed canvas so the absolutely-positioned
-              math-object layer lines up with canvas pixels at any zoom. */}
+              math-object layer lines up with canvas pixels at any zoom. The width
+              tracks zoom and the height is the canvas bitmap, so both stay inline. */}
           <div
+            className="relative min-w-full"
             style={{
-              position: 'relative',
               width: `${zoom * 100}%`,
-              minWidth: '100%',
               // Display height is decoupled from `compact` (which only controls
               // toolbar density) so the embedded canvas is never squashed below
               // its 320px bitmap. PSL/story/similar-question scratchpads all
@@ -832,15 +722,7 @@ export default function WorkingCanvas({
               ref={canvasRef}
               width={CANVAS_WIDTH}
               height={CANVAS_HEIGHT}
-              style={{
-                display: 'block',
-                touchAction: 'none',
-                userSelect: 'none',
-                WebkitUserSelect: 'none',
-                WebkitTouchCallout: 'none',
-                width: '100%',
-                height: '100%',
-              }}
+              className="block h-full w-full touch-none select-none [-webkit-touch-callout:none]"
               onContextMenu={(event) => event.preventDefault()}
               onPointerDown={beginStroke}
               onPointerMove={moveStroke}
@@ -904,7 +786,7 @@ export default function WorkingCanvas({
       )}
 
       {workingMode === 'steps' && (
-        <div style={{ background: '#f5f6f8', padding: 14 }}>
+        <div className="bg-surface-raised p-3.5">
           <MathStepsEditor
             steps={mathSteps}
             onChange={(next) => {
@@ -919,7 +801,7 @@ export default function WorkingCanvas({
       )}
 
       {workingMode === 'column' && (
-        <div style={{ background: '#f5f6f8', padding: 14 }}>
+        <div className="bg-surface-raised p-3.5">
           <ColumnOperationsGrid
             grid={columnGrid}
             onChange={(next) => {
@@ -934,14 +816,14 @@ export default function WorkingCanvas({
       )}
 
       {/* Footer */}
-      <div style={footerStyle}>
+      <div className={FOOTER_CLASS}>
         {required && !submitted && !notNeeded && (
-          <span style={{ fontSize: 12, fontWeight: 700, color: '#a8743a', marginRight: 'auto' }}>
+          <span className="mr-auto text-xs font-bold text-gold-label">
             Show your working before submitting your answer.
           </span>
         )}
         {allowNoWorking && (
-          <button type="button" onClick={markNotNeeded} style={outlineBtnStyle}>
+          <button type="button" onClick={markNotNeeded} className={OUTLINE_BTN_CLASS}>
             Working not needed
           </button>
         )}
@@ -949,9 +831,9 @@ export default function WorkingCanvas({
           type="button"
           disabled={!hasAnyWorking}
           onClick={submit}
-          style={{ ...goldBtnStyle, opacity: hasAnyWorking ? 1 : 0.5, cursor: hasAnyWorking ? 'pointer' : 'default' }}
+          className={GOLD_BTN_CLASS}
         >
-          <Check style={{ width: 16, height: 16 }} />
+          <Check className="h-4 w-4" />
           {submitted ? 'Redo/Edit workings' : 'Save working'}
         </button>
       </div>
