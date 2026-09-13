@@ -41,6 +41,7 @@ import masteryRoutes from './routes/mastery.js';
 import diagnosticRoutes from './routes/diagnostics.js';
 import kioskDiagnosticRoutes from './routes/kioskDiagnostics.js';
 import vocabRoutes from './routes/vocab.js';
+import elpathRoutes from './routes/elpath.js';
 import announcementRoutes from './routes/announcements.js';
 import studentProfileRoutes from './routes/studentProfile.js';
 import studentAnalyticsRoutes from './routes/studentAnalytics.js';
@@ -274,6 +275,7 @@ app.use('/api/worksheets', featureGate({ feature: 'worksheets', minVersion: 'v0.
 app.use('/api/students', studentRoutes);
 app.use('/api/partners', partnerRoutes);
 app.use('/api/resources', resourceRoutes);
+app.use('/api/elpath', elpathRoutes);
 app.use('/api/spelling', spellingRoutes);
 app.use('/api/learning', learningRoutes);
 app.use('/api/science', featureGate({ feature: 'science', minVersion: 'v0.6' }), scienceRoutes);

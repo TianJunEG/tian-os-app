@@ -1019,4 +1019,10 @@ export const scienceAPI = {
   questions: (topic, limit = 10) => api.get('/science/questions', { params: { topic, limit } })
 };
 
+// ELPath — server-side progress sync for Vocabulary + Cloze trainers.
+export const elpathAPI = {
+  getProgress: (module) => api.get('/elpath/progress', { params: { module } }),
+  saveProgress: (module, state) => api.put('/elpath/progress', { module, state }),
+};
+
 export default api;

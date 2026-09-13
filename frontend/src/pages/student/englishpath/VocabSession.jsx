@@ -29,9 +29,13 @@ export default function VocabSession() {
   const logRef = useRef([]);
 
   useEffect(() => {
-    const initial = loadVocabState(studentId);
-    stateRef.current = initial;
-    setTasks(buildSession(initial, { size: SESSION_SIZE }));
+    let stale = false;
+    loadVocabState(studentId).then((initial) => {
+      if (stale) return;
+      stateRef.current = initial;
+      setTasks(buildSession(initial, { size: SESSION_SIZE }));
+    });
+    return () => { stale = true; };
   }, [studentId]);
 
   const task = tasks && tasks[idx];

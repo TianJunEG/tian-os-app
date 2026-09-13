@@ -27,11 +27,15 @@ export default function ClozeFocusSession() {
   const [result, setResult] = useState(null);
 
   useEffect(() => {
-    const st = loadClozeState(studentId);
-    stateRef.current = st;
-    setFocus(buildFocusPassage(st, { passages: clozePassages }));
-    setAnswers({});
-    setResult(null);
+    let stale = false;
+    loadClozeState(studentId).then((st) => {
+      if (stale) return;
+      stateRef.current = st;
+      setFocus(buildFocusPassage(st, { passages: clozePassages }));
+      setAnswers({});
+      setResult(null);
+    });
+    return () => { stale = true; };
   }, [studentId]);
 
   const verdictByN = useMemo(() => {

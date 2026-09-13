@@ -5,7 +5,7 @@ import { Card, Button, ProgressBar } from '../../../components/ui';
 import { MascotBubble } from '../../../components/MascotAvatar';
 import { useAuth } from '../../../context/AuthContext';
 import { clozePassages, SKILL_LABELS, summarizeCloze } from '../../../../../shared/englishpath/cloze/index.js';
-import { loadClozeState } from './clozeStore';
+import { loadClozeStateSync } from './clozeStore';
 
 // Passage summary: score, per-skill breakdown for this passage, blanks to review
 // with the answers that were accepted, and updated overall skill readiness.
@@ -16,7 +16,7 @@ export default function ClozeResults() {
   const studentId = user?.id || user?._id;
 
   const summary = useMemo(
-    () => summarizeCloze(loadClozeState(studentId), { passages: clozePassages }),
+    () => summarizeCloze(loadClozeStateSync(studentId), { passages: clozePassages }),
     [studentId]
   );
 

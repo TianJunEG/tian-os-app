@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, Clock, Sparkles, RotateCcw } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Clock, Sparkles, RotateCcw, AlertTriangle } from 'lucide-react';
 import { Card, Button, PageHeader, ProgressBar, StatTile } from '../../../components/ui';
 import { MascotBubble } from '../../../components/MascotAvatar';
 import { useAuth } from '../../../context/AuthContext';
@@ -9,7 +9,7 @@ import {
   vocabularyWordBank,
   TIERS,
 } from '../../../../../shared/englishpath/vocabulary/index.js';
-import { loadVocabState, resetVocabState } from './vocabStore';
+import { loadVocabState, loadVocabStateSync, resetVocabState } from './vocabStore';
 
 // ELPath · Vocabulary Builder — home. Shows exam-section readiness and the
 // learning ladder, and starts an adaptive practice session. Runs entirely on the
@@ -20,7 +20,13 @@ export default function VocabHome() {
   const studentId = user?.id || user?._id;
   const [nonce, setNonce] = useState(0); // bump to recompute after a reset
 
-  const summary = useMemo(() => summarize(loadVocabState(studentId)), [studentId, nonce]);
+  const [vocabState, setVocabState] = useState(() => loadVocabStateSync(studentId));
+  useEffect(() => {
+    let stale = false;
+    loadVocabState(studentId).then((s) => { if (!stale) setVocabState(s); });
+    return () => { stale = true; };
+  }, [studentId, nonce]);
+  const summary = useMemo(() => summarize(vocabState), [vocabState]);
   const { counts, examReadiness } = summary;
 
   const readinessRows = [
@@ -119,13 +125,22 @@ export default function VocabHome() {
       </Card>
 
       {started && (
-        <button
-          type="button"
-          onClick={reset}
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-400 hover:text-error-600"
-        >
-          <RotateCcw className="h-3.5 w-3.5" /> Reset my progress
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => navigate('/student/english/mistakes')}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-500 hover:text-emerald-deep"
+          >
+            <AlertTriangle className="h-3.5 w-3.5" /> View all mistakes
+          </button>
+          <button
+            type="button"
+            onClick={reset}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-400 hover:text-error-600"
+          >
+            <RotateCcw className="h-3.5 w-3.5" /> Reset my progress
+          </button>
+        </div>
       )}
     </>
   );

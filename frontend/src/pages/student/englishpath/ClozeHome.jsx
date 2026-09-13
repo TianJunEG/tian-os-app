@@ -1,11 +1,11 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Clock, Sparkles, RotateCcw, AlertTriangle } from 'lucide-react';
 import { Card, Button, PageHeader, ProgressBar, StatTile, Badge, Segmented } from '../../../components/ui';
 import { MascotBubble } from '../../../components/MascotAvatar';
 import { useAuth } from '../../../context/AuthContext';
 import { clozePassages, SKILL_LABELS, summarizeCloze, weakBlanks } from '../../../../../shared/englishpath/cloze/index.js';
-import { loadClozeState, resetClozeState, loadClozeLevel, saveClozeLevel } from './clozeStore';
+import { loadClozeState, loadClozeStateSync, resetClozeState, loadClozeLevel, saveClozeLevel } from './clozeStore';
 
 // ELPath · Comprehension Cloze — home. Shows per-skill readiness, progress, and
 // starts an adaptive passage (unseen → due for review → extra practice). Runs on
@@ -28,7 +28,12 @@ export default function ClozeHome() {
     saveClozeLevel(studentId, l);
   };
 
-  const state = useMemo(() => loadClozeState(studentId), [studentId, nonce]);
+  const [state, setState] = useState(() => loadClozeStateSync(studentId));
+  useEffect(() => {
+    let stale = false;
+    loadClozeState(studentId).then((s) => { if (!stale) setState(s); });
+    return () => { stale = true; };
+  }, [studentId, nonce]);
   const summary = useMemo(() => summarizeCloze(state, { passages }), [state, passages]);
   const { counts, readiness } = summary;
   const started = counts.done > 0;
@@ -166,13 +171,22 @@ export default function ClozeHome() {
       </Card>
 
       {started && (
-        <button
-          type="button"
-          onClick={reset}
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-400 hover:text-error-600"
-        >
-          <RotateCcw className="h-3.5 w-3.5" /> Reset my progress
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => navigate('/student/english/mistakes')}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-500 hover:text-emerald-deep"
+          >
+            <AlertTriangle className="h-3.5 w-3.5" /> View all mistakes
+          </button>
+          <button
+            type="button"
+            onClick={reset}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-400 hover:text-error-600"
+          >
+            <RotateCcw className="h-3.5 w-3.5" /> Reset my progress
+          </button>
+        </div>
       )}
     </>
   );

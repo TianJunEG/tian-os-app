@@ -1,8 +1,8 @@
-// ELPath Vocabulary — client-side progress store.
-// The adaptive engine state is plain JSON, so we persist it in localStorage,
-// namespaced per student. This makes the module fully playable with no backend;
-// a server-backed store can replace this later behind the same load/save shape.
+// ELPath Vocabulary — client-side progress store with optional server sync.
+// When a user is logged in, state is persisted to the server via elpathAPI;
+// localStorage remains the immediate cache and offline fallback.
 import { initState } from '../../../../../shared/englishpath/vocabulary/index.js';
+import { elpathAPI } from '../../../services/api';
 
 const STORAGE_KEY = 'tianos.englishpath.vocab.v1';
 
@@ -10,25 +10,60 @@ function keyFor(studentId) {
   return studentId ? `${STORAGE_KEY}.${studentId}` : STORAGE_KEY;
 }
 
-export function loadVocabState(studentId) {
-  if (typeof window === 'undefined' || !window.localStorage) return initState();
+function readLocal(studentId) {
+  if (typeof window === 'undefined' || !window.localStorage) return null;
   try {
     const raw = window.localStorage.getItem(keyFor(studentId));
-    if (!raw) return initState();
+    if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== 'object' || !parsed.words) return initState();
+    if (!parsed || typeof parsed !== 'object' || !parsed.words) return null;
     return { ...initState(parsed.config), words: parsed.words };
   } catch (_) {
-    return initState();
+    return null;
   }
 }
 
-export function saveVocabState(studentId, state) {
+function writeLocal(studentId, state) {
   if (typeof window === 'undefined' || !window.localStorage) return;
   try {
     window.localStorage.setItem(keyFor(studentId), JSON.stringify(state));
   } catch (_) {
     /* quota / serialization issues are non-fatal for practice */
+  }
+}
+
+function isLoggedIn() {
+  return typeof window !== 'undefined' && !!localStorage.getItem('token');
+}
+
+export async function loadVocabState(studentId) {
+  const local = readLocal(studentId);
+  if (isLoggedIn()) {
+    try {
+      const { data } = await elpathAPI.getProgress('vocab');
+      if (data.state) {
+        writeLocal(studentId, data.state);
+        return data.state;
+      }
+      if (local) {
+        elpathAPI.saveProgress('vocab', local).catch(() => {});
+        return local;
+      }
+    } catch (_) {
+      // server unreachable — fall through to local
+    }
+  }
+  return local || initState();
+}
+
+export function loadVocabStateSync(studentId) {
+  return readLocal(studentId) || initState();
+}
+
+export function saveVocabState(studentId, state) {
+  writeLocal(studentId, state);
+  if (isLoggedIn()) {
+    elpathAPI.saveProgress('vocab', state).catch(() => {});
   }
 }
 
@@ -38,5 +73,8 @@ export function resetVocabState(studentId) {
     window.localStorage.removeItem(keyFor(studentId));
   } catch (_) {
     /* ignore */
+  }
+  if (isLoggedIn()) {
+    elpathAPI.saveProgress('vocab', null).catch(() => {});
   }
 }

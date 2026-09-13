@@ -25,15 +25,19 @@ export default function ClozeSession() {
   const [result, setResult] = useState(null);
 
   useEffect(() => {
-    const st = loadClozeState(studentId);
-    stateRef.current = st;
-    const level = loadClozeLevel(studentId);
-    const pool = clozePassages.filter((p) => p.level === level);
-    const usePool = pool.length ? pool : clozePassages;
-    const nextId = selectNextPassageId(st, { passages: usePool });
-    setPassage(usePool.find((p) => p.id === nextId) || usePool[0] || null);
-    setAnswers({});
-    setResult(null);
+    let stale = false;
+    loadClozeState(studentId).then((st) => {
+      if (stale) return;
+      stateRef.current = st;
+      const level = loadClozeLevel(studentId);
+      const pool = clozePassages.filter((p) => p.level === level);
+      const usePool = pool.length ? pool : clozePassages;
+      const nextId = selectNextPassageId(st, { passages: usePool });
+      setPassage(usePool.find((p) => p.id === nextId) || usePool[0] || null);
+      setAnswers({});
+      setResult(null);
+    });
+    return () => { stale = true; };
   }, [studentId]);
 
   const verdictByN = useMemo(() => {

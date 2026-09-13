@@ -5,7 +5,7 @@ import { Card, Button, ProgressBar } from '../../../components/ui';
 import { MascotBubble } from '../../../components/MascotAvatar';
 import { useAuth } from '../../../context/AuthContext';
 import { summarize } from '../../../../../shared/englishpath/vocabulary/index.js';
-import { loadVocabState } from './vocabStore';
+import { loadVocabStateSync } from './vocabStore';
 
 // Session summary: score, what was practised, and updated exam-section readiness.
 export default function VocabResults() {
@@ -14,7 +14,7 @@ export default function VocabResults() {
   const { user } = useAuth();
   const studentId = user?.id || user?._id;
 
-  const summary = useMemo(() => summarize(loadVocabState(studentId)), [studentId]);
+  const summary = useMemo(() => summarize(loadVocabStateSync(studentId)), [studentId]);
 
   if (!state || !Array.isArray(state.log)) {
     return <Navigate to="/student/english/vocab" replace />;
