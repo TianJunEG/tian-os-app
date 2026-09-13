@@ -14,12 +14,14 @@ function exactlyOneCorrect(task) {
 }
 
 describe('vocabulary task generator', () => {
-  // Exhaustive: every word (712) × every ladder rung (~26k MCQs). Two speedups vs
-  // the old ~17s version: (1) invariant checks run in plain JS with a single expect
-  // at the end (not ~5 eager expect() calls per task); (2) the generator now memoises
-  // its per-word distractor pools + a word/answer index (see vocabularyTaskGenerator),
-  // ~44% faster. The remainder (~6–8s) is irreducible — each MCQ deterministically
-  // shuffles a ~700-item distractor pool — so keep a timeout above the default 5s.
+  // Exhaustive: every word (~2.1k) × every ladder rung (~26k MCQs). Speedups vs the
+  // old version: (1) invariant checks run in plain JS with a single expect at the end
+  // (not ~5 eager expect() calls per task); (2) the generator memoises its per-word
+  // distractor pools + a word/answer index; (3) each MCQ draws only the ~3 distractors
+  // it needs with a partial Fisher–Yates instead of shuffling the whole ~2k-item pool
+  // (see buildOptions/drawFromPool) — the pool tripled with the bank and a full shuffle
+  // per rung had pushed this past the old 20s CI budget. Keep a timeout above the
+  // default 5s for slower CI hardware.
   it('builds a fair MCQ for every applicable rung of every word', { timeout: 20000 }, () => {
     const failures = [];
     for (const w of vocabularyWordBank) {

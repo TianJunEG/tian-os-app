@@ -42,10 +42,10 @@ function shuffle(arr, rng) {
   return a;
 }
 
-// `norm` is called on the same handful of words/answers millions of times while
-// building distractor pools (every task re-scans the whole bank). Memoise by input
-// so each distinct string is trimmed/lower-cased once — pure, so generated output
-// is byte-identical, but it turns ~168M string allocations into cheap Map hits.
+// `norm` is called on the same handful of words/answers many times (grading checks,
+// dedup, the shared-pool build). Memoise by input so each distinct string is
+// trimmed/lower-cased once — pure, so generated output is unaffected, it just turns
+// repeated normalisations into cheap Map hits.
 const NORM_CACHE = new Map();
 const norm = (s) => {
   const key = typeof s === 'string' ? s : String(s);
@@ -58,29 +58,54 @@ const norm = (s) => {
 
 /**
  * Build a shuffled MCQ option set: one correct answer plus distinct distractors.
- * Distractors are taken from `distractors`, then `padPool` if more are needed.
- * Returns null when fewer than `min` total options can be assembled.
+ * Distractors are taken from `distractors` (plain strings), then `padPool` if more
+ * are needed. `padPool` is a bank-wide pool of items { text, nt, w, id } (see
+ * sharedPools); `exclude` drops the current entry ({ id, w }) and, when given, any
+ * item whose source word is in `exclude.words` (used to keep a word's own family out
+ * of its morphology distractors). Returns null when fewer than `min` options fit.
  */
-function buildOptions({ correct, distractors = [], padPool = [], rng, min = 4, max = 4 }) {
+function buildOptions({ correct, distractors = [], padPool = [], exclude = null, rng, min = 4, max = 4 }) {
   const taken = new Set([norm(correct)]);
   const chosen = [];
+  const want = max - 1;
+  // Real distractors first (a short list — full shuffle is cheap).
   for (const d of shuffle(uniqueStrings(distractors), rng)) {
-    if (chosen.length >= max - 1) break;
-    if (!taken.has(norm(d))) {
-      taken.add(norm(d));
-      chosen.push(d);
-    }
+    if (chosen.length >= want) break;
+    const nd = norm(d);
+    if (!taken.has(nd)) { taken.add(nd); chosen.push(d); }
   }
-  for (const d of shuffle(uniqueStrings(padPool), rng)) {
-    if (chosen.length >= max - 1) break;
-    if (!taken.has(norm(d))) {
-      taken.add(norm(d));
-      chosen.push(d);
-    }
-  }
+  // Pad from the wider bank. padPool is the shared ~2k-item pool; draw only the
+  // handful we still need with a partial Fisher–Yates instead of shuffling the whole
+  // array — the dominant cost when this ran over every rung of every word.
+  drawFromPool(padPool, want - chosen.length, rng, (item) => {
+    if (exclude && (item.id === exclude.id || item.w === exclude.w ||
+        (exclude.words && exclude.words.has(item.w)))) return false;
+    if (taken.has(item.nt)) return false;
+    taken.add(item.nt);
+    chosen.push(item.text);
+    return true;
+  });
   if (chosen.length + 1 < min) return null;
   const options = shuffle([{ text: correct, correct: true }, ...chosen.map((t) => ({ text: t, correct: false }))], rng);
   return options.map((o, i) => ({ id: String(i + 1), text: o.text, correct: o.correct }));
+}
+
+// Draw up to `need` accepted items from `pool`, sampling without replacement via a
+// partial Fisher–Yates: O(need + collisions) rng calls, not O(pool). `accept`
+// returns true when it keeps the item (it may reject e.g. an item already taken),
+// and we keep drawing until `need` are kept or the pool is exhausted. Never mutates
+// `pool` (the memoised pools are shared) — swaps live in a sparse index overlay.
+function drawFromPool(pool, need, rng, accept) {
+  if (need <= 0 || !pool.length) return;
+  const swap = new Map(); // drawn index -> value now occupying it
+  const at = (i) => (swap.has(i) ? swap.get(i) : pool[i]);
+  let kept = 0;
+  for (let hi = pool.length - 1; hi >= 0 && kept < need; hi--) {
+    const j = Math.floor(rng() * (hi + 1));
+    const picked = at(j);
+    swap.set(j, at(hi)); // move the current top element into the drawn slot
+    if (accept(picked)) kept++;
+  }
 }
 
 function uniqueStrings(list) {
@@ -126,12 +151,8 @@ function hasContentRemainder(phrase, re) {
 
 // ---- distractor pools from the wider bank ---------------------------------
 
-// These three re-scan the whole word bank, and several ladder rungs of the SAME
-// word each ask for the same pool — so building a word's full ladder used to scan
-// the bank a dozen times over (the bulk of the ~168M norm() calls). The pools
-// depend only on (bank, entry, samePos), so memoise them per bank: each is built
-// once per word and the result array is returned as-is (callers never mutate it),
-// keeping generated output byte-identical.
+// Memo keyed on the bank object. Everything derived from the bank alone (the
+// shared pools, the word/answer index) is built once and cached here.
 const POOL_MEMO = new WeakMap();
 function poolMemo(bank) {
   let m = POOL_MEMO.get(bank);
@@ -157,45 +178,57 @@ function bankWordAnswerIndex(bank) {
   return idx;
 }
 
-function otherWords(entry, bank, { samePos = false } = {}) {
+// Bank-wide draw pools, built ONCE per bank. Distractors are always sampled at
+// random (buildOptions/drawFromPool draw a few items uniformly), so there is no
+// reason to materialise a filtered, theme-sorted pool per word — the sort was
+// erased by the shuffle anyway. The only thing that varied per word was *which
+// entry to exclude*, and the draw now does that in O(1) per item via each item's
+// source word/id. This turns pool construction from O(words²) (re-scanning the bank
+// for every word, × every rung) into a single O(words) pass.
+//
+// Each item is { text, nt, w, id }: the display string, its normalised form (for
+// de-dup), and the source entry's normalised word + id (for exclusion).
+function sharedPools(bank) {
   const memo = poolMemo(bank);
-  const key = `o:${entry.id}:${samePos ? 1 : 0}`;
-  const cached = memo.get(key);
-  if (cached) return cached;
-  const en = norm(entry.word);
-  const result = bank
-    .filter((w) => w.id !== entry.id && (!samePos || w.pos === entry.pos))
-    .filter((w) => norm(w.word) !== en);
-  memo.set(key, result);
-  return result;
+  let sp = memo.get('__sharedPools');
+  if (sp) return sp;
+  const answers = [];
+  const answersByPos = new Map();
+  const meanings = [];
+  const words = [];
+  const collocationEntries = [];
+  for (const w of bank) {
+    const base = { w: norm(w.word), id: w.id };
+    if (w.word) words.push({ ...base, text: w.word, nt: base.w });
+    if (w.answer) {
+      const a = { ...base, text: w.answer, nt: norm(w.answer) };
+      answers.push(a);
+      let byPos = answersByPos.get(w.pos);
+      if (!byPos) { byPos = []; answersByPos.set(w.pos, byPos); }
+      byPos.push(a);
+    }
+    if (w.meaning) meanings.push({ ...base, text: w.meaning, nt: norm(w.meaning) });
+    if (w.collocations?.length) collocationEntries.push(w);
+  }
+  sp = { answers, answersByPos, meanings, words, collocationEntries };
+  memo.set('__sharedPools', sp);
+  return sp;
 }
 
-function poolWords(entry, bank, opts = {}) {
-  const memo = poolMemo(bank);
-  const key = `pw:${entry.id}:${opts.samePos ? 1 : 0}`;
-  const cached = memo.get(key);
-  if (cached) return cached;
-  // prefer same-theme words for plausibility, then everything else
-  const others = otherWords(entry, bank, opts);
-  const sameTheme = others.filter((w) => w.theme === entry.theme).map((w) => w.answer);
-  const rest = others.filter((w) => w.theme !== entry.theme).map((w) => w.answer);
-  const result = [...sameTheme, ...rest];
-  memo.set(key, result);
-  return result;
+// The shared answer pool for an entry's distractors — same-POS when asked (so the
+// options are all the same part of speech), otherwise the whole bank.
+function poolWords(bank, { samePos = false, pos } = {}) {
+  const sp = sharedPools(bank);
+  return samePos ? (sp.answersByPos.get(pos) || []) : sp.answers;
 }
 
-function poolMeanings(entry, bank) {
-  const memo = poolMemo(bank);
-  const key = `pm:${entry.id}`;
-  const cached = memo.get(key);
-  if (cached) return cached;
-  const others = otherWords(entry, bank);
-  const sameTheme = others.filter((w) => w.theme === entry.theme).map((w) => w.meaning);
-  const rest = others.filter((w) => w.theme !== entry.theme).map((w) => w.meaning);
-  const result = [...sameTheme, ...rest];
-  memo.set(key, result);
-  return result;
+function poolMeanings(bank) {
+  return sharedPools(bank).meanings;
 }
+
+// What an entry excludes from its own bank-wide distractor pool: itself (by id) and
+// any homograph (same spelling). drawFromPool drops these via each item's { id, w }.
+const selfExclude = (entry) => ({ id: entry.id, w: norm(entry.word) });
 
 // ---- per task-type generators ---------------------------------------------
 
@@ -219,7 +252,12 @@ const GENERATORS = {
   },
 
   meaning_match(entry, bank, rng) {
-    const options = buildOptions({ correct: entry.meaning, distractors: poolMeanings(entry, bank), rng });
+    const options = buildOptions({
+      correct: entry.meaning,
+      padPool: poolMeanings(bank),
+      exclude: selfExclude(entry),
+      rng,
+    });
     if (!options) return null;
     return {
       kind: 'mcq',
@@ -233,7 +271,8 @@ const GENERATORS = {
     const options = buildOptions({
       correct: entry.answer,
       distractors: entry.confusables,
-      padPool: poolWords(entry, bank, { samePos: true }),
+      padPool: poolWords(bank, { samePos: true, pos: entry.pos }),
+      exclude: selfExclude(entry),
       rng,
     });
     if (!options) return null;
@@ -251,7 +290,8 @@ const GENERATORS = {
     const options = buildOptions({
       correct,
       distractors: entry.confusables,
-      padPool: poolWords(entry, bank),
+      padPool: poolWords(bank),
+      exclude: selfExclude(entry),
       rng,
     });
     if (!options) return null;
@@ -279,7 +319,8 @@ const GENERATORS = {
     const options = buildOptions({
       correct: entry.meaning,
       distractors: confusableMeanings,
-      padPool: poolMeanings(entry, bank),
+      padPool: poolMeanings(bank),
+      exclude: selfExclude(entry),
       rng,
     });
     if (!options) return null;
@@ -299,13 +340,18 @@ const GENERATORS = {
     const members = entry.wordFamily.filter((f) => norm(f.word) !== norm(entry.word));
     if (!members.length) return null;
     const member = members[Math.floor(rng() * members.length)];
-    const distractors = [
-      ...entry.confusables,
-      ...otherWords(entry, bank)
-        .filter((w) => !entry.wordFamily.some((f) => norm(f.word) === norm(w.word)))
-        .map((w) => w.word),
-    ];
-    const options = buildOptions({ correct: member.word, distractors, rng });
+    // Distractors: the confusables, padded with random bank words — but never a
+    // member of this word's own family (that would be a second correct answer).
+    // Some phrasal verbs list family members among their confusables too, so filter
+    // the family out of both sources.
+    const familyWords = new Set(entry.wordFamily.map((f) => norm(f.word)));
+    const options = buildOptions({
+      correct: member.word,
+      distractors: entry.confusables.filter((c) => !familyWords.has(norm(c))),
+      padPool: sharedPools(bank).words,
+      exclude: { ...selfExclude(entry), words: familyWords },
+      rng,
+    });
     if (!options) return null;
     const posLabel = member.pos !== 'other' ? ` (${member.pos})` : '';
     return {
@@ -319,16 +365,20 @@ const GENERATORS = {
   collocation_natural(entry, bank, rng) {
     const real = entry.collocations.find((c) => norm(c).includes(norm(entry.word)));
     if (!real) return null;
-    const others = otherWords(entry, bank).filter((w) => w.collocations?.length);
+    const ne = norm(entry.word);
     const fakes = [];
-    for (const w of shuffle(others, rng)) {
+    // Draw up to 3 other collocating words at random (partial Fisher–Yates over the
+    // shared list of entries that have collocations), each contributing one fake
+    // phrase built by swapping its word for ours.
+    drawFromPool(sharedPools(bank).collocationEntries, 3, rng, (w) => {
+      if (w.id === entry.id || norm(w.word) === ne) return false;
       for (const col of w.collocations) {
         if (!norm(col).includes(norm(w.word))) continue;
         const fake = col.replace(new RegExp(w.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), entry.word);
-        if (norm(fake) !== norm(real) && norm(fake) !== norm(col)) { fakes.push(fake); break; }
+        if (norm(fake) !== norm(real) && norm(fake) !== norm(col)) { fakes.push(fake); return true; }
       }
-      if (fakes.length >= 3) break;
-    }
+      return false;
+    });
     if (fakes.length < 2) return null;
     const options = buildOptions({ correct: real, distractors: fakes.slice(0, 3), rng });
     if (!options) return null;
@@ -402,7 +452,8 @@ const GENERATORS = {
     const options = buildOptions({
       correct: entry.word,
       distractors: entry.confusables,
-      padPool: poolWords(entry, bank, { samePos: true }),
+      padPool: poolWords(bank, { samePos: true, pos: entry.pos }),
+      exclude: selfExclude(entry),
       rng,
     });
     if (!options) return null;
@@ -453,7 +504,8 @@ const GENERATORS = {
     const options = buildOptions({
       correct: entry.answer,
       distractors: entry.confusables,
-      padPool: poolWords(entry, bank, { samePos: true }),
+      padPool: poolWords(bank, { samePos: true, pos: entry.pos }),
+      exclude: selfExclude(entry),
       rng,
     });
     if (!options) return null;
@@ -469,7 +521,13 @@ const GENERATORS = {
     if (!hasBlank(entry.example) || !entry.synonyms.length) return null;
     const correct = entry.synonyms[0];
     const sentence = fillBlank(entry.example, `__${entry.answer}__`); // __word__ = underline marker for the UI
-    const options = buildOptions({ correct, distractors: entry.confusables, padPool: poolWords(entry, bank), rng });
+    const options = buildOptions({
+      correct,
+      distractors: entry.confusables,
+      padPool: poolWords(bank),
+      exclude: selfExclude(entry),
+      rng,
+    });
     if (!options) return null;
     return {
       kind: 'mcq',
