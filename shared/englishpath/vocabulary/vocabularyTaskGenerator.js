@@ -83,7 +83,19 @@ function buildOptions({ correct, distractors = [], padPool = [], rng, min = 4, m
   return options.map((o, i) => ({ id: String(i + 1), text: o.text, correct: o.correct }));
 }
 
+// buildOptions calls uniqueStrings on a word's ~2k-item pad pool (poolWords/
+// poolMeanings) once per MCQ, and every ladder rung of a word re-derives the SAME
+// pool array — so the exhaustive test re-deduped a 2k pool ~26k times (the single
+// hottest line in the generator). The pad pools are stable, memoised, never-mutated
+// references, so cache the deduped result by input reference: each distinct pool is
+// deduped once. Output is byte-identical — callers only shuffle a slice() of this,
+// never mutate it — and small/fresh input arrays (confusables etc.) simply don't hit.
+const UNIQUE_CACHE = new WeakMap();
 function uniqueStrings(list) {
+  if (list && typeof list === 'object') {
+    const cached = UNIQUE_CACHE.get(list);
+    if (cached) return cached;
+  }
   const seen = new Set();
   const out = [];
   for (const s of list || []) {
@@ -93,6 +105,7 @@ function uniqueStrings(list) {
       out.push(v);
     }
   }
+  if (list && typeof list === 'object') UNIQUE_CACHE.set(list, out);
   return out;
 }
 

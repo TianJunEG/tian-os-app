@@ -14,13 +14,16 @@ function exactlyOneCorrect(task) {
 }
 
 describe('vocabulary task generator', () => {
-  // Exhaustive: every word (712) × every ladder rung (~26k MCQs). Two speedups vs
-  // the old ~17s version: (1) invariant checks run in plain JS with a single expect
-  // at the end (not ~5 eager expect() calls per task); (2) the generator now memoises
-  // its per-word distractor pools + a word/answer index (see vocabularyTaskGenerator),
-  // ~44% faster. The remainder (~6–8s) is irreducible — each MCQ deterministically
-  // shuffles a ~700-item distractor pool — so keep a timeout above the default 5s.
-  it('builds a fair MCQ for every applicable rung of every word', { timeout: 20000 }, () => {
+  // Exhaustive: every word (2134) × every ladder rung (~26k MCQs). The generator
+  // memoises its per-word distractor pools, a word/answer index, and (see
+  // vocabularyTaskGenerator's UNIQUE_CACHE) the deduped pad pool, so this runs in
+  // ~4s in isolation. It is a single SYNCHRONOUS CPU-bound loop, though — vitest's
+  // timeout cannot interrupt synchronous JS — so under a fully parallel backend
+  // suite (8 forks contending for 8 cores) it stretches to ~10–14s. The generous
+  // timeout is a CI-contention budget, NOT a mask for a flaky assertion: the loop
+  // is deterministic (fixed default seed) and its output is verified byte-identical,
+  // so it either passes or reveals a genuine invariant break — it never flakes on value.
+  it('builds a fair MCQ for every applicable rung of every word', { timeout: 30000 }, () => {
     const failures = [];
     for (const w of vocabularyWordBank) {
       for (const task of generateLadder(w)) {
@@ -94,7 +97,11 @@ describe('vocabulary task generator', () => {
     expect(ids[0]).toBe('meaning_match'); // tier 1 first
   });
 
-  it('never offers the question word itself as the "same word family" answer', () => {
+  // Sweeps all 2134 words building a morphology MCQ each (~1s isolated, but the
+  // per-call distractor set is a fresh ~2k-word pool, so under the parallel suite it
+  // reaches ~4s — too close to the default 5s budget to be safe on a busier CI box).
+  // Deterministic (shared fixed seed); the timeout is contention headroom, not a mask.
+  it('never offers the question word itself as the "same word family" answer', { timeout: 20000 }, () => {
     // Regression: words like "consent" (verb) / "consent" (noun) have a same-
     // spelling family member, which used to surface as the correct option — so
     // the answer was literally the word being asked about.
