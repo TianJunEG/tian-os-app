@@ -86,7 +86,6 @@ export default function ClozeSession() {
     const v = verdictByN[n];
     if (!graded) return `${base} border-ink-400 focus:border-emerald focus:bg-emerald-tint`;
     if (v === 'correct') return `${base} border-emerald bg-success-100 text-emerald-deep`;
-    if (v === 'typo') return `${base} border-gold bg-gold-tint text-gold-deep`;
     return `${base} border-error-400 bg-error-100 text-error-700`;
   };
 
@@ -138,7 +137,7 @@ export default function ClozeSession() {
             <p className="font-display text-2xl font-semibold text-emerald-deep">
               {result.score}<span className="text-lg text-ink-400"> / {result.total}</span>
             </p>
-            <p className="text-sm text-ink-500">{pct}% · green is spot-on, amber is a spelling slip, red is one to review.</p>
+            <p className="text-sm text-ink-500">{pct}% · green is correct, red is wrong — check the results for the accepted answers.</p>
           </div>
           <Button size="l" icon={ArrowRight} className="w-full" onClick={seeResults}>See results</Button>
         </div>

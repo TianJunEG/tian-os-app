@@ -38,7 +38,7 @@ const answers = () => {
   for (const inp of document.querySelectorAll('input[data-n]')) a[inp.dataset.n] = inp.value;
   return a;
 };
-const clearState = () => document.querySelectorAll('.blank').forEach((b) => b.classList.remove('correct', 'typo', 'review'));
+const clearState = () => document.querySelectorAll('.blank').forEach((b) => b.classList.remove('correct', 'wrong'));
 
 function check() {
   clearState();
@@ -57,16 +57,15 @@ function showResults(res) {
     return `<div class="skill"><div class="top"><b>${SKILL_LABELS[k] || k}</b><span>${s.correct}/${s.total}</span></div><div class="bar"><span style="width:${p}%"></span></div></div>`;
   }).join('');
   const fb = res.perBlank.map((r) => {
-    if (r.verdict === 'correct') return `<li><span class="mk ok">✓</span><span><b>${r.n}.</b> ${esc(document.querySelector(`input[data-n="${r.n}"]`).value)}</span></li>`;
-    if (r.verdict === 'typo') return `<li><span class="mk amber">≈</span><span><b>${r.n}.</b> ${esc(r.note)}</span></li>`;
-    if (r.verdict === 'blank') return `<li><span class="mk err">–</span><span><b>${r.n}.</b> left blank · <span class="acc">accepted: ${esc(r.accepted.join(', '))}</span></span></li>`;
-    return `<li><span class="mk err">✗</span><span><b>${r.n}.</b> you wrote “${esc(document.querySelector(`input[data-n="${r.n}"]`).value)}” · <span class="acc">accepted: ${esc(r.accepted.join(', '))}</span></span></li>`;
+    if (r.verdict === 'correct') return `<li><span class=”mk ok”>✓</span><span><b>${r.n}.</b> ${esc(document.querySelector(`input[data-n=”${r.n}”]`).value)}</span></li>`;
+    if (r.verdict === 'blank') return `<li><span class=”mk err”>–</span><span><b>${r.n}.</b> left blank · <span class=”acc”>accepted: ${esc(r.accepted.join(', '))}</span></span></li>`;
+    return `<li><span class=”mk err”>✗</span><span><b>${r.n}.</b> you wrote “${esc(document.querySelector(`input[data-n=”${r.n}”]`).value)}” · <span class=”acc”>accepted: ${esc(r.accepted.join(', '))}</span></span></li>`;
   }).join('');
   document.getElementById('results').innerHTML = `
     <div class="card">
       <div class="eyebrow">Your score</div>
       <div class="score">${res.score} <small>/ ${res.total}</small></div>
-      <p class="note">${pct}% · a mark-worthy answer in green, a spelling slip in amber, and everything you missed with the answers that were accepted.</p>
+      <p class="note">${pct}% · correct answers in green, wrong answers in red with the accepted word shown.</p>
       <div style="margin-top:14px">${skills}</div>
     </div>
     <div class="card"><div class="eyebrow">Every blank</div><ul class="fb">${fb}</ul></div>`;

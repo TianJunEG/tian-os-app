@@ -4,7 +4,7 @@
 // each is freshly written on its own theme, then blanked. The open comprehension
 // cloze is a P5/P6 exam component (P3/P4 use the word-bank grammar cloze), so the
 // bank is P5 + P6 only. Each blank carries:
-//   accept — every word a marker would accept (best answer first)
+//   accept — the single correct word for the blank (no duplicates within a passage)
 //   skill  — grammar | collocation | content  (drives per-skill readiness)
 //   note   — a one-line "why" shown in feedback
 // 65 passages · 975 blanks · by level {"P5":30,"P6":35}. Grader: ./clozeGrader.js
@@ -15,7 +15,7 @@ export const clozePassages = [
     "level": "P5",
     "source": "ELPath (original)",
     "title": "A Rainy Day at School",
-    "text": "It had been raining heavily {1} early morning, and by the time school started, the field was covered {2} puddles. Our teacher, Mrs Lim, announced {3} we would not be able to have PE outdoors, so we stayed in our classroom instead.\n\nAt first, some of us were disappointed {4} we had been looking {5} to playing football. However, Mrs Lim {6} out a box of board games and told us to work in groups of four. Soon, laughter filled the room, and nobody seemed to {7} about the weather any more.\n\nDuring recess, we {8} to eat in the canteen because the corridors were slippery. My friend Hafiz forgot {9} umbrella and got {10} while crossing the yard. He was shivering, {11} I lent him my jacket to keep him warm.\n\nBy the {12} of the day, the rain had {13} stopped. As we walked home, we jumped in the puddles and laughed together. {14} the rain had spoiled our original plans, it turned out to be a memorable day. We learnt {15} even bad weather cannot stop good friends from having fun.",
+    "text": "It had been raining heavily {1} early morning, and by the time school started, the field was covered {2} puddles. Our teacher, Mrs Lim, announced {3} we would not be able to have PE outdoors, so we stayed in our classroom instead.\n\nAt first, some of us were disappointed {4} we had been looking {5} to playing football. However, Mrs Lim {6} out a box of board games and told us to work in groups of four. Soon, laughter filled the room, and nobody seemed to {7} about the weather any more.\n\nDuring recess, we {8} to eat in the canteen because the corridors were slippery. My friend Hafiz forgot {9} umbrella and got {10} while crossing the yard. He was shivering, {11} I lent him my jacket to keep him warm.\n\n{15} the {12} of the day, the rain had {13} stopped. As we walked home, we jumped in the puddles and laughed together. {14} the rain had spoiled our original plans, it turned out to be a memorable day. We learnt that even bad weather cannot stop good friends from having fun.",
     "blanks": [
       {
         "n": 1,
@@ -132,10 +132,10 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "that"
+          "by"
         ],
         "skill": "grammar",
-        "note": "Conjunction introducing what was learnt."
+        "note": "Preposition \"by\" showing relationship."
       }
     ]
   },
@@ -402,7 +402,7 @@ export const clozePassages = [
     "level": "P5",
     "source": "ELPath (original)",
     "title": "Helping at the Soup Kitchen",
-    "text": "Last Saturday, my mother and I woke up early to {1} at a soup kitchen near our block. We had signed {2} the week before, after reading about elderly residents who often eat alone. When we arrived, the volunteers were already busy {3} vegetables and stirring huge pots of soup.\n\nThe kitchen coordinator, Mr Tan, greeted us {4} a warm smile and handed us clean aprons. \"Just follow my {5},\" he said kindly. My mother ladled soup into bowls, {6} I carried trays of bread {7} the tables. Some of the elderly folks chatted happily with us, {8} others simply nodded and thanked us softly.\n\nBy noon, all the food had been served, and the hall was filled {9} the comforting smell of warm soup. One old man, {10} hands trembled slightly, told me my bread reminded him {11} his childhood. His words touched my heart, {12} I found myself smiling all the way home.\n\nThat afternoon, I made {13} my mind to return every month. Helping others, I realised, could bring just as much {14} as receiving help. I could hardly {15} for my next visit.",
+    "text": "Last Saturday, my mother and I woke up early to {1} at a soup kitchen near our block. We had signed {2} the week before, after reading about elderly residents who often eat alone. When we arrived, the volunteers were already busy {3} vegetables and stirring huge pots of soup.\n\nThe kitchen coordinator, Mr Tan, greeted us {4} a warm smile and handed us clean aprons. \"Just follow my {5},\" he said kindly. My mother ladled soup into bowls, {6} I carried trays of bread {7} the tables. Some of the elderly folks chatted happily with us, {8} others simply nodded and thanked us softly.\n\n{9} noon, all the food had been served, and the hall was filled with the comforting smell of warm soup. One old man, {10} hands trembled slightly, told me my bread reminded him {11} his childhood. His words touched my heart, {12} I found myself smiling all the way home.\n\n{13} afternoon, I made up my mind to return every month. Helping others, I realised, could bring just as much {14} as receiving help. I could hardly {15} for my next visit.",
     "blanks": [
       {
         "n": 1,
@@ -471,10 +471,10 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "with"
+          "by"
         ],
         "skill": "grammar",
-        "note": "preposition after \"filled ___\" (filled with)"
+        "note": "Preposition \"by\" showing relationship."
       },
       {
         "n": 10,
@@ -503,10 +503,10 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "up"
+          "that"
         ],
-        "skill": "collocation",
-        "note": "\"make up one's mind\" = to decide"
+        "skill": "grammar",
+        "note": "\"that\" introducing a clause."
       },
       {
         "n": 14,
@@ -531,7 +531,7 @@ export const clozePassages = [
     "level": "P5",
     "source": "ELPath (original)",
     "title": "Mangrove Crabs at Sungei Buloh",
-    "text": "During the June holidays, my class visited Sungei Buloh Wetland Reserve to {1} about the creatures living in the mangroves. Our guide, Mr Lim, told us that mangrove crabs are among the most interesting animals {2} the muddy forest.\n\nHe explained that these crabs {3} strong pincers, which they use {4} defend their territory and dig burrows in the soft mud. Unlike ordinary crabs, mangrove crabs can survive both {5} land and in water, thanks to their special gills. When the tide comes {6}, they simply retreat into their burrows to stay dry.\n\nI was amazed {7} how the crabs changed {8} to match the muddy ground, {9} made them almost invisible to predators. Mr Lim said {10} camouflage helps the crabs avoid being {11} by herons and other birds.\n\nBy the end of the trip, I had gained a newfound {12} for these small creatures. I never {13} that something so tiny could be so clever. {14} we walked back to the bus, I made {15} my mind to find out more about mangrove life.",
+    "text": "During the June holidays, my class visited Sungei Buloh Wetland Reserve to {1} about the creatures living in the mangroves. Our guide, Mr Lim, told us that mangrove crabs are among the most interesting animals {2} the muddy forest.\n\nHe explained {6} these crabs {3} strong pincers, which they use {4} defend their territory and dig burrows in the soft mud. Unlike ordinary crabs, mangrove crabs can survive both {5} land and in water, thanks to their special gills. When the tide comes in, they simply retreat into their burrows to stay dry.\n\nI was amazed {7} how the crabs changed {8} to match the muddy ground, {9} made them almost invisible to predators. Mr Lim said {10} camouflage helps the crabs avoid being {11} by herons and other birds.\n\nBy the end of the trip, I had gained a newfound {12} for these small creatures. I never {13} that something so tiny could be so clever. {14} we walked back to the bus, I made {15} my mind to find out more about mangrove life.",
     "blanks": [
       {
         "n": 1,
@@ -576,10 +576,10 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "in"
+          "that"
         ],
-        "skill": "collocation",
-        "note": "\"the tide comes in\" = the tide rises"
+        "skill": "grammar",
+        "note": "\"that\" introducing a clause."
       },
       {
         "n": 7,
@@ -660,7 +660,7 @@ export const clozePassages = [
     "level": "P5",
     "source": "ELPath (original)",
     "title": "Magic at the School Fair",
-    "text": "Every year, our school holds a fair to {1} funds for needy families in the neighbourhood. This year, the highlight was a magic show performed {2} a magician named Mr Rio.\n\nThe hall was packed {3} students and parents long before the show began. When Mr Rio walked onto the stage {4} a top hat and a swishing cape, everyone burst {5} applause. He began by pulling a fluffy white rabbit {6} his hat, {7} made the younger children gasp with delight.\n\nNext, he asked for a volunteer, {8} my best friend Aini bravely stepped forward. Mr Rio placed a coin in her palm and, with a {9} of his fingers, it vanished completely. Aini's eyes {10} with disbelief as she searched her empty hand.\n\nFor his final trick, Mr Rio {11} to guess the card each of us had secretly chosen. Somehow, he got every single one correct, {12} left the whole hall speechless. By the time the show ended, {13} of us were still wondering how the tricks {14} done. That afternoon left me feeling utterly {15}, and I quietly hoped to learn a magic trick of my own someday.",
+    "text": "Every year, our school holds a fair to {1} funds for needy families in the neighbourhood. This year, the highlight was a magic show performed {2} a magician named Mr Rio.\n\nThe hall was packed {3} students and parents long before the show began. When Mr Rio walked onto the stage {4} a top hat and a swishing cape, everyone burst {5} applause. He began by pulling a fluffy white rabbit {6} his hat, {7} made the younger children gasp with delight.\n\nNext, he asked for a volunteer, {8} my best friend Aini bravely stepped forward. Mr Rio placed a coin in her palm and, with a {9} of his fingers, it vanished completely. Aini's eyes {10} with disbelief as she searched her empty hand.\n\n{12} his final trick, Mr Rio {11} to guess the card each of us had secretly chosen. Somehow, he got every single one correct, which left the whole hall speechless. By the time the show ended, {13} of us were still wondering how the tricks {14} done. That afternoon left me feeling utterly {15}, and I quietly hoped to learn a magic trick of my own someday.",
     "blanks": [
       {
         "n": 1,
@@ -753,10 +753,10 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "which"
+          "for"
         ],
         "skill": "grammar",
-        "note": "relative pronoun referring back to the whole result"
+        "note": "Conjunction \"for\" linking clauses."
       },
       {
         "n": 13,
@@ -789,7 +789,7 @@ export const clozePassages = [
     "level": "P5",
     "source": "ELPath (original)",
     "title": "From Seed to Plant",
-    "text": "Have you ever wondered how a tiny seed grows {1} a tall, healthy plant? It all begins when the soil is warm {2} moist. Water slowly seeps through the seed's hard coat, {3} the seed begins to swell and its coat splits open.\n\nDeep in the soil, a tiny root pushes downward in {4} of water and nutrients, while a small shoot reaches {5} the sunlight above. Day by day, the shoot grows taller {6} it finally breaks {7} the surface of the soil.\n\nIts first leaves soon {8}, ready to catch the sunlight. The young plant then begins to make its {9} food through a process called photosynthesis. Since it is still delicate, it needs plenty of water and sunlight {10} stay strong and healthy.\n\nWith {11} care, the seedling grows taller {12} the weeks go by, and its roots spread {13} into the soil, holding the plant firmly in place. Months {14}, the once-tiny seed has grown {15} a sturdy plant, ready to flower and bear fruit.",
+    "text": "Have you ever wondered how a tiny seed grows {1} a tall, healthy plant? It all begins when the soil is warm {2} moist. Water slowly seeps through the seed's hard coat, {3} the seed begins to swell and its coat splits open.\n\nDeep in the soil, a tiny root pushes downward in {4} of water and nutrients, while a small shoot reaches {5} the sunlight above. Day by day, the shoot grows taller {6} it finally breaks {7} the surface of the soil.\n\nIts first leaves soon {8}, ready to catch the sunlight. The young plant then begins to make its {9} food through a process called photosynthesis. Since it is still delicate, it needs plenty of water and sunlight {10} stay strong and healthy.\n\n{15} {11} care, the seedling grows taller {12} the weeks go by, and its roots spread {13} into the soil, holding the plant firmly in place. Months {14}, the once-tiny seed has grown into a sturdy plant, ready to flower and bear fruit.",
     "blanks": [
       {
         "n": 1,
@@ -906,10 +906,10 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "into"
+          "with"
         ],
-        "skill": "collocation",
-        "note": "fixed phrase: grow into (become)"
+        "skill": "grammar",
+        "note": "Preposition \"with\" showing relationship."
       }
     ]
   },
@@ -1047,7 +1047,7 @@ export const clozePassages = [
     "level": "P5",
     "source": "ELPath (original)",
     "title": "A Visit to the Dentist",
-    "text": "Mei Ling had been feeling {1} about her visit to the dentist all week. She had never liked the sound of the drill and was afraid the check-up {2} be uncomfortable. {3}, her mother reminded her that regular check-ups were important {4} keep her teeth strong and healthy.\n\nAt the clinic, a kind dentist {5} the name of Dr Tan greeted them warmly and asked Mei Ling {6} sit in the big chair. Before starting, he explained gently what {7} going to happen so that she would not feel afraid.\n\nWhen it was finally her {8}, Mei Ling took a deep {9} and climbed into the chair. Dr Tan found a tiny {10} in one of her back teeth, but he told her kindly that it was nothing to {11} about.\n\nHe cleaned and filled it carefully, and to her surprise, it did not {12} at all. Dr Tan praised her {13} being so brave and gave her a new toothbrush. By the end of the visit, Mei Ling felt {14} of herself, and she had made up her mind {15} visit the dentist regularly from then on.",
+    "text": "Mei Ling had been feeling {1} about her visit to the dentist all week. She had never liked the sound of the drill and was afraid the check-up {2} be uncomfortable. {3}, her mother reminded her that regular check-ups were important {4} keep her teeth strong and healthy.\n\n{6} the clinic, a kind dentist {5} the name of Dr Tan greeted them warmly and asked Mei Ling to sit in the big chair. Before starting, he explained gently what {7} going to happen so that she would not feel afraid.\n\nWhen it was finally her {8}, Mei Ling took a deep {9} and climbed into the chair. Dr Tan found a tiny {10} in one of her back teeth, but he told her kindly that it was nothing to {11} about.\n\nHe cleaned {15} filled it carefully, and to her surprise, it did not {12} at all. Dr Tan praised her {13} being so brave and gave her a new toothbrush. By the end of the visit, Mei Ling felt {14} of herself, and she had made up her mind to visit the dentist regularly from then on.",
     "blanks": [
       {
         "n": 1,
@@ -1092,10 +1092,10 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "to"
+          "at"
         ],
         "skill": "grammar",
-        "note": "infinitive marker after \"asked\""
+        "note": "Preposition \"at\" showing relationship."
       },
       {
         "n": 7,
@@ -1164,10 +1164,10 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "to"
+          "and"
         ],
         "skill": "grammar",
-        "note": "infinitive marker (made up her mind to visit)"
+        "note": "Conjunction \"and\" linking clauses."
       }
     ]
   },
@@ -1305,7 +1305,7 @@ export const clozePassages = [
     "level": "P5",
     "source": "ELPath (original)",
     "title": "A Visit to Changi Airport",
-    "text": "Changi Airport is more than just a place {1} people catch their flights. It is often described {2} one of the best {3} in the world, and after visiting it with my family last December, I understood why.\n\nBefore checking {4} for our flight, we walked through Jewel, a huge glass building shaped {5} a giant bowl. In the middle stands the Rain Vortex, the tallest indoor {6} on earth. We stood there {7} a long time, watching the water crash down and listening to its roar.\n\nLater, we explored the terminal itself. There was a butterfly garden filled {8} colourful wings fluttering among the plants, a rooftop pool, and even a small cinema where travellers could {9} and watch a movie while waiting for their flights. My little brother refused {10} leave the slide, {11} was four storeys tall.\n\nBy the time we boarded our plane, I felt {12} though we had visited a theme park {13} than an airport. I hope that one {14}, when I travel again, I will have enough {15} to explore every corner of this remarkable place.",
+    "text": "Changi Airport is more than just a place {1} people catch their flights. It is often described {2} one of the best {3} in the world, and after visiting it with my family last December, I understood why.\n\nBefore checking {4} for our flight, we walked through Jewel, a huge glass building shaped {5} a giant bowl. In the middle stands the Rain Vortex, the tallest indoor {6} on earth. We stood there {7} a long time, watching the water crash down and listening to its roar.\n\nLater, we explored the terminal itself. There was a butterfly garden filled {8} colourful wings fluttering among the plants, a rooftop pool, and even a small cinema where travellers could {9} and watch a movie while waiting for their flights. My little brother refused {10} leave the slide, {11} was four storeys tall.\n\n{12} the time we boarded our plane, I felt as though we had visited a theme park {13} than an airport. I hope that one {14}, when I travel again, I will have enough {15} to explore every corner of this remarkable place.",
     "blanks": [
       {
         "n": 1,
@@ -1398,10 +1398,10 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "as"
+          "by"
         ],
-        "skill": "collocation",
-        "note": "fixed phrase: as though (= as if)"
+        "skill": "grammar",
+        "note": "Preposition \"by\" showing relationship."
       },
       {
         "n": 13,
@@ -1434,7 +1434,7 @@ export const clozePassages = [
     "level": "P5",
     "source": "ELPath (original)",
     "title": "A Kampung Long Ago",
-    "text": "My grandmother often tells me stories about the kampung {1} she grew up, long before tall flats filled our {2}. Life there was simple, but she says it was never boring, {3} there was always something happening nearby.\n\nThe wooden houses stood {4} stilts, close enough {5} neighbours could hear each other's chickens crowing {6} dawn. There was no need {7} lock doors, for everyone in the kampung knew and trusted one {8} like family.\n\nIn the evenings, children would gather {9} a large tree to play games, while the adults sat nearby, chatting about the day's {10}. Whenever a family cooked a big pot of {11}, they would share it with the whole {12}, and no one ever went hungry.\n\nMy grandmother says {13} although the kampung had no televisions or computers, the villagers were never lonely, for they always had one another to rely {14}. Whenever she tells these stories, I wish I could have grown {15} in a kampung too.",
+    "text": "My grandmother often tells me stories about the kampung {1} she grew up, long before tall flats filled our {2}. Life there was simple, but she says it was never boring, {3} there was always something happening nearby.\n\nThe wooden houses stood {4} stilts, close enough {5} neighbours could hear each other's chickens crowing {6} dawn. There was no need {7} lock doors, for everyone in the kampung knew and trusted one {8} like family.\n\nIn the evenings, children would gather {9} a large tree to play games, while the adults sat nearby, chatting about the day's {10}. Whenever a family cooked a big pot of {11}, they would share it with the whole {12}, and no one ever went hungry.\n\n{13} grandmother says that {14} the kampung had no televisions or computers, the villagers were never lonely, for they always had one another to rely on. Whenever she tells these stories, I wish I could have grown {15} in a kampung too.",
     "blanks": [
       {
         "n": 1,
@@ -1535,18 +1535,18 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "that"
+          "my"
         ],
         "skill": "grammar",
-        "note": "conjunction introducing the reported clause after 'says'"
+        "note": "Possessive \"my\" showing ownership."
       },
       {
         "n": 14,
         "accept": [
-          "on"
+          "although"
         ],
-        "skill": "collocation",
-        "note": "fixed phrase: rely on (= depend on) someone"
+        "skill": "grammar",
+        "note": "Conjunction \"although\" linking clauses."
       },
       {
         "n": 15,
@@ -1563,7 +1563,7 @@ export const clozePassages = [
     "level": "P5",
     "source": "ELPath (original)",
     "title": "How Rain Is Formed",
-    "text": "The sun warms the water in rivers, lakes and seas every day. As the water heats up, it slowly turns {1} vapour and floats up towards the sky. This process is called evaporation. Higher up, the air is much cooler, so the vapour begins {2} change back into tiny droplets of water. This is known as condensation.\n\nMillions {3} these droplets cling together {4} form clouds. At first, the clouds are light and float {5} in the sky. However, {6} more and more droplets gather, the clouds grow heavier and darker. When the droplets become too heavy {7} the air to hold, they fall to the ground {8} rain.\n\nRain plays an important {9} in our lives. It fills up reservoirs, waters our plants and keeps rivers {10}. Without rain, plants would {11} and animals would struggle to find water. That is {12} farmers often look forward eagerly {13} rainy seasons.\n\nThe next time you see dark clouds in the sky, remember that a whole cycle of evaporation and condensation has taken {14}, quietly turning water into the rain that falls {15} you.",
+    "text": "The sun warms the water in rivers, lakes and seas every day. As the water heats up, it slowly turns {1} vapour and floats up towards the sky. This process is called evaporation. Higher up, the air is much cooler, so the vapour begins {2} change back into tiny droplets of water. This is known as condensation.\n\nMillions {3} {4} droplets cling together to form clouds. {8} first, the clouds are light and float {5} in the sky. However, {6} more and more droplets gather, the clouds grow heavier and darker. When the droplets become too heavy {7} the air to hold, they fall to the ground as rain.\n\nRain plays {13} important {9} in our lives. It fills up reservoirs, waters our plants and keeps rivers {10}. Without rain, plants would {11} and animals would struggle to find water. That is {12} farmers often look forward eagerly to rainy seasons.\n\nThe next time you see dark clouds in the sky, remember that a whole cycle of evaporation and condensation has taken {14}, quietly turning water into the rain that falls {15} you.",
     "blanks": [
       {
         "n": 1,
@@ -1592,10 +1592,10 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "to"
+          "these"
         ],
         "skill": "grammar",
-        "note": "infinitive of purpose (to form)"
+        "note": "Demonstrative \"these\"."
       },
       {
         "n": 5,
@@ -1624,10 +1624,10 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "as"
+          "at"
         ],
-        "skill": "collocation",
-        "note": "'fall as rain' - in the form of"
+        "skill": "grammar",
+        "note": "Preposition \"at\" showing relationship."
       },
       {
         "n": 9,
@@ -1664,10 +1664,10 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "to"
+          "an"
         ],
-        "skill": "collocation",
-        "note": "'look forward to' + noun"
+        "skill": "grammar",
+        "note": "Article \"an\" before the noun."
       },
       {
         "n": 14,
@@ -1692,7 +1692,7 @@ export const clozePassages = [
     "level": "P5",
     "source": "ELPath (original)",
     "title": "Sungei Buloh Wetlands",
-    "text": "Sungei Buloh Wetland Reserve is a quiet nature park {1} the north of Singapore. It is home {2} mangrove trees, muddy swamps and many kinds of wildlife. Visitors can walk along wooden boardwalks {3} lead deep into the mangroves without getting their feet wet.\n\nOne of the most exciting sights here is the mudskipper, an unusual fish that can crawl on land using its {4}. Crabs scuttle sideways across the mud, while herons stand {5} still, waiting patiently to catch their next meal.\n\nEvery year, {6} September to March, thousands of {7} birds fly thousands of kilometres from as far {8} Siberia to rest and feed {9} Sungei Buloh. Bird watchers bring their binoculars and cameras, hoping {10} catch a {11} of a rare species.\n\nBecause the reserve is so {12}, visitors must take {13} not to litter or disturb the animals. Sungei Buloh reminds us {14} nature can thrive even {15} a busy, modern city, as long as we protect it.",
+    "text": "Sungei Buloh Wetland Reserve is a quiet nature park {1} the north of Singapore. It is home {2} mangrove trees, muddy swamps and many kinds of wildlife. Visitors can walk along wooden boardwalks {3} lead deep into the mangroves without getting their feet wet.\n\nOne of the most exciting sights here is the mudskipper, an unusual fish that can crawl on land using its {4}. Crabs scuttle sideways across the mud, while herons stand {5} still, waiting patiently to catch their next meal.\n\n{10} year, {6} September to March, thousands of {7} birds fly thousands of kilometres from as far {8} Siberia to rest and feed {9} Sungei Buloh. Bird watchers bring their binoculars and cameras, hoping to catch a {11} of a rare species.\n\n{14} {15} reserve is so {12}, visitors must take {13} not to litter or disturb the animals. Sungei Buloh reminds us that nature can thrive even in a busy, modern city, as long as we protect it.",
     "blanks": [
       {
         "n": 1,
@@ -1769,10 +1769,10 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "to"
+          "every"
         ],
         "skill": "grammar",
-        "note": "infinitive marker after 'hoping'"
+        "note": "Determiner/quantifier \"every\"."
       },
       {
         "n": 11,
@@ -1801,18 +1801,18 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "that"
+          "because"
         ],
         "skill": "grammar",
-        "note": "conjunction introducing a that-clause after 'reminds us'"
+        "note": "Conjunction \"because\" linking clauses."
       },
       {
         "n": 15,
         "accept": [
-          "in"
+          "the"
         ],
         "skill": "grammar",
-        "note": "preposition of place ('thrive in')"
+        "note": "Article \"the\" before the noun."
       }
     ]
   },
@@ -1821,7 +1821,7 @@ export const clozePassages = [
     "level": "P5",
     "source": "ELPath (original)",
     "title": "A Birthday Surprise",
-    "text": "Mei Ling woke up {1} her tenth birthday feeling a little disappointed. Not one friend had texted her, and even her mother, {2} never forgot anything, seemed unusually {3} at breakfast. She began to wonder {4} everyone had forgotten her special day.\n\nAfter school, her mother asked her {5} help carry some grocery bags {6} the kitchen. The moment Mei Ling switched {7} the light, her classmates jumped out from behind the sofa and shouted, \"Surprise!\" She was so {8} that she nearly dropped the bags.\n\nColourful balloons hung from the ceiling, and a chocolate cake sat on the table. Her best friend, Hui Min, explained {9} everyone had been planning the party {10} weeks, but {11} it a secret had been the hardest part.\n\nMei Ling's eyes filled {12} tears of joy. She realised her friends had not forgotten her at all - instead, they had been quietly preparing something {13}. It was {14} far the best birthday she had {15} had.",
+    "text": "Mei Ling woke up {1} her tenth birthday feeling a little disappointed. Not one friend had texted her, and even her mother, {2} never forgot anything, seemed unusually {3} at breakfast. She began to wonder {4} everyone had forgotten her special day.\n\n{7} school, her mother asked her {5} help carry some grocery bags {6} the kitchen. The moment Mei Ling switched on the light, her classmates jumped out from behind the sofa and shouted, \"Surprise!\" She was so {8} that she nearly dropped the bags.\n\nColourful balloons hung from the ceiling, and a chocolate cake sat on the table. Her best friend, Hui Min, explained {9} everyone had been planning the party {10} weeks, but {11} it a secret had been the hardest part.\n\nMei Ling's eyes filled {12} tears of joy. She realised her friends had not forgotten her at all - instead, they had been quietly preparing something {13}. It was {14} far the best birthday she had {15} had.",
     "blanks": [
       {
         "n": 1,
@@ -1874,10 +1874,10 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "on"
+          "after"
         ],
-        "skill": "collocation",
-        "note": "'switch on' = turn on"
+        "skill": "grammar",
+        "note": "Conjunction \"after\" linking clauses."
       },
       {
         "n": 8,
@@ -1950,7 +1950,7 @@ export const clozePassages = [
     "level": "P5",
     "source": "ELPath (original)",
     "title": "Sports Day Spirit",
-    "text": "Every year, Greenwood Primary School holds its sports day {1} the last Friday of June. This year the weather was perfect, {2} the sky was clear and blue. Students from all four houses gathered {3} the field, wearing colourful T-shirts to show which {4} they belonged to.\n\nMei Ling had trained hard {5} weeks before the 100-metre race. {6} she lined up at the starting line, her heart began to pound loudly. When the whistle blew, she ran as {7} as she could. Halfway through the race, she stumbled and nearly fell, {8} she quickly regained her balance and kept going.\n\nAt last, Mei Ling crossed the finish line {9} first place, and the crowd burst {10} loud cheers. Her classmates rushed {11} to congratulate her, patting her {12} the back proudly. Even though she was exhausted, she felt a deep sense of {13}.\n\n{14} the closing ceremony, the principal reminded everyone that trying one's best mattered more than winning. Mei Ling smiled, knowing she had given her {15} best.",
+    "text": "Every year, Greenwood Primary School holds its sports day {1} the last Friday of June. This year the weather was perfect, {2} the sky was clear and blue. Students from all four houses gathered {3} the field, wearing colourful T-shirts to show which {4} they belonged to.\n\nMei Ling had trained hard {5} weeks before the 100-metre race. {6} she lined up at the starting line, her heart began to pound loudly. When the whistle blew, she ran as {7} as she could. Halfway through the race, she stumbled and nearly fell, {8} she quickly regained her balance and kept going.\n\n{12} last, Mei Ling crossed the finish line {9} first place, and the crowd burst {10} loud cheers. Her classmates rushed {11} to congratulate her, patting her on the back proudly. Even though she was exhausted, she felt a deep sense of {13}.\n\n{14} the closing ceremony, the principal reminded everyone that trying one's best mattered more than winning. Mei Ling smiled, knowing she had given her {15} best.",
     "blanks": [
       {
         "n": 1,
@@ -2043,10 +2043,10 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "on"
+          "at"
         ],
-        "skill": "collocation",
-        "note": "fixed phrase: pat someone on the back"
+        "skill": "grammar",
+        "note": "Preposition \"at\" showing relationship."
       },
       {
         "n": 13,
@@ -2079,7 +2079,7 @@ export const clozePassages = [
     "level": "P5",
     "source": "ELPath (original)",
     "title": "From Caterpillar to Butterfly",
-    "text": "Aisyah loved exploring her grandmother's small garden {1} the weekends, especially when the flowers were in full bloom. One morning, she found a fat green caterpillar crawling slowly {2} a branch of the old lime tree. Curious, she crouched down and watched it munch {3} leaf after leaf, growing bigger and fatter every single day.\n\nA few days later, to her surprise, the caterpillar stopped eating {4} attached itself firmly to a twig near the fence. Slowly, it formed a hard case {5} as a chrysalis. Aisyah checked on it every morning before school, staying {6} even {7} nothing seemed to happen for a long while.\n\n{8} almost two weeks of waiting, the chrysalis finally began to crack open. Aisyah held her breath as a damp, crumpled butterfly {9} its way out slowly. Its wings looked weak and wrinkled {10} first, but they slowly unfolded {11} the warm afternoon sunlight.\n\nAisyah's grandmother explained that this remarkable change was {12} metamorphosis. Every butterfly {13} through the same four stages: egg, caterpillar, chrysalis, {14} adult. Aisyah felt proud {15} having witnessed the whole wonderful process herself, from beginning to end.",
+    "text": "Aisyah loved exploring her grandmother's small garden {1} the weekends, especially when the flowers were in full bloom. One morning, she found a fat green caterpillar crawling slowly {2} a branch of the old lime tree. Curious, she crouched down and watched it munch {3} leaf after leaf, growing bigger and fatter every single day.\n\nA few days later, to her surprise, the caterpillar stopped eating {4} attached itself firmly to a twig near the fence. Slowly, it formed a hard case {5} as a chrysalis. Aisyah checked on it every morning before school, staying {6} even {7} nothing seemed to happen for a long while.\n\n{8} almost two weeks of waiting, the chrysalis finally began to crack open. Aisyah held her breath as a damp, crumpled butterfly {9} its way out slowly. Its wings looked weak and wrinkled {10} first, but they slowly unfolded {11} the warm afternoon sunlight.\n\nAisyah's grandmother explained {14} this remarkable change was {12} metamorphosis. Every butterfly {13} through the same four stages: egg, caterpillar, chrysalis, and adult. Aisyah felt proud {15} having witnessed the whole wonderful process herself, from beginning to end.",
     "blanks": [
       {
         "n": 1,
@@ -2188,10 +2188,10 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "and"
+          "that"
         ],
         "skill": "grammar",
-        "note": "conjunction linking the last item in a list"
+        "note": "\"that\" introducing a clause."
       },
       {
         "n": 15,
@@ -2337,7 +2337,7 @@ export const clozePassages = [
     "level": "P5",
     "source": "ELPath (original)",
     "title": "The Neighbourhood Playground",
-    "text": "Every evening, children {1} the neighbourhood gather at the small playground beside the void deck. Amir and his sister always {2} home from school first to change {3} their play clothes. The playground is not very big, but the swings, slide and climbing frame make it a popular {4} for everyone.\n\nLast month, the swings were broken, {5} nobody could use them. The residents wrote {6} letter to the town council, asking them to {7} the swings quickly. To everyone's delight, workers arrived the {8} week and fixed the swings {9} good.\n\nNow the children take {10} on the swings so that everyone gets a chance to play. Amir's little sister, {11} is only four years old, likes the slide best. {12} she reaches the bottom, she claps her hands with joy. The older boys often play catching, {13} the girls prefer skipping rope near the bench.\n\nAs the sun sets, parents call their children home {14} dinner. Tired but happy, the children wave goodbye and look {15} to playing together again the next day.",
+    "text": "Every evening, children {1} the neighbourhood gather at the small playground beside the void deck. Amir and his sister always {2} home from school first to change {3} their play clothes. The playground is not very big, but the swings, slide and climbing frame make it a popular {4} for everyone.\n\nLast month, the swings were broken, {5} nobody could use them. The residents wrote {6} letter to the town council, asking them to {7} the swings quickly. To everyone's delight, workers arrived the {8} week and fixed the swings {9} good.\n\nNow the children take {10} on the swings so that everyone gets a chance to play. Amir's little sister, {11} is only four years old, likes the slide best. {12} she reaches the bottom, she claps her hands with joy. The older boys often play catching, {13} the girls prefer skipping rope near the bench.\n\n{14} the sun sets, parents call their children home for dinner. Tired but happy, the children wave goodbye and look {15} to playing together again the next day.",
     "blanks": [
       {
         "n": 1,
@@ -2446,10 +2446,10 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "for"
+          "as"
         ],
         "skill": "grammar",
-        "note": "Preposition before a purpose"
+        "note": "Comparison word \"as\"."
       },
       {
         "n": 15,
@@ -2466,7 +2466,7 @@ export const clozePassages = [
     "level": "P5",
     "source": "ELPath (original)",
     "title": "Turtles by Moonlight",
-    "text": "Last week, Mei and her family visited a quiet beach {1} the school holidays to see sea turtles. A park ranger had told them {2} turtles often come ashore at night to lay their eggs.\n\nThey arrived {3} it grew dark and waited patiently on the sand. {4}, they were not allowed to use bright torches, {5} the light might frighten the turtles away. After {6} an hour, a large turtle slowly crawled out of the sea and began to dig a {7} in the sand with her flippers.\n\nMei held her breath {8} she watched the turtle lay dozens of small, round eggs. The ranger explained {9} the eggs would hatch in about two months. Everyone kept very {10}, careful not to disturb the gentle creature.\n\nBefore leaving, the ranger let the children release some tiny {11} that had emerged from their nest earlier that week. The baby turtles scrambled towards the waves and disappeared {12} the water. Mei felt proud to have {13} a part in helping them reach the sea safely. On the way home, she made {14} her mind to learn more about protecting turtles. She would always {15} that night by the sea.",
+    "text": "Last week, Mei and her family visited a quiet beach {1} the school holidays to see sea turtles. A park ranger had told them {2} turtles often come ashore at night to lay their eggs.\n\nThey arrived {3} it grew dark and waited patiently on the sand. {4}, they were not allowed to use bright torches, {5} the light might frighten the turtles away. After {6} an hour, a large turtle slowly crawled out of the sea and began to dig a {7} in the sand with her flippers.\n\nMei held {9} breath {8} she watched the turtle lay dozens of small, round eggs. The ranger explained that the eggs would hatch in about two months. Everyone kept very {10}, careful not to disturb the gentle creature.\n\nBefore leaving, the ranger let the children release some tiny {11} that had emerged from their nest earlier that week. The baby turtles scrambled towards the waves and disappeared {12} the water. Mei felt proud to have {13} a part in helping them reach the sea safely. On the way home, she made {14} her mind to learn more about protecting turtles. She would always {15} that night by the sea.",
     "blanks": [
       {
         "n": 1,
@@ -2535,10 +2535,10 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "that"
+          "her"
         ],
         "skill": "grammar",
-        "note": "Conjunction introducing what the ranger explained"
+        "note": "Possessive \"her\" showing ownership."
       },
       {
         "n": 10,
@@ -2595,7 +2595,7 @@ export const clozePassages = [
     "level": "P5",
     "source": "ELPath (original)",
     "title": "Our Road Trip to Malacca",
-    "text": "During the June holidays, Ravi's family decided {1} drive to Malacca for a short trip. His father packed the car {2} in the morning while everyone else was still having breakfast.\n\nThe journey took about four hours, {3} the children played word games to pass the time. Ravi's little brother, {4} gets carsick easily, had to sit in the front seat next to their mother. {5} they reached the causeway, the queue of cars was very {6}, and they had to wait patiently.\n\nHalfway through the trip, they stopped at a rest area {7} lunch. Ravi's mother had prepared sandwiches and fruit, which they {8} at a shaded table. His father used the chance to {9} a short nap before continuing the drive.\n\nThey arrived in Malacca just as the sun was setting. Everyone was tired {10} excited to explore the old town. Ravi's sister, who loves history, could not wait to visit the museums the {11} day. That night, as they unpacked their bags, Ravi's father said the long drive had been worth {12}. The family agreed that road trips always brought them closer {13}. Ravi fell asleep quickly, already looking forward {14} the adventures {15} awaited them.",
+    "text": "During the June holidays, Ravi's family decided {1} drive to Malacca for a short trip. His father packed the car {2} in the morning while everyone else was still having breakfast.\n\nThe journey took about four hours, {3} the children played word games to pass the time. Ravi's little brother, {4} gets carsick easily, had to sit in the front seat next to their mother. {5} they reached the causeway, the queue of cars was very {6}, and they had to wait patiently.\n\nHalfway through the trip, they stopped at a rest area {7} lunch. Ravi's mother had prepared sandwiches and fruit, which they {8} at a shaded table. His father used the chance to {9} a short nap before continuing the drive.\n\nThey arrived {14} Malacca just as the sun was setting. Everyone was tired {10} excited to explore the old town. Ravi's sister, who loves history, could not wait to visit the museums the {11} day. That night, as they unpacked their bags, Ravi's father said the long drive had been worth {12}. The family agreed that road trips always brought them closer {13}. Ravi fell asleep quickly, already looking forward to the adventures {15} awaited them.",
     "blanks": [
       {
         "n": 1,
@@ -2704,10 +2704,10 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "to"
+          "in"
         ],
-        "skill": "collocation",
-        "note": "\"look forward to\" = anticipate happily"
+        "skill": "grammar",
+        "note": "Preposition \"in\" showing relationship."
       },
       {
         "n": 15,
@@ -3240,7 +3240,7 @@ export const clozePassages = [
     "level": "P5",
     "source": "ELPath (original)",
     "title": "How Bread Is Made",
-    "text": "Bread is one of the most popular foods {1} many countries, but not many people know how it is made. It all begins {2} a bakery, where a baker mixes flour, water, {3} and yeast in a large bowl. The yeast is important {4} it makes the dough {5}.\n\nNext, the baker kneads the dough {6} both hands until it becomes smooth and stretchy. This step takes a {7} of patience, {8} kneading helps the dough develop its shape. The dough is then left to rest {9} a warm place for about an hour.\n\n{10} time passes, the dough slowly doubles in size as tiny {11} form inside it. Once it has risen enough, the baker shapes it into loaves, one by {12}, and places them in a hot oven. The heat turns the soft, pale dough {13} a {14}, crusty loaf.\n\nWhen the bread is finally ready, a warm, delicious smell fills the whole kitchen. Families can then slice the warm loaf and enjoy it {15} breakfast. From simple ingredients, good bread shows that patience and skill can create something truly wonderful.",
+    "text": "Bread {2} one of the most popular foods {1} many countries, but not many people know how it is made. It all begins in a bakery, where a baker mixes flour, water, {3} and yeast in a large bowl. The yeast is important {4} it makes the dough {5}.\n\nNext, {9} baker kneads the dough {6} both hands until it becomes smooth and stretchy. This step takes a {7} of patience, {8} kneading helps the dough develop its shape. The dough is then left to rest in a warm place for about an hour.\n\n{10} time passes, the dough slowly doubles in size as tiny {11} form inside it. Once it has risen enough, the baker shapes it into loaves, one by {12}, and places them in a hot oven. The heat turns the soft, pale dough {13} a {14}, crusty loaf.\n\nWhen the bread is finally ready, a warm, delicious smell fills the whole kitchen. Families can then slice the warm loaf and enjoy it {15} breakfast. From simple ingredients, good bread shows that patience and skill can create something truly wonderful.",
     "blanks": [
       {
         "n": 1,
@@ -3253,10 +3253,10 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "in"
+          "is"
         ],
         "skill": "grammar",
-        "note": "Preposition of place: begins in a bakery"
+        "note": "Auxiliary/linking verb \"is\" in context."
       },
       {
         "n": 3,
@@ -3309,10 +3309,10 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "in"
+          "the"
         ],
         "skill": "grammar",
-        "note": "Preposition of place: rest in a warm place"
+        "note": "Article \"the\" before the noun."
       },
       {
         "n": 10,
@@ -3369,7 +3369,7 @@ export const clozePassages = [
     "level": "P5",
     "source": "ELPath (original)",
     "title": "Visiting the Fire Station",
-    "text": "Last Friday, Class 5 Kindness went {1} a school trip to the fire station near their school. As soon as they arrived, a friendly firefighter named Mr Rahman welcomed them {2} the gate and led them inside.\n\nMr Rahman showed the pupils the bright red fire {3} parked in the garage. He explained {4} the engine could reach a burning building within minutes and {5} every second counted during an emergency. The pupils listened {6} and took down notes.\n\nNext, Mr Rahman let a few pupils try {7} a real firefighter's helmet and jacket. Although the jacket felt {8}, the pupils were thrilled to wear it, even if only for a short while. Some pupils asked how firefighters put {9} fires so quickly, and Mr Rahman patiently answered {10} question.\n\nBefore the pupils left, Mr Rahman reminded them never {11} play with matches and always to call for help during a fire. The class thanked him {12} his time and returned to school, their heads full {13} exciting new facts about the brave men and women {14} protect the {15} every day.",
+    "text": "Last Friday, Class 5 Kindness went {1} a school trip to the fire station near their school. As soon as they arrived, a friendly firefighter named Mr Rahman welcomed them {2} the gate and led them inside.\n\nMr Rahman showed {5} pupils the bright red fire {3} parked in the garage. He explained {4} the engine could reach a burning building within minutes and that every second counted during an emergency. The pupils listened {6} and took down notes.\n\nNext, Mr Rahman let a {7} pupils try on a real firefighter's helmet and jacket. Although the jacket felt {8}, the pupils were thrilled to wear it, even if only for a short while. Some pupils asked how firefighters put {9} fires so quickly, and Mr Rahman patiently answered {10} question.\n\nBefore the pupils left, Mr Rahman reminded them never {11} play with matches and always to call for help during a fire. The class thanked him {12} his time and returned to school, their heads full {13} exciting new facts about the brave men and women {14} protect the {15} every day.",
     "blanks": [
       {
         "n": 1,
@@ -3406,10 +3406,10 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "that"
+          "the"
         ],
         "skill": "grammar",
-        "note": "Conjunction introducing the second point he explained"
+        "note": "Article \"the\" before the noun."
       },
       {
         "n": 6,
@@ -3422,10 +3422,10 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "on"
+          "few"
         ],
-        "skill": "collocation",
-        "note": "\"try on\" = put on clothing to test it"
+        "skill": "grammar",
+        "note": "Determiner/quantifier \"few\"."
       },
       {
         "n": 8,
@@ -3885,7 +3885,7 @@ export const clozePassages = [
     "level": "P6",
     "source": "ELPath (original)",
     "title": "The Neighbourhood Hawker Centre",
-    "text": "Every morning, the hawker centre near my block {1} to life. Stallholders arrive before dawn to prepare their ingredients, {2} the aroma of frying noodles soon fills the air. By seven o'clock, the tables are {3} occupied by residents having breakfast before work.\n\nMy favourite stall belongs to Uncle Tan, {4} has been selling fishball noodles for over thirty years. He {5} great pride in keeping his recipe unchanged, and his customers have {6} from schoolchildren into parents themselves. \"Food,\" he once told me, \"is {7} keeps a neighbourhood together.\"\n\nOn weekends, the centre becomes even {8} lively. Families {9} long queues, chatting patiently while they wait {10} their orders. Elderly residents gather at corner tables, playing chess {11} sipping kopi. Despite the heat and noise, nobody seems {12} a hurry to leave.\n\nSadly, some stalls have {13} in recent years because younger hawkers are reluctant to take over such demanding work. Uncle Tan worries that traditions like his may {14} out unless more young people are willing to learn. Still, whenever I walk past his stall, I am reminded that a hawker centre is far {15} than just a place to eat.",
+    "text": "Every morning, the hawker centre near my block {1} to life. Stallholders arrive before dawn to prepare their ingredients, {2} the aroma of frying noodles soon fills the air. By seven o'clock, the tables are {3} occupied by residents having breakfast before work.\n\nMy favourite stall belongs to Uncle Tan, {4} has been selling fishball noodles for over thirty years. He {5} great pride in keeping his recipe unchanged, and his customers have {6} from schoolchildren into parents themselves. \"Food,\" he once told me, \"is {7} keeps a neighbourhood together.\"\n\nOn weekends, the centre becomes even {8} lively. Families {9} long queues, chatting patiently while they wait {10} their orders. Elderly residents gather at corner tables, playing chess {11} sipping kopi. Despite the heat and noise, nobody seems {12} a hurry to leave.\n\nSadly, {15} stalls have {13} in recent years because younger hawkers are reluctant to take over such demanding work. Uncle Tan worries that traditions like his may {14} out unless more young people are willing to learn. Still, whenever I walk past his stall, I am reminded that a hawker centre is far more than just a place to eat.",
     "blanks": [
       {
         "n": 1,
@@ -4002,10 +4002,10 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "more"
+          "some"
         ],
         "skill": "grammar",
-        "note": "comparative structure 'far more...than' showing greater degree"
+        "note": "Determiner/quantifier \"some\"."
       }
     ]
   },
@@ -4014,7 +4014,7 @@ export const clozePassages = [
     "level": "P6",
     "source": "ELPath (original)",
     "title": "The Firefly's Life Cycle",
-    "text": "Deep within a forest, a firefly's story begins as a tiny egg laid {1} the soil. Soon afterwards, it hatches {2} a larva, often called a \"glow-worm\" because it already glows faintly. This larval stage can last {3} to two years, as the young firefly feeds on snails and worms.\n\nOnce it has grown large enough, the larva builds a small chamber {4} it can transform safely. Inside this pupa, wings, legs and antennae all {5}, {6} the firefly slowly takes the shape it will keep for life.\n\nWhen the adult finally emerges, it has only one goal {7} mind: to find a mate before its short life ends. Male fireflies flash {8} light in patterns unique to each species, {9} females answer with matching flashes from the grass below. This glowing conversation {10} how fireflies recognise one another in the dark.\n\nSadly, firefly numbers have {11} declining in many places because of habitat loss and bright artificial lighting, which {12} their delicate signals. Scientists believe {13} protecting wetlands and reducing unnecessary night lighting could help fireflies survive. Understanding this insect's brief but {14} life cycle reminds us that even the smallest creatures {15} a part in keeping nature in balance.",
+    "text": "Deep within a forest, a firefly's story begins as a tiny egg laid {1} the soil. Soon afterwards, it hatches {2} a larva, often called a \"glow-worm\" because it already glows faintly. This larval stage can last {3} to two years, as the young firefly feeds on snails and worms.\n\nOnce it has grown large enough, the larva builds a small chamber {4} it can transform safely. Inside this pupa, wings, legs and antennae all {5}, {6} the firefly slowly takes the shape it will keep for life.\n\n{7} the adult finally emerges, it has only one goal in mind: to find a mate before its short life ends. Male fireflies flash {8} light in patterns unique to each species, {9} females answer with matching flashes from the grass below. This glowing conversation {10} how fireflies recognise one another in the dark.\n\nSadly, firefly numbers have {11} declining in many places because of habitat loss and bright artificial lighting, which {12} their delicate signals. Scientists believe {13} protecting wetlands and reducing unnecessary night lighting could help fireflies survive. Understanding this insect's brief but {14} life cycle reminds us that even the smallest creatures {15} a part in keeping nature in balance.",
     "blanks": [
       {
         "n": 1,
@@ -4067,10 +4067,10 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "in"
+          "when"
         ],
-        "skill": "collocation",
-        "note": "collocation: in mind = as a goal/intention"
+        "skill": "grammar",
+        "note": "Conjunction \"when\" linking clauses."
       },
       {
         "n": 8,
@@ -4143,7 +4143,7 @@ export const clozePassages = [
     "level": "P6",
     "source": "ELPath (original)",
     "title": "Inventing the Bicycle",
-    "text": "Long before bicycles filled our streets, a German inventor named Karl Drais built a strange wooden machine {1} two wheels in 1817. Riders {2} against the ground with their feet to move forward, since the machine had no pedals at all. Although it looked clumsy, this invention {3} the world's first practical way of balancing on two wheels.\n\nIt was only in the 1860s {4} pedals were finally attached directly to the front wheel, creating what people jokingly called the \"boneshaker\" because of its rough, uncomfortable ride. Inventors then experimented {5} wheel sizes, eventually producing the famous penny-farthing, {6} enormous front wheel let riders travel faster on each turn of the pedals.\n\nThis design, {7} exciting, was dangerously unstable, and riders often tumbled head over {8} onto the ground. The problem was finally solved in 1885, when the \"safety bicycle\" was introduced, featuring two equally sized wheels connected {9} a chain, much like bicycles today. This safer design quickly {10} popularity, and soon afterwards, John Dunlop's invention of air-filled rubber tyres {11} the ride far smoother and more comfortable.\n\nThese improvements {12} the bicycle into an affordable, practical option for ordinary people, {13} only the wealthy had previously been able to own private transport. Women especially benefited, {14} the bicycle gave them a new {15} of independence and freedom of movement.",
+    "text": "Long before bicycles filled our streets, a German inventor named Karl Drais built a strange wooden machine {1} two wheels in 1817. Riders {2} against the ground with their feet to move forward, since the machine had no pedals at all. Although it looked clumsy, this invention {3} the world's first practical way of balancing on two wheels.\n\nIt {5} only in the 1860s {4} pedals were finally attached directly to the front wheel, creating what people jokingly called the \"boneshaker\" because of its rough, uncomfortable ride. Inventors then experimented with wheel sizes, eventually producing the famous penny-farthing, {6} enormous front wheel let riders travel faster on each turn of the pedals.\n\nThis design, {7} exciting, was dangerously unstable, and riders often tumbled head over {8} onto the ground. The problem was finally solved in 1885, when the \"safety bicycle\" was introduced, featuring two equally sized wheels connected {9} a chain, much like bicycles today. This safer design quickly {10} popularity, and soon afterwards, John Dunlop's invention of air-filled rubber tyres {11} the ride far smoother and more comfortable.\n\nThese improvements {12} the bicycle into an affordable, practical option for ordinary people, {13} only the wealthy had previously been able to own private transport. Women especially benefited, {14} the bicycle gave them a new {15} of independence and freedom of movement.",
     "blanks": [
       {
         "n": 1,
@@ -4180,10 +4180,10 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "with"
+          "was"
         ],
-        "skill": "collocation",
-        "note": "collocation: experiment with something"
+        "skill": "grammar",
+        "note": "Auxiliary/linking verb \"was\" in context."
       },
       {
         "n": 6,
@@ -4401,7 +4401,7 @@ export const clozePassages = [
     "level": "P6",
     "source": "ELPath (original)",
     "title": "A Coral Reef",
-    "text": "Beneath the waves near Singapore's southern islands lies a coral reef {1} is teeming with colourful fish and other creatures. A reef may look like rock, {2} it is built by millions of tiny living animals called coral polyps. {3} polyp secretes a hard skeleton, and over hundreds of years these skeletons pile up {4} form the reef we see today.\n\nCoral polyps do not build reefs alone. Tiny algae called zooxanthellae live {5} the coral's tissue, forming a relationship that {6} both sides. The algae use sunlight to make food, sharing some of {7} energy with the coral, while the coral offers the algae a safe home {8} sunlight can reach them.\n\nSadly, coral reefs around the world are under threat. When the sea grows too warm, the algae {9} away, leaving the coral pale and lifeless, a process called coral bleaching. Pollution and careless fishing also {10} a heavy toll on these ecosystems, and without urgent {11}, many reefs may not survive.\n\nProtecting a coral reef is not just the job of scientists. Ordinary people can also {12} a part by avoiding plastic and using reef-safe sunscreen. Divers must also show great {13} in the water, since a light touch can damage it. If we all {14} care of our reefs today, the {15} of colourful fish and coral will delight children in future.",
+    "text": "Beneath the waves near Singapore's southern islands lies a coral reef {1} is teeming with colourful fish and other creatures. A reef may look like rock, {2} it is built by millions of tiny living animals called coral polyps. {3} polyp secretes a hard skeleton, and over hundreds of years these skeletons pile up {4} form the reef we see today.\n\nCoral polyps do not build reefs alone. Tiny algae called zooxanthellae live {5} the coral's tissue, forming a relationship that {6} both sides. The algae use sunlight to make food, sharing some of {7} energy with the coral, while the coral offers the algae a safe home {8} sunlight can reach them.\n\nSadly, coral reefs around the world are under threat. When the sea grows too warm, the algae {9} away, leaving the coral pale and lifeless, a process called coral bleaching. Pollution and careless fishing also {10} a heavy toll on these ecosystems, and without urgent {11}, many reefs may not survive.\n\nProtecting a coral reef {14} not just the job of scientists. Ordinary people can also {12} a part by avoiding plastic and using reef-safe sunscreen. Divers must also show great {13} in the water, since a light touch can damage it. If we all take care of our reefs today, the {15} of colourful fish and coral will delight children in future.",
     "blanks": [
       {
         "n": 1,
@@ -4510,10 +4510,10 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "take"
+          "is"
         ],
-        "skill": "collocation",
-        "note": "'take care of' - fixed phrase meaning to look after"
+        "skill": "grammar",
+        "note": "Auxiliary/linking verb \"is\" in context."
       },
       {
         "n": 15,
@@ -4530,7 +4530,7 @@ export const clozePassages = [
     "level": "P6",
     "source": "ELPath (original)",
     "title": "How Bees Make Honey",
-    "text": "Inside a hive, thousands of bees are hard {1} work from dawn to dusk. A worker bee leaves the hive to search {2} flowers, and when she finds one, she drinks its sweet nectar through a long tube called a proboscis, storing it {3} a special part of her stomach. In a single trip, she may {4} nectar from hundreds of blossoms before flying home.\n\nBack at the hive, she passes the nectar {5} another bee directly, again and again. Each time the nectar changes hands, enzymes in the bees' saliva break {6} the complex sugars into simpler ones, {7} makes the nectar easier to digest and store. This chewing and passing continues {8} the nectar slowly thickens into honey.\n\nThe bees then {9} the honey into the six-sided cells of the honeycomb, {10} is built from beeswax made by the bees themselves. To remove the extra {11}, worker bees take {12} fanning the cells with their wings until the honey becomes thick and sticky.\n\nBefore {13}, each cell is sealed with a thin cap of wax to keep the honey fresh through the {14} months, when flowers are scarce and food is hard to find. Thanks to this remarkable process, a single hive {15} produce many jars of honey every year.",
+    "text": "Inside a hive, thousands of bees are hard {1} work from dawn to dusk. A worker bee leaves the hive to search {2} flowers, and when she finds one, she drinks its sweet nectar through a long tube called a proboscis, storing it {3} a special part of her stomach. In a single trip, she may {4} nectar from hundreds of blossoms before flying home.\n\nBack at the hive, she passes the nectar {5} another bee directly, again and again. Each time the nectar changes hands, enzymes in the bees' saliva break {6} the complex sugars into simpler ones, {7} makes the nectar easier to digest and store. This chewing and passing continues {8} the nectar slowly thickens into honey.\n\n{10} bees then {9} the honey into the six-sided cells of the honeycomb, which is built from beeswax made by the bees themselves. To remove the extra {11}, worker bees take {12} fanning the cells with their wings until the honey becomes thick and sticky.\n\nBefore {13}, each cell is sealed with a thin cap of wax to keep the honey fresh through the {14} months, when flowers are scarce and food is hard to find. Thanks to this remarkable process, a single hive {15} produce many jars of honey every year.",
     "blanks": [
       {
         "n": 1,
@@ -4607,10 +4607,10 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "which"
+          "the"
         ],
         "skill": "grammar",
-        "note": "relative pronoun referring back to 'the honeycomb'"
+        "note": "Article \"the\" before the noun."
       },
       {
         "n": 11,
@@ -4659,7 +4659,7 @@ export const clozePassages = [
     "level": "P6",
     "source": "ELPath (original)",
     "title": "Wings Across the Skies",
-    "text": "Every year, as autumn approaches, millions of birds prepare {1} a long and dangerous journey. They travel thousands of kilometres {2} warmer countries, where food is more plentiful during the cold months. Scientists have long wondered how these creatures know exactly {3} to go, even though many have never made the trip before.\n\nResearch suggests that birds rely on several remarkable senses. Some species can detect the Earth's magnetic field, {4} acts like an invisible compass that guides them in the right direction. Others use the position of the sun and the stars {5} navigate at night. It is truly {6} how such small creatures can find their way across entire continents without ever getting lost.\n\nHowever, migration is {7} without its dangers. Strong winds, storms and a lack of food can claim the lives of many birds along the way. Despite these risks, the urge to migrate is so strong that the birds simply cannot {8} it. Every spring, {9} the weather grows warmer again, the birds set off on the long journey home.\n\nConservationists work hard {10} protect the wetlands and forests that migrating birds depend {11} for rest and food. Without these safe havens, many species {12} struggle to survive at all. It is our {13} to protect these habitats, so that future generations can continue to {14} this incredible natural {15} too.",
+    "text": "Every year, as autumn approaches, millions of birds prepare {1} a long and dangerous journey. They travel thousands of kilometres {2} warmer countries, where food is more plentiful during the cold months. Scientists have long wondered how these creatures know exactly {3} to go, even though many have never made the trip before.\n\nResearch suggests {5} birds rely on several remarkable senses. Some species can detect the Earth's magnetic field, {4} acts like an invisible compass that guides them in the right direction. Others use the position of the sun and the stars to navigate at night. It is truly {6} how such small creatures can find their way across entire continents without ever getting lost.\n\nHowever, migration is {7} without its dangers. Strong winds, storms and a lack of food can claim the lives of many birds along the way. Despite these risks, the urge to migrate is so strong that the birds simply cannot {8} it. Every spring, {9} the weather grows warmer again, the birds set off on the long journey home.\n\nConservationists work hard to protect {10} wetlands and forests that migrating birds depend {11} for rest and food. Without these safe havens, many species {12} struggle to survive at all. It is our {13} to protect these habitats, so that future generations can continue to {14} this incredible natural {15} too.",
     "blanks": [
       {
         "n": 1,
@@ -4696,10 +4696,10 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "to"
+          "that"
         ],
         "skill": "grammar",
-        "note": "infinitive marker: stars to navigate"
+        "note": "\"that\" introducing a clause."
       },
       {
         "n": 6,
@@ -4736,10 +4736,10 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "to"
+          "the"
         ],
         "skill": "grammar",
-        "note": "infinitive of purpose: work hard to protect"
+        "note": "Article \"the\" before the noun."
       },
       {
         "n": 11,
@@ -4788,7 +4788,7 @@ export const clozePassages = [
     "level": "P6",
     "source": "ELPath (original)",
     "title": "How Volcanoes Form",
-    "text": "Deep beneath the Earth's surface lies a layer of rock so hot {1} it melts into a thick, flowing liquid called magma. This molten rock is lighter than the solid rock around it, so it slowly {2} upward through narrow cracks in the crust. Over hundreds of years, it gathers in a huge underground chamber, waiting {3} a chance to escape.\n\nAs more magma collects, the pressure inside the chamber begins to build {4}. Gases trapped within the liquid rock struggle to break free, {5} the immense weight pressing down on them. Eventually, the pressure grows so great {6} the rock above can no longer hold it back, and the volcano erupts violently, {7} ash, gas and glowing lava high into the sky.\n\nThe lava that flows from the opening gradually cools {8} hardens into solid rock. With eruption {9} eruption, layer upon layer of hardened rock builds up, slowly forming the cone-shaped mountain {10} we recognise as a volcano. Some eruptions are gentle, while others are powerful enough {11} destroy entire towns within minutes.\n\n{12} volcanoes can be destructive, they are not entirely harmful. The ash they release breaks down over time {13} rich, fertile soil, which is excellent for farming. Many families still choose to {14} near volcanoes despite the obvious dangers, drawn by the rich soil that supports plentiful {15} each year.",
+    "text": "Deep beneath the Earth's surface lies a layer of rock so hot {1} it melts into a thick, flowing liquid called magma. This molten rock is lighter than the solid rock around it, so it slowly {2} upward through narrow cracks in the crust. Over hundreds of years, it gathers in a huge underground chamber, waiting {3} a chance to escape.\n\n{6} more magma collects, the pressure inside the chamber begins to build {4}. Gases trapped within the liquid rock struggle to break free, {5} the immense weight pressing down on them. Eventually, the pressure grows so great that the rock above can no longer hold it back, and the volcano erupts violently, {7} ash, gas and glowing lava high into the sky.\n\nThe lava that flows from the opening gradually cools {8} hardens into solid rock. With eruption {9} eruption, layer upon layer of hardened rock builds up, slowly forming the cone-shaped mountain {10} we recognise as a volcano. Some eruptions are gentle, while others are powerful enough {11} destroy entire towns within minutes.\n\n{12} volcanoes can be destructive, they are not entirely harmful. The ash they release breaks down over time {13} rich, fertile soil, which is excellent for farming. Many families still choose to {14} near volcanoes despite the obvious dangers, drawn by the rich soil that supports plentiful {15} each year.",
     "blanks": [
       {
         "n": 1,
@@ -4833,10 +4833,10 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "that"
+          "as"
         ],
         "skill": "grammar",
-        "note": "result clause: so great that"
+        "note": "Comparison word \"as\"."
       },
       {
         "n": 7,
@@ -4917,7 +4917,7 @@ export const clozePassages = [
     "level": "P6",
     "source": "ELPath (original)",
     "title": "The Giant Panda",
-    "text": "The giant panda is one of the most {1} animals {2} the world, known for its round face and black-and-white fur. Native to the mountainous forests of central China, this gentle creature spends most of its day munching on bamboo. In fact, bamboo makes {3} almost ninety-nine percent of its diet.\n\nBecause bamboo is low in nutrients, pandas {4} eat for up to twelve hours a day to get enough energy. Their strong jaw muscles and a specially adapted wrist bone {5} them to grip bamboo stalks firmly while eating. {6} their calm appearance, pandas are surprisingly strong and can defend themselves well if threatened.\n\nSadly, giant pandas were once on the {7} of extinction. Habitat loss, caused by farming and logging, left the pandas' bamboo forests badly {8}. In the 1980s, fewer {9} a thousand pandas were believed to remain in the wild, {10} left conservationists worried about the species' future.\n\nThanks to decades of conservation efforts, including breeding programmes, the panda population has begun {11} recover. In 2016, the species' status improved from \"endangered\" {12} \"vulnerable\" on the international conservation list. Today, the giant panda is celebrated as a conservation success story and holds a special {13} in people's hearts worldwide. Visitors continue to fall in {14} with these gentle giants, and zoos often see visitor numbers {15} soon after a cub is born.",
+    "text": "The giant panda is one of the most {1} animals {2} the world, known for its round face and black-and-white fur. Native to the mountainous forests of central China, this gentle creature spends most of its day munching on bamboo. In fact, bamboo makes {3} almost ninety-nine percent of its diet.\n\nBecause bamboo is low in nutrients, pandas {4} eat for up to twelve hours a day to get enough energy. Their strong jaw muscles and a specially adapted wrist bone {5} them to grip bamboo stalks firmly while eating. {6} their calm appearance, pandas are surprisingly strong and can defend themselves well if threatened.\n\nSadly, giant pandas were once on the {7} of extinction. Habitat loss, caused by farming and logging, left the pandas' bamboo forests badly {8}. In the 1980s, fewer {9} a thousand pandas were believed to remain in the wild, {10} left conservationists worried about the species' future.\n\nThanks to decades {12} conservation efforts, including breeding programmes, the panda population has begun {11} recover. In 2016, the species' status improved from \"endangered\" to \"vulnerable\" on the international conservation list. Today, the giant panda is celebrated as a conservation success story and holds a special {13} in people's hearts worldwide. Visitors continue to fall in {14} with these gentle giants, and zoos often see visitor numbers {15} soon after a cub is born.",
     "blanks": [
       {
         "n": 1,
@@ -5010,10 +5010,10 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "to"
+          "of"
         ],
         "skill": "grammar",
-        "note": "paired preposition pattern: from ... to ..."
+        "note": "Preposition \"of\" showing relationship."
       },
       {
         "n": 13,
@@ -5046,7 +5046,7 @@ export const clozePassages = [
     "level": "P6",
     "source": "ELPath (original)",
     "title": "Rush Hour on the MRT",
-    "text": "Every weekday morning, thousands {1} commuters flood into Raffles Place station just before eight o'clock. The platform is already packed with passengers standing shoulder to shoulder, all waiting {2} the next train to arrive. When the doors slide open, a wave of people surges forward, each person hoping to {3} a spot in the crowded carriage.\n\nI remember one chaotic morning when the train was {4} by a signal fault. The platform grew more crowded {5} every passing minute, and tempers began to fray. An elderly woman standing near me was gently pushed {6} the crowd and nearly lost her balance. Without hesitation, a schoolboy nearby reached out {7} caught her arm, steadying her before she fell.\n\nThe woman thanked him warmly, and the boy simply {8} nothing of it. His quiet act of kindness seemed to calm the {9} atmosphere; several grumbling passengers fell silent, perhaps a little ashamed. It was a small gesture, but it reminded everyone {10} the platform that courtesy still mattered, even {11} the rush.\n\nBy the time I boarded a train, I had missed two earlier ones. Yet I did not feel {12} I had wasted my morning. Instead, I felt a quiet sense {13} hope. If one act of kindness could make {14} a difference amid the rush-hour crush, perhaps commuters had not entirely {15} touch with one another after all.",
+    "text": "Every weekday morning, thousands {1} commuters flood into Raffles Place station just before eight o'clock. The platform is already packed with passengers standing shoulder to shoulder, all waiting {2} the next train to arrive. When the doors slide open, a wave of people surges forward, each person hoping to {3} a spot in the crowded carriage.\n\nI remember one chaotic morning when the train was {4} by a signal fault. The platform grew more crowded {5} every passing minute, and tempers began to fray. An elderly woman standing near me was gently pushed {6} the crowd and nearly lost her balance. Without hesitation, a schoolboy nearby reached out {7} caught her arm, steadying her before she fell.\n\nThe woman thanked him warmly, and the boy simply {8} nothing of it. His quiet act of kindness seemed to calm the {9} atmosphere; several grumbling passengers fell silent, perhaps a little ashamed. It was a small gesture, but it reminded everyone {10} the platform that courtesy still mattered, even {11} the rush.\n\nBy {13} time I boarded a train, I had missed two earlier ones. Yet I did not feel {12} I had wasted my morning. Instead, I felt a quiet sense of hope. If one act of kindness could make {14} a difference amid the rush-hour crush, perhaps commuters had not entirely {15} touch with one another after all.",
     "blanks": [
       {
         "n": 1,
@@ -5147,10 +5147,10 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "of"
+          "the"
         ],
-        "skill": "collocation",
-        "note": "fixed phrase 'a sense of hope'"
+        "skill": "grammar",
+        "note": "Article \"the\" before the noun."
       },
       {
         "n": 14,
@@ -5175,7 +5175,7 @@ export const clozePassages = [
     "level": "P6",
     "source": "ELPath (original)",
     "title": "A Morning at the Wet Market",
-    "text": "On Saturday mornings, my grandmother takes me {1} the wet market near our block before the sun grows too hot. The market is a maze {2} narrow lanes, each stall {3} with fresh vegetables, live fish and cuts of meat.\n\nThe moment we step inside, a sharp {4} of raw meat and damp concrete fills the air, mixing with the sound of vendors calling out their prices. My grandmother moves quickly {5} she knows exactly which stall sells the freshest produce. She always {6} a hard bargain, chatting with the fishmonger {7} she inspects each fish closely, checking its eyes and gills before deciding {8} to buy it.\n\nAt one stall, an elderly woman was struggling to {9} a heavy basket of oranges onto her bicycle. My grandmother, {10} is always ready to lend a hand, offered to help without being asked. The woman was deeply {11} and thanked her again and again.\n\nBy the time we finish our rounds, my grandmother's basket is full {12} the brim with vegetables, meat and fruit. Although the market is noisy and the floor is often slippery, I have grown {13} of these weekly trips, for they remind me {14} the simple, hardworking lives of the vendors who rise before dawn {15} earn their living.",
+    "text": "On Saturday mornings, my grandmother takes me {1} the wet market near our block before the sun grows too hot. The market is a maze {2} narrow lanes, each stall {3} with fresh vegetables, live fish and cuts of meat.\n\nThe moment we step inside, a sharp {4} of raw meat and damp concrete fills the air, mixing with the sound of vendors calling out their prices. My grandmother moves quickly {5} she knows exactly which stall sells the freshest produce. She always {6} a hard bargain, chatting with the fishmonger {7} she inspects each fish closely, checking its eyes and gills before deciding {8} to buy it.\n\nAt one stall, an elderly woman was struggling to {9} a heavy basket of oranges onto her bicycle. My grandmother, {10} is always ready to lend a hand, offered to help without being asked. The woman was deeply {11} and thanked her again and again.\n\n{12} {14} time we finish {15} rounds, my grandmother's basket is full to the brim with vegetables, meat and fruit. Although the market is noisy and the floor is often slippery, I have grown {13} of these weekly trips, for they remind me of the simple, hardworking lives of the vendors who rise before dawn to earn their living.",
     "blanks": [
       {
         "n": 1,
@@ -5268,10 +5268,10 @@ export const clozePassages = [
       {
         "n": 12,
         "accept": [
-          "to"
+          "by"
         ],
-        "skill": "collocation",
-        "note": "fixed phrase 'full to the brim'"
+        "skill": "grammar",
+        "note": "Preposition \"by\" showing relationship."
       },
       {
         "n": 13,
@@ -5284,18 +5284,18 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "of"
+          "the"
         ],
-        "skill": "collocation",
-        "note": "verb + preposition: 'remind someone of something'"
+        "skill": "grammar",
+        "note": "Article \"the\" before the noun."
       },
       {
         "n": 15,
         "accept": [
-          "to"
+          "our"
         ],
         "skill": "grammar",
-        "note": "infinitive of purpose: 'rise before dawn to earn'"
+        "note": "Possessive \"our\" showing ownership."
       }
     ]
   },
@@ -5304,7 +5304,7 @@ export const clozePassages = [
     "level": "P6",
     "source": "ELPath (original)",
     "title": "Our Neighbourhood Library",
-    "text": "Tucked between a coffee shop and a launderette, our neighbourhood library is easy {1} miss unless you already know it is there. It is small, quieter than the large libraries downtown, and it rarely {2} the newest bestsellers, but I have always preferred it {3} any other library in Singapore.\n\nEvery Saturday afternoon, Mr Lim, the elderly librarian, sits behind the counter, {4} an eye on the children's corner while stamping due dates onto library cards. He knows almost every regular visitor {5} name, and he never fails {6} recommend a book he thinks a child will enjoy. Once, when I could not decide {7} book to borrow, he handed me a worn copy of a mystery novel and told me it would keep me {8} the edge of my seat.\n\nHe was right. I finished the book {9} two days and returned eagerly for more, {10} sparked a habit of reading that has stayed with me ever since. Whenever I feel {11}, I know I can always find comfort {12} those familiar shelves.\n\nSadly, I heard recently that the library might close {13} lack of funding. The news left me {14}, for this small, unassuming place had quietly shaped my {15} of books. I hope it somehow survives.",
+    "text": "Tucked {3} a coffee shop and a launderette, our neighbourhood library is easy {1} miss unless you already know it is there. It is small, quieter than the large libraries downtown, and it rarely {2} the newest bestsellers, but I have always preferred it to any other library in Singapore.\n\n{6} Saturday afternoon, Mr Lim, the elderly librarian, sits behind the counter, {4} an eye on the children's corner while stamping due dates onto library cards. He knows almost every regular visitor {5} name, and he never fails to recommend a book he thinks a child will enjoy. Once, when I could not decide {7} book to borrow, he handed me a worn copy of a mystery novel and told me it would keep me {8} the edge of my seat.\n\nHe {10} right. I finished the book {9} two days and returned eagerly for more, which sparked a habit of reading that has stayed with me ever since. Whenever I feel {11}, I know I can always find comfort {12} those familiar shelves.\n\nSadly, I heard recently that the library might close {13} lack of funding. The news left me {14}, for this small, unassuming place had quietly shaped my {15} of books. I hope it somehow survives.",
     "blanks": [
       {
         "n": 1,
@@ -5325,10 +5325,10 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "to"
+          "between"
         ],
-        "skill": "collocation",
-        "note": "fixed pairing 'prefer X to Y'"
+        "skill": "grammar",
+        "note": "Preposition \"between\" showing relationship."
       },
       {
         "n": 4,
@@ -5349,10 +5349,10 @@ export const clozePassages = [
       {
         "n": 6,
         "accept": [
-          "to"
+          "every"
         ],
         "skill": "grammar",
-        "note": "'fails to' + base verb"
+        "note": "Determiner/quantifier \"every\"."
       },
       {
         "n": 7,
@@ -5381,10 +5381,10 @@ export const clozePassages = [
       {
         "n": 10,
         "accept": [
-          "which"
+          "was"
         ],
         "skill": "grammar",
-        "note": "relative pronoun referring back to the whole preceding clause"
+        "note": "Auxiliary/linking verb \"was\" in context."
       },
       {
         "n": 11,
@@ -5433,7 +5433,7 @@ export const clozePassages = [
     "level": "P6",
     "source": "ELPath (original)",
     "title": "The Singapore River's Journey",
-    "text": "Long before Singapore became a bustling city, the Singapore River was already the lifeblood {1} the young settlement. In the early nineteenth century, bumboats {2} up and down the muddy waters, carrying sacks of rice, spices and timber to the {3} that lined its banks. Traders {4} all walks of life gathered along the wharves, {5} shouting in different languages as they haggled over prices.\n\nThe river was not always a pleasant place. {6} decades of heavy use, it grew so polluted {7} fish could barely survive in its waters. Rubbish and waste from nearby markets were often dumped {8} thinking of the consequences. By the 1970s, the government realised {9} something had to be done before the damage became permanent.\n\nA massive clean-up effort was launched, {10} took almost ten years to complete. Factories were relocated, hawkers were resettled, and the murky water was gradually brought back {11} life. Today, visitors {12} attention to the elegant bridges and restored shophouses that line the riverside promenade. {13} the daytime crowds have thinned, the area comes alive again at night, {14} its restaurants and bars glow with light. The transformation of the Singapore River {15} reminds us that a clean environment can restore both beauty and pride to a nation.",
+    "text": "Long before Singapore became a bustling city, the Singapore River was already the lifeblood {1} the young settlement. In the early nineteenth century, bumboats {2} up and down the muddy waters, carrying sacks of rice, spices and timber to the {3} that lined its banks. Traders {4} all walks of life gathered along the wharves, {5} shouting in different languages as they haggled over prices.\n\n{9} river was not always a pleasant place. {6} decades of heavy use, it grew so polluted {7} fish could barely survive in its waters. Rubbish and waste from nearby markets were often dumped {8} thinking of the consequences. By the 1970s, the government realised that something had to be done before the damage became permanent.\n\nA massive clean-up effort was launched, {10} took almost ten years to complete. Factories were relocated, hawkers were resettled, and the murky water was gradually brought back {11} life. Today, visitors {12} attention to the elegant bridges and restored shophouses that line the riverside promenade. {13} the daytime crowds have thinned, the area comes alive again at night, {14} its restaurants and bars glow with light. The transformation of the Singapore River {15} reminds us that a clean environment can restore both beauty and pride to a nation.",
     "blanks": [
       {
         "n": 1,
@@ -5502,10 +5502,10 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "that"
+          "the"
         ],
         "skill": "grammar",
-        "note": "conjunction introducing a noun clause after 'realised'"
+        "note": "Article \"the\" before the noun."
       },
       {
         "n": 10,
@@ -5562,7 +5562,7 @@ export const clozePassages = [
     "level": "P6",
     "source": "ELPath (original)",
     "title": "A Community Garden Blooms",
-    "text": "When Madam Lim first suggested turning the empty plot behind her block into a community garden, {1} of her neighbours thought she was joking. The land had been neglected {2} years and was overgrown {3} weeds that nobody wanted to touch. Still, she refused {4} give up. Within a few weeks, a handful of residents had picked up rakes and gloves {5} join her.\n\nRaised beds were built using old wooden {6}, and seeds of tomatoes, chillies and herbs were sown {7} neat rows. Every Saturday morning, young and old {8} together, watering plants and pulling out stubborn weeds. Children who had never paid {9} to plants before began asking questions about how vegetables grew.\n\nBy the time the first tomatoes turned red, the garden had {10} far more than a patch of soil. {11} had turned into a place where strangers greeted one another by name, {12} sharing tips on composting and swapping extra produce. Madam Lim often says the harvest she treasures most is not the vegetables {13} the friendships that grew alongside them. {14}, what began as one woman's idea has blossomed into a project the whole {15} is proud of.",
+    "text": "{5} Madam Lim first suggested turning the empty plot behind her block into a community garden, {1} of her neighbours thought she was joking. The land had been neglected {2} years and was overgrown {3} weeds that nobody wanted to touch. Still, she refused {4} give up. Within a few weeks, a handful of residents had picked up rakes and gloves to join her.\n\nRaised beds were built using old wooden {6}, and seeds of tomatoes, chillies and herbs were sown {7} neat rows. Every Saturday morning, young and old {8} together, watering plants and pulling out stubborn weeds. Children who had never paid {9} to plants before began asking questions about how vegetables grew.\n\nBy the time the first tomatoes turned red, the garden had {10} far more than a patch of soil. {11} had turned into a place where strangers greeted one another by name, {12} sharing tips on composting and swapping extra produce. Madam Lim often says the harvest she treasures most is not the vegetables {13} the friendships that grew alongside them. {14}, what began as one woman's idea has blossomed into a project the whole {15} is proud of.",
     "blanks": [
       {
         "n": 1,
@@ -5599,10 +5599,10 @@ export const clozePassages = [
       {
         "n": 5,
         "accept": [
-          "to"
+          "when"
         ],
         "skill": "grammar",
-        "note": "infinitive of purpose ('gloves ... to join her')"
+        "note": "Conjunction \"when\" linking clauses."
       },
       {
         "n": 6,
@@ -5691,7 +5691,7 @@ export const clozePassages = [
     "level": "P6",
     "source": "ELPath (original)",
     "title": "Chinatown Comes Alive",
-    "text": "As dusk fell over Chinatown, strings of red lanterns flickered {1} life along Pagoda Street, and the air grew thick {2} the sweet smell of roasting chestnuts. Crowds {3} the narrow lanes, weaving between stalls piled high with mooncakes {4} every flavour imaginable. Children skipped ahead of their parents, with {5} paper lanterns swinging from their hands.\n\nThis was the Mid-Autumn Festival, {6} families gather to admire the full moon and give thanks for the harvest. Elderly aunties bargained loudly over the price of pomelos, {7} street performers balanced on stilts nearby, drawing gasps from the crowd. A group of drummers {8} their instruments so fiercely that passers-by stopped {9} watch.\n\nBy nine o'clock, the temperature had barely cooled, {10} the crowds showed no sign of thinning. Vendors {11} out free samples of tea, hoping to win new customers before the night ended. {12} the festivities carried on until midnight, most families made {13} way home earlier, lanterns still glowing softly in the dark. {14} the noise and bustle faded, Chinatown would {15} again the following evening, ready to welcome the crowds once more.",
+    "text": "As dusk fell over Chinatown, strings of red lanterns flickered {1} life along Pagoda Street, and the air grew thick {2} the sweet smell of roasting chestnuts. Crowds {3} the narrow lanes, weaving between stalls piled high with mooncakes {4} every flavour imaginable. Children skipped ahead of their parents, with {5} paper lanterns swinging from their hands.\n\n{9} was the Mid-Autumn Festival, {6} families gather to admire the full moon and give thanks for the harvest. Elderly aunties bargained loudly over the price of pomelos, {7} street performers balanced on stilts nearby, drawing gasps from the crowd. A group of drummers {8} their instruments so fiercely that passers-by stopped to watch.\n\nBy nine o'clock, the temperature had barely cooled, {10} the crowds showed no sign of thinning. Vendors {11} out free samples of tea, hoping to win new customers before the night ended. {12} the festivities carried on until midnight, most families made {13} way home earlier, lanterns still glowing softly in the dark. {14} the noise and bustle faded, Chinatown would {15} again the following evening, ready to welcome the crowds once more.",
     "blanks": [
       {
         "n": 1,
@@ -5760,10 +5760,10 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "to"
+          "this"
         ],
         "skill": "grammar",
-        "note": "infinitive after the verb 'stopped'"
+        "note": "Demonstrative \"this\"."
       },
       {
         "n": 10,
@@ -5820,7 +5820,7 @@ export const clozePassages = [
     "level": "P6",
     "source": "ELPath (original)",
     "title": "The Printing Press",
-    "text": "Before the fifteenth century, every book in Europe had to be copied out {1} hand. This was a slow and costly process, so only wealthy people {2} afford to own books. Most ordinary families never {3} a single page in their lives.\n\nEverything changed {4} Johannes Gutenberg, a goldsmith from Germany, invented a new kind of printing press. He designed metal letters that could be arranged {5} form words, then inked and pressed onto paper. Because the letters could be used again and again, {6} was no longer necessary to carve a fresh block for every page. Gutenberg's machine could turn out {7} pages in the time a scribe took to copy one.\n\nHis invention soon caught {8}. Within fifty years, printing presses had sprung up in cities {9} Italy to England, and the price of books fell {10}. For the first time, knowledge was {11} available to merchants, students and craftsmen, not merely to monks and nobles.\n\n{12}, the printing press changed more than reading habits. It allowed new ideas {13} spread quickly across borders. This exchange {14} debates that reshaped science, religion and politics. Historians still regard Gutenberg's invention {15} one of the turning points of human history.",
+    "text": "Before the fifteenth century, every book in Europe had to be copied out {1} hand. This was a slow and costly process, so only wealthy people {2} afford to own books. Most ordinary families never {3} a single page in their lives.\n\nEverything changed {4} Johannes Gutenberg, a goldsmith from Germany, invented a new kind of printing press. He designed metal letters that could be arranged {5} form words, then inked and pressed onto paper. Because the letters could be used again and again, {6} was no longer necessary to carve a fresh block for every page. Gutenberg's machine could turn out {7} pages in the time a scribe took to copy one.\n\nHis invention soon caught {8}. Within fifty years, printing presses had sprung up in cities {9} Italy to England, and the price of books fell {10}. For the first time, knowledge was {11} available to merchants, students and craftsmen, not merely to monks and nobles.\n\n{12}, {13} printing press changed more than reading habits. It allowed new ideas to spread quickly across borders. This exchange {14} debates that reshaped science, religion and politics. Historians still regard Gutenberg's invention {15} one of the turning points of human history.",
     "blanks": [
       {
         "n": 1,
@@ -5921,10 +5921,10 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "to"
+          "the"
         ],
         "skill": "grammar",
-        "note": "Infinitive after 'allowed new ideas ... spread'."
+        "note": "Article \"the\" before the noun."
       },
       {
         "n": 14,
@@ -6078,7 +6078,7 @@ export const clozePassages = [
     "level": "P6",
     "source": "ELPath (original)",
     "title": "The First Aeroplane",
-    "text": "For centuries, people watched birds glide across the sky and dreamed {1} flying themselves. Many inventors tried and failed, building machines with flapping wings {2} never left the ground.\n\nTwo American brothers, Orville and Wilbur Wright, approached the problem differently. Instead {3} copying birds exactly, they studied how wind moved over curved surfaces and built a small wind tunnel {4} test their ideas. Over several years, they flew gliders {5} the sandy dunes of Kitty Hawk, learning to control the machine's balance {6} than simply fighting the wind.\n\nOn the morning of 17 December 1903, the brothers were {7} ready. Their engine roared {8} life, and the flimsy wooden aircraft rose slowly {9} the air. It stayed aloft for just twelve seconds, covering a distance shorter {10} the wing of a modern jet, yet it was the first {11}, controlled flight in history.\n\nNews of the achievement spread slowly at first, since few newspapers {12} such a machine was possible. Within a decade, {13} aeroplanes were carrying passengers and mail across whole countries. The Wright brothers had turned an old dream {14} reality, and opened the sky to everyone who {15} to look up.",
+    "text": "For centuries, people watched birds glide across the sky and dreamed {1} flying themselves. Many inventors tried and failed, building machines with flapping wings {2} never left the ground.\n\nTwo American brothers, Orville {3} Wilbur Wright, approached the problem differently. Instead of copying birds exactly, they studied how wind moved over curved surfaces and built a small wind tunnel {4} test their ideas. Over several years, they flew gliders {5} the sandy dunes of Kitty Hawk, learning to control the machine's balance {6} than simply fighting the wind.\n\nOn {8} morning of 17 December 1903, the brothers were {7} ready. Their engine roared to life, and the flimsy wooden aircraft rose slowly {9} the air. It stayed aloft for just twelve seconds, covering a distance shorter {10} the wing of a modern jet, yet it was the first {11}, controlled flight in history.\n\nNews of the achievement spread slowly {14} first, since few newspapers {12} such a machine was possible. Within a decade, {13} aeroplanes were carrying passengers and mail across whole countries. The Wright brothers had turned an old dream into reality, and opened the sky to everyone who {15} to look up.",
     "blanks": [
       {
         "n": 1,
@@ -6099,10 +6099,10 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "of"
+          "and"
         ],
-        "skill": "collocation",
-        "note": "Fixed phrase 'instead of'."
+        "skill": "grammar",
+        "note": "Conjunction \"and\" linking clauses."
       },
       {
         "n": 4,
@@ -6139,10 +6139,10 @@ export const clozePassages = [
       {
         "n": 8,
         "accept": [
-          "to"
+          "the"
         ],
-        "skill": "collocation",
-        "note": "Collocation 'roar to life'."
+        "skill": "grammar",
+        "note": "Article \"the\" before the noun."
       },
       {
         "n": 9,
@@ -6187,10 +6187,10 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "into"
+          "at"
         ],
-        "skill": "collocation",
-        "note": "Collocation 'turn X into Y'."
+        "skill": "grammar",
+        "note": "Preposition \"at\" showing relationship."
       },
       {
         "n": 15,
@@ -6465,7 +6465,7 @@ export const clozePassages = [
     "level": "P6",
     "source": "ELPath (original)",
     "title": "The Compass and Navigation",
-    "text": "Long {1} sailors had proper maps, they relied on the sun, the stars and the shape of the coastline to find their way across the sea. This method worked well enough in clear weather, {2} it became almost useless when thick clouds hid the sky for many days at a time. Sailors could easily lose their {3} and drift far off course.\n\nEverything changed {4} the invention of the compass. Ancient Chinese scholars discovered that a certain stone, called lodestone, always {5} the same direction whenever it was allowed to swing freely. By rubbing a needle against a piece of lodestone, they found that the needle {6} the same strange power, always settling in a north-south line.\n\nBy the twelfth century, sailors across Asia and Europe had begun to {7} this discovery to good use, floating a magnetised needle {8} a bowl of water or mounting it on a pin. {9} the compass, a captain no {10} needed a clear sky {11} find his direction; he simply had to {12} down at the needle.\n\nThe compass gave sailors the {13} to venture further from shore than ever before, opening up new trade routes and distant lands {14} exploration. In many ways, this simple instrument helped {15} the modern world.",
+    "text": "Long {1} sailors had proper maps, they relied on the sun, the stars and the shape of the coastline to find their way across the sea. This method worked well enough in clear weather, {2} it became almost useless when thick clouds hid the sky for many days at a time. Sailors could easily lose their {3} and drift far off course.\n\nEverything changed {4} the invention of the compass. Ancient Chinese scholars discovered that a certain stone, called lodestone, always {5} the same direction whenever it was allowed to swing freely. By rubbing a needle against a piece of lodestone, they found that the needle {6} the same strange power, always settling in a north-south line.\n\n{9} the twelfth century, sailors across Asia and Europe had begun to {7} this discovery to good use, floating a magnetised needle {8} a bowl of water or mounting it on a pin. With the compass, a captain no {10} needed a clear sky {11} find his direction; he simply had to {12} down at the needle.\n\nThe compass gave sailors the {13} to venture further from shore than ever before, opening up new trade routes and distant lands {14} exploration. In many ways, this simple instrument helped {15} the modern world.",
     "blanks": [
       {
         "n": 1,
@@ -6534,10 +6534,10 @@ export const clozePassages = [
       {
         "n": 9,
         "accept": [
-          "With"
+          "by"
         ],
         "skill": "grammar",
-        "note": "preposition beginning the sentence: with the compass"
+        "note": "Preposition \"by\" showing relationship."
       },
       {
         "n": 10,
@@ -6594,7 +6594,7 @@ export const clozePassages = [
     "level": "P6",
     "source": "ELPath (original)",
     "title": "The First Concert",
-    "text": "Wei Jie had practised the violin {1} three years, but nothing could prepare him {2} the moment he stepped onto the school hall stage. His palms turned damp, and his heart pounded {3} a drum. From the front row, his mother smiled encouragingly, and he took a deep breath, hoping {4} calm his nerves.\n\nThe conductor raised her baton, and the orchestra began to play. Wei Jie focused {5} the sheet music, counting each beat silently. Halfway through the piece, he struck a wrong note, {6} he did not let it throw him off. Instead, he simply carried on, remembering his teacher's words: an audience rarely notices a small mistake {7} the performer keeps going with confidence.\n\nWhen the final note faded away, the hall fell silent before erupting into applause. Wei Jie could hardly believe his {8}. He had finally made up his {9} that music was something to pursue seriously, not merely a {10} that his parents had chosen for him.\n\nAfterwards, his teacher praised him for his {11} under pressure and reminded him {12} every musician, no matter how skilled, feels nervous before a performance. Wei Jie smiled, realising that his hard {13} had truly paid off. He was already looking forward to his next {14}, eager to improve and, one day, inspire other {15} musicians, just as his teacher had inspired him.",
+    "text": "Wei Jie {2} practised the violin {1} three years, but nothing could prepare him for the moment he stepped onto the school hall stage. His palms turned damp, and his heart pounded {3} a drum. From the front row, his mother smiled encouragingly, and he took a deep breath, hoping {4} calm his nerves.\n\nThe conductor raised her baton, and the orchestra began to play. Wei Jie focused {5} the sheet music, counting each beat silently. Halfway through the piece, he struck a wrong note, {6} he did not let it throw him off. Instead, he simply carried on, remembering his teacher's words: an audience rarely notices a small mistake {7} the performer keeps going with confidence.\n\nWhen the final note faded away, the hall fell silent before erupting into applause. Wei Jie could hardly believe his {8}. He had finally made up his {9} that music was something to pursue seriously, not merely a {10} that his parents had chosen for him.\n\nAfterwards, his teacher praised him for his {11} under pressure and reminded him {12} every musician, no matter how skilled, feels nervous before a performance. Wei Jie smiled, realising that his hard {13} had truly paid off. He was already looking forward to his next {14}, eager to improve and, one day, inspire other {15} musicians, just as his teacher had inspired him.",
     "blanks": [
       {
         "n": 1,
@@ -6607,10 +6607,10 @@ export const clozePassages = [
       {
         "n": 2,
         "accept": [
-          "for"
+          "had"
         ],
-        "skill": "collocation",
-        "note": "Fixed phrase: 'prepare somebody for something'."
+        "skill": "grammar",
+        "note": "Auxiliary \"had\" for tense."
       },
       {
         "n": 3,
@@ -6723,7 +6723,7 @@ export const clozePassages = [
     "level": "P6",
     "source": "ELPath (original)",
     "title": "The Recycling Project",
-    "text": "When the students at Greenfield Primary School noticed how much paper and plastic {1} being thrown away every day, they decided to do something about it. Led by their teacher, Mr Tan, a small group {2} volunteers set up recycling bins along every corridor. At first, many pupils were {3} to change their habits, tossing rubbish into the wrong bins out {4} sheer laziness.\n\nTo raise {5}, the student council organised a school-wide assembly. They explained that recycling paper alone could save {6} trees, and that every small effort would add {7} to a big difference. Posters explaining what could {8} could not be recycled were put up in classrooms, so {9} pupils would know exactly what to do before they threw anything away.\n\nWithin a month, the project began to bear {10}. The amount of rubbish sent to landfills dropped {11}, and the school even earned enough recycling points to be awarded a certificate {12} the National Environment Agency. Mr Tan reminded the pupils {13}, although the award was pleasing, the real achievement lay in the habits they had built.\n\nBy the end of the term, recycling had become second {14} to almost everyone. Younger pupils, inspired by their seniors, started their own mini projects at home, showing that a simple school {15} could spark change far beyond the classroom gates.",
+    "text": "{4} the students at Greenfield Primary School noticed how much paper and plastic {1} being thrown away every day, they decided to do something about it. Led by their teacher, Mr Tan, a small group {2} volunteers set up recycling bins along every corridor. At first, many pupils were {3} to change their habits, tossing rubbish into the wrong bins out of sheer laziness.\n\nTo raise {5}, the student council organised a school-wide assembly. They explained that recycling paper alone could save {6} trees, and that every small effort would add {7} to a big difference. Posters explaining what could {8} could not be recycled were put up in classrooms, so {9} pupils would know exactly what to do before they threw anything away.\n\nWithin a month, {13} project began to bear {10}. The amount of rubbish sent to landfills dropped {11}, and the school even earned enough recycling points to be awarded a certificate {12} the National Environment Agency. Mr Tan reminded the pupils that, although the award was pleasing, the real achievement lay in the habits they had built.\n\nBy the end of the term, recycling had become second {14} to almost everyone. Younger pupils, inspired by their seniors, started their own mini projects at home, showing that a simple school {15} could spark change far beyond the classroom gates.",
     "blanks": [
       {
         "n": 1,
@@ -6752,10 +6752,10 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "of"
+          "when"
         ],
         "skill": "grammar",
-        "note": "Fixed phrase 'out of' (preposition)."
+        "note": "Conjunction \"when\" linking clauses."
       },
       {
         "n": 5,
@@ -6824,10 +6824,10 @@ export const clozePassages = [
       {
         "n": 13,
         "accept": [
-          "that"
+          "the"
         ],
         "skill": "grammar",
-        "note": "Conjunction introducing the reported clause after 'reminded'."
+        "note": "Article \"the\" before the noun."
       },
       {
         "n": 14,
@@ -6852,7 +6852,7 @@ export const clozePassages = [
     "level": "P6",
     "source": "ELPath (original)",
     "title": "A Home for Strays",
-    "text": "Every Saturday morning, Aisha and her brother Danial cycled to the animal shelter to help out. The shelter was often short of hands, especially {1} feeding time, when dozens of hungry cats and dogs needed feeding immediately.\n\nAisha's favourite task was walking the older dogs, {2} had grown slow and gentle with age. She spoke to them softly and made sure they never felt {3}, even though they no longer had homes. Danial, {4} the other hand, preferred cleaning the cages, a job few volunteers wanted but one that had to be done {5} that the animals stayed healthy.\n\nOne afternoon, a thin, timid puppy was brought {6} after being found near a busy road. It flinched at every sound and refused to come {7} of its cage. Aisha knelt beside it daily, offering treats and gentle words, {8} winning its trust. Within a few {9}, the puppy was wagging its tail whenever it saw her.\n\nThe shelter manager often said that small, kind gestures could make a world {10} difference to an abandoned animal. Aisha took those words {11} heart. By the time she and Danial left each Saturday, tired {12} covered in fur, they always felt {13} it had been a day well spent. Volunteering had taught them that {14} for another living creature, no matter how small, was never a waste {15} time.",
+    "text": "Every Saturday morning, Aisha and her brother Danial cycled to the animal shelter to help out. The shelter was often short of hands, especially {1} feeding time, when dozens of hungry cats and dogs needed feeding immediately.\n\nAisha's favourite task was walking the older dogs, {2} had grown slow and gentle with age. She spoke to them softly and made sure they never felt {3}, even though they no longer had homes. Danial, {4} the other hand, preferred cleaning the cages, a job few volunteers wanted but one that had to be done {5} that the animals stayed healthy.\n\nOne afternoon, a thin, timid puppy was brought {6} after being found near a busy road. It flinched at every sound and refused to come {7} of its cage. Aisha knelt beside it daily, offering treats and gentle words, {8} winning its trust. Within a few {9}, the puppy was wagging its tail whenever it saw her.\n\n{15} shelter manager often said that small, kind gestures could make a world {10} difference to an abandoned animal. Aisha took those words {11} heart. By the time she and Danial left each Saturday, tired {12} covered in fur, they always felt {13} it had been a day well spent. Volunteering had taught them that {14} for another living creature, no matter how small, was never a waste of time.",
     "blanks": [
       {
         "n": 1,
@@ -6969,10 +6969,10 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "of"
+          "the"
         ],
-        "skill": "collocation",
-        "note": "Idiom: 'a waste of time'."
+        "skill": "grammar",
+        "note": "Article \"the\" before the noun."
       }
     ]
   },
@@ -7110,7 +7110,7 @@ export const clozePassages = [
     "level": "P6",
     "source": "ELPath (original)",
     "title": "The Recess Fruit Corner",
-    "text": "Last term, students at Sunrise Primary School noticed that many classmates chose fried snacks over fruit during recess. Ms Farah, the school's health committee teacher, felt that something had {1} be done. Together with a group of Primary Five volunteers, she set {2} a small fruit corner by the canteen, selling apples, oranges and bananas cheaply.\n\nThe volunteers took turns manning the stall {3} Monday to Thursday. They arrived early {4} wash and slice the fruit before the bell rang. At first, few students paid {5} attention, but the volunteers were not discouraged. They designed {6} posters on the benefits of eating fruit and pinned them near the canteen entrance.\n\nWord spread {7} the fruit corner, {8} the volunteers noticed something encouraging: students who bought fruit often persuaded friends to try it. Teachers reported that pupils seemed more {9} during afternoon lessons, and food wastage in the canteen dropped {10}. Even parents began asking {11} the stall could open on Fridays as well.\n\nEncouraged {12} this response, the school is now planning to turn the fruit corner into a weekly programme. The school hopes it can eventually be {13} entirely by the students. Ms Farah believes that {14} more pupils join in, healthy eating will spread {15} the whole school. What began as a small idea has grown into something the school takes pride in.",
+    "text": "Last term, students at Sunrise Primary School noticed that many classmates chose fried snacks over fruit during recess. Ms Farah, the school's health committee teacher, felt that something had {1} be done. Together with a group of Primary Five volunteers, she set {2} a small fruit corner by the canteen, selling apples, oranges and bananas cheaply.\n\n{4} volunteers took turns manning the stall {3} Monday to Thursday. They arrived early to wash and slice the fruit before the bell rang. At first, few students paid {5} attention, but the volunteers were not discouraged. They designed {6} posters on the benefits of eating fruit and pinned them near the canteen entrance.\n\nWord spread {7} the fruit corner, {8} the volunteers noticed something encouraging: students who bought fruit often persuaded friends to try it. Teachers reported that pupils seemed more {9} during afternoon lessons, and food wastage in the canteen dropped {10}. Even parents began asking {11} the stall could open on Fridays as well.\n\nEncouraged {12} this response, the school is now planning to turn the fruit corner into a weekly programme. The school hopes it can eventually be {13} entirely by the students. Ms Farah believes that {14} more pupils join in, healthy eating will spread {15} the whole school. What began as a small idea has grown into something the school takes pride in.",
     "blanks": [
       {
         "n": 1,
@@ -7139,10 +7139,10 @@ export const clozePassages = [
       {
         "n": 4,
         "accept": [
-          "to"
+          "the"
         ],
         "skill": "grammar",
-        "note": "infinitive of purpose"
+        "note": "Article \"the\" before the noun."
       },
       {
         "n": 5,
@@ -7239,7 +7239,7 @@ export const clozePassages = [
     "level": "P6",
     "source": "ELPath (original)",
     "title": "Building a New Reservoir",
-    "text": "As Singapore's population grew quickly in the 1980s, the country needed a reliable source {1} fresh water. Rainfall alone was not enough, and there {2} little space left to build large new reservoirs on land. Engineers wondered where they {3} find a solution that would not take up precious space needed for homes and factories.\n\nOne bold idea was {4} dam up a river mouth and turn the seawater trapped behind it into fresh water over time. Building such a barrage was risky {5} untested, but it offered a way to gain a large body of water without clearing more land. Careful studies were carried {6} to check whether the plan would work {7} harming nearby wildlife.\n\nThe construction project was {8}, requiring huge gates and pumps strong enough to hold back the sea. Workers battled unpredictable tides and had to {9} concrete only when conditions were exactly right. {10} facing several delays caused by stormy weather, the project team pressed on, determined to finish {11} time. Their hard work paid {12} when the barrage was completed months ahead of its original deadline.\n\nToday, the reservoir provides a steady {13} of drinking water and doubles up as a spot for boating and picnics. Families gather there {14} weekends to enjoy the open water, {15} of them fully aware that beneath the calm surface lies an impressive feat of engineering.",
+    "text": "As Singapore's population grew quickly in the 1980s, the country needed a reliable source {1} fresh water. Rainfall alone was not enough, and there {2} little space left to build large new reservoirs on land. Engineers wondered where they {3} find a solution that would not take up precious space needed for homes and factories.\n\nOne bold idea was {4} dam up a river mouth and turn the seawater trapped behind it into fresh water over time. Building such a barrage was risky {5} untested, but it offered a way to gain a large body of water without clearing more land. Careful studies were carried {6} to check whether the plan would work {7} harming nearby wildlife.\n\nThe construction project was {8}, requiring huge gates and pumps strong enough to hold back the sea. Workers battled unpredictable tides and had to {9} concrete only when conditions were exactly right. {10} facing several delays caused by stormy weather, the project team pressed on, determined to finish {11} time. Their hard work paid {12} when the barrage was completed months ahead of its original deadline.\n\nToday, {14} reservoir provides a steady {13} of drinking water and doubles up as a spot for boating and picnics. Families gather there on weekends to enjoy the open water, {15} of them fully aware that beneath the calm surface lies an impressive feat of engineering.",
     "blanks": [
       {
         "n": 1,
@@ -7348,10 +7348,10 @@ export const clozePassages = [
       {
         "n": 14,
         "accept": [
-          "on"
+          "the"
         ],
         "skill": "grammar",
-        "note": "preposition of time: on weekends"
+        "note": "Article \"the\" before the noun."
       },
       {
         "n": 15,
@@ -7368,7 +7368,7 @@ export const clozePassages = [
     "level": "P6",
     "source": "ELPath (original)",
     "title": "Africa's Ancient Baobab",
-    "text": "Across the dry grasslands of eastern and southern Africa stands an extraordinary tree — the baobab. With its swollen trunk and short, twisted branches, it is often called the Tree {1} Life by local communities who depend {2} it for survival. Some baobabs are believed {3} be more than a thousand years old, {4} makes them among the oldest living things on Earth.\n\nWhat gives the baobab its incredible {5} is its ability to store enormous amounts of water. During the rainy season, the spongy wood inside the trunk soaks {6} huge amounts of rainfall, {7} allows the trunk to swell and expand. {8} the dry season begins and rain may not fall for months, the tree slowly draws on this {9} reserve to stay alive.\n\nThe baobab is far more than a water tank. {10} hollow trunk often provides shelter for bats, birds and small animals, while the fruit, rich {11} vitamin C, has long been harvested by villagers for food and traditional medicine. Over many generations, people have gathered beneath its wide {12} to rest, trade and share stories.\n\nSadly, several ancient baobabs have {13} suddenly in recent years, and conservationists believe careless land clearing for farming may be to {14}. Groups are now working hard {15} protect these giants, so that future generations can still marvel at their quiet strength.",
+    "text": "Across the dry grasslands of eastern and southern Africa stands an extraordinary tree — the baobab. With its swollen trunk and short, twisted branches, it is often called the Tree {1} Life by local communities who depend {2} it for survival. Some baobabs are believed {3} be more than a thousand years old, {4} makes them among the oldest living things on Earth.\n\n{7} gives the baobab its incredible {5} is its ability to store enormous amounts of water. During the rainy season, the spongy wood inside the trunk soaks {6} huge amounts of rainfall, which allows the trunk to swell and expand. {8} the dry season begins and rain may not fall for months, the tree slowly draws on this {9} reserve to stay alive.\n\nThe baobab is far more than a water tank. {10} hollow trunk often provides shelter for bats, birds and small animals, while the fruit, rich {11} vitamin C, has long been harvested by villagers for food and traditional medicine. Over many generations, people have gathered beneath its wide {12} to rest, trade and share stories.\n\nSadly, {15} ancient baobabs have {13} suddenly in recent years, and conservationists believe careless land clearing for farming may be to {14}. Groups are now working hard to protect these giants, so that future generations can still marvel at their quiet strength.",
     "blanks": [
       {
         "n": 1,
@@ -7421,10 +7421,10 @@ export const clozePassages = [
       {
         "n": 7,
         "accept": [
-          "which"
+          "what"
         ],
         "skill": "grammar",
-        "note": "relative pronoun referring back to the preceding clause"
+        "note": "\"what\" introducing a clause."
       },
       {
         "n": 8,
@@ -7485,10 +7485,10 @@ export const clozePassages = [
       {
         "n": 15,
         "accept": [
-          "to"
+          "several"
         ],
         "skill": "grammar",
-        "note": "infinitive marker after 'working hard'"
+        "note": "Determiner/quantifier \"several\"."
       }
     ]
   },
@@ -7497,7 +7497,7 @@ export const clozePassages = [
     "level": "P6",
     "source": "ELPath (original)",
     "title": "Understanding Stuttering",
-    "text": "Stuttering is a speech condition that affects how smoothly a person speaks. It can cause someone {1} repeat sounds, pause unexpectedly, or stretch out certain words {2} communicating. Doctors believe that stuttering is connected {3} how the brain controls speech, and it often begins {4} early childhood.\n\nFor a child {5} stutters, ordinary situations such as reading aloud in class or answering a teacher's question can feel stressful. Some children become anxious about speaking in front {6} others, fearing that classmates might laugh or lose {7} with them. Over time, this worry can make the stutter even more noticeable, creating a difficult cycle to {8}.\n\nFortunately, there is plenty that classmates and teachers can do to help. Giving a student extra time to finish a sentence, rather {9} guessing or finishing it for them, shows genuine respect. Teachers can also create a calm classroom {10} where speaking up is never rushed. Small gestures, like maintaining eye {11} and waiting patiently, can make a tremendous {12} to a child's confidence.\n\nChildren who stutter can gradually grow more comfortable expressing themselves, with understanding and support from those around {13}. Just {14} everyone learns and grows at their own pace, every voice deserves the chance to be {15}, no matter how it sounds.",
+    "text": "Stuttering {3} a speech condition that affects how smoothly a person speaks. It can cause someone {1} repeat sounds, pause unexpectedly, or stretch out certain words {2} communicating. Doctors believe that stuttering is connected to how the brain controls speech, and it often begins {4} early childhood.\n\nFor a child {5} stutters, ordinary situations such as reading aloud in class or answering a teacher's question can feel stressful. Some children become anxious about speaking in front {6} others, fearing that classmates might laugh or lose {7} with them. Over time, this worry can make the stutter even more noticeable, creating a difficult cycle to {8}.\n\nFortunately, there is plenty that classmates and teachers can do to help. Giving a student extra time to finish a sentence, rather {9} guessing or finishing it for them, shows genuine respect. Teachers can also create a calm classroom {10} where speaking up is never rushed. Small gestures, like maintaining eye {11} and waiting patiently, can make a tremendous {12} to a child's confidence.\n\nChildren who stutter can gradually grow more comfortable expressing themselves, with understanding and support from those around {13}. Just {14} everyone learns and grows at their own pace, every voice deserves the chance to be {15}, no matter how it sounds.",
     "blanks": [
       {
         "n": 1,
@@ -7518,10 +7518,10 @@ export const clozePassages = [
       {
         "n": 3,
         "accept": [
-          "to"
+          "is"
         ],
-        "skill": "collocation",
-        "note": "fixed phrase 'connected to'"
+        "skill": "grammar",
+        "note": "Auxiliary/linking verb \"is\" in context."
       },
       {
         "n": 4,
@@ -7755,7 +7755,7 @@ export const clozePassages = [
     "level": "P6",
     "source": "ELPath (original)",
     "title": "Debating History Lessons",
-    "text": "Many students find memorising historical dates dull, but Mr Tan, a teacher at Riverside Primary, believes learning does not have to feel {1} a chore. Last term, he began turning history lessons {2} lively debates instead {3} long lectures.\n\nBefore each debate, small groups {4} the viewpoint {5} they have been assigned, whether it belongs to a general, a trader or an ordinary villager. They must gather {6} evidence to make their arguments convincing, {7} a weak case can quickly be picked apart by the opposing team.\n\nThe debates have also given quieter students a chance {8} shine. Because they can prepare their points in advance, they feel less {9} than they would answering a sudden question aloud. Priya, who rarely spoke up before, now looks {10} to her turn at the podium. \"I used {11} freeze whenever a teacher called on me,\" she admitted, \"but planning my answer beforehand has given me confidence.\"\n\nNaturally, debating alone cannot replace steady revision. Mr Tan reminds his class {12} facts must still be practised regularly, {13} lively discussion works best when paired with quiet study at home. A pupil who debates {14} but rarely opens a textbook will still find examinations difficult. A balanced routine gives every student the best {15} of doing well.",
+    "text": "Many students find memorising historical dates dull, but Mr Tan, a teacher at Riverside Primary, believes learning does not have to feel {1} a chore. Last term, he began turning history lessons {2} lively debates instead {3} long lectures.\n\nBefore each debate, small groups {4} the viewpoint {5} they have been assigned, whether it belongs to a general, a trader or an ordinary villager. They must gather {6} evidence to make their arguments convincing, {7} a weak case can quickly be picked apart by the opposing team.\n\n{11} debates have also given quieter students a chance {8} shine. Because they can prepare their points in advance, they feel less {9} than they would answering a sudden question aloud. Priya, who rarely spoke up before, now looks {10} to her turn at the podium. \"I used to freeze whenever a teacher called on me,\" she admitted, \"but planning my answer beforehand has given me confidence.\"\n\nNaturally, debating alone cannot replace steady revision. Mr Tan reminds {12} class that facts must still be practised regularly, {13} lively discussion works best when paired with quiet study at home. A pupil who debates {14} but rarely opens a textbook will still find examinations difficult. A balanced routine gives every student the best {15} of doing well.",
     "blanks": [
       {
         "n": 1,
@@ -7840,18 +7840,18 @@ export const clozePassages = [
       {
         "n": 11,
         "accept": [
-          "to"
+          "the"
         ],
-        "skill": "collocation",
-        "note": "fixed phrase 'used to' for past habits"
+        "skill": "grammar",
+        "note": "Article \"the\" before the noun."
       },
       {
         "n": 12,
         "accept": [
-          "that"
+          "his"
         ],
         "skill": "grammar",
-        "note": "conjunction introducing a noun clause after 'reminds'"
+        "note": "Possessive \"his\" showing ownership."
       },
       {
         "n": 13,

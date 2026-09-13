@@ -69,10 +69,8 @@ export default function ClozeResults() {
             {toReview.map((r) => (
               <li key={r.n} className="flex gap-2 text-sm">
                 <span className="flex-none font-semibold text-ink-700">{r.n}.</span>
-                <span className="text-ink-600">
-                  {r.verdict === 'typo'
-                    ? r.note || `Check the spelling of “${r.matched}”.`
-                    : <>accepted: <span className="text-ink-800">{(r.accepted || []).join(', ')}</span></>}
+                <span className=”text-ink-600”>
+                  accepted: <span className=”text-ink-800”>{(r.accepted || []).join(', ')}</span>
                 </span>
               </li>
             ))}

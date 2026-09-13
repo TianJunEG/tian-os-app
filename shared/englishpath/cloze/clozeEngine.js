@@ -26,7 +26,7 @@ export function initClozeState() {
 
 const emptySkill = () => ({ grammar: { c: 0, t: 0 }, collocation: { c: 0, t: 0 }, content: { c: 0, t: 0 } });
 
-const isBlankCorrect = (v) => v === 'correct' || v === 'typo'; // matches clozeGrader's own definition
+const isBlankCorrect = (v) => v === 'correct';
 
 // Fold one attempt's per-blank verdicts into a passage's blankStats: a blank
 // missed this attempt gets its miss count bumped and is marked not-last-correct

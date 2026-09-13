@@ -78,7 +78,6 @@ export default function ClozeFocusSession() {
     const v = verdictByN[n];
     if (!graded) return `${base} border-ink-400 focus:border-emerald focus:bg-emerald-tint`;
     if (v === 'correct') return `${base} border-emerald bg-success-100 text-emerald-deep`;
-    if (v === 'typo') return `${base} border-gold bg-gold-tint text-gold-deep`;
     return `${base} border-error-400 bg-error-100 text-error-700`;
   };
 
