@@ -26,6 +26,12 @@ const fractionsSkillGraph = {
   skills: FRACTION_CANONICAL_SKILL_ROWS.map((row) => ({ id: row.frameworkSkillId, name: row.parentName })),
 };
 
+// Fractions skill graph derived from the canonical skill map (F001–F026).
+// Uses parentName so labels are parent-friendly ("Recognising fractions as equal parts").
+const fractionsSkillGraph = {
+  skills: FRACTION_CANONICAL_SKILL_ROWS.map((row) => ({ id: row.frameworkSkillId, name: row.parentName })),
+};
+
 // Keyed on the registry's canonical domainIds (services/domains/domainRegistry.js)
 // — which match each practice service's DOMAIN_ID constant.
 const GRAPHS = {
