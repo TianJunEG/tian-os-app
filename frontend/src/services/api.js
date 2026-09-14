@@ -694,11 +694,14 @@ export const assessmentUploadAPI = {
 // Auth API
 export const authAPI = {
   register: (data) => api.post('/auth/register', data),
+  studentSignup: (data) => api.post('/auth/student-signup', data),
   login: (data) => api.post('/auth/login', data),
   getCurrentUser: () => api.get('/auth/me'),
   updateProfile: (data) => api.put('/auth/update-profile', data),
   forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
   resetPassword: (token, password) => api.post(`/auth/reset-password/${token}`, { password }),
+  verifyEmail: (token) => api.post(`/auth/verify-email/${token}`),
+  resendVerification: () => api.post('/auth/resend-verification'),
 };
 
 // Tutors API

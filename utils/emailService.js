@@ -276,6 +276,20 @@ export const sendPasswordResetEmail = async ({ to, name, resetUrl, expiresInMinu
   return sendEmail({ to, subject: 'Password Reset Request', html });
 };
 
+export const sendVerificationEmail = async ({ to, name, verifyUrl, expiresInHours = 24 }) => {
+  const safeName = escapeHtml(name || 'there');
+  const html = `
+    <h2>Confirm your email</h2>
+    <p>Hi ${safeName},</p>
+    <p>Welcome to Tian OS! Click the button below to confirm your email address and finish setting up your account:</p>
+    <p><a href="${verifyUrl}" style="background-color:#1F6B53;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;display:inline-block;">Confirm Email</a></p>
+    <p style="color:#666;font-size:13px;">This link expires in ${expiresInHours} hours. If you didn't create this account, you can safely ignore this email.</p>
+    <p style="color:#666;font-size:13px;">If the button doesn't work, copy this link into your browser:<br>${escapeHtml(verifyUrl)}</p>
+    <p>Best regards,<br>The Tian OS Team</p>
+  `;
+  return sendEmail({ to, subject: 'Confirm your Tian OS email', html });
+};
+
 export default {
   sendEmail,
   sendTutorApprovalEmail,
@@ -286,6 +300,7 @@ export default {
   sendPartnerInquiryNotificationEmail,
   sendPartnerInquiryAcknowledgementEmail,
   sendPasswordResetEmail,
+  sendVerificationEmail,
   sendWelcomeEmail,
   appBaseUrl,
 };

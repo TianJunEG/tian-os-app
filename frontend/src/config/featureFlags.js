@@ -82,6 +82,10 @@ export const FEATURE_FLAGS = {
   // Self-serve registration gate. Off by default until the company is
   // registered and pricing confirmed. Set VITE_ENABLE_OPEN_REGISTRATION=1.
   openRegistration: flagEnabled('OPEN_REGISTRATION'),
+  // Student self-signup (own email + password + email verification link) —
+  // separate from openRegistration above, which only ever covers parent/tutor.
+  // Off by default. Set VITE_ENABLE_STUDENT_SIGNUP=1 to enable.
+  studentSignup: flagEnabled('STUDENT_SIGNUP'),
 };
 
 export const isFractionsStoryModeEnabled = () => FEATURE_FLAGS.fractionsStoryMode;
