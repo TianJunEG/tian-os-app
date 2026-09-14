@@ -34,12 +34,15 @@ function isHighConfidence(value) { const normalized = String(value || '').toLowe
 
 function normalizeP4Question(raw) {
   const normalized = { ...raw };
-  if (raw.answerType === 'number' || typeof raw.answer === 'number') {
-    normalized.answer = { display: String(raw.answer), type: 'whole', value: Number(raw.answer) };
-  } else if (raw.answerType === 'choice') {
+  // 'choice' must be checked before the numeric fallback below — an MCQ whose
+  // answer happens to be a number (e.g. a missing-factor question) would
+  // otherwise render as a free-text box instead of choice buttons.
+  if (raw.answerType === 'choice') {
     normalized.answer = { display: String(raw.answer), type: 'text', value: raw.answer };
     normalized.type = 'mcq';
     normalized.choices = raw.options || [];
+  } else if (raw.answerType === 'number' || typeof raw.answer === 'number') {
+    normalized.answer = { display: String(raw.answer), type: 'whole', value: Number(raw.answer) };
   } else if (raw.answerType === 'text') {
     normalized.answer = { display: String(raw.answer), type: 'text', value: raw.answer };
   } else {

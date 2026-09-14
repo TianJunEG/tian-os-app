@@ -167,12 +167,11 @@ describe('p2MoneyQuestionGenerator', () => {
         const q = generateQuestion('P2-MON-03', { questionFamilyId: 'QF_P2-MON-03_001' });
         expect(q).not.toBeNull();
         expect(q.skillId).toBe('P2-MON-03');
-        expect(q.answerType).toBe('mcq');
+        expect(q.answerType).toBe('choice');
         expect(q.options).toBeDefined();
         expect(q.options.length).toBe(2);
         // The answer should match one of the options
-        const optionValues = q.options.map((o) => o.value);
-        expect(optionValues).toContain(q.answer);
+        expect(q.options).toContain(q.answer);
         // Prompt contains greater or lesser
         expect(q.prompt).toMatch(/greater|lesser/);
       }
@@ -182,12 +181,11 @@ describe('p2MoneyQuestionGenerator', () => {
       for (let i = 0; i < 10; i++) {
         const q = generateQuestion('P2-MON-03', { questionFamilyId: 'QF_P2-MON-03_002' });
         expect(q).not.toBeNull();
-        expect(q.answerType).toBe('mcq');
+        expect(q.answerType).toBe('choice');
         expect(q.options).toBeDefined();
         expect(q.options.length).toBeGreaterThanOrEqual(2);
         // The answer should match one of the options
-        const optionValues = q.options.map((o) => o.value);
-        expect(optionValues).toContain(q.answer);
+        expect(q.options).toContain(q.answer);
         // Prompt contains direction
         expect(q.prompt).toMatch(/least to greatest|greatest to least/);
       }

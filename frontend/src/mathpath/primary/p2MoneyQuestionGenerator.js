@@ -189,16 +189,13 @@ function generateCompareMoney(familyId) {
     const name = pick(NAMES);
 
     // Build MCQ options
-    const options = shuffle([
-      { label: centsToStr(a), value: centsToStr(a) },
-      { label: centsToStr(b), value: centsToStr(b) },
-    ]);
+    const options = shuffle([centsToStr(a), centsToStr(b)]);
     return {
       skillId: 'P2-MON-03',
       questionFamilyId: familyId,
       prompt: `${name} is looking at two prices: ${centsToStr(a)} and ${centsToStr(b)}. Which amount is ${questionWord}?`,
       answer: centsToStr(correct),
-      answerType: 'mcq',
+      answerType: 'choice',
       options,
       instructionHint: 'Compare the dollars first, then the cents.',
       solutionText: `${centsToStr(correct)} is ${questionWord} than ${centsToStr(wrong)}.`,
@@ -230,17 +227,14 @@ function generateCompareMoney(familyId) {
     const swapped = [sorted[1], sorted[0], sorted[2]].map(centsToStr).join(', ');
     wrongOrders.push(swapped);
   }
-  const options = shuffle([
-    { label: correctOrder, value: correctOrder },
-    ...wrongOrders.map((w) => ({ label: w, value: w })),
-  ]);
+  const options = shuffle([correctOrder, ...wrongOrders]);
 
   return {
     skillId: 'P2-MON-03',
     questionFamilyId: familyId,
     prompt: `${name} has three amounts: ${vals.map(centsToStr).join(', ')}. Arrange them from ${direction}.`,
     answer: correctOrder,
-    answerType: 'mcq',
+    answerType: 'choice',
     options,
     instructionHint: 'Compare the dollars first. If the dollars are the same, compare the cents.',
     solutionText: `From ${direction}: ${correctOrder}.`,
