@@ -413,7 +413,13 @@ function generateNumberBonds(familyId) {
     options,
     instructionHint: 'Choose the pair that adds to 10.',
     solutionText: `${correctA} + ${correctB} = 10.`,
-    diagramSpec: objectSetDiagram('counters', 10, { crossedOut: correctB, title: `${correctA} + ${correctB} = 10` }),
+    // Show only the whole (10 counters) — do NOT crossOut correctB. The old
+    // spec passed the ANSWER as crossedOut so the un-crossed count IS the
+    // other half of the correct pair, and the "which two numbers add to 10?"
+    // MCQ could be answered by counting the visible dots. Same principle as
+    // the AddSub/Money leak fix (commit 105c765f) and P1-EQG-05: never render
+    // the split the student is being asked to identify.
+    diagramSpec: objectSetDiagram('counters', 10, { title: '10 counters' }),
     misconceptionTraps: ['number_bond_recall_error'],
   };
 }

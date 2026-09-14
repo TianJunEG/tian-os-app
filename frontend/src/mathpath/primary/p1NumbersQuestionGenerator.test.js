@@ -542,4 +542,22 @@ describe('p1NumbersQuestionGenerator', () => {
       }
     }
   });
+
+  // Regression for the same bug class as commit 105c765f (AddSub/Money leaks):
+  // the "Which two numbers add to 10?" MCQ family (P1-NUM-09 _002) used to pass
+  // one HALF of the correct pair as `crossedOut`, so the un-crossed counter
+  // count = the other half. Any student answering by counting the picture
+  // instead of reasoning about number bonds would land on the correct pair.
+  it('P1-NUM-09 find-the-pair MCQ does NOT split the 10-counter whole', () => {
+    for (let i = 0; i < 60; i += 1) {
+      const q = generateQuestion('P1-NUM-09', { questionFamilyId: 'QF_P1-NUM-09_002' });
+      if (q.answerType !== 'choice') continue;
+      const data = q.diagramSpec?.data;
+      const cats = Array.isArray(data?.categories) ? data.categories : [];
+      // A single "10 counters" category — no crossed-out split that leaks the answer.
+      expect(cats.length).toBe(1);
+      expect(cats[0].count).toBe(10);
+      expect(String(cats[0].label || '')).not.toMatch(/crossed/i);
+    }
+  });
 });
