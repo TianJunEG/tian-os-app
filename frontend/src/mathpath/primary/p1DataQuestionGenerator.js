@@ -111,7 +111,8 @@ function generateCompareCategories(familyId) {
       questionFamilyId: familyId,
       prompt: `Look at the picture graph "${title}". Which has the ${word}?`,
       answer,
-      answerType: 'text',
+      answerType: 'choice',
+      options: shuffle(categories.map((c) => c.label)),
       instructionHint: `Count each category and find the one with the ${word}.`,
       solutionText: `${categories.map((c) => `${c.label}: ${c.count}`).join(', ')}. ${answer} has the ${word}.`,
       diagramSpec: pictureCollectionDiagram(categories, { symbol: '●', title }),
@@ -133,7 +134,8 @@ function generateCompareCategories(familyId) {
     questionFamilyId: familyId,
     prompt: `Look at the picture graph "${title}". Which has ${word}: ${catA.label} or ${catB.label}?`,
     answer,
-    answerType: 'text',
+    answerType: 'choice',
+    options: shuffle([catA.label, catB.label]),
     instructionHint: `Count both categories and decide which has ${word}.`,
     solutionText: `${catA.label}: ${catA.count}, ${catB.label}: ${catB.count}. ${answer} has ${word}.`,
     diagramSpec: pictureCollectionDiagram(categories, { symbol: '●', title }),
@@ -207,14 +209,16 @@ function generateCompleteGraph(familyId) {
     const targetIdx = randInt(0, categories.length - 1);
     const target = categories[targetIdx];
 
+    const voteWord = target.count === 1 ? 'vote' : 'votes';
+    const pictureWord = target.count === 1 ? 'picture' : 'pictures';
     return {
       skillId: 'P1-DAT-06',
       questionFamilyId: familyId,
-      prompt: `In the picture graph "${title}", ${target.label} has ${target.count} votes. How many pictures should you draw for ${target.label}?`,
+      prompt: `In the picture graph "${title}", ${target.label} has ${target.count} ${voteWord}. How many pictures should you draw for ${target.label}?`,
       answer: target.count,
       answerType: 'number',
       instructionHint: 'Draw the same number of pictures as the count given.',
-      solutionText: `${target.label} has ${target.count} votes, so draw ${target.count} pictures.`,
+      solutionText: `${target.label} has ${target.count} ${voteWord}, so draw ${target.count} ${pictureWord}.`,
       diagramSpec: pictureCollectionDiagram(
         categories.map((c, i) => i === targetIdx ? { label: c.label, count: 0 } : c),
         { symbol: '●', title }

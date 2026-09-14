@@ -205,7 +205,7 @@ describe('p1DataQuestionGenerator', () => {
     it('generates a most/fewest question', () => {
       const q = generateQuestion('P1-DAT-03', { questionFamilyId: 'QF_P1-DAT-03_001' });
       expect(q).not.toBeNull();
-      expect(q.answerType).toBe('text');
+      expect(q.answerType).toBe('choice');
       expect(q.prompt).toMatch(/most|fewest/);
       expect(q.diagramSpec).toBeDefined();
     });
@@ -213,15 +213,17 @@ describe('p1DataQuestionGenerator', () => {
     it('generates a more/fewer comparison question', () => {
       const q = generateQuestion('P1-DAT-03', { questionFamilyId: 'QF_P1-DAT-03_002' });
       expect(q).not.toBeNull();
-      expect(q.answerType).toBe('text');
+      expect(q.answerType).toBe('choice');
       expect(q.prompt).toMatch(/more|fewer/);
     });
 
-    it('answer is a valid category label', () => {
+    it('answer is a valid category label and a selectable option', () => {
       for (let i = 0; i < 10; i++) {
         const q = generateQuestion('P1-DAT-03');
         const categoryLabels = q.diagramSpec.data.categories.map((c) => c.label);
         expect(categoryLabels).toContain(q.answer);
+        expect(q.options).toContain(q.answer);
+        expect(new Set(q.options).size).toBe(q.options.length);
       }
     });
   });
@@ -299,6 +301,26 @@ describe('p1DataQuestionGenerator', () => {
       expect(q).not.toBeNull();
       expect(q.prompt).toContain('altogether');
       expect(q.answer).toBeGreaterThanOrEqual(1);
+    });
+
+    it('pluralizes "vote"/"picture" correctly when the count is 1', () => {
+      // Run enough draws to hit the count===1 case (1/8 chance per draw).
+      let sawSingular = false;
+      for (let i = 0; i < 200 && !sawSingular; i++) {
+        const q = generateQuestion('P1-DAT-06', { questionFamilyId: 'QF_P1-DAT-06_001' });
+        if (q.answer === 1) {
+          sawSingular = true;
+          expect(q.prompt).toContain('1 vote.');
+          expect(q.prompt).not.toContain('1 votes');
+          expect(q.solutionText).toContain('1 vote,');
+          expect(q.solutionText).toContain('1 picture.');
+          expect(q.solutionText).not.toMatch(/1 votes|1 pictures/);
+        } else {
+          expect(q.prompt).toContain(`${q.answer} votes.`);
+          expect(q.solutionText).toContain(`${q.answer} pictures.`);
+        }
+      }
+      expect(sawSingular).toBe(true);
     });
 
     it('diagram has a hidden category with count 0', () => {

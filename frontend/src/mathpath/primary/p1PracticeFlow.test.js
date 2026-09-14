@@ -131,6 +131,23 @@ describe('startP1PracticeFlow', () => {
     expect(mcqQuestion.choices.length).toBeGreaterThanOrEqual(2);
   });
 
+  it('sets type=mcq and non-empty choices for P1-DAT-03 comparison questions', () => {
+    // P1-DAT-03 used to be answerType:'text' (typed free-text spelling of a
+    // category label), the only P1 generator to require typing instead of
+    // tapping for a "pick a known item" task — converted to answerType:'choice'
+    // to match every sibling generator's established MCQ pattern.
+    const session = startP1PracticeFlow({
+      studentId: 'test-student',
+      requestedSkillId: 'P1-DAT-03',
+      sessionLength: 10,
+    });
+    const mcqQuestion = session.questions.find((q) => q.type === 'mcq');
+    expect(mcqQuestion).toBeDefined();
+    expect(mcqQuestion.choices).toBeDefined();
+    expect(Array.isArray(mcqQuestion.choices)).toBe(true);
+    expect(mcqQuestion.choices.length).toBeGreaterThanOrEqual(2);
+  });
+
   it('respects session type constraints', () => {
     const warmup = startP1PracticeFlow({
       studentId: 'test-student',
