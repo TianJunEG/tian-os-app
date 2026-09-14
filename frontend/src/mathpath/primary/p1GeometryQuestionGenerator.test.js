@@ -150,8 +150,18 @@ describe('p1GeometryQuestionGenerator', () => {
       expect(q.skillId).toBe('P1-GEO-01');
       expect(q.answerType).toBe('choice');
       expect(['circle', 'triangle', 'square', 'rectangle']).toContain(q.answer);
-      expect(q.choices).toBeDefined();
-      expect(q.choices).toContain(q.answer);
+      expect(q.options).toBeDefined();
+      expect(q.options).toContain(q.answer);
+      expect(new Set(q.options).size).toBe(q.options.length);
+    });
+
+    it('does not state the shape name in the prompt, and shows a diagram instead', () => {
+      for (let i = 0; i < 10; i++) {
+        const q = generateQuestion('P1-GEO-01', { questionFamilyId: 'QF_P1-GEO-01_001' });
+        expect(q.prompt).not.toContain(q.answer);
+        expect(q.diagramSpec).toBeDefined();
+        expect(q.diagramSpec.type).toBe('shape_library');
+      }
     });
 
     it('generates a count-sides-or-corners question', () => {
@@ -171,14 +181,23 @@ describe('p1GeometryQuestionGenerator', () => {
       expect(q.skillId).toBe('P1-GEO-02');
       expect(q.answerType).toBe('choice');
       expect(['cube', 'cuboid', 'sphere', 'cone', 'cylinder']).toContain(q.answer);
-      expect(q.choices).toContain(q.answer);
+      expect(q.options).toContain(q.answer);
+    });
+
+    it('does not state the object name in the prompt, and shows a diagram instead', () => {
+      for (let i = 0; i < 10; i++) {
+        const q = generateQuestion('P1-GEO-02', { questionFamilyId: 'QF_P1-GEO-02_001' });
+        expect(q.prompt).not.toContain(q.answer);
+        expect(q.diagramSpec).toBeDefined();
+        expect(q.diagramSpec.type).toBe('shape_library');
+      }
     });
 
     it('generates a match-to-description question', () => {
       const q = generateQuestion('P1-GEO-02', { questionFamilyId: 'QF_P1-GEO-02_002' });
       expect(q).not.toBeNull();
       expect(q.prompt).toContain('description');
-      expect(q.choices).toContain(q.answer);
+      expect(q.options).toContain(q.answer);
     });
   });
 
@@ -198,6 +217,28 @@ describe('p1GeometryQuestionGenerator', () => {
       expect(q.prompt).toMatch(/curved|straight/);
       expect(q.diagramSpec).toBeDefined();
     });
+
+    it('the answer is always a selectable option, even when multiple shapes match', () => {
+      for (const questionFamilyId of ['QF_P1-GEO-03_001', 'QF_P1-GEO-03_002']) {
+        for (let i = 0; i < 30; i++) {
+          const q = generateQuestion('P1-GEO-03', { questionFamilyId });
+          expect(q.answerType).toBe('choice');
+          expect(q.options).toContain(q.answer);
+          expect(new Set(q.options).size).toBe(q.options.length);
+        }
+      }
+    });
+
+    it('the answer can list more than one shape', () => {
+      // targetSides=4 (family_001) and askCurved=false (family_002) both match >1 shape;
+      // over enough draws we should see a multi-shape, comma-joined answer at least once.
+      let sawMultiShape = false;
+      for (let i = 0; i < 40 && !sawMultiShape; i++) {
+        const q = generateQuestion('P1-GEO-03');
+        if (q.answer.includes(', ')) sawMultiShape = true;
+      }
+      expect(sawMultiShape).toBe(true);
+    });
   });
 
   describe('P1-GEO-04: Continue shape patterns', () => {
@@ -206,7 +247,7 @@ describe('p1GeometryQuestionGenerator', () => {
       expect(q).not.toBeNull();
       expect(q.skillId).toBe('P1-GEO-04');
       expect(q.prompt).toContain('What comes next');
-      expect(q.choices).toContain(q.answer);
+      expect(q.options).toContain(q.answer);
     });
 
     it('generates an ABC pattern question', () => {
@@ -231,7 +272,7 @@ describe('p1GeometryQuestionGenerator', () => {
       expect(q).not.toBeNull();
       expect(q.skillId).toBe('P1-GEO-05');
       expect(q.prompt).toContain('AB pattern');
-      expect(q.choices).toContain(q.answer);
+      expect(q.options).toContain(q.answer);
     });
 
     it('generates an ABB pattern creation question', () => {
@@ -247,14 +288,14 @@ describe('p1GeometryQuestionGenerator', () => {
       expect(q).not.toBeNull();
       expect(q.skillId).toBe('P1-GEO-06');
       expect(q.prompt).toMatch(/above|below/);
-      expect(q.choices).toContain(q.answer);
+      expect(q.options).toContain(q.answer);
     });
 
     it('generates a left/right/between question with number line diagram', () => {
       const q = generateQuestion('P1-GEO-06', { questionFamilyId: 'QF_P1-GEO-06_002' });
       expect(q).not.toBeNull();
       expect(q.prompt).toMatch(/left|right|between/);
-      expect(q.choices).toContain(q.answer);
+      expect(q.options).toContain(q.answer);
       expect(q.diagramSpec).toBeDefined();
       expect(q.diagramSpec.type).toBe('number_line');
     });
@@ -267,7 +308,7 @@ describe('p1GeometryQuestionGenerator', () => {
       expect(q.skillId).toBe('P1-GEO-07');
       expect(q.prompt).toContain('looks most like which shape');
       expect(['circle', 'triangle', 'square', 'rectangle']).toContain(q.answer);
-      expect(q.choices).toContain(q.answer);
+      expect(q.options).toContain(q.answer);
     });
 
     it('generates a match-to-3D-object question', () => {

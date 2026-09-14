@@ -114,6 +114,23 @@ describe('startP1PracticeFlow', () => {
     }
   });
 
+  it('sets type=mcq and non-empty choices for P1-GEO choice questions', () => {
+    // Regression test: P1-GEO's generator used to return `choices` instead of the
+    // `options` field normalizeP1Question actually reads, so every P1-GEO MCQ
+    // normalized to an empty choices array (unanswerable in the real UI) despite
+    // p1GeometryQuestionGenerator.test.js's own (wrong-field) assertions passing.
+    const session = startP1PracticeFlow({
+      studentId: 'test-student',
+      requestedSkillId: 'P1-GEO-01',
+      sessionLength: 10,
+    });
+    const mcqQuestion = session.questions.find((q) => q.type === 'mcq');
+    expect(mcqQuestion).toBeDefined();
+    expect(mcqQuestion.choices).toBeDefined();
+    expect(Array.isArray(mcqQuestion.choices)).toBe(true);
+    expect(mcqQuestion.choices.length).toBeGreaterThanOrEqual(2);
+  });
+
   it('respects session type constraints', () => {
     const warmup = startP1PracticeFlow({
       studentId: 'test-student',

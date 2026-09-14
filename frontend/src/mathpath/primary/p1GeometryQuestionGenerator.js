@@ -3,6 +3,7 @@ import { getQuestionFamiliesBySkill } from './p1GeometryQuestionFamilies.js';
 import {
   pictureCollectionDiagram,
   numberLineDiagram,
+  shapeLibraryDiagram,
 } from './p1DiagramHelpers.js';
 
 const SHAPES_2D = ['circle', 'triangle', 'square', 'rectangle'];
@@ -75,13 +76,13 @@ function generateIdentify2D(familyId) {
     return {
       skillId: 'P1-GEO-01',
       questionFamilyId: familyId,
-      prompt: `What is the name of this shape? (A ${shape} is shown.)`,
+      prompt: 'What is the name of this shape?',
       answer: shape,
       answerType: 'choice',
-      choices,
+      options: choices,
       instructionHint: 'Choose the correct shape name.',
       solutionText: `This shape is a ${shape}. ${props.curved ? 'It has no straight sides.' : `It has ${props.sides} sides and ${props.corners} corners.`}`,
-      diagramSpec: undefined,
+      diagramSpec: shapeLibraryDiagram([{ type: shape }], { title: 'Identify the shape' }),
       misconceptionTraps: ['shape_orientation_dependence'],
     };
   }
@@ -113,13 +114,13 @@ function generateIdentify3D(familyId) {
     return {
       skillId: 'P1-GEO-02',
       questionFamilyId: familyId,
-      prompt: `What is the name of this 3D object? (A ${object} is shown.)`,
+      prompt: 'What is the name of this 3D object?',
       answer: object,
       answerType: 'choice',
-      choices,
+      options: choices,
       instructionHint: 'Choose the correct 3D object name.',
       solutionText: `This 3D object is a ${object}. ${SHAPE_3D_DESCRIPTIONS[object]}.`,
-      diagramSpec: undefined,
+      diagramSpec: shapeLibraryDiagram([{ type: object }], { title: 'Identify the 3D object' }),
       misconceptionTraps: ['confuses_2d_3d'],
     };
   }
@@ -134,12 +135,29 @@ function generateIdentify3D(familyId) {
     prompt: `Which 3D object has this description: ${description}?`,
     answer: object,
     answerType: 'choice',
-    choices,
+    options: choices,
     instructionHint: 'Choose the correct 3D object.',
     solutionText: `The answer is ${object}. A ${object}: ${description}.`,
     diagramSpec: undefined,
     misconceptionTraps: ['confuses_2d_3d'],
   };
+}
+
+// A "sort shapes" answer is a comma-joined subset of SHAPES_2D (e.g. "square, rectangle"),
+// so the MCQ options must be whole candidate subset-strings, not individual shape names —
+// otherwise the correct answer can never be a selectable option whenever more than one
+// shape matches the sort criterion.
+function buildSortShapeOptions(matching, allShapes) {
+  const answer = matching.join(', ');
+  const complement = allShapes.filter((s) => !matching.includes(s));
+  const candidates = new Set();
+  if (complement.length) candidates.add(complement.join(', '));
+  candidates.add(allShapes.join(', '));
+  matching.forEach((s) => candidates.add(s));
+  complement.forEach((s) => candidates.add(s));
+  candidates.delete(answer);
+  const distractors = shuffle([...candidates]).slice(0, 3);
+  return { answer, options: shuffle([answer, ...distractors]) };
 }
 
 // --- P1-GEO-03: Sort shapes by properties ---
@@ -148,20 +166,20 @@ function generateSortShapes(familyId) {
     // Sort by number of sides
     const targetSides = pick([0, 3, 4]);
     const matching = SHAPES_2D.filter((s) => SHAPE_PROPERTIES[s].sides === targetSides);
-    const answer = matching.join(', ');
-    const choices = shuffle(SHAPES_2D);
+    const { answer, options } = buildSortShapeOptions(matching, SHAPES_2D);
+    const displayOrder = shuffle(SHAPES_2D);
     const label = targetSides === 0 ? 'no sides (curved)' : `${targetSides} sides`;
     return {
       skillId: 'P1-GEO-03',
       questionFamilyId: familyId,
-      prompt: `Which of these shapes have ${label}? ${choices.join(', ')}`,
+      prompt: `Which of these shapes have ${label}? ${displayOrder.join(', ')}`,
       answer,
       answerType: 'choice',
-      choices,
+      options,
       instructionHint: 'Choose all shapes that match.',
       solutionText: `Shapes with ${label}: ${answer}.`,
       diagramSpec: pictureCollectionDiagram(
-        choices.map((s) => ({ label: s, count: 1 })),
+        displayOrder.map((s) => ({ label: s, count: 1 })),
         { title: `Sort shapes: ${label}` }
       ),
       misconceptionTraps: ['sorts_by_appearance_not_property'],
@@ -171,20 +189,20 @@ function generateSortShapes(familyId) {
   // Family 002: Sort by curved/straight
   const askCurved = Math.random() < 0.5;
   const matching = SHAPES_2D.filter((s) => SHAPE_PROPERTIES[s].curved === askCurved);
-  const answer = matching.join(', ');
-  const choices = shuffle(SHAPES_2D);
+  const { answer, options } = buildSortShapeOptions(matching, SHAPES_2D);
+  const displayOrder = shuffle(SHAPES_2D);
   const edgeType = askCurved ? 'curved edges' : 'straight edges';
   return {
     skillId: 'P1-GEO-03',
     questionFamilyId: familyId,
-    prompt: `Which of these shapes have ${edgeType}? ${choices.join(', ')}`,
+    prompt: `Which of these shapes have ${edgeType}? ${displayOrder.join(', ')}`,
     answer,
     answerType: 'choice',
-    choices,
+    options,
     instructionHint: 'Choose all shapes that match.',
     solutionText: `Shapes with ${edgeType}: ${answer}.`,
     diagramSpec: pictureCollectionDiagram(
-      choices.map((s) => ({ label: s, count: 1 })),
+      displayOrder.map((s) => ({ label: s, count: 1 })),
       { title: `Sort shapes: ${edgeType}` }
     ),
     misconceptionTraps: ['sorts_by_appearance_not_property'],
@@ -212,7 +230,7 @@ function generateContinuePattern(familyId) {
       prompt: `What comes next? ${pattern.join(', ')}, ___?`,
       answer,
       answerType: 'choice',
-      choices,
+      options: choices,
       instructionHint: 'Choose the shape that continues the pattern.',
       solutionText: `The pattern repeats: ${a}, ${b}. The next shape is ${answer}.`,
       diagramSpec: undefined,
@@ -239,7 +257,7 @@ function generateContinuePattern(familyId) {
     prompt: `What comes next? ${pattern.join(', ')}, ___?`,
     answer,
     answerType: 'choice',
-    choices,
+    options: choices,
     instructionHint: 'Choose the shape that continues the pattern.',
     solutionText: `The pattern repeats: ${a}, ${b}, ${c}. The next shape is ${answer}.`,
     diagramSpec: undefined,
@@ -264,7 +282,7 @@ function generateCreatePattern(familyId) {
       prompt: `Continue the AB pattern: ${shown.join(', ')}, ___?`,
       answer,
       answerType: 'choice',
-      choices,
+      options: choices,
       instructionHint: 'Choose the shape that keeps the pattern going.',
       solutionText: `The AB pattern is: ${a}, ${b} repeating. The next shape is ${answer}.`,
       diagramSpec: undefined,
@@ -287,7 +305,7 @@ function generateCreatePattern(familyId) {
     prompt: `Continue the ABB pattern: ${shown.join(', ')}, ___?`,
     answer,
     answerType: 'choice',
-    choices,
+    options: choices,
     instructionHint: 'Choose the shape that keeps the pattern going.',
     solutionText: `The ABB pattern is: ${a}, ${b}, ${b} repeating. The next shape is ${answer}.`,
     diagramSpec: undefined,
@@ -313,7 +331,7 @@ function generatePositionWords(familyId) {
       prompt: `The ${topObj} is on top. The ${bottomObj} is at the bottom. Which object is ${positionWord}?`,
       answer,
       answerType: 'choice',
-      choices,
+      options: choices,
       instructionHint: 'Choose the correct object.',
       solutionText: `The ${answer} is ${positionWord}. "${positionWord === 'above' ? 'Above' : 'Below'}" means ${positionWord === 'above' ? 'higher up' : 'lower down'}.`,
       diagramSpec: undefined,
@@ -347,7 +365,7 @@ function generatePositionWords(familyId) {
     prompt,
     answer,
     answerType: 'choice',
-    choices,
+    options: choices,
     instructionHint: 'Choose the correct object.',
     solutionText: `The ${answer} is ${positionType} ${positionType === 'between' ? `the ${leftObj} and the ${rightObj}` : `the ${middleObj}`}.`,
     diagramSpec: numberLineDiagram({
@@ -381,7 +399,7 @@ function generateMatchRealObject(familyId) {
       prompt: `A ${realObject} looks most like which shape?`,
       answer: shape,
       answerType: 'choice',
-      choices,
+      options: choices,
       instructionHint: 'Choose the shape that matches.',
       solutionText: `A ${realObject} is shaped like a ${shape}.`,
       diagramSpec: undefined,
@@ -400,7 +418,7 @@ function generateMatchRealObject(familyId) {
     prompt: `A ${realObject} is most like which 3D object?`,
     answer: object,
     answerType: 'choice',
-    choices,
+    options: choices,
     instructionHint: 'Choose the 3D object that matches.',
     solutionText: `A ${realObject} is shaped like a ${object}.`,
     diagramSpec: undefined,

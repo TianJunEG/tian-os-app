@@ -297,6 +297,38 @@ function shapePath(type, x, y, size) {
   if (type === 'quarter-circle') return `<path d="M ${x} ${y + s} A ${s} ${s} 0 0 1 ${x + s} ${y} L ${x} ${y} Z" />`;
   if (type === 'rhombus') return `<polygon points="${x + s / 2},${y} ${x + s},${y + s / 2} ${x + s / 2},${y + s} ${x},${y + s / 2}" />`;
   if (type === 'trapezium') return `<polygon points="${x + s * 0.2},${y} ${x + s * 0.8},${y} ${x + s},${y + s} ${x},${y + s}" />`;
+  if (type === 'cube' || type === 'cuboid') {
+    const w = type === 'cuboid' ? s * 0.85 : s * 0.55;
+    const h = s * 0.55;
+    const d = s * 0.28;
+    const X = x + (s - w - d) / 2;
+    const Y = y + s * 0.15;
+    const front = `${X},${Y + d} ${X + w},${Y + d} ${X + w},${Y + d + h} ${X},${Y + d + h}`;
+    const top = `${X},${Y + d} ${X + d},${Y} ${X + d + w},${Y} ${X + w},${Y + d}`;
+    const side = `${X + w},${Y + d} ${X + d + w},${Y} ${X + d + w},${Y + h} ${X + w},${Y + d + h}`;
+    return `<polygon points="${top}" fill="#e5e7eb" /><polygon points="${side}" fill="#cbd5e1" /><polygon points="${front}" />`;
+  }
+  if (type === 'sphere') {
+    const cx = x + s / 2;
+    const cy = y + s / 2;
+    const r = s / 2;
+    return `<circle cx="${cx}" cy="${cy}" r="${r}" /><path d="M ${cx - r} ${cy} A ${r} ${r * 0.3} 0 0 0 ${cx + r} ${cy}" fill="none" stroke-dasharray="2 2" /><ellipse cx="${cx - r * 0.35}" cy="${cy - r * 0.35}" rx="${r * 0.22}" ry="${r * 0.13}" fill="#ffffff" stroke="none" />`;
+  }
+  if (type === 'cone') {
+    const apexX = x + s / 2;
+    const apexY = y;
+    const baseY = y + s * 0.82;
+    const rx = s / 2;
+    const ry = s * 0.14;
+    return `<ellipse cx="${apexX}" cy="${baseY}" rx="${rx}" ry="${ry}" fill="#cbd5e1" /><path d="M ${apexX} ${apexY} L ${x} ${baseY} A ${rx} ${ry} 0 0 0 ${x + s} ${baseY} Z" />`;
+  }
+  if (type === 'cylinder') {
+    const rx = s / 2;
+    const ry = s * 0.14;
+    const top = y + ry;
+    const bottom = y + s - ry;
+    return `<path d="M ${x} ${top} L ${x} ${bottom} A ${rx} ${ry} 0 0 0 ${x + s} ${bottom} L ${x + s} ${top} A ${rx} ${ry} 0 0 0 ${x} ${top} Z" /><ellipse cx="${x + rx}" cy="${top}" rx="${rx}" ry="${ry}" fill="#e5e7eb" />`;
+  }
   return `<rect x="${x}" y="${y}" width="${s}" height="${s}" />`;
 }
 
@@ -311,7 +343,11 @@ function renderShapeLibrary(spec) {
   shapes.forEach((shape, idx) => {
     const pos = gridPosition(idx, cols, 108, 84, 24, 28, 10, 14);
     body += `<g fill="#f3f4f6" stroke="#111111" stroke-width="1.2">${shapePath(shape.type, pos.x + 24, pos.y + 6, size)}</g>`;
-    body += `<text x="${pos.x + 52}" y="${pos.y + 78}" font-size="10" text-anchor="middle" fill="#111111">${esc(shape.label || shape.type)}</text>`;
+    // No fallback to shape.type: an unlabeled shape is drawn silently, since callers
+    // asking "what is the name of this shape?" must not have the answer printed for them.
+    if (shape.label) {
+      body += `<text x="${pos.x + 52}" y="${pos.y + 78}" font-size="10" text-anchor="middle" fill="#111111">${esc(shape.label)}</text>`;
+    }
     maxBottom = Math.max(maxBottom, pos.y + 90);
   });
   const tightH = maxBottom + 10;
