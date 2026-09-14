@@ -94,8 +94,11 @@ export function columnOperationDiagram(a, b, operation, { title = '' } = {}) {
   return spec('table', { headers, rows }, { title: title || `${a} ${operation} ${b}`, width: 300, height: 200 });
 }
 
-export function clockDiagram(hour, minute, { title = '' } = {}) {
-  return spec('clock', { hour, minute }, { title: title || `${hour}:${String(minute).padStart(2, '0')}`, width: 360, height: 360 });
+// showDigital draws the HH:MM text on the clock face — only pass true when the
+// digital time is already given/implied elsewhere in the prompt (it renders the
+// answer as text otherwise, e.g. for a "what time is shown?" question).
+export function clockDiagram(hour, minute, { title = '', showDigital = false } = {}) {
+  return spec('clock', { hour, minute, showDigital }, { title: title || `${hour}:${String(minute).padStart(2, '0')}`, width: 360, height: 360 });
 }
 
 export function shapeLibraryDiagram(shapes, { title = '' } = {}) {

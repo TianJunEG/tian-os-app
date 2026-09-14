@@ -392,7 +392,12 @@ function renderClock(spec) {
   body += `<line x1="${cx}" y1="${cy}" x2="${hourX}" y2="${hourY}" stroke="#111111" stroke-width="4" stroke-linecap="round"/>`;
   body += `<line x1="${cx}" y1="${cy}" x2="${minX}" y2="${minY}" stroke="#111111" stroke-width="2.3" stroke-linecap="round"/>`;
   body += `<circle cx="${cx}" cy="${cy}" r="4" fill="#111111"/>`;
-  body += `<text x="${cx}" y="${h - 14}" text-anchor="middle" font-size="12" fill="#111111">${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}</text>`;
+  // Only draw the digital HH:MM when the caller opts in — printing it
+  // unconditionally handed away the answer for any "what time is it?" question
+  // whose prompt doesn't already state the time in words (e.g. half-past).
+  if (d.showDigital) {
+    body += `<text x="${cx}" y="${h - 14}" text-anchor="middle" font-size="12" fill="#111111">${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}</text>`;
+  }
   return svgShell(spec, body, spec.title || 'Clock diagram');
 }
 
@@ -413,7 +418,10 @@ function renderLengthMeasurement(spec) {
     const x = x0 + ((mark - start) * stepPx);
     const tick = mark % 5 === 0 ? 12 : 8;
     body += `<line x1="${x}" y1="${y}" x2="${x}" y2="${y - tick}" stroke="#111111" stroke-width="1"/>`;
-    if (mark % 2 === 0) body += `<text x="${x}" y="${y + 16}" text-anchor="middle" font-size="10" fill="#111111">${mark}</text>`;
+    // Skip the label at the ruler's own endpoint: for a "how many units long"
+    // question, `end` IS the object's endpoint AND the value being asked for,
+    // so labelling it would print the answer directly on the diagram.
+    if (mark % 2 === 0 && mark !== end) body += `<text x="${x}" y="${y + 16}" text-anchor="middle" font-size="10" fill="#111111">${mark}</text>`;
   }
   const objects = Array.isArray(d.objects) ? d.objects : [];
   objects.forEach((obj, idx) => {

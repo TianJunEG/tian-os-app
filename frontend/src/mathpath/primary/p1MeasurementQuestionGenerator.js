@@ -47,6 +47,13 @@ const CAPACITY_PAIRS = [
 ];
 
 const CAPACITY_LEVELS = ['full', 'almost full', 'half full', 'almost empty', 'empty'];
+const CAPACITY_LEVEL_DESCRIPTIONS = {
+  full: 'filled with water to the very top, with no space left',
+  'almost full': 'filled with water almost to the top, with just a little space left',
+  'half full': 'filled with water about halfway up',
+  'almost empty': 'has just a little water left at the bottom',
+  empty: 'has no water in it at all',
+};
 
 const EVENT_SEQUENCES = [
   { events: ['wake up', 'eat breakfast', 'go to school'], period: 'morning' },
@@ -105,6 +112,7 @@ function generateCompareLength(familyId) {
         : `The ${objA.name} is ${heightA} cm tall. The ${objB.name} is ${heightB} cm tall. Which is shorter?`,
       answer: askTaller ? taller : shorter,
       answerType: 'choice',
+      options: shuffle([objA.name, objB.name]),
       instructionHint: 'Choose the correct object.',
       solutionText: `${heightA > heightB ? objA.name : objB.name} is taller because ${Math.max(heightA, heightB)} cm > ${Math.min(heightA, heightB)} cm.`,
       diagramSpec: comparisonModelDiagram(Math.max(heightA, heightB), Math.min(heightA, heightB), {
@@ -139,6 +147,7 @@ function generateCompareLength(familyId) {
       : `The ${objA.name} is ${lengthA} cm long. The ${objB.name} is ${lengthB} cm long. Which is shorter?`,
     answer: askLonger ? longer : shorterObj,
     answerType: 'choice',
+    options: shuffle([objA.name, objB.name]),
     instructionHint: 'Choose the correct object.',
     solutionText: `${lengthA > lengthB ? objA.name : objB.name} is longer because ${Math.max(lengthA, lengthB)} cm > ${Math.min(lengthA, lengthB)} cm.`,
     diagramSpec: comparisonModelDiagram(Math.max(lengthA, lengthB), Math.min(lengthA, lengthB), {
@@ -164,9 +173,24 @@ function generateCompareMass(familyId) {
       { name: items[2].light, weight: 1 },
     ]);
 
-    const sorted = [...allObjects].sort((a, b) => a.weight - b.weight);
-    const answer = sorted.map((o) => o.name).join(', ');
+    // lightToHeavy/heavyToLight are independent, non-mutating derivations (the
+    // old code re-sorted/reversed the SAME array in place across 3 different
+    // expressions, which happened to still land correctly but was fragile).
+    const lightToHeavy = [...allObjects].sort((a, b) => a.weight - b.weight).map((o) => o.name);
+    const heavyToLight = [...lightToHeavy].reverse();
     const askLightest = Math.random() < 0.5;
+    const orderedNames = askLightest ? lightToHeavy : heavyToLight;
+    const answer = orderedNames.join(', ');
+    // 3 plausible wrong orderings as MCQ distractors: the opposite direction,
+    // and two with an adjacent pair swapped. With 3 distinct weights these are
+    // always 3 distinct strings, none of which leak anything not already
+    // implied by the (correctly ordered) answer itself.
+    const swapAdjacent = (arr, i) => { const c = [...arr]; [c[i], c[i + 1]] = [c[i + 1], c[i]]; return c; };
+    const distractors = [
+      (askLightest ? heavyToLight : lightToHeavy).join(', '),
+      swapAdjacent(orderedNames, 0).join(', '),
+      swapAdjacent(orderedNames, 1).join(', '),
+    ];
 
     return {
       skillId: 'P1-MEA-02',
@@ -174,16 +198,11 @@ function generateCompareMass(familyId) {
       prompt: askLightest
         ? `Arrange from lightest to heaviest: ${allObjects.map((o) => o.name).join(', ')}.`
         : `Arrange from heaviest to lightest: ${allObjects.map((o) => o.name).join(', ')}.`,
-      answer: askLightest ? answer : sorted.reverse().map((o) => o.name).join(', '),
+      answer,
       answerType: 'choice',
+      options: shuffle([answer, ...distractors]),
       instructionHint: 'Put the objects in the correct order.',
-      solutionText: `The correct order from lightest to heaviest is: ${sorted.sort((a, b) => a.weight - b.weight).map((o) => o.name).join(', ')}.`,
-      diagramSpec: comparisonModelDiagram(3, 1, {
-        leftLabel: 'heaviest',
-        rightLabel: 'lightest',
-        mode: 'difference',
-        title: 'Arrange by mass',
-      }),
+      solutionText: `The correct order from lightest to heaviest is: ${lightToHeavy.join(', ')}.`,
       misconceptionTraps: ['mass_by_size'],
     };
   }
@@ -202,14 +221,14 @@ function generateCompareMass(familyId) {
       : `Which is lighter: a ${first} or a ${second}?`,
     answer: askHeavier ? pair.heavy : pair.light,
     answerType: 'choice',
+    options: shuffle([pair.heavy, pair.light]),
     instructionHint: 'Choose the correct object.',
     solutionText: `The ${pair.heavy} is heavier than the ${pair.light}. ${pair.reason}`,
-    diagramSpec: comparisonModelDiagram(2, 1, {
-      leftLabel: pair.heavy,
-      rightLabel: pair.light,
-      mode: 'difference',
-      title: 'Compare mass',
-    }),
+    // No diagram: comparisonModelDiagram(2, 1, ...) used to draw a fake
+    // "bigger bar" sized to whichever object happened to be the correct
+    // answer (heavy/light have no real numeric weight data to visualise) --
+    // the size cue itself gave the answer away regardless of how the
+    // question was phrased.
     misconceptionTraps: ['mass_by_size', 'mass_ignores_material'],
   };
 }
@@ -219,23 +238,26 @@ function generateCompareCapacity(familyId) {
   const isFullEmpty = familyId.endsWith('_002');
 
   if (isFullEmpty) {
+    // `level` used to be picked but never actually used -- the prompt and
+    // answer were both hardcoded to "full" regardless, so this family never
+    // varied and was trivially guessable (always "full"), and never tested
+    // the other 4 capacity-level words the skill is meant to cover.
     const level = pick(CAPACITY_LEVELS);
     const container = pick(['cup', 'bottle', 'glass', 'bowl', 'pail', 'jug']);
 
     return {
       skillId: 'P1-MEA-03',
       questionFamilyId: familyId,
-      prompt: `A ${container} has water filled to the very top with no space left. Is the ${container} full, almost full, half full, almost empty, or empty?`,
-      answer: 'full',
+      prompt: `A ${container} ${CAPACITY_LEVEL_DESCRIPTIONS[level]}. Is the ${container} full, almost full, half full, almost empty, or empty?`,
+      answer: level,
       answerType: 'choice',
+      options: shuffle([...CAPACITY_LEVELS]),
       instructionHint: 'Choose the correct description.',
-      solutionText: `The ${container} is full because the water reaches the very top.`,
-      diagramSpec: comparisonModelDiagram(10, 10, {
-        leftLabel: 'full',
-        rightLabel: container,
-        mode: 'difference',
-        title: `${container} water level`,
-      }),
+      solutionText: `The ${container} is ${level} because it ${CAPACITY_LEVEL_DESCRIPTIONS[level]}.`,
+      // No diagram: illustrating a specific fill level without also printing
+      // the level word itself (the earlier bug) would need a dedicated
+      // fill-gauge renderer, which doesn't exist yet -- safer to omit the
+      // diagram than reintroduce the leak with a fixed-value placeholder.
       misconceptionTraps: ['capacity_by_height'],
     };
   }
@@ -256,14 +278,11 @@ function generateCompareCapacity(familyId) {
       : `A ${first} is ${firstDesc}. A ${second} is ${secondDesc}. Which holds less water?`,
     answer: askMore ? pair.more : pair.less,
     answerType: 'choice',
+    options: shuffle([pair.more, pair.less]),
     instructionHint: 'Choose the correct container.',
     solutionText: `The ${pair.more} holds more water because it is ${pair.moreDesc}. The ${pair.less} holds less water.`,
-    diagramSpec: comparisonModelDiagram(2, 1, {
-      leftLabel: pair.more,
-      rightLabel: pair.less,
-      mode: 'difference',
-      title: 'Compare capacity',
-    }),
+    // No diagram: same issue as Compare Mass above -- a fake size-coded bar
+    // with no real capacity data behind it always matched the answer.
     misconceptionTraps: ['capacity_by_height', 'capacity_ignores_width'],
   };
 }
@@ -287,6 +306,9 @@ function generateSequenceEvents(familyId) {
         prompt: `In the ${sequence.period}, you ${targetEvent}. What do you do just before that?`,
         answer,
         answerType: 'choice',
+        // All 3 events from this same story -- including targetEvent itself,
+        // a natural distractor for a child who confuses "before X" with "X".
+        options: shuffle([...sequence.events]),
         instructionHint: 'Choose the event that comes before.',
         solutionText: `You ${answer} before you ${targetEvent}.`,
         misconceptionTraps: ['sequence_by_preference'],
@@ -304,6 +326,7 @@ function generateSequenceEvents(familyId) {
       prompt: `In the ${sequence.period}, you ${targetEvent}. What do you do just after that?`,
       answer,
       answerType: 'choice',
+      options: shuffle([...sequence.events]),
       instructionHint: 'Choose the event that comes after.',
       solutionText: `You ${answer} after you ${targetEvent}.`,
       misconceptionTraps: ['sequence_by_preference'],
@@ -312,6 +335,14 @@ function generateSequenceEvents(familyId) {
 
   const shuffled = shuffle([...sequence.events]);
   const correctOrder = sequence.events.join(', ');
+  // 3 plausible wrong orderings, same reverse/adjacent-swap pattern as
+  // Compare Mass's arrange family -- always 3 distinct strings for 3 distinct events.
+  const swapAdjacent = (arr, i) => { const c = [...arr]; [c[i], c[i + 1]] = [c[i + 1], c[i]]; return c; };
+  const wrongOrderings = [
+    [...sequence.events].reverse().join(', '),
+    swapAdjacent(sequence.events, 0).join(', '),
+    swapAdjacent(sequence.events, 1).join(', '),
+  ];
 
   return {
     skillId: 'P1-MEA-04',
@@ -319,6 +350,7 @@ function generateSequenceEvents(familyId) {
     prompt: `Put these events in the correct order: ${shuffled.join(', ')}.`,
     answer: correctOrder,
     answerType: 'choice',
+    options: shuffle([correctOrder, ...wrongOrderings]),
     instructionHint: 'Arrange the events from first to last.',
     solutionText: `The correct order is: ${correctOrder}. These events happen in the ${sequence.period}.`,
     misconceptionTraps: ['sequence_by_preference', 'sequence_reverses_order'],
@@ -339,7 +371,10 @@ function generateTimeOClock(familyId) {
       answerType: 'number',
       instructionHint: 'Write the hour number.',
       solutionText: `The short hand on ${hour} and the long hand on 12 means it is ${hour} o'clock.`,
-      diagramSpec: clockDiagram(hour, 0, { title: `${hour} o'clock` }),
+      // showDigital is safe here: the prompt already states the hand positions
+      // that spell out "${hour} o'clock" in words, so the digital readout is
+      // reinforcement, not a new leak.
+      diagramSpec: clockDiagram(hour, 0, { title: `${hour} o'clock`, showDigital: true }),
       misconceptionTraps: ['clock_reads_minute_as_hour', 'clock_confuses_hands'],
     };
   }
@@ -352,7 +387,7 @@ function generateTimeOClock(familyId) {
     answerType: 'number',
     instructionHint: 'Write the number.',
     solutionText: `At ${hour} o'clock, the short hand points to ${hour} and the long hand points to 12.`,
-    diagramSpec: clockDiagram(hour, 0, { title: `${hour} o'clock` }),
+    diagramSpec: clockDiagram(hour, 0, { title: `${hour} o'clock`, showDigital: true }),
     misconceptionTraps: ['clock_reads_minute_as_hour', 'clock_confuses_hands'],
   };
 }
@@ -362,15 +397,26 @@ function generateTimeHalfPast(familyId) {
   const hour = randInt(1, 12);
   const isReadFromDescription = familyId.endsWith('_001');
 
+  const prevHour = hour === 1 ? 12 : hour - 1;
+  const nextHour = hour === 12 ? 1 : hour + 1;
+
   if (isReadFromDescription) {
     return {
       skillId: 'P1-MEA-06',
       questionFamilyId: familyId,
-      prompt: `The short hand is between ${hour} and ${hour === 12 ? 1 : hour + 1}. The long hand points to 6. What time is it?`,
+      prompt: `The short hand is between ${hour} and ${nextHour}. The long hand points to 6. What time is it?`,
       answer: `half past ${hour}`,
       answerType: 'choice',
+      // Distractors target the two stated misconceptions directly: reading the
+      // wrong hour off the short hand's between-two-numbers position
+      // (half_past_reads_wrong_hour), and mistaking it for the hour on its own
+      // (forgetting the half-past entirely).
+      options: shuffle([`half past ${hour}`, `half past ${prevHour}`, `half past ${nextHour}`, `${hour} o'clock`]),
       instructionHint: 'Choose the correct time.',
-      solutionText: `The short hand between ${hour} and ${hour === 12 ? 1 : hour + 1} with the long hand on 6 means it is half past ${hour} (${hour}:30).`,
+      solutionText: `The short hand between ${hour} and ${nextHour} with the long hand on 6 means it is half past ${hour} (${hour}:30).`,
+      // No showDigital: this question is asking the student to determine the
+      // half-past time -- showing "${hour}:30" on the clock face would print
+      // the answer directly.
       diagramSpec: clockDiagram(hour, 30, { title: `Half past ${hour}` }),
       misconceptionTraps: ['half_past_reads_wrong_hour', 'half_past_writes_06'],
     };
@@ -382,6 +428,9 @@ function generateTimeHalfPast(familyId) {
     prompt: `What is half past ${hour} written as a digital time?`,
     answer: `${hour}:30`,
     answerType: 'choice',
+    // "${hour}:06" targets half_past_writes_06 (confusing the long hand's
+    // position AT the 6 with the minute value 06, instead of 30) directly.
+    options: shuffle([`${hour}:30`, `${hour}:00`, `${hour}:03`, `${hour}:06`]),
     instructionHint: 'Choose the correct digital time.',
     solutionText: `Half past ${hour} is written as ${hour}:30. The long hand on 6 means 30 minutes, not 6 minutes.`,
     diagramSpec: clockDiagram(hour, 30, { title: `Half past ${hour}` }),
@@ -399,7 +448,10 @@ function generateNonStandardUnits(familyId) {
   return {
     skillId: 'P1-MEA-07',
     questionFamilyId: familyId,
-    prompt: `A ${object} is ${measurement} ${unit} long. How many ${unit} long is the ${object}?`,
+    // The old prompt stated the measurement as a given fact in its own first
+    // sentence, then asked for that same number back -- answerable by copying
+    // text, never needing to look at (or count) the diagram at all.
+    prompt: `Look at the ${object} below. It is measured using ${unit} placed end to end, with no gaps and no overlaps. How many ${unit} long is the ${object}?`,
     answer: measurement,
     answerType: 'number',
     instructionHint: 'Write the number of units.',
@@ -409,7 +461,7 @@ function generateNonStandardUnits(familyId) {
       end: measurement,
       unit,
       objects: [{ label: object, start: 0, end: measurement }],
-      title: `${object}: ${measurement} ${unit}`,
+      title: `${object} measured in ${unit}`,
     }),
     misconceptionTraps: ['units_gaps_overlaps', 'units_mixed_sizes'],
   };

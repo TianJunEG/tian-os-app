@@ -182,10 +182,20 @@ describe('p1MeasurementQuestionGenerator', () => {
       expect(q.prompt).toMatch(/Arrange/);
     });
 
-    it('has comparison diagram', () => {
-      const q = generateQuestion('P1-MEA-02');
-      expect(q.diagramSpec).toBeDefined();
-      expect(q.diagramSpec.type).toBe('comparison_model');
+    it('has answer options that include the answer', () => {
+      for (let i = 0; i < 10; i++) {
+        const q = generateQuestion('P1-MEA-02');
+        expect(q.answerType).toBe('choice');
+        expect(q.options).toContain(q.answer);
+        expect(new Set(q.options).size).toBe(q.options.length);
+      }
+    });
+
+    it('does not leak the answer via a size-coded diagram', () => {
+      for (let i = 0; i < 10; i++) {
+        const q = generateQuestion('P1-MEA-02');
+        expect(q.diagramSpec).toBeUndefined();
+      }
     });
   });
 
@@ -197,11 +207,25 @@ describe('p1MeasurementQuestionGenerator', () => {
       expect(q.prompt).toMatch(/more|less/);
     });
 
-    it('generates a full/empty identification', () => {
-      const q = generateQuestion('P1-MEA-03', { questionFamilyId: 'QF_P1-MEA-03_002' });
-      expect(q).not.toBeNull();
-      expect(q.prompt).toMatch(/full|empty/);
-      expect(q.answer).toBe('full');
+    it('generates a full/empty identification with the description matching the answer', () => {
+      const levels = new Set();
+      for (let i = 0; i < 30; i++) {
+        const q = generateQuestion('P1-MEA-03', { questionFamilyId: 'QF_P1-MEA-03_002' });
+        expect(q).not.toBeNull();
+        expect(q.prompt).toMatch(/full|empty/);
+        expect(q.answerType).toBe('choice');
+        expect(q.options).toContain(q.answer);
+        levels.add(q.answer);
+      }
+      // over many draws, the level should vary rather than always being 'full'
+      expect(levels.size).toBeGreaterThan(1);
+    });
+
+    it('does not leak the comparison answer via a size-coded diagram', () => {
+      for (let i = 0; i < 10; i++) {
+        const q = generateQuestion('P1-MEA-03');
+        expect(q.diagramSpec).toBeUndefined();
+      }
     });
   });
 
@@ -217,6 +241,17 @@ describe('p1MeasurementQuestionGenerator', () => {
       const q = generateQuestion('P1-MEA-04', { questionFamilyId: 'QF_P1-MEA-04_002' });
       expect(q).not.toBeNull();
       expect(q.prompt).toMatch(/before|after/);
+    });
+
+    it('has answer options that include the answer, for both families', () => {
+      for (const questionFamilyId of ['QF_P1-MEA-04_001', 'QF_P1-MEA-04_002']) {
+        for (let i = 0; i < 10; i++) {
+          const q = generateQuestion('P1-MEA-04', { questionFamilyId });
+          expect(q.answerType).toBe('choice');
+          expect(q.options).toContain(q.answer);
+          expect(new Set(q.options).size).toBe(q.options.length);
+        }
+      }
     });
   });
 
@@ -244,6 +279,11 @@ describe('p1MeasurementQuestionGenerator', () => {
       expect(q.diagramSpec).toBeDefined();
       expect(q.diagramSpec.type).toBe('clock');
     });
+
+    it('shows the digital time on the clock, since the prompt already states the o\'clock hour', () => {
+      const q = generateQuestion('P1-MEA-05');
+      expect(q.diagramSpec.data.showDigital).toBe(true);
+    });
   });
 
   describe('P1-MEA-06: Tell time to half past', () => {
@@ -266,6 +306,22 @@ describe('p1MeasurementQuestionGenerator', () => {
       const q = generateQuestion('P1-MEA-06');
       expect(q.diagramSpec).toBeDefined();
       expect(q.diagramSpec.type).toBe('clock');
+    });
+
+    it('does not show the digital time on the clock, since that would give away the answer', () => {
+      const q = generateQuestion('P1-MEA-06');
+      expect(q.diagramSpec.data.showDigital).toBeFalsy();
+    });
+
+    it('has answer options that include the answer, for both families', () => {
+      for (const questionFamilyId of ['QF_P1-MEA-06_001', 'QF_P1-MEA-06_002']) {
+        for (let i = 0; i < 10; i++) {
+          const q = generateQuestion('P1-MEA-06', { questionFamilyId });
+          expect(q.answerType).toBe('choice');
+          expect(q.options).toContain(q.answer);
+          expect(new Set(q.options).size).toBe(q.options.length);
+        }
+      }
     });
   });
 
@@ -292,6 +348,15 @@ describe('p1MeasurementQuestionGenerator', () => {
       const q = generateQuestion('P1-MEA-07');
       expect(q.diagramSpec).toBeDefined();
       expect(q.diagramSpec.type).toBe('length_measurement');
+    });
+
+    it('does not state the answer count in the prompt or diagram title', () => {
+      for (let i = 0; i < 10; i++) {
+        const q = generateQuestion('P1-MEA-07');
+        const answerStr = String(q.answer);
+        expect(q.prompt).not.toContain(answerStr);
+        expect(q.diagramSpec.title).not.toContain(answerStr);
+      }
     });
   });
 
