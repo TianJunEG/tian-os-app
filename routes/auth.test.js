@@ -33,6 +33,7 @@ vi.mock('../middleware/auth.js', () => ({
 vi.mock('../middleware/rateLimiter.js', () => ({ authRateLimit: (_req, _res, next) => next() }));
 vi.mock('../utils/emailService.js', () => ({
   sendPasswordResetEmail: vi.fn(async () => {}),
+  sendVerificationEmail: vi.fn(async () => {}),
   sendWelcomeEmail: vi.fn(async () => {}),
   appBaseUrl: () => 'http://localhost:3000',
 }));
@@ -121,5 +122,79 @@ describe('auth routes — email normalisation', () => {
     expect(findOneMock).toHaveBeenCalledWith({ email: 'john@x.com' });
     expect(res.status).toBe(200);
     expect(res.data).toMatchObject({ success: true, token: 'signed.jwt.token' });
+  });
+});
+
+// Guards the student self-signup + email-verification flow:
+//  - student-signup is closed unless FEAT_STUDENT_SIGNUP=1 (a separate gate
+//    from openRegistration, which only ever covers parent/tutor),
+//  - it creates a `role: 'student'` account with no workspace (unlike
+//    /register) and fires a verification email without blocking login,
+//  - verify-email flips the account to verified and returns a fresh token.
+describe('auth routes — student signup + email verification', () => {
+  beforeAll(async () => { router = (await import('./auth.js')).default; });
+  afterEach(() => {
+    vi.clearAllMocks();
+    saveMock.mockImplementation(async () => {});
+    delete process.env.FEAT_STUDENT_SIGNUP;
+  });
+
+  it('student-signup is closed by default', async () => {
+    const res = await request('/student-signup', {
+      method: 'POST',
+      body: { name: 'Kim', email: 'kim@x.com', password: 'secret1' },
+    });
+    expect(res.status).toBe(403);
+    expect(findOneMock).not.toHaveBeenCalled();
+  });
+
+  it('student-signup creates a student account and sends a verification email when enabled', async () => {
+    process.env.FEAT_STUDENT_SIGNUP = '1';
+    findOneMock.mockResolvedValueOnce(null); // no existing user
+    const res = await request('/student-signup', {
+      method: 'POST',
+      body: { name: 'Kim', email: 'Kim@X.com', password: 'secret1' },
+    });
+
+    expect(res.status).toBe(201);
+    expect(findOneMock).toHaveBeenCalledWith({ email: 'kim@x.com' });
+    // no workspace is created for a self-signed-up student (unlike /register)
+    expect(saveMock).toHaveBeenCalledTimes(1);
+    expect(res.data).toMatchObject({
+      success: true,
+      token: 'signed.jwt.token',
+      user: { email: 'kim@x.com', role: 'student', isVerified: false },
+    });
+  });
+
+  it('student-signup rejects an existing email with 400', async () => {
+    process.env.FEAT_STUDENT_SIGNUP = '1';
+    findOneMock.mockResolvedValueOnce({ _id: 'existing' });
+    const res = await request('/student-signup', {
+      method: 'POST',
+      body: { name: 'Kim', email: 'kim@x.com', password: 'secret1' },
+    });
+    expect(res.status).toBe(400);
+    expect(saveMock).not.toHaveBeenCalled();
+  });
+
+  it('verify-email rejects an invalid or expired token', async () => {
+    findOneMock.mockReturnValueOnce({ select: () => null });
+    const res = await request('/verify-email/bad-token', { method: 'POST' });
+    expect(res.status).toBe(400);
+  });
+
+  it('verify-email marks the account verified and returns a fresh token', async () => {
+    const user = {
+      _id: 'u1', name: 'Kim', email: 'kim@x.com', role: 'student', isVerified: false,
+      save: saveMock,
+      select: function () { return this; },
+    };
+    findOneMock.mockReturnValueOnce(user);
+    const res = await request('/verify-email/good-token', { method: 'POST' });
+
+    expect(user.isVerified).toBe(true);
+    expect(res.status).toBe(200);
+    expect(res.data).toMatchObject({ success: true, token: 'signed.jwt.token', user: { isVerified: true } });
   });
 });

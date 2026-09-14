@@ -41,6 +41,10 @@ export const FLAGS = {
   // Self-serve registration is closed until the company is registered and
   // pricing is set. Set FEAT_OPEN_REGISTRATION=1 in env to re-enable.
   openRegistration: process.env.FEAT_OPEN_REGISTRATION === '1',
+  // Student self-signup (own email + password, own-email verification link) —
+  // a separate rollout decision from openRegistration above, which only ever
+  // covers parent/tutor. Off by default. Set FEAT_STUDENT_SIGNUP=1 to enable.
+  studentSignup: process.env.FEAT_STUDENT_SIGNUP === '1',
 };
 
 export default { TIANOS_VERSION, FLAGS };

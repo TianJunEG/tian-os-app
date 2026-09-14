@@ -50,6 +50,38 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const studentSignup = async (data) => {
+    try {
+      clearClientCaches();
+      const response = await authAPI.studentSignup(data);
+      const { token, user } = response.data;
+      localStorage.setItem('token', token);
+      setToken(token);
+      setUser(user);
+      setError(null);
+      return { success: true, user };
+    } catch (err) {
+      const message = err.response?.data?.error || 'Sign-up failed';
+      setError(message);
+      return { success: false, error: message };
+    }
+  };
+
+  const verifyEmail = async (token) => {
+    try {
+      const response = await authAPI.verifyEmail(token);
+      const { token: sessionToken, user } = response.data;
+      localStorage.setItem('token', sessionToken);
+      setToken(sessionToken);
+      setUser(user);
+      setError(null);
+      return { success: true, user };
+    } catch (err) {
+      const message = err.response?.data?.error || 'Invalid or expired verification link';
+      return { success: false, error: message };
+    }
+  };
+
   const login = async (data) => {
     try {
       clearClientCaches();
@@ -93,6 +125,8 @@ export const AuthProvider = ({ children }) => {
     loading,
     error,
     register,
+    studentSignup,
+    verifyEmail,
     login,
     logout,
     updateProfile,

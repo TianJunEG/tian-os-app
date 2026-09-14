@@ -16,8 +16,10 @@ const MethodologyPage = lazy(() => import('./pages/MethodologyPage'));
 // "/" landing; their routes redirect there (page sources kept for content reuse).
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const StudentSignupPage = lazy(() => import('./pages/StudentSignupPage'));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
+const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage'));
 const StudentDashboardPage = lazy(() => import('./pages/StudentDashboardPage'));
 const ParentDashboardPage = lazy(() => import('./pages/ParentDashboardPage'));
 const ChildProfilePage = lazy(() => import('./pages/ChildProfilePage'));
@@ -523,8 +525,17 @@ function App() {
               </PublicRoute>
             }
           />
+          <Route
+            path="/signup/student"
+            element={
+              <PublicRoute>
+                <StudentSignupPage />
+              </PublicRoute>
+            }
+          />
           <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
           <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+          <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
           <Route path="/connect/tutor/:token" element={<TutorInviteConnectPage />} />
           <Route path="/connect/parent/:token" element={<ParentInviteConnectPage />} />
           <Route path="/join" element={<ProtectedRoute><JoinClassPage /></ProtectedRoute>} />

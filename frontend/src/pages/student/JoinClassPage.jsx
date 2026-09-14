@@ -70,6 +70,14 @@ export default function JoinClassPage() {
             ) : (
               <Button onClick={check} disabled={busy || !code.trim()}>{busy ? 'Checking…' : 'Check code'}</Button>
             )}
+
+            <button
+              type="button"
+              onClick={() => navigate('/student')}
+              className="w-full text-center text-sm font-medium text-ink-400 hover:text-ink-600"
+            >
+              Don't have a code yet? Skip for now
+            </button>
           </div>
         )}
       </Card>
