@@ -173,7 +173,7 @@ function renderPictureCollections(spec) {
 function renderPlaceValueBlocks(spec) {
   const d = specData(spec);
   const hundreds = clamp(Math.round(Number(d.hundreds) || 0), 0, 9);
-  const tens = clamp(Math.round(Number(d.tens) || 0), 0, 9);
+  const tens = clamp(Math.round(Number(d.tens) || 0), 0, 10);
   const ones = clamp(Math.round(Number(d.ones) || 0), 0, 9);
   const w = Number(spec.width) || 640;
   const topY = 20;
@@ -202,8 +202,14 @@ function renderPlaceValueBlocks(spec) {
   body += `<text x="90" y="${labelY}" text-anchor="middle" font-size="12" fill="#111111">Hundreds</text>`;
   body += `<text x="280" y="${labelY}" text-anchor="middle" font-size="12" fill="#111111">Tens</text>`;
   body += `<text x="500" y="${labelY}" text-anchor="middle" font-size="12" fill="#111111">Ones</text>`;
-  body += `<text x="${w / 2}" y="${labelY + 22}" text-anchor="middle" font-size="14" fill="#111111">${hundreds}${tens}${ones}</text>`;
-  const tightH = labelY + 38;
+  // showTotal must stay opt-in (default off): several callers ask students to
+  // COMPOSE a number from given digits, and printing the concatenated total
+  // here would hand them the answer instead of the blocks they're meant to count.
+  const hasTotalLabel = Boolean(d.showTotal);
+  if (hasTotalLabel) {
+    body += `<text x="${w / 2}" y="${labelY + 22}" text-anchor="middle" font-size="14" fill="#111111">${hundreds}${tens}${ones}</text>`;
+  }
+  const tightH = hasTotalLabel ? labelY + 38 : labelY + 16;
   const tightSpec = { ...spec, width: w, height: tightH };
   return svgShell(tightSpec, body, spec.title || 'Place value blocks diagram');
 }

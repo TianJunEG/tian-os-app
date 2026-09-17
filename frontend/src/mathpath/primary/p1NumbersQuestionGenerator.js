@@ -30,6 +30,16 @@ function shuffle(arr) {
   return copy;
 }
 
+// For 3 distinct elements, swapping one adjacent pair is always a different
+// ordering from both the fully-ascending and fully-descending order — unlike
+// a fresh random shuffle, which has a real chance of coincidentally landing
+// back on one of those two and needing to be deduped away.
+function swapAdjacent(arr, i) {
+  const copy = [...arr];
+  [copy[i], copy[i + 1]] = [copy[i + 1], copy[i]];
+  return copy;
+}
+
 // ---------------------------------------------------------------------------
 // Number words lookup (0-100)
 // ---------------------------------------------------------------------------
@@ -40,6 +50,7 @@ const WORDS_0_20 = [
 ];
 
 const WORDS_TENS = {
+  20: 'twenty',
   30: 'thirty',
   40: 'forty',
   50: 'fifty',
@@ -63,6 +74,12 @@ function numberWord(n) {
 const COUNT_OBJECTS = ['apples', 'stars', 'marbles', 'stickers', 'buttons', 'beads', 'cubes', 'flowers'];
 const ORDINAL_OBJECTS = ['bear', 'cat', 'dog', 'bird', 'fish', 'frog', 'rabbit', 'duck', 'ant', 'bee'];
 const ORDINALS = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th'];
+
+// Every COUNT_OBJECTS entry is a regular plural (no irregulars), so stripping
+// the trailing 's' always yields a valid singular form.
+function countNoun(obj, count) {
+  return count === 1 ? obj.slice(0, -1) : obj;
+}
 
 // ---------------------------------------------------------------------------
 // Helper: generate word-from-numeral distractors
@@ -105,8 +122,8 @@ function generateCountTo10(familyId) {
     answer: count,
     answerType: 'number',
     instructionHint: 'Count and write the number.',
-    solutionText: `There are ${count} ${obj}.`,
-    diagramSpec: objectSetDiagram(obj, count, { title: `${count} ${obj}` }),
+    solutionText: `There ${count === 1 ? 'is' : 'are'} ${count} ${countNoun(obj, count)}.`,
+    diagramSpec: objectSetDiagram(obj, count, { title: `${count} ${countNoun(obj, count)}` }),
     misconceptionTraps: ['skip_count_objects'],
   };
 }
@@ -239,12 +256,18 @@ function generateCountTo40(familyId) {
     solutionText: isGrouped
       ? `${tens} groups of 10 = ${tens * 10}, plus ${ones} more = ${count} ${obj}.`
       : `There are ${count} ${obj}.`,
-    diagramSpec: pictureCollectionDiagram(
-      ones > 0
-        ? [{ label: `group of 10 ${obj}`, count: tens }, { label: obj, count: ones }]
-        : [{ label: `group of 10 ${obj}`, count: tens }],
-      { title: `${count} ${obj}` },
-    ),
+    // The "scattered" family must NOT reuse the tens-grouped diagram — that
+    // would always give the easier grouped-counting visual regardless of what
+    // the prompt says, so the "count past 20 without grouping cues" variant
+    // (targeting loses_count_past_20) never actually appeared in the UI.
+    diagramSpec: isGrouped
+      ? pictureCollectionDiagram(
+        ones > 0
+          ? [{ label: `group of 10 ${obj}`, count: tens }, { label: obj, count: ones }]
+          : [{ label: `group of 10 ${obj}`, count: tens }],
+        { title: `${count} ${obj}` },
+      )
+      : objectSetDiagram(obj, count, { title: `${count} ${obj}` }),
     misconceptionTraps: ['loses_count_past_20'],
   };
 }
@@ -312,12 +335,16 @@ function generateCountTo100(familyId) {
     solutionText: isGrouped
       ? `${tens} groups of 10 = ${tens * 10}, plus ${ones} more = ${count} ${obj}.`
       : `There are ${count} ${obj}.`,
-    diagramSpec: pictureCollectionDiagram(
-      ones > 0
-        ? [{ label: `group of 10 ${obj}`, count: tens }, { label: obj, count: ones }]
-        : [{ label: `group of 10 ${obj}`, count: tens }],
-      { title: `${count} ${obj}` },
-    ),
+    // See generateCountTo40 above for why "scattered" must not reuse the
+    // tens-grouped diagram.
+    diagramSpec: isGrouped
+      ? pictureCollectionDiagram(
+        ones > 0
+          ? [{ label: `group of 10 ${obj}`, count: tens }, { label: obj, count: ones }]
+          : [{ label: `group of 10 ${obj}`, count: tens }],
+        { title: `${count} ${obj}` },
+      )
+      : objectSetDiagram(obj, count, { title: `${count} ${obj}` }),
     misconceptionTraps: ['loses_count_past_20'],
   };
 }
@@ -380,7 +407,11 @@ function generateNumberBonds(familyId) {
       answerType: 'number',
       instructionHint: 'Write the missing number.',
       solutionText: `${missing} + ${part} = 10. The missing number is ${missing}.`,
-      diagramSpec: objectSetDiagram('counters', 10, { crossedOut: part, title: `${missing} + ${part} = 10` }),
+      // Show only the whole (10 counters) — do NOT crossOut part. The old spec
+      // split the 10 counters via crossedOut:part, so the un-crossed count WAS
+      // missing (the answer), readable directly off the picture. Same fix as
+      // this function's family_002 branch below (commit 423465c5).
+      diagramSpec: objectSetDiagram('counters', 10, { title: `? + ${part} = 10` }),
       misconceptionTraps: ['number_bond_recall_error'],
     };
   }
@@ -476,8 +507,8 @@ function generateCompareOrder20(familyId) {
     options: shuffle([
       sorted.join(', '),
       [...sorted].reverse().join(', '),
-      shuffle([...nums]).join(', '),
-    ].filter((v, i, a) => a.indexOf(v) === i)).slice(0, 3),
+      swapAdjacent(sorted, 0).join(', '),
+    ]),
     instructionHint: `Order from ${direction}.`,
     solutionText: `In order from ${direction}: ${sorted.join(', ')}.`,
     diagramSpec: numberLineDiagram({
@@ -542,8 +573,8 @@ function generateCompareOrder100(familyId) {
     options: shuffle([
       sorted.join(', '),
       [...sorted].reverse().join(', '),
-      shuffle([...nums]).join(', '),
-    ].filter((v, i, a) => a.indexOf(v) === i)).slice(0, 3),
+      swapAdjacent(sorted, 0).join(', '),
+    ]),
     instructionHint: `Order from ${direction}.`,
     solutionText: `In order from ${direction}: ${sorted.join(', ')}.`,
     diagramSpec: numberLineDiagram({
@@ -579,11 +610,15 @@ function generatePatternBy1s(familyId) {
       answerType: 'number',
       instructionHint: 'Write the missing number.',
       solutionText: `The numbers count forward by 1. The missing number is ${missing}.`,
+      // step spans the full range so the axis only ticks at the two known
+      // endpoints — a step of 1 would make renderNumberLine's own tick loop
+      // label every integer between start and end, including the hidden one,
+      // regardless of what's in `points`. Points also omit the missing index.
       diagramSpec: numberLineDiagram({
         start: seq[0],
         end: seq[seq.length - 1],
-        step: 1,
-        points: seq.map((n) => ({ value: n, label: String(n) })),
+        step: seq[seq.length - 1] - seq[0],
+        points: seq.filter((_, i) => i !== missingIdx).map((n) => ({ value: n, label: String(n) })),
         title: `Counting forward by 1`,
       }),
       misconceptionTraps: ['pattern_direction_error'],
@@ -605,11 +640,13 @@ function generatePatternBy1s(familyId) {
     answerType: 'number',
     instructionHint: 'Write the missing number.',
     solutionText: `The numbers count backward by 1. The missing number is ${missing}.`,
+    // See the forward branch above for why step spans the full range and
+    // points omits the missing index.
     diagramSpec: numberLineDiagram({
       start: seq[seq.length - 1],
       end: seq[0],
-      step: 1,
-      points: seq.map((n) => ({ value: n, label: String(n) })),
+      step: seq[0] - seq[seq.length - 1],
+      points: seq.filter((_, i) => i !== missingIdx).map((n) => ({ value: n, label: String(n) })),
       title: `Counting backward by 1`,
     }),
     misconceptionTraps: ['pattern_direction_error'],
@@ -638,11 +675,15 @@ function generateSkipPatterns(familyId) {
       answerType: 'number',
       instructionHint: 'Write the next number in the pattern.',
       solutionText: `The pattern counts by ${skip}s. ${seq[seq.length - 1]} + ${skip} = ${next}.`,
+      // end must stop at the last KNOWN term, not `next` (the answer) — the
+      // renderer's own axis-tick loop labels every value from start to end,
+      // so extending the axis to `next` would tick-and-label the answer even
+      // with it removed from `points` below.
       diagramSpec: numberLineDiagram({
         start: seq[0],
-        end: next,
+        end: seq[seq.length - 1],
         step: skip,
-        points: [...seq, next].map((n) => ({ value: n, label: String(n) })),
+        points: seq.map((n) => ({ value: n, label: String(n) })),
         title: `Counting by ${skip}s`,
       }),
       misconceptionTraps: ['skip_count_reverts_to_ones'],
@@ -792,7 +833,7 @@ function generateOrdinals(familyId) {
       options,
       instructionHint: 'Choose the correct animal.',
       solutionText: `Counting from the left, the ${ORDINALS[position - 1]} animal is the ${targetAnimal}.`,
-      diagramSpec: orderedLineDiagram('animals', lineLength, position, 'left', {
+      diagramSpec: orderedLineDiagram(animals, lineLength, position, 'left', {
         title: `${ORDINALS[position - 1]} from the left`,
       }),
       misconceptionTraps: ['ordinal_cardinal_confusion'],
@@ -814,7 +855,7 @@ function generateOrdinals(familyId) {
     options,
     instructionHint: 'Choose the correct animal.',
     solutionText: `Counting from the right, the ${ORDINALS[position - 1]} animal is the ${targetAnimal}.`,
-    diagramSpec: orderedLineDiagram('animals', lineLength, position, 'right', {
+    diagramSpec: orderedLineDiagram(animals, lineLength, position, 'right', {
       title: `${ORDINALS[position - 1]} from the right`,
     }),
     misconceptionTraps: ['ordinal_cardinal_confusion'],

@@ -22,8 +22,13 @@ export function pictureCollectionDiagram(categories, { symbol = '●', title = '
   return spec('picture_collections', { categories, symbol }, { title });
 }
 
-export function placeValueBlocksDiagram(tens, ones, { hundreds = 0, title = '' } = {}) {
-  return spec('place_value_blocks', { hundreds, tens, ones }, { title: title || `${hundreds}${tens}${ones}` });
+// showTotal draws the composed number (hundreds+tens+ones concatenated) on the
+// diagram — only pass true when that total is already given/implied elsewhere
+// in the prompt. Several callers ask students to COMPOSE the number from the
+// blocks shown, so it defaults to false; the title also avoids the default
+// numeric-concatenation fallback for the same reason.
+export function placeValueBlocksDiagram(tens, ones, { hundreds = 0, showTotal = false, title = '' } = {}) {
+  return spec('place_value_blocks', { hundreds, tens, ones, showTotal }, { title: title || 'Place value blocks' });
 }
 
 export function comparisonModelDiagram(leftValue, rightValue, { leftLabel = 'A', rightLabel = 'B', mode = 'difference', title = '' } = {}) {
@@ -58,18 +63,27 @@ export function twoGroupsDiagram(objA, countA, objB, countB, { title = '' } = {}
   }, { title });
 }
 
+// `object` may be a plain label (e.g. 'animals', numbered-position fallback)
+// or an array of the actual item names in physical left-to-right order — in
+// which case each point shows the real name instead of a bare position number,
+// so the diagram genuinely depicts the row the prompt describes. The
+// highlighted (target/answer) position is always shown as "[?]" regardless —
+// never its real name/number — since that identity is exactly what the
+// question is asking the student to find.
 export function orderedLineDiagram(object, count, highlightPosition, direction, { title = '' } = {}) {
+  const items = Array.isArray(object) ? object : null;
   const points = [];
   for (let i = 1; i <= count; i++) {
-    const label = direction === 'left' ? `${i}` : `${count - i + 1}`;
+    const posLabel = direction === 'left' ? `${i}` : `${count - i + 1}`;
+    const label = items ? String(items[i - 1] ?? posLabel) : posLabel;
     points.push({ value: i, label });
   }
   if (highlightPosition >= 1 && highlightPosition <= count) {
     const idx = direction === 'left' ? highlightPosition - 1 : count - highlightPosition;
-    if (points[idx]) points[idx].label = `[${points[idx].label}]`;
+    if (points[idx]) points[idx].label = '[?]';
   }
   return spec('number_line', { start: 1, end: count, step: 1, points }, {
-    title: title || `Row of ${count} ${object}`,
+    title: title || `Row of ${count} ${items ? items.join(', ') : object}`,
     height: 200,
   });
 }
