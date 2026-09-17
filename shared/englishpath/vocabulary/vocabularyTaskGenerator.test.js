@@ -189,4 +189,71 @@ describe('vocabulary task generator', () => {
     }
     expect(checked).toBeGreaterThan(100);
   });
+
+  it('word-family rungs never answer with a word shown inside a multi-word headword', () => {
+    // Regression: idioms / phrasal verbs / similes like "boost morale" or
+    // "as fast as lightning" have a family member ("boost", "fast") that is one of
+    // the words already printed in the prompt — so the answer was in plain sight.
+    const byWord = (w) => vocabularyWordBank.find((e) => e.word === w);
+    for (const headword of ['boost morale', 'as fast as lightning', 'phase out']) {
+      const w = byWord(headword);
+      if (!w) continue;
+      for (const tt of ['morphology_match', 'word_form_pick']) {
+        const task = generateTask(w, tt, { rng: makeRng(4) });
+        if (!task) continue; // skipping is a valid outcome
+        const correct = task.options.find((o) => o.correct).text;
+        expect(new RegExp(`\\b${correct}\\b`, 'i').test(headword), `${headword}/${tt}`).toBe(false);
+      }
+    }
+  });
+
+  it('word_recall is skipped when the clue names the answer word', () => {
+    // "as hungry as a fox" is the clue AND names "fox"; "aid" is glossed with its
+    // answer word ("help") — neither makes a fair "which word means…?" question.
+    for (const headword of ['fox', 'aid']) {
+      const w = vocabularyWordBank.find((e) => e.word === headword);
+      if (!w) continue;
+      expect(generateTask(w, 'word_recall', { rng: makeRng(4) }), headword).toBeNull();
+    }
+  });
+
+  it('cloze_synonym never uses a synonym that is already in the sentence', () => {
+    const rng = makeRng(9);
+    let checked = 0;
+    for (const w of vocabularyWordBank) {
+      const task = generateTask(w, 'cloze_synonym', { bank: vocabularyWordBank, rng });
+      if (!task) continue;
+      checked++;
+      const correct = task.options.find((o) => o.correct).text;
+      const sentence = task.prompt.replace(/__.*?__/, ' '); // drop the underlined answer
+      expect(new RegExp(`\\b${correct}\\b`, 'i').test(sentence), `cloze_synonym "${w.word}" -> "${correct}"`).toBe(false);
+    }
+    expect(checked).toBeGreaterThan(100);
+  });
+
+  // A word-valued correct answer must never be visible in its own prompt. Excludes
+  // the task types where the headword is shown on purpose (the correct option is a
+  // meaning or label, or — for collocation_natural — every option contains it).
+  it('never reveals a word answer inside its own prompt', () => {
+    const HIDDEN = new Set([
+      'word_recall', 'synonym_match', 'morphology_match', 'collocation_pick',
+      'word_form_pick', 'cloze_synonym', 'sentence_cloze', 'nuance_pick',
+      'phrasal_verb_pick', 'odd_one_out',
+    ]);
+    const failures = [];
+    for (const w of vocabularyWordBank) {
+      for (const task of generateLadder(w)) {
+        if (task.kind !== 'mcq' || !HIDDEN.has(task.taskType)) continue;
+        const correct = task.options.find((o) => o.correct)?.text;
+        if (!correct) continue;
+        // For cloze_synonym the answer word is underlined on purpose; the correct
+        // option is a SYNONYM, so drop the underlined span before checking.
+        const prompt = task.prompt.replace(/__.*?__/g, ' ').replace(/_{3,}|________/g, ' ').replace(/[*]/g, '');
+        if (new RegExp(`(^|[^a-z])${correct.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z]|$)`, 'i').test(prompt)) {
+          failures.push(`${w.word}/${task.taskType}: "${correct}" in prompt`);
+        }
+      }
+    }
+    expect(failures, `${failures.length} answer leak(s):\n${failures.slice(0, 20).join('\n')}`).toEqual([]);
+  });
 });
