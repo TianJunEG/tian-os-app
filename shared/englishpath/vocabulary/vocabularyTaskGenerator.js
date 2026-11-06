@@ -149,6 +149,17 @@ function hasContentRemainder(phrase, re) {
     .some((tok) => tok && !COLLOCATION_FUNCTION_WORDS.has(tok));
 }
 
+// True when `needle` occurs as a whole word inside `haystack` (case-insensitive).
+// Used to catch answers that are already visible in the prompt — e.g. a word-family
+// member ("boost") sitting inside a multi-word headword ("boost morale"), or a clue
+// that names the very word it is asking for ("as hungry as a fox" → "fox").
+function containsWholeWord(haystack, needle) {
+  const n = norm(needle);
+  if (!n) return false;
+  const re = new RegExp(`(^|[^a-z])${n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z]|$)`, 'i');
+  return re.test(String(haystack));
+}
+
 // ---- distractor pools from the wider bank ---------------------------------
 
 // Memo keyed on the bank object. Everything derived from the bank alone (the
@@ -268,6 +279,12 @@ const GENERATORS = {
   },
 
   word_recall(entry, bank, rng) {
+    // "Which word means: <clue>?" is unfair when the answer is already visible in
+    // the question — whether in the clue itself (an idiom gloss "as hungry as a
+    // fox", or a definition led by a synonym that is the answer) or in the fixed
+    // wording (the word "means" for the headword "means"). Check the whole prompt.
+    const prompt = `Which word means: “${entry.meaning}”?`;
+    if (containsWholeWord(prompt, entry.answer)) return null;
     const options = buildOptions({
       correct: entry.answer,
       distractors: entry.confusables,
@@ -278,7 +295,7 @@ const GENERATORS = {
     if (!options) return null;
     return {
       kind: 'mcq',
-      prompt: `Which word means: “${entry.meaning}”?`,
+      prompt,
       options,
       rationale: `“${entry.answer}” means ${entry.meaning}`,
     };
@@ -333,11 +350,12 @@ const GENERATORS = {
   },
 
   morphology_match(entry, bank, rng) {
-    // The correct answer must be a DIFFERENTLY-spelled family member — otherwise
-    // it's just the question word again (e.g. "consent" the verb vs "consent" the
-    // noun), which reads as "the answer is the word being asked about". Skip the
-    // task for words whose family has no distinct-form member.
-    const members = entry.wordFamily.filter((f) => norm(f.word) !== norm(entry.word));
+    // The correct answer must be a family member that is NOT already visible in
+    // the headword shown in the prompt. That rules out a same-spelling homograph
+    // ("consent" verb vs "consent" noun) and, for multi-word headwords, a member
+    // that is one of the words in the phrase ("boost" inside "boost morale",
+    // "fast" inside "as fast as lightning"). Skip the task when none qualify.
+    const members = entry.wordFamily.filter((f) => !containsWholeWord(entry.word, f.word));
     if (!members.length) return null;
     const member = members[Math.floor(rng() * members.length)];
     // Distractors: the confusables, padded with random bank words — but never a
@@ -391,20 +409,27 @@ const GENERATORS = {
   },
 
   odd_one_out(entry, bank, rng) {
-    // The odd word must be a genuine non-synonym, so exclude any confusable that
-    // also appears among the synonyms.
+    // The prompt's own content words must not appear among the options, or a word
+    // in the question gives the answer away (the old "...share a similar meaning..."
+    // wording collided with options like "share" and "similar"). Keep the prompt's
+    // content words to a minimum and exclude any option that still collides.
+    const prompt = `Three of these words are close in meaning. Which one does **not** belong?`;
+    const promptWords = new Set(prompt.toLowerCase().replace(/[*]/g, '').split(/[^a-z]+/).filter(Boolean));
+    // The odd word must be a genuine non-synonym, and not a word used in the prompt.
     const synSet = new Set(entry.synonyms.map(norm));
-    const odd = entry.confusables.find((c) => !synSet.has(norm(c)));
+    const odd = entry.confusables.find((c) => !synSet.has(norm(c)) && !promptWords.has(norm(c)));
     if (!odd || entry.synonyms.length < 2) return null;
     // three "belong" words: the headword's synonyms (and the headword itself if needed)
-    const belong = uniqueStrings([...entry.synonyms, entry.word]).filter((w) => norm(w) !== norm(odd)).slice(0, 3);
+    const belong = uniqueStrings([...entry.synonyms, entry.word])
+      .filter((w) => norm(w) !== norm(odd) && !promptWords.has(norm(w)))
+      .slice(0, 3);
     if (belong.length < 3) return null;
     const options = shuffle([{ text: odd, correct: true }, ...belong.map((t) => ({ text: t, correct: false }))], rng).map(
       (o, i) => ({ id: String(i + 1), text: o.text, correct: o.correct })
     );
     return {
       kind: 'mcq',
-      prompt: `Three of these words share a similar meaning. Which one does **not** belong?`,
+      prompt,
       options,
       rationale: `“${belong.join('”, “')}” all relate to ${entry.meaning} — but “${odd}” does not.`,
     };
@@ -467,11 +492,12 @@ const GENERATORS = {
 
   word_form_pick(entry, bank, rng) {
     // Ask for a part-of-speech form that only one family member has, so the
-    // answer is unambiguous. Exclude family members spelled like the headword
-    // (e.g. "consent" noun vs "consent" verb) — otherwise the "answer" is just
-    // the headword shown in the prompt, so the question has no real answer.
+    // answer is unambiguous. Exclude any member already visible in the headword
+    // shown in the prompt — a same-spelling homograph ("consent" noun vs verb) or
+    // a word inside a multi-word headword ("phase" inside "phase out") — otherwise
+    // the "answer" is just the word the prompt already shows.
     const candidate = entry.wordFamily.find(
-      (f) => f.pos !== entry.pos && f.pos !== 'other' && norm(f.word) !== norm(entry.word),
+      (f) => f.pos !== entry.pos && f.pos !== 'other' && !containsWholeWord(entry.word, f.word),
     );
     if (!candidate) return null;
     const sharesPos = entry.wordFamily.filter((f) => f.pos === candidate.pos).length;
@@ -523,7 +549,11 @@ const GENERATORS = {
 
   cloze_synonym(entry, bank, rng) {
     if (!hasBlank(entry.example) || !entry.synonyms.length) return null;
-    const correct = entry.synonyms[0];
+    // The correct synonym must not already appear in the sentence, or the answer
+    // is sitting in plain sight ("...moved at a __sluggish__ pace, far too slow..."
+    // → "slow"). Prefer the first synonym that doesn't leak; skip if all do.
+    const correct = entry.synonyms.find((s) => !containsWholeWord(entry.example, s));
+    if (!correct) return null;
     const sentence = fillBlank(entry.example, `__${entry.answer}__`); // __word__ = underline marker for the UI
     const options = buildOptions({
       correct,
